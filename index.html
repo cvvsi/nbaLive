@@ -4,102 +4,168 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="9-Cat Box">
-<meta name="theme-color" content="#11161c">
+<meta name="theme-color" content="#f4f5f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121311" media="(prefers-color-scheme: dark)">
 <title>9-Cat Box</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-/* Layout: sticky control header, then one ranked table with a frozen player column; cells shaded by z-score. */
+/* Layout: sticky date bar → scoreboard tiles → sticky category ruler → one row per player
+   (name line + 9-cell heat strip). Phone-first; no sideways scrolling. */
 :root{
-  --bg:#f3f5f7; --surface:#ffffff; --fg:#16202a; --muted:#64717e; --line:#dde2e7;
-  --accent:#1f6feb; --pos:#1a9a55; --neg:#d23c3c; --chip:#e8ecf0;
-  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
-  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --bg:#f4f5f2;        /* gym-floor grey, faint green bias */
+  --panel:#ffffff;
+  --ink:#141613;
+  --dim:#6b7069;
+  --rule:#dfe2dc;
+  --cell:#eceee9;
+  --ball:#d9530f;      /* basketball orange: the only accent */
+  --pos:#178a4c;
+  --neg:#c9372c;
+  --name:"Archivo Narrow","Arial Narrow","Roboto Condensed",system-ui,sans-serif;
+  --num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --bar:48px;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root{
-  --bg:#0d1217; --surface:#151c23; --fg:#e6ebf0; --muted:#8996a3; --line:#26303a;
-  --accent:#5b9dff; --pos:#2fbf71; --neg:#f0605a; --chip:#1e2730; color-scheme:dark}}
+  --bg:#121311; --panel:#1a1c19; --ink:#e9ebe6; --dim:#8a9087; --rule:#2a2d28; --cell:#232621;
+  --ball:#f07a36; --pos:#3cc77d; --neg:#f2675b; color-scheme:dark}}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
-body{background:var(--bg);color:var(--fg);font:15px/1.4 var(--body);
-  padding-bottom:env(safe-area-inset-bottom,0px);-webkit-text-size-adjust:100%}
-header{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);
-  padding:calc(env(safe-area-inset-top,0px) + 10px) max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));
-  display:grid;gap:8px}
-.row{display:flex;gap:8px;align-items:center;min-width:0;flex-wrap:wrap}
-header{overflow:hidden}
-h1{font:700 21px/1 var(--display);letter-spacing:.02em;margin:0;flex:1;white-space:nowrap;text-transform:uppercase}
-h1 span{color:var(--accent)}
-button,select,input{font:inherit;color:inherit}
-.btn{background:var(--chip);border:0;border-radius:8px;padding:6px 11px;font-weight:600;cursor:pointer}
-.btn:focus-visible,.chip:focus-visible,th:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-#date{background:var(--chip);border:0;border-radius:8px;padding:5px 6px;font-weight:600;width:132px;min-width:0}
-.scroller{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -12px;padding:0 12px}
-.scroller::-webkit-scrollbar{display:none}
-.chip{flex:none;background:var(--chip);border:1px solid transparent;border-radius:999px;padding:4px 10px;
-  font:600 13px/1.3 var(--display);letter-spacing:.03em;white-space:nowrap;cursor:pointer}
-.chip.on{background:var(--accent);color:#fff}
-.chip.punt{text-decoration:line-through;opacity:.5}
-.chip .live{color:var(--neg)}
-.chip.on .live{color:#fff}
-.lbl{font:600 11px/1 var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);flex:none}
-#status{padding:10px max(12px,env(safe-area-inset-left,0px));color:var(--muted);font-size:13px}
-#status.err{color:var(--neg)}
-.wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-table{border-collapse:separate;border-spacing:0;font:500 14px/1 var(--display);font-variant-numeric:tabular-nums;min-width:100%}
-th,td{padding:7px 6px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
-th{position:sticky;top:0;background:var(--surface);font-weight:700;font-size:12px;letter-spacing:.06em;
-  color:var(--muted);cursor:pointer;user-select:none}
-th.sorted{color:var(--accent)}
-th.cat.punted{text-decoration:line-through;opacity:.45}
-td.name,th.name{position:sticky;left:0;text-align:left;background:var(--surface);z-index:1;
-  max-width:150px;overflow:hidden;text-overflow:ellipsis;border-right:1px solid var(--line)}
-th.name{z-index:2}
-td.name b{display:block;font:600 14px/1.15 var(--body);overflow:hidden;text-overflow:ellipsis}
-td.name small{font:500 11px/1.2 var(--body);color:var(--muted)}
-tbody tr{background:var(--surface)}
-td.rk{color:var(--muted);font-size:12px}
-td.val{font-weight:700;font-size:15px}
-td.z{min-width:40px}
-td .sub{display:block;font-size:10.5px;color:var(--muted);margin-top:2px}
-td.min{font-weight:700}
-.mbar{display:block;height:3px;background:var(--line);border-radius:2px;margin-top:3px}
-.mbar i{display:block;height:100%;background:var(--accent);border-radius:2px}
-footer{padding:14px max(12px,env(safe-area-inset-left,0px)) 28px;color:var(--muted);font-size:12.5px;max-width:640px}
-footer p{margin:0 0 6px}
+body{background:var(--bg);color:var(--ink);font:500 15px/1.35 var(--name);-webkit-text-size-adjust:100%;
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--panel);z-index:20}
+button,select{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--ball);outline-offset:2px}
+.gut{padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+.num{font-family:var(--num);font-variant-numeric:tabular-nums}
+
+/* top bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;height:var(--bar);background:var(--panel);
+  border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:6px}
+.mark{font:700 15px/1 var(--name);letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;gap:6px;flex:none}
+.mark i{width:10px;height:10px;border-radius:50%;background:var(--ball);display:block}
+.datenav{flex:1;display:flex;justify-content:center;align-items:center;gap:2px;min-width:0}
+.arrow{width:36px;height:36px;display:grid;place-items:center;font-size:20px;color:var(--dim);border-radius:6px}
+.arrow:active{background:var(--cell)}
+.datelbl{position:relative;font:600 16px/1 var(--name);padding:8px 6px;white-space:nowrap}
+.datelbl input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+.gear{flex:none;font:600 13px/1 var(--name);text-transform:uppercase;letter-spacing:.06em;padding:8px 10px;border:1px solid var(--rule);border-radius:6px}
+.gear[aria-expanded="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+
+/* settings */
+.sheet{background:var(--panel);border-bottom:1px solid var(--rule);padding-block:12px 14px;display:grid;gap:12px}
+.sheet h3{margin:0 0 6px;font:600 11px/1 var(--name);text-transform:uppercase;letter-spacing:.1em;color:var(--dim)}
+.toggles{display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
+.tog{font:600 12px/1 var(--num);padding:9px 0;border-radius:4px;background:var(--cell);text-align:center}
+.tog[aria-pressed="true"]{background:transparent;color:var(--dim);text-decoration:line-through;box-shadow:inset 0 0 0 1px var(--rule)}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+.seg button{font:600 13px/1 var(--name);padding:8px 12px}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.sheet p{margin:0;font-size:13.5px;color:var(--dim);max-width:60ch}
+
+/* scoreboard tiles */
+.games{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-block:10px}
+.games::-webkit-scrollbar{display:none}
+.tile{flex:none;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:6px 9px;text-align:left;
+  display:grid;grid-template-columns:auto auto;column-gap:10px;row-gap:1px;align-items:center;min-width:92px}
+.tile .t{font:600 13px/1.2 var(--name)}
+.tile .s{font:500 13px/1.2 var(--num);text-align:right}
+.tile .w{font-weight:600}
+.tile .l{color:var(--dim)}
+.tile .st{grid-column:1/-1;font:600 10px/1.4 var(--name);text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px}
+.tile .st.live{color:var(--ball)}
+.tile .st.live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ball);margin-right:4px;vertical-align:1px;animation:pulse 1.4s infinite}
+.tile.all{min-width:0;place-content:center;font:700 13px/1.2 var(--name);text-transform:uppercase;letter-spacing:.06em;display:grid;grid-template-columns:auto}
+.tile[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 -3px 0 var(--ball)}
+@keyframes pulse{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.tile .st.live::before{animation:none}}
+
+/* ruler (sticky column header) */
+.ruler{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--bar));z-index:9;background:var(--bg);
+  border-bottom:1px solid var(--rule);padding-block:6px 0}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;font:500 11px/1 var(--num);color:var(--dim);text-transform:uppercase;letter-spacing:.04em}
+.meta .sort{display:flex;gap:2px}
+.meta .sort button{font:600 12px/1 var(--name);letter-spacing:.06em;padding:6px 7px;border-radius:4px;color:var(--dim)}
+.meta .sort button[aria-pressed="true"]{color:var(--ink);background:var(--cell)}
+.cats{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;margin-top:4px}
+.cats button{font:600 10.5px/1 var(--num);color:var(--dim);padding:6px 0 7px;text-align:center;letter-spacing:.02em}
+.cats button[aria-pressed="true"]{color:var(--ball)}
+.cats button.punted{text-decoration:line-through;opacity:.5}
+
+/* player rows */
+#list{display:grid}
+.p{border-bottom:1px solid var(--rule);padding-block:9px 10px;cursor:pointer}
+.p:active{opacity:.8}
+.top{display:grid;grid-template-columns:26px 1fr auto;align-items:baseline;column-gap:6px}
+.rk{font:500 12px/1 var(--num);color:var(--dim)}
+.who{min-width:0}
+.who b{font:600 16px/1.15 var(--name);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who span{font:500 12.5px/1.3 var(--name);color:var(--dim);white-space:nowrap}
+.who .st{color:var(--ink);font-weight:700}
+.val{font:600 17px/1 var(--num);text-align:right}
+.val small{display:block;font:500 10px/1.4 var(--name);color:var(--dim);text-transform:uppercase;letter-spacing:.08em;text-align:right}
+.mins{display:flex;align-items:center;gap:6px;grid-column:2/4;margin-top:4px;font:500 11.5px/1 var(--num);color:var(--dim)}
+.mins .track{flex:1;max-width:120px;height:3px;background:var(--cell);border-radius:2px}
+.mins .track i{display:block;height:100%;background:var(--ink);opacity:.55;border-radius:2px}
+.strip{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;margin-top:8px}
+.c{border-radius:3px;padding:6px 0 5px;text-align:center;font:500 13px/1.1 var(--num);background:var(--cell);min-width:0}
+.c small{display:block;font-size:9.5px;color:var(--dim);margin-top:2px;letter-spacing:-.02em}
+.c.off{background:transparent;color:var(--dim);opacity:.45;box-shadow:inset 0 0 0 1px var(--rule)}
+.c .z{display:none;font-size:9.5px;margin-top:2px;color:var(--ink);opacity:.75}
+.p.open .c .z{display:block}
+.more{display:none;margin-top:8px;font:500 12px/1.5 var(--num);color:var(--dim)}
+.p.open .more{display:block}
+.empty{padding:40px 0;color:var(--dim);text-align:center;font-size:15px}
+.empty.err{color:var(--neg)}
+@media (min-width:720px){
+  main,.games,.ruler>div,.sheet>div{max-width:760px;margin-inline:auto}
+  .c{font-size:14px}
+}
 </style>
 </head>
 <body>
-<header>
-  <div class="row">
-    <h1>9-Cat <span>Box</span></h1>
-    <button class="btn" id="prev" aria-label="Previous day">‹</button>
-    <input type="date" id="date" aria-label="Date">
-    <button class="btn" id="next" aria-label="Next day">›</button>
+<div class="bar gut">
+  <div class="mark"><i></i>9-Cat</div>
+  <div class="datenav">
+    <button class="arrow" id="prev" aria-label="Previous day">‹</button>
+    <label class="datelbl"><span id="dateTxt">—</span><input type="date" id="date" aria-label="Pick a date"></label>
+    <button class="arrow" id="next" aria-label="Next day">›</button>
   </div>
-  <div class="scroller" id="games" aria-label="Games"></div>
-  <div class="row" style="flex-wrap:nowrap">
-    <span class="lbl">Punt</span>
-    <div class="scroller" id="cats" style="margin:0;padding:0"></div>
+  <button class="gear" id="gear" aria-expanded="false" aria-controls="sheet">Punt</button>
+</div>
+
+<div class="sheet gut" id="sheet" hidden>
+  <div><h3>Punt categories</h3><div class="toggles" id="toggles"></div></div>
+  <div><h3>Compare against</h3>
+    <div class="seg" id="poolSeg">
+      <button data-v="0">Everyone</button><button data-v="10">10+ min</button><button data-v="15">15+ min</button><button data-v="20">20+ min</button>
+    </div>
   </div>
-  <div class="row">
-    <span class="lbl">Show</span>
-    <button class="chip on" id="vStats">Stats</button>
-    <button class="chip" id="vZ">Z-scores</button>
-    <span style="flex:1"></span><span class="lbl">Pool</span>
-    <select id="pool" class="btn" aria-label="Minimum minutes for comparison pool">
-      <option value="0">All</option><option value="10">10+ min</option><option value="15">15+ min</option><option value="20">20+ min</option>
-    </select>
+  <div><p><b>Value</b> is a player's average z-score across your active categories, relative to everyone in the comparison pool who played that day. FG% and FT% count makes above or below average on their attempts, so volume matters. Turnovers count against. Tap a player to see the z-score under each stat.</p></div>
+</div>
+
+<div class="games gut" id="games" role="group" aria-label="Games"></div>
+
+<div class="ruler gut">
+  <div>
+    <div class="meta">
+      <span id="status" class="num">Loading</span>
+      <div class="sort" id="sortSeg">
+        <button data-k="value" aria-pressed="true">Value</button><button data-k="min">Min</button><button data-k="usg">Usg</button>
+      </div>
+    </div>
+    <div class="cats" id="cats"></div>
   </div>
-</header>
-<div id="status">Loading…</div>
-<div class="wrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
-<footer>
-  <p><b>Value</b> is the average of a player's z-scores across your active categories, measured against everyone in the pool who played that day. FG% and FT% are weighted by attempts (makes above or below average volume), so 2-for-2 counts less than 10-for-12. Turnovers are inverted.</p>
-  <p>Tap a column to sort. Tap the punt chips to drop a category. Live games refresh every minute. Data: ESPN public feed.</p>
-</footer>
+</div>
+
+<main class="gut" id="list"></main>
+
 <script>
 const CATS=[
   {k:"pts",l:"PTS"},{k:"tpm",l:"3PM"},{k:"reb",l:"REB"},{k:"ast",l:"AST"},
@@ -107,41 +173,41 @@ const CATS=[
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const S={date:null,events:[],players:[],game:"all",punt:new Set(store.get("punt",[])),
-  view:"stats",pool:+store.get("pool",10),sort:{k:"value",dir:-1},timer:null};
+  pool:+store.get("pool",10),sort:"value",open:new Set(),timer:null,updated:null,err:null};
 const $=id=>document.getElementById(id);
 
 // ---- dates (US Eastern, which is how ESPN buckets the NBA slate)
 function etToday(){return new Intl.DateTimeFormat("en-CA",{timeZone:"America/New_York"}).format(new Date())}
 function shift(d,n){const t=new Date(d+"T12:00:00Z");t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10)}
+function fmtDate(d){return new Date(d+"T12:00:00Z").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric",timeZone:"UTC"})}
 
-// ---- data
+// ---- data (ESPN public feed)
 const API="https://site.api.espn.com/apis/site/v2/sports/basketball/nba";
 async function getJSON(u){const r=await fetch(u,{cache:"no-store"});if(!r.ok)throw new Error(r.status);return r.json()}
 
 async function loadDate(d,auto){
-  S.date=d;$("date").value=d;clearTimeout(S.timer);
-  setStatus("Loading "+fmtDate(d)+"…");
+  const same=d===S.date;
+  S.date=d;$("date").value=d;$("dateTxt").textContent=fmtDate(d);clearTimeout(S.timer);
+  if(!same){S.players=[];S.events=[];S.open.clear();S.err=null;renderGames();renderList("Loading "+fmtDate(d)+"…")}
   let sb;
   try{sb=await getJSON(`${API}/scoreboard?dates=${d.replace(/-/g,"")}`)}
-  catch(e){return setStatus("Couldn't reach ESPN's stats feed. Check your connection and pull to refresh.",true)}
+  catch(e){S.err=1;return renderList("Couldn't reach ESPN's stats feed. Check your connection, then tap the date to retry.",true)}
   const evs=(sb.events||[]).map(e=>{
     const c=e.competitions[0],h=c.competitors.find(x=>x.homeAway==="home"),a=c.competitors.find(x=>x.homeAway==="away");
     return{id:e.id,state:e.status.type.state,detail:e.status.type.shortDetail,
-      home:h.team.abbreviation,away:a.team.abbreviation,hs:h.score,as:a.score};
+      home:h.team.abbreviation,away:a.team.abbreviation,hs:+h.score||0,as:+a.score||0};
   });
   const started=evs.filter(e=>e.state!=="pre");
-  if(auto&&!started.length){return loadDate(shift(d,-1),false)} // nothing tipped yet today: show last night
+  if(auto&&!started.length)return loadDate(shift(d,-1),false); // nothing tipped yet: show last night
   S.events=evs;
-  if(!started.length){S.players=[];renderGames();render();
-    return setStatus(evs.length?`${evs.length} games scheduled, none started yet.`:"No NBA games on this date.")}
+  if(!started.length){S.players=[];renderGames();setStatus("");
+    return renderList(evs.length?`${evs.length} games tonight. Stats show up at tip-off.`:"No NBA games on this date.")}
   const boxes=await Promise.all(started.map(e=>getJSON(`${API}/summary?event=${e.id}`).then(j=>({e,j})).catch(()=>null)));
-  S.players=[];
-  for(const b of boxes){if(b)S.players.push(...parseBox(b.e,b.j))}
+  const ps=[];for(const b of boxes){if(b)ps.push(...parseBox(b.e,b.j))}
+  S.players=ps;
   if(!S.events.some(e=>e.id===S.game))S.game="all";
-  compute();renderGames();render();
-  const live=evs.some(e=>e.state==="in");
-  setStatus(`${S.players.length} players · ${started.length} game${started.length>1?"s":""}${live?" · live, refreshing every minute":""}`);
-  if(live)S.timer=setTimeout(()=>loadDate(S.date,false),60000);
+  S.updated=new Date();compute();renderGames();render();
+  if(evs.some(e=>e.state==="in"))S.timer=setTimeout(()=>loadDate(S.date,false),60000);
 }
 
 function split(s){const [m,a]=String(s||"0-0").split("-").map(Number);return[m||0,a||0]}
@@ -159,32 +225,29 @@ function parseBox(ev,j){
       if(a.didNotPlay||!a.stats||!a.stats.length)continue;
       const s=a.stats,min=parseFloat(s[I.min])||0;if(min<=0)continue;
       const [fgm,fga]=split(s[I.fg]),[tpm,tpa]=split(s[I.tp]),[ftm,fta]=split(s[I.ft]);
-      rows.push({name:a.athlete.displayName,pos:(a.athlete.position||{}).abbreviation||"",team:abbr,opp,
-        home:abbr===ev.home,game:ev.id,starter:!!a.starter,min,
+      rows.push({id:(a.athlete.id||a.athlete.displayName)+"",name:a.athlete.displayName,pos:(a.athlete.position||{}).abbreviation||"",
+        team:abbr,opp,home:abbr===ev.home,game:ev.id,starter:!!a.starter,min,
         pts:+s[I.pts]||0,reb:+s[I.reb]||0,ast:+s[I.ast]||0,stl:+s[I.stl]||0,blk:+s[I.blk]||0,to:+s[I.to]||0,
         pf:+s[I.pf]||0,pm:parseInt(s[I.pm])||0,fgm,fga,tpm,tpa,ftm,fta});
     }
-    // usage rate from team totals
     const T=rows.reduce((o,r)=>(o.min+=r.min,o.fga+=r.fga,o.fta+=r.fta,o.to+=r.to,o),{min:0,fga:0,fta:0,to:0});
-    for(const r of rows){
-      const tp=T.fga+.44*T.fta+T.to;
-      r.usg=tp&&r.min?100*((r.fga+.44*r.fta+r.to)*(T.min/5))/(r.min*tp):0;
-    }
+    for(const r of rows){const tp=T.fga+.44*T.fta+T.to;
+      r.usg=tp&&r.min?100*((r.fga+.44*r.fta+r.to)*(T.min/5))/(r.min*tp):0}
     out.push(...rows);
   }
   return out;
 }
 
-// ---- z-scores, Basketball Monster style: relative to everyone who played that day
+// ---- z-scores: relative to everyone in the pool who played that day
+const sum=(a,k)=>a.reduce((s,p)=>s+p[k],0);
 function compute(){
-  const P=S.players,pool=P.filter(p=>p.min>=S.pool);const base=pool.length>=10?pool:P;
+  const P=S.players,pool=P.filter(p=>p.min>=S.pool),base=pool.length>=10?pool:P;
   const lgFG=sum(base,"fgm")/Math.max(1,sum(base,"fga")),lgFT=sum(base,"ftm")/Math.max(1,sum(base,"fta"));
   for(const p of P){p.fgi=p.fgm-lgFG*p.fga;p.fti=p.ftm-lgFT*p.fta}
   const src={pts:"pts",tpm:"tpm",reb:"reb",ast:"ast",stl:"stl",blk:"blk",fg:"fgi",ft:"fti",to:"to"};
-  const stats={};
-  for(const c of CATS){const k=src[c.k];const m=sum(base,k)/base.length;
-    const sd=Math.sqrt(base.reduce((a,p)=>a+(p[k]-m)**2,0)/base.length)||1;stats[c.k]={m,sd,k}}
-  for(const p of P){p.z={};for(const c of CATS){const s=stats[c.k];let z=(p[s.k]-s.m)/s.sd;if(c.k==="to")z=-z;p.z[c.k]=z}}
+  for(const c of CATS){const k=src[c.k],m=sum(base,k)/base.length;
+    const sd=Math.sqrt(base.reduce((a,p)=>a+(p[k]-m)**2,0)/base.length)||1;
+    for(const p of P){(p.z||(p.z={}))[c.k]=(c.k==="to"?-1:1)*(p[k]-m)/sd}}
   scoreValue();
 }
 function scoreValue(){
@@ -192,73 +255,85 @@ function scoreValue(){
   for(const p of S.players)p.value=act.length?act.reduce((a,c)=>a+p.z[c.k],0)/act.length:0;
   [...S.players].sort((a,b)=>b.value-a.value).forEach((p,i)=>p.rank=i+1);
 }
-const sum=(a,k)=>a.reduce((s,p)=>s+p[k],0);
 
 // ---- render
-function setStatus(t,err){const el=$("status");el.textContent=t;el.className=err?"err":""}
-function fmtDate(d){return new Date(d+"T12:00:00Z").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric",timeZone:"UTC"})}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const sgn=(v,d=2)=>(v>0?"+":v<0?"−":"")+Math.abs(v).toFixed(d);
+function heat(z){const a=Math.round(Math.min(1,Math.abs(z)/2.2)*58);
+  return a<4?"":`background:color-mix(in oklab,var(${z>0?"--pos":"--neg"}) ${a}%,var(--cell))`}
+function pct(m,a){return !a?"–":m===a?"1.00":(m/a).toFixed(3).replace(/^0/,"")}
+function setStatus(t){$("status").textContent=t}
+
 function renderGames(){
-  const g=$("games");g.innerHTML="";
-  const mk=(id,html)=>{const b=document.createElement("button");b.className="chip"+(S.game===id?" on":"");b.innerHTML=html;
-    b.onclick=()=>{S.game=id;renderGames();render()};g.appendChild(b)};
-  if(S.events.length)mk("all","All games");
+  const g=$("games");
+  const tiles=[];
+  if(S.events.some(e=>e.state!=="pre"))tiles.push(`<button class="tile all" data-g="all" aria-pressed="${S.game==="all"}">All</button>`);
   for(const e of S.events){
-    const sc=e.state==="pre"?e.detail:`${e.away} ${e.as} @ ${e.home} ${e.hs}`;
-    const tag=e.state==="in"?` <span class="live">● ${e.detail}</span>`:e.state==="post"?"":"";
-    mk(e.id,e.state==="pre"?`${e.away} @ ${e.home} · ${sc}`:sc+tag);
+    const pre=e.state==="pre",aw=!pre&&e.as>e.hs,hw=!pre&&e.hs>e.as;
+    const st=e.state==="post"?"Final":e.detail;
+    tiles.push(`<button class="tile" data-g="${e.id}" aria-pressed="${S.game===e.id}" ${pre?"disabled":""}>
+      <span class="t ${hw?"l":""}">${e.away}</span><span class="s num ${aw?"w":hw?"l":""}">${pre?"":e.as}</span>
+      <span class="t ${aw?"l":""}">${e.home}</span><span class="s num ${hw?"w":aw?"l":""}">${pre?"":e.hs}</span>
+      <span class="st ${e.state==="in"?"live":""}">${esc(st)}</span></button>`);
   }
+  g.innerHTML=tiles.join("");
+  g.querySelectorAll(".tile").forEach(b=>b.onclick=()=>{S.game=b.dataset.g;renderGames();render()});
 }
 function renderCats(){
-  const c=$("cats");c.innerHTML="";
-  for(const cat of CATS){const b=document.createElement("button");b.className="chip"+(S.punt.has(cat.k)?" punt":"");
-    b.textContent=cat.l;b.setAttribute("aria-pressed",S.punt.has(cat.k));
-    b.onclick=()=>{S.punt.has(cat.k)?S.punt.delete(cat.k):S.punt.add(cat.k);store.set("punt",[...S.punt]);
-      renderCats();if(S.players.length){scoreValue();render()}};c.appendChild(b)}
+  $("cats").innerHTML=CATS.map(c=>`<button data-k="${c.k}" class="${S.punt.has(c.k)?"punted":""}" aria-pressed="${S.sort===c.k}">${c.l}</button>`).join("");
+  $("cats").querySelectorAll("button").forEach(b=>b.onclick=()=>setSort(S.sort===b.dataset.k?"value":b.dataset.k));
+  $("toggles").innerHTML=CATS.map(c=>`<button class="tog" data-k="${c.k}" aria-pressed="${S.punt.has(c.k)}">${c.l}</button>`).join("");
+  $("toggles").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.k;
+    S.punt.has(k)?S.punt.delete(k):S.punt.add(k);store.set("punt",[...S.punt]);
+    $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
+    renderCats();if(S.players.length){scoreValue();render()}});
+  $("sortSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",S.sort===b.dataset.k));
 }
-const COLS=[
-  {k:"rank",l:"RK"},{k:"value",l:"VALUE"},{k:"name",l:"PLAYER"},{k:"min",l:"MIN"},{k:"usg",l:"USG"},
-  ...CATS.map(c=>({k:c.k,l:c.l,cat:true})),{k:"pm",l:"+/-"},{k:"pf",l:"PF"}];
-function shade(z){if(!isFinite(z))return"";const a=Math.min(1,Math.abs(z)/2.5)*42;
-  return`background:color-mix(in srgb,var(${z>0?"--pos":"--neg"}) ${a.toFixed(0)}%,var(--surface))`}
-function pct(m,a){return a?(m/a).toFixed(3).replace(/^0/,""):"—"}
-function cell(p,k){
-  if(S.view==="z")return(p.z[k]>=0?"+":"")+p.z[k].toFixed(2);
-  switch(k){case"pts":return p.pts;case"tpm":return p.tpm;case"reb":return p.reb;case"ast":return p.ast;
-    case"stl":return p.stl;case"blk":return p.blk;case"to":return p.to;
-    case"fg":return`${pct(p.fgm,p.fga)}<span class="sub">${p.fgm}/${p.fga}</span>`;
-    case"ft":return`${pct(p.ftm,p.fta)}<span class="sub">${p.ftm}/${p.fta}</span>`}
+function setSort(k){S.sort=k;renderCats();render()}
+function sortKey(p){const k=S.sort;if(k==="value"||k==="min"||k==="usg")return p[k];return p.z[k]}
+
+function cell(p,c){
+  const off=S.punt.has(c.k),z=p.z[c.k];
+  let main,sub="";
+  if(c.k==="fg"){main=pct(p.fgm,p.fga);sub=`<small>${p.fgm}/${p.fga}</small>`}
+  else if(c.k==="ft"){main=pct(p.ftm,p.fta);sub=`<small>${p.ftm}/${p.fta}</small>`}
+  else main=p[c.k];
+  return`<div class="c${off?" off":""}" style="${off?"":heat(z)}">${main}${sub}<span class="z">${sgn(z,1)}</span></div>`;
 }
-function sortVal(p,k){if(k==="name")return p.name;if(CATS.some(c=>c.k===k))return S.view==="z"?p.z[k]:(k==="fg"?p.fgi:k==="ft"?p.fti:p[k]);return p[k]}
 function render(){
-  const th=$("tbl").tHead,tb=$("tbl").tBodies[0];
-  th.innerHTML="<tr>"+COLS.map(c=>`<th tabindex="0" data-k="${c.k}" class="${c.k==="name"?"name ":""}${c.cat?"cat ":""}${c.cat&&S.punt.has(c.k)?"punted ":""}${S.sort.k===c.k?"sorted":""}">${c.l}${S.sort.k===c.k?(S.sort.dir<0?" ▾":" ▴"):""}</th>`).join("")+"</tr>";
-  th.querySelectorAll("th").forEach(h=>{const go=()=>{const k=h.dataset.k;
-    S.sort=S.sort.k===k?{k,dir:-S.sort.dir}:{k,dir:(k==="name"||k==="rank"||(k==="to"&&S.view!=="z"))?1:-1};render()};
-    h.onclick=go;h.onkeydown=e=>{if(e.key==="Enter")go()}});
-  let rows=S.players.filter(p=>S.game==="all"||p.game===S.game);
-  const {k,dir}=S.sort;
-  rows.sort((a,b)=>{const x=sortVal(a,k),y=sortVal(b,k);return(x<y?-1:x>y?1:0)*dir});
-  const maxMin=48;
-  tb.innerHTML=rows.map(p=>`<tr>
-    <td class="rk">${p.rank}</td>
-    <td class="val" style="${shade(p.value*2)}">${(p.value>=0?"+":"")+p.value.toFixed(2)}</td>
-    <td class="name"><b>${esc(p.name)}</b><small>${p.team} ${p.home?"vs":"@"} ${p.opp} · ${p.pos}${p.starter?" · S":""}</small></td>
-    <td class="min">${Math.round(p.min)}<span class="mbar"><i style="width:${Math.min(100,p.min/maxMin*100)}%"></i></span></td>
-    <td>${p.usg.toFixed(1)}</td>
-    ${CATS.map(c=>`<td class="z" style="${S.punt.has(c.k)?"opacity:.4":shade(p.z[c.k])}">${cell(p,c.k)}</td>`).join("")}
-    <td>${p.pm>0?"+":""}${p.pm}</td><td>${p.pf}</td></tr>`).join("");
+  if(!S.players.length)return;
+  const rows=S.players.filter(p=>S.game==="all"||p.game===S.game).sort((a,b)=>sortKey(b)-sortKey(a));
+  const live=S.events.filter(e=>e.state==="in").length;
+  const t=S.updated?S.updated.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}):"";
+  setStatus(`${rows.length} players · ${live?live+" live · ":""}${t}`);
+  $("list").innerHTML=rows.map(p=>`<article class="p${S.open.has(p.id)?" open":""}" data-id="${esc(p.id)}">
+    <div class="top">
+      <span class="rk">${p.rank}</span>
+      <div class="who"><b>${esc(p.name)}</b><span>${p.team} ${p.home?"vs":"@"} ${p.opp} · ${esc(p.pos)}${p.starter?' · <span class="st">S</span>':""}</span></div>
+      <div class="val" style="color:${p.value>=0?"var(--pos)":"var(--neg)"}">${sgn(p.value)}<small>value</small></div>
+      <div class="mins"><span>${Math.round(p.min)}m</span><span class="track"><i style="width:${Math.min(100,p.min/48*100)}%"></i></span><span>${p.usg.toFixed(0)}% usg</span></div>
+    </div>
+    <div class="strip">${CATS.map(c=>cell(p,c)).join("")}</div>
+    <div class="more">+/− ${p.pm>0?"+":""}${p.pm} · PF ${p.pf} · 3P ${p.tpm}/${p.tpa} · FGA ${p.fga} · FTA ${p.fta}</div>
+  </article>`).join("");
 }
-function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function renderList(msg,err){$("list").innerHTML=`<div class="empty${err?" err":""}">${esc(msg)}</div>`;setStatus(err?"Offline":"")}
 
 // ---- controls
+$("list").onclick=e=>{const a=e.target.closest(".p");if(!a)return;const id=a.dataset.id;
+  S.open.has(id)?S.open.delete(id):S.open.add(id);a.classList.toggle("open")};
 $("prev").onclick=()=>loadDate(shift(S.date,-1));
 $("next").onclick=()=>loadDate(shift(S.date,1));
 $("date").onchange=e=>e.target.value&&loadDate(e.target.value);
-$("vStats").onclick=()=>{S.view="stats";$("vStats").classList.add("on");$("vZ").classList.remove("on");render()};
-$("vZ").onclick=()=>{S.view="z";$("vZ").classList.add("on");$("vStats").classList.remove("on");render()};
-$("pool").value=String(S.pool);
-$("pool").onchange=e=>{S.pool=+e.target.value;store.set("pool",S.pool);if(S.players.length){compute();render()}};
-document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S.date&&S.events.some(e=>e.state==="in"))loadDate(S.date)});
+$("date").onclick=()=>{if(S.err)loadDate(S.date)};
+$("gear").onclick=()=>{const o=$("sheet").hidden;$("sheet").hidden=!o;$("gear").setAttribute("aria-expanded",o)};
+$("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
+$("sortSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>setSort(b.dataset.k));
+function paintPool(){$("poolSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===S.pool))}
+$("poolSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pool=+b.dataset.v;store.set("pool",S.pool);paintPool();
+  if(S.players.length){compute();render()}});
+paintPool();
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S.date&&(S.err||S.events.some(e=>e.state==="in")))loadDate(S.date)});
 renderCats();
 loadDate(etToday(),true);
 </script>
