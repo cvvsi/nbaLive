@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4f5f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121311" media="(prefers-color-scheme: dark)">
+<title>9-Cat Players Mock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* MOCK of a Players (range) view. Tokens copied from index.html so this reads as the
+   same product. --mid is the one addition: the RK130 roster threshold is neither good
+   nor bad, so it must not borrow --pos/--neg. */
+:root{
+  --bg:#f4f5f2; --panel:#ffffff; --ink:#141613; --dim:#6b7069; --rule:#dfe2dc; --cell:#eceee9;
+  --ball:#d9530f; --pos:#178a4c; --neg:#c9372c; --mid:#8a7f55;
+  --name:"Archivo Narrow","Arial Narrow","Roboto Condensed",system-ui,sans-serif;
+  --num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --bar:48px; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121311; --panel:#1a1c19; --ink:#e9ebe6; --dim:#8a9087; --rule:#2a2d28; --cell:#232621;
+  --ball:#f07a36; --pos:#3cc77d; --neg:#f2675b; --mid:#c0b183; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121311; --panel:#1a1c19; --ink:#e9ebe6; --dim:#8a9087; --rule:#2a2d28; --cell:#232621;
+  --ball:#f07a36; --pos:#3cc77d; --neg:#f2675b; --mid:#c0b183; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:500 15px/1.35 var(--name);-webkit-text-size-adjust:100%;
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--ball);outline-offset:2px}
+.gut{padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+
+.bar{position:sticky;top:0;z-index:10;height:var(--bar);background:var(--panel);
+  border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:8px}
+.mark{font:700 15px/1 var(--name);letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.mark i{width:10px;height:10px;border-radius:50%;background:var(--ball);display:block}
+.mark em{font-style:normal;color:var(--dim);font-weight:500}
+.seg{margin-left:auto;display:inline-flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+.seg button{font:600 12px/1 var(--name);padding:8px 10px}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+
+.note{background:var(--panel);border-bottom:1px solid var(--rule);padding-block:10px 12px}
+.note p{margin:0;font-size:13px;color:var(--dim);max-width:62ch}
+.note b{color:var(--ink)}
+
+.ruler{position:sticky;top:var(--bar);z-index:9;background:var(--bg);border-bottom:1px solid var(--rule);padding-block:7px}
+.rulerin{display:flex;align-items:center;gap:8px;font:500 11px/1 var(--num);color:var(--dim);
+  text-transform:uppercase;letter-spacing:.04em}
+.sorts{margin-left:auto;display:flex;gap:2px}
+.sorts button{font:600 12px/1 var(--name);letter-spacing:.05em;padding:6px 7px;border-radius:4px;color:var(--dim)}
+.sorts button[aria-pressed="true"]{color:var(--ink);background:var(--cell)}
+
+/* player row: sparkline | identity + figures | what the ceiling game looked like */
+.p{border-bottom:1px solid var(--rule);padding-block:10px 11px;cursor:pointer;display:grid;
+  grid-template-columns:54px 1fr auto;column-gap:10px;align-items:start}
+.p:active{opacity:.85}
+
+.spark{width:54px;height:40px;display:block;overflow:visible}
+.spark .thr{stroke:var(--mid);stroke-width:1;stroke-dasharray:2 2;opacity:.85}
+.spark .ln{fill:none;stroke:var(--dim);stroke-width:1.25;opacity:.85}
+.spark .dot{fill:var(--dim);opacity:.7}
+.spark .dot.hi{fill:var(--ball);opacity:1}
+.spark .dot.last{fill:var(--ink);opacity:1}
+
+.id{min-width:0}
+.id b{font:600 16px/1.15 var(--name);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.id .sub{font:500 12px/1.3 var(--name);color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.figs{display:flex;align-items:baseline;gap:12px;margin-top:5px}
+.fig{display:flex;flex-direction:column;gap:1px}
+.fig .k{font:600 9px/1 var(--name);text-transform:uppercase;letter-spacing:.09em;color:var(--dim)}
+.fig .v{font:600 15px/1 var(--num);font-variant-numeric:tabular-nums}
+.fig .v small{font:500 10px/1 var(--num);color:var(--dim);margin-left:2px}
+.fig.best .v{color:var(--ball)}
+.hits{font:500 11px/1.2 var(--num);color:var(--dim);margin-top:5px}
+.hits b{color:var(--ink);font-weight:600}
+
+.flash{text-align:right;min-width:60px}
+.flash .k{font:600 9px/1 var(--name);text-transform:uppercase;letter-spacing:.09em;color:var(--dim);display:block}
+.flash .m{font:600 15px/1.1 var(--num);display:block;margin-top:3px;font-variant-numeric:tabular-nums}
+.flash .r{font:500 10px/1.3 var(--name);display:block;margin-top:1px;color:var(--dim)}
+.flash .r.start{color:var(--pos);font-weight:600}
+
+.log{display:none;grid-column:1/-1;margin-top:10px;border-top:1px solid var(--rule);padding-top:9px;overflow-x:auto}
+.p.open .log{display:block}
+.log table{width:100%;border-collapse:collapse;font:500 12px/1 var(--num)}
+.log th{font:600 9px/1 var(--name);text-transform:uppercase;letter-spacing:.08em;color:var(--dim);
+  text-align:right;padding:0 0 6px;white-space:nowrap}
+.log th:first-child,.log td:first-child{text-align:left}
+.log td{padding:5px 0;border-top:1px solid var(--rule);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.log td small{color:var(--dim)}
+.log tr.hi td{color:var(--ball)}
+.log tr.hi td small{color:var(--ball);opacity:.7}
+.log .st{color:var(--pos);font-weight:600}
+.log .cap{margin:7px 0 0;font:500 11px/1.4 var(--name);color:var(--dim);max-width:52ch}
+
+@media (min-width:720px){main,.inner{max-width:760px;margin-inline:auto}}
+</style>
+</head>
+<body>
+<div class="bar gut"><div class="mark"><i></i>9-Cat <em>/ Players</em></div>
+  <div class="seg"><button aria-pressed="false">L7</button><button aria-pressed="true">L14</button><button aria-pressed="false">Season</button></div>
+</div>
+
+<div class="note gut"><div class="inner"><p><b>Mock, real data.</b> 13 slates, Oct 6&ndash;21 2026 &mdash; 312 players with 4+ games, 12 shown. Median and best are kept apart on purpose: an average hides the flash. The sparkline plots each night as a percentile of that night&rsquo;s slate, newest at right, so a 2-game Thursday can&rsquo;t fake a top-10 finish. Dotted line is roster depth (RK130 in a 10&times;13).</p></div></div>
+
+<div class="ruler gut"><div class="inner"><div class="rulerin"><span>12 of 312</span>
+  <div class="sorts">
+    <button aria-pressed="true">Best</button><button aria-pressed="false">Median</button><button aria-pressed="false">T50</button><button aria-pressed="false">Min</button>
+  </div></div></div></div>
+
+<main class="gut" id="list"></main>
+
+<script>
+var DATA=[{"name":"Dalen Terry","team":"GS","pos":"G","n":4,"medR":102,"bestR":1,"worstR":141,"medV":-0.31,"bestV":1.09,"top50":1,"top130":3,"medMin":6.5,"starts":1,"g":[{"d":"1006","rank":92,"slate":124,"games":4,"value":-0.26,"min":8,"usg":19.7,"st":false},{"d":"1007","rank":1,"slate":148,"games":5,"value":1.089,"min":43,"usg":21.9,"st":true},{"d":"1010","rank":141,"slate":202,"games":7,"value":-0.368,"min":4,"usg":0,"st":false},{"d":"1013","rank":112,"slate":147,"games":5,"value":-0.448,"min":5,"usg":8.2,"st":false}]},{"name":"Bones Hyland","team":"MIN","pos":"G","n":5,"medR":111,"bestR":1,"worstR":188,"medV":-0.39,"bestV":1.42,"top50":1,"top130":3,"medMin":14,"starts":1,"g":[{"d":"1007","rank":53,"slate":148,"games":5,"value":0.111,"min":11,"usg":32.1,"st":false},{"d":"1010","rank":1,"slate":202,"games":7,"value":1.417,"min":21,"usg":23.3,"st":true},{"d":"1012","rank":111,"slate":138,"games":5,"value":-0.429,"min":14,"usg":31.2,"st":false},{"d":"1014","rank":188,"slate":203,"games":7,"value":-0.585,"min":15,"usg":16.6,"st":false},{"d":"1021","rank":186,"slate":254,"games":11,"value":-0.39,"min":4,"usg":19.3,"st":false}]},{"name":"Bilal Coulibaly","team":"WSH","pos":"G","n":5,"medR":140,"bestR":4,"worstR":223,"medV":-0.32,"bestV":0.88,"top50":2,"top130":2,"medMin":20,"starts":1,"g":[{"d":"1008","rank":177,"slate":185,"games":6,"value":-0.674,"min":19,"usg":19,"st":false},{"d":"1010","rank":140,"slate":202,"games":7,"value":-0.365,"min":20,"usg":8.2,"st":false},{"d":"1012","rank":4,"slate":138,"games":5,"value":0.875,"min":24,"usg":21.6,"st":false},{"d":"1016","rank":223,"slate":341,"games":12,"value":-0.323,"min":13,"usg":14.5,"st":false},{"d":"1021","rank":27,"slate":254,"games":11,"value":0.488,"min":29,"usg":10.5,"st":true}]},{"name":"Joan Beringer","team":"MIN","pos":"F","n":6,"medR":102.5,"bestR":5,"worstR":192,"medV":-0.2,"bestV":0.86,"top50":2,"top130":4,"medMin":18.5,"starts":2,"g":[{"d":"1007","rank":95,"slate":148,"games":5,"value":-0.257,"min":19,"usg":11,"st":false},{"d":"1010","rank":5,"slate":202,"games":7,"value":0.86,"min":24,"usg":12.3,"st":true},{"d":"1012","rank":110,"slate":138,"games":5,"value":-0.416,"min":14,"usg":17.6,"st":false},{"d":"1014","rank":28,"slate":203,"games":7,"value":0.407,"min":18,"usg":13.3,"st":false},{"d":"1016","rank":160,"slate":341,"games":12,"value":-0.139,"min":25,"usg":22.9,"st":true},{"d":"1021","rank":192,"slate":254,"games":11,"value":-0.419,"min":14,"usg":8.3,"st":false}]},{"name":"Ja'Kobi Gillespie","team":"SA","pos":"G","n":6,"medR":95.5,"bestR":3,"worstR":132,"medV":-0.14,"bestV":1,"top50":1,"top130":5,"medMin":10.5,"starts":0,"g":[{"d":"1008","rank":132,"slate":185,"games":6,"value":-0.324,"min":9,"usg":38.7,"st":false},{"d":"1010","rank":112,"slate":202,"games":7,"value":-0.161,"min":11,"usg":15.5,"st":false},{"d":"1012","rank":3,"slate":138,"games":5,"value":0.997,"min":25,"usg":25,"st":false},{"d":"1014","rank":95,"slate":203,"games":7,"value":-0.126,"min":15,"usg":46.1,"st":false},{"d":"1016","rank":96,"slate":341,"games":12,"value":0.165,"min":10,"usg":25.4,"st":false},{"d":"1020","rank":62,"slate":68,"games":3,"value":-0.571,"min":1,"usg":81.7,"st":false}]},{"name":"Norman Powell","team":"CHI","pos":"G","n":5,"medR":85,"bestR":6,"worstR":144,"medV":0.07,"bestV":0.49,"top50":1,"top130":4,"medMin":19,"starts":5,"g":[{"d":"1007","rank":56,"slate":148,"games":5,"value":0.101,"min":14,"usg":25,"st":true},{"d":"1009","rank":6,"slate":61,"games":2,"value":0.492,"min":19,"usg":25,"st":true},{"d":"1014","rank":85,"slate":203,"games":7,"value":-0.072,"min":22,"usg":25.3,"st":true},{"d":"1016","rank":117,"slate":341,"games":12,"value":0.069,"min":15,"usg":22,"st":true},{"d":"1021","rank":144,"slate":254,"games":11,"value":-0.224,"min":22,"usg":24.4,"st":true}]},{"name":"Bennedict Mathurin","team":"NO","pos":"G","n":5,"medR":103,"bestR":10,"worstR":139,"medV":-0.07,"bestV":0.53,"top50":1,"top130":4,"medMin":17,"starts":2,"g":[{"d":"1006","rank":10,"slate":124,"games":4,"value":0.527,"min":17,"usg":19.5,"st":false},{"d":"1008","rank":139,"slate":185,"games":6,"value":-0.361,"min":14,"usg":27.1,"st":true},{"d":"1014","rank":101,"slate":203,"games":7,"value":-0.181,"min":19,"usg":21.5,"st":true},{"d":"1016","rank":103,"slate":341,"games":12,"value":0.152,"min":17,"usg":25.4,"st":false},{"d":"1021","rank":112,"slate":254,"games":11,"value":-0.071,"min":18,"usg":21.6,"st":false}]},{"name":"Ayo Dosunmu","team":"MIN","pos":"G","n":4,"medR":81.5,"bestR":9,"worstR":133,"medV":-0.01,"bestV":0.57,"top50":1,"top130":3,"medMin":22,"starts":0,"g":[{"d":"1007","rank":74,"slate":148,"games":5,"value":-0.098,"min":17,"usg":24,"st":false},{"d":"1012","rank":9,"slate":138,"games":5,"value":0.571,"min":20,"usg":19.4,"st":false},{"d":"1014","rank":133,"slate":203,"games":7,"value":-0.318,"min":24,"usg":22.1,"st":false},{"d":"1021","rank":89,"slate":254,"games":11,"value":0.07,"min":29,"usg":20.4,"st":false}]},{"name":"Jay Huff","team":"IND","pos":"C","n":4,"medR":85,"bestR":9,"worstR":194,"medV":0.02,"bestV":0.52,"top50":2,"top130":2,"medMin":13.5,"starts":0,"g":[{"d":"1007","rank":9,"slate":148,"games":5,"value":0.519,"min":17,"usg":34,"st":false},{"d":"1010","rank":139,"slate":202,"games":7,"value":-0.362,"min":10,"usg":26.8,"st":false},{"d":"1013","rank":31,"slate":147,"games":5,"value":0.274,"min":13,"usg":22.6,"st":false},{"d":"1016","rank":194,"slate":341,"games":12,"value":-0.239,"min":14,"usg":25.9,"st":false}]},{"name":"Ryan Kalkbrenner","team":"CHA","pos":"C","n":5,"medR":106,"bestR":71,"worstR":200,"medV":-0.25,"bestV":0.06,"top50":0,"top130":3,"medMin":15,"starts":1,"g":[{"d":"1006","rank":106,"slate":124,"games":4,"value":-0.416,"min":15,"usg":5.6,"st":false},{"d":"1011","rank":71,"slate":116,"games":4,"value":-0.222,"min":12,"usg":7.1,"st":false},{"d":"1014","rank":176,"slate":203,"games":7,"value":-0.519,"min":19,"usg":15.4,"st":false},{"d":"1016","rank":200,"slate":341,"games":12,"value":-0.25,"min":16,"usg":16.1,"st":true},{"d":"1021","rank":91,"slate":254,"games":11,"value":0.063,"min":14,"usg":11.5,"st":false}]},{"name":"Kevon Looney","team":"LAL","pos":"F","n":5,"medR":111,"bestR":86,"worstR":273,"medV":-0.25,"bestV":-0.2,"top50":0,"top130":3,"medMin":13,"starts":1,"g":[{"d":"1006","rank":86,"slate":124,"games":4,"value":-0.204,"min":13,"usg":3.2,"st":false},{"d":"1008","rank":111,"slate":185,"games":6,"value":-0.25,"min":17,"usg":9,"st":true},{"d":"1013","rank":89,"slate":147,"games":5,"value":-0.289,"min":13,"usg":9.8,"st":false},{"d":"1016","rank":273,"slate":341,"games":12,"value":-0.467,"min":8,"usg":0,"st":false},{"d":"1021","rank":139,"slate":254,"games":11,"value":-0.2,"min":15,"usg":14.5,"st":false}]},{"name":"Bub Carrington","team":"WSH","pos":"G","n":5,"medR":96,"bestR":60,"worstR":322,"medV":-0.15,"bestV":0.15,"top50":0,"top130":3,"medMin":17,"starts":0,"g":[{"d":"1008","rank":96,"slate":185,"games":6,"value":-0.149,"min":17,"usg":27.7,"st":false},{"d":"1010","rank":163,"slate":202,"games":7,"value":-0.45,"min":18,"usg":24.3,"st":false},{"d":"1012","rank":60,"slate":138,"games":5,"value":-0.017,"min":13,"usg":32.4,"st":false},{"d":"1016","rank":322,"slate":341,"games":12,"value":-0.588,"min":8,"usg":14.1,"st":false},{"d":"1021","rank":70,"slate":254,"games":11,"value":0.147,"min":19,"usg":17.3,"st":false}]}];
+var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+var MINUS="−", DASH="–";
+
+/* A night's finish as a share of that night's slate: RK4 of 138 beats RK4 of 341. */
+function pctOf(g){return g.rank/g.slate}
+
+function spark(p){
+  var W=54,H=40,n=p.g.length;
+  /* y=0 is the top (RK1), bottom is last in the slate. Full scale, so no night gets
+     flattened against the floor and the RK130 line lands mid-box where it belongs. */
+  var MAXP=1;
+  var y=function(v){return Math.min(H-3,Math.max(3,(Math.min(v,MAXP)/MAXP)*(H-6)+3))};
+  var x=function(i){return n===1?W/2:3+(i*(W-6))/(n-1)};
+  var pts=p.g.map(function(g,i){return [x(i),y(pctOf(g))]});
+  var bi=0;
+  p.g.forEach(function(g,i){if(pctOf(g)<pctOf(p.g[bi]))bi=i});
+  var thrY=y(130/250);
+  var s='<svg class="spark" viewBox="0 0 '+W+' '+H+'" aria-hidden="true">';
+  s+='<line class="thr" x1="0" y1="'+thrY.toFixed(1)+'" x2="'+W+'" y2="'+thrY.toFixed(1)+'"/>';
+  s+='<polyline class="ln" points="'+pts.map(function(q){return q[0].toFixed(1)+","+q[1].toFixed(1)}).join(" ")+'"/>';
+  pts.forEach(function(q,i){
+    var cls=i===bi?"dot hi":(i===n-1?"dot last":"dot");
+    s+='<circle class="'+cls+'" cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="'+(i===bi?2.3:1.6)+'"/>'});
+  return s+'</svg>';
+}
+
+function sgn(v,d){return (v>0?"+":v<0?MINUS:"")+Math.abs(v).toFixed(d)}
+
+function row(p){
+  var best=p.g.reduce(function(a,b){return b.rank<a.rank?b:a});
+  var log=p.g.slice().reverse().map(function(g){
+    return '<tr class="'+(g.rank===best.rank?"hi":"")+'">'
+      +'<td>'+g.d.slice(0,2)+'/'+g.d.slice(2)+'</td>'
+      +'<td>RK'+g.rank+'<small>/'+g.slate+'</small></td>'
+      +'<td>'+sgn(g.value,2)+'</td>'
+      +'<td>'+g.min+'</td><td>'+g.usg.toFixed(0)+'%</td>'
+      +'<td>'+(g.st?'<span class="st">S</span>':DASH)+'</td></tr>'}).join("");
+  return '<article class="p">'
+    +spark(p)
+    +'<div class="id">'
+      +'<b>'+esc(p.name)+'</b>'
+      +'<span class="sub">'+p.team+' &middot; '+esc(p.pos)+' &middot; '+p.n+' g &middot; '
+        +p.starts+'/'+p.n+' start'+(p.starts===1?"":"s")+'</span>'
+      +'<div class="figs">'
+        +'<span class="fig"><span class="k">median</span><span class="v">RK'+p.medR
+          +'<small>'+sgn(p.medV,2)+'</small></span></span>'
+        +'<span class="fig best"><span class="k">best</span><span class="v">RK'+p.bestR
+          +'<small>'+sgn(p.bestV,2)+'</small></span></span>'
+      +'</div>'
+      +'<div class="hits"><b>'+p.top50+'</b>/'+p.n+' top-50 &middot; <b>'+p.top130+'</b>/'+p.n+' top-130</div>'
+    +'</div>'
+    +'<div class="flash"><span class="k">at best</span>'
+      +'<span class="m">'+best.min+'m</span>'
+      +'<span class="r '+(best.st?"start":"")+'">'+(best.st?"started":"bench")+'</span>'
+      +'<span class="r">'+best.usg.toFixed(0)+'% usg</span>'
+    +'</div>'
+    +'<div class="log"><table><thead><tr><th>date</th><th>rank</th><th>value</th><th>min</th><th>usg</th><th>st</th></tr></thead>'
+      +'<tbody>'+log+'</tbody></table>'
+      +'<p class="cap">Newest first. Ceiling night in orange &mdash; check its minutes and start before trusting the flash.</p>'
+    +'</div>'
+  +'</article>';
+}
+
+var list=document.getElementById("list");
+list.innerHTML=DATA.map(row).join("");
+list.onclick=function(e){var a=e.target.closest(".p");if(a)a.classList.toggle("open")};
+Array.prototype.forEach.call(document.querySelectorAll(".seg button,.sorts button"),function(b){
+  b.onclick=function(){
+    Array.prototype.forEach.call(b.parentNode.children,function(x){x.setAttribute("aria-pressed","false")});
+    b.setAttribute("aria-pressed","true")}});
+</script>
+</body>
+</html>
