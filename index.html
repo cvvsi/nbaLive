@@ -259,8 +259,10 @@ function scoreValue(){
 // ---- render
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const sgn=(v,d=2)=>(v>0?"+":v<0?"−":"")+Math.abs(v).toFixed(d);
-function heat(z){const a=Math.round(Math.min(1,Math.abs(z)/2.2)*58);
-  return a<4?"":`background:color-mix(in oklab,var(${z>0?"--pos":"--neg"}) ${a}%,var(--cell))`}
+// Color only where it means something: a dead zone below |z|=.75 so "average" reads as
+// neutral grey, then 3 discrete steps (notable / strong / huge) that are easy to tell apart by eye.
+function heat(z){const a=Math.abs(z),s=a<.75?0:a<1.5?14:a<2.5?30:48;
+  return s?`background:color-mix(in oklab,var(${z>0?"--pos":"--neg"}) ${s}%,var(--cell))`:""}
 function pct(m,a){return !a?"–":m===a?"1.00":(m/a).toFixed(3).replace(/^0/,"")}
 function setStatus(t){$("status").textContent=t}
 
@@ -310,7 +312,7 @@ function render(){
     <div class="top">
       <span class="rk">${p.rank}</span>
       <div class="who"><b>${esc(p.name)}</b><span>${p.team} ${p.home?"vs":"@"} ${p.opp} · ${esc(p.pos)}${p.starter?' · <span class="st">S</span>':""}</span></div>
-      <div class="val" style="color:${p.value>=0?"var(--pos)":"var(--neg)"}">${sgn(p.value)}<small>value</small></div>
+      <div class="val" style="color:${Math.abs(p.value)<.5?"var(--ink)":p.value>0?"var(--pos)":"var(--neg)"}">${sgn(p.value)}<small>value</small></div>
       <div class="mins"><span>${Math.round(p.min)}m</span><span class="track"><i style="width:${Math.min(100,p.min/48*100)}%"></i></span><span>${p.usg.toFixed(0)}% usg</span></div>
     </div>
     <div class="strip">${CATS.map(c=>cell(p,c)).join("")}</div>
