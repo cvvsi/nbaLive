@@ -115,7 +115,10 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 .mug img.bad{visibility:hidden}
 .rk{font:500 10.5px/1 var(--num);color:var(--dim)}
 .who{min-width:0}
+.who a.pl{display:block;min-width:0;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.who a.pl:active b{color:var(--ball)}
 .who b{font:600 15.5px/1.2 var(--name);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who b::after{content:"›";color:var(--dim);font-weight:500;margin-left:4px;font-size:14px}
 .who span{font:500 12.5px/1.3 var(--name);color:var(--dim);white-space:nowrap}
 .who .st{color:var(--ink);font-weight:700}
 .val{font:600 17px/1 var(--num);text-align:right}
@@ -346,7 +349,7 @@ function render(){
   $("list").innerHTML=rows.map(p=>`<article class="p${S.open.has(p.id)?" open":""}" data-id="${esc(p.id)}">
     <div class="top">
       ${mug(p)}
-      <div class="who"><b>${esc(p.name)}</b><span>${p.team} ${p.home?"vs":"@"} ${p.opp} · ${esc(p.pos)}${p.starter?' · <span class="st">S</span>':""}</span></div>
+      <div class="who"><a class="pl" href="player.html?id=${encodeURIComponent(p.eid||p.id)}&name=${encodeURIComponent(p.name)}&team=${encodeURIComponent(p.team)}&pos=${encodeURIComponent(p.pos)}"><b>${esc(p.name)}</b></a><span>${p.team} ${p.home?"vs":"@"} ${p.opp} · ${esc(p.pos)}${p.starter?' · <span class="st">S</span>':""}</span></div>
       <div class="val" style="color:${Math.abs(p.value)<.5?"var(--ink)":p.value>0?"var(--pos)":"var(--neg)"}">${sgn(p.value)}<small>value</small></div>
       <div class="mins"><span>${Math.round(p.min)}m</span><span class="track"><i style="width:${Math.min(100,p.min/48*100)}%"></i></span><span>${p.usg.toFixed(0)}% usg</span></div>
     </div>
@@ -367,7 +370,8 @@ function renderList(msg,err){$("list").innerHTML=`<div class="empty${err?" err":
   setStatus(err?"Offline":"");setWarn()}
 
 // ---- controls
-$("list").onclick=e=>{const a=e.target.closest(".p");if(!a)return;const id=a.dataset.id;
+$("list").onclick=e=>{if(e.target.closest(".pl"))return;   // name taps go to the player log
+  const a=e.target.closest(".p");if(!a)return;const id=a.dataset.id;
   S.open.has(id)?S.open.delete(id):S.open.add(id);a.classList.toggle("open")};
 $("prev").onclick=()=>loadDate(shift(S.date,-1));
 $("next").onclick=()=>loadDate(shift(S.date,1));

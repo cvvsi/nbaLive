@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="9-Cat Box">
+<meta name="theme-color" content="#f4f5f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121311" media="(prefers-color-scheme: dark)">
+<title>Player Log · 9-Cat Box</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* One player, current season: range averages up top, then one row per game with the
+   same 9-cell heat strip as index.html so the two pages read the same way.
+   Tokens are copied from index.html verbatim - keep them in sync. */
+:root{
+  --bg:#f4f5f2;        /* gym-floor grey, faint green bias */
+  --panel:#ffffff;
+  --ink:#141613;
+  --dim:#6b7069;
+  --rule:#dfe2dc;
+  --cell:#eceee9;
+  --ball:#d9530f;      /* basketball orange: the only accent */
+  --pos:#178a4c;
+  --neg:#c9372c;
+  --name:"Archivo Narrow","Arial Narrow","Roboto Condensed",system-ui,sans-serif;
+  --num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --bar:48px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#121311; --panel:#1a1c19; --ink:#e9ebe6; --dim:#8a9087; --rule:#2a2d28; --cell:#232621;
+  --ball:#f07a36; --pos:#3cc77d; --neg:#f2675b; color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:500 15px/1.35 var(--name);-webkit-text-size-adjust:100%;
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--panel);z-index:20}
+button,a{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--ball);outline-offset:2px}
+.gut{padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+
+/* top bar: back link + who this is */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;height:var(--bar);background:var(--panel);
+  border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:8px}
+.back{flex:none;display:flex;align-items:center;gap:4px;font:600 13px/1 var(--name);
+  text-transform:uppercase;letter-spacing:.06em;color:var(--dim);padding:8px 6px 8px 0}
+.back s{text-decoration:none;font-size:17px;line-height:1}
+.hdr{display:flex;align-items:center;gap:8px;min-width:0}
+.hdr i{width:30px;height:30px;border-radius:50%;background:var(--cell);overflow:hidden;flex:none;display:block}
+.hdr img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+.hdr img.bad{visibility:hidden}
+.hdr .nm{min-width:0}
+.hdr b{font:700 15px/1.1 var(--name);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr span{font:500 11px/1.2 var(--num);color:var(--dim);display:block}
+
+/* range selector + averages for that range */
+.ranges{background:var(--panel);border-bottom:1px solid var(--rule);padding-block:11px 13px}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+.seg button{font:600 13px/1 var(--name);padding:8px 13px}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.seg button:disabled{opacity:.35;cursor:default}
+.avg{margin-top:11px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.avg .big{font:600 26px/1 var(--num);font-variant-numeric:tabular-nums}
+.avg .big u{text-decoration:none;font:600 9px/1 var(--name);text-transform:uppercase;
+  letter-spacing:.1em;color:var(--dim);display:block;margin-bottom:4px}
+.avg .pair{font:500 12.5px/1.45 var(--num);color:var(--dim)}
+.avg .pair b{color:var(--ink);font-weight:600}
+
+/* sticky column ruler, same grid as the strips below it */
+.ruler{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--bar));z-index:9;background:var(--bg);
+  border-bottom:1px solid var(--rule);padding-block:6px 0}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;
+  font:500 11px/1 var(--num);color:var(--dim);text-transform:uppercase;letter-spacing:.04em}
+.cats{margin-top:4px}
+.strip,.cats{display:grid;gap:3px;grid-template-columns:1.6fr 1.6fr repeat(7,1fr)}
+.cats span{font:600 10.5px/1 var(--num);color:var(--dim);padding:6px 0 7px;text-align:center;letter-spacing:.02em}
+
+/* one row per game */
+#log{display:grid}
+.g{border-bottom:1px solid var(--rule);padding-block:9px 10px}
+.g .top{display:flex;align-items:baseline;gap:8px;font:500 12.5px/1.2 var(--num);color:var(--dim)}
+.g .dt{font-weight:600;color:var(--ink)}
+.g .opp{font-family:var(--name);font-weight:600;color:var(--ink)}
+.g .res{font-weight:600}
+.g .res.w{color:var(--pos)}
+.g .res.l{color:var(--neg)}
+.g .st{font-family:var(--name);font-weight:700;color:var(--ink)}
+.g .bo{font:600 9px/1 var(--name);text-transform:uppercase;letter-spacing:.07em;
+  color:var(--dim);border:1px solid var(--rule);border-radius:3px;padding:3px 4px}
+.g .mn{margin-left:auto;font-weight:600;color:var(--ink)}
+.strip{margin-top:7px}
+.c{border-radius:3px;padding:6px 0 5px;text-align:center;font:500 13px/1.1 var(--num);
+  background:var(--cell);min-width:0}
+.c .z{display:block;font-size:8.5px;margin-top:3px;color:var(--ink);opacity:.55;white-space:nowrap}
+.c .z i{font-style:normal;opacity:.72;margin-right:3px;letter-spacing:-.02em}
+
+.msg{padding:40px 14px;color:var(--dim);text-align:center;font-size:15px}
+.msg.err{color:var(--neg)}
+.foot{padding-block:14px 30px;font:500 11.5px/1.5 var(--name);color:var(--dim);max-width:62ch}
+@media (min-width:720px){
+  main,.inner{max-width:760px;margin-inline:auto}
+  .c{font-size:14px}
+  .cats span{font-size:11px}
+}
+</style>
+</head>
+<body>
+<div class="bar gut">
+  <a class="back" href="./" id="back"><s>&lsaquo;</s>Box</a>
+  <div class="hdr" id="hdr"></div>
+</div>
+
+<div class="ranges gut" id="ranges" hidden><div class="inner">
+  <div class="seg" id="rangeSeg">
+    <button data-n="5">L5</button><button data-n="10" aria-pressed="true">L10</button><button data-n="20">L20</button><button data-n="0">Season</button>
+  </div>
+  <div class="avg" id="avg"></div>
+</div></div>
+
+<div class="ruler gut" id="ruler" hidden><div class="inner">
+  <div class="meta"><span id="status"></span><span id="span"></span></div>
+  <div class="cats" id="cats"></div>
+</div></div>
+
+<main class="gut"><div id="log"></div>
+<div class="foot" id="foot"></div></main>
+
+<script>
+// Same 9 categories, same order, same heat scale as index.html.
+const CATS=[
+  {k:"fg",l:"FG%"},{k:"ft",l:"FT%"},{k:"tpm",l:"3PM"},{k:"pts",l:"PTS"},
+  {k:"reb",l:"REB"},{k:"ast",l:"AST"},{k:"stl",l:"STL"},{k:"blk",l:"BLK"},{k:"to",l:"TO"}];
+const S={id:null,games:[],n:10,info:null};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const sgn=(v,d=2)=>(v>0?"+":v<0?"−":"")+Math.abs(v).toFixed(d);
+const pct=(m,a)=>!a?"–":m===a?"1.00":(m/a).toFixed(3).replace(/^0/,"");
+function heat(z){const a=Math.abs(z),s=a<.75?0:a<1.5?14:a<2.5?30:48;
+  return s?`background:color-mix(in oklab,var(${z>0?"--pos":"--neg"}) ${s}%,var(--cell))`:""}
+
+const WEB="https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes";
+const getJSON=async u=>{const r=await fetch(u,{cache:"no-store"});if(!r.ok)throw new Error(r.status);return r.json()};
+
+// League-average rates for the percentage impact terms. These are the stable
+// season-long numbers; z-scores here are per-game against a fixed league shape
+// rather than against one night's pool, because a game log spans many nights.
+const LG={fg:.470,ft:.785,
+  mean:{pts:11.2,tpm:1.3,reb:4.4,ast:2.6,stl:.7,blk:.5,to:1.3,fgi:0,fti:0},
+  sd:{pts:7.9,tpm:1.4,reb:3.1,ast:2.3,stl:.8,blk:.7,to:1.1,fgi:2.6,fti:1.3}};
+
+const split=s=>{const[m,a]=String(s||"0-0").split("-").map(Number);return[m||0,a||0]};
+
+function parseLog(j){
+  const names=j.names||[],out=[];
+  const ix=n=>names.indexOf(n);
+  const I={min:ix("minutes"),fg:ix("fieldGoalsMade-fieldGoalsAttempted"),
+    tp:ix("threePointFieldGoalsMade-threePointFieldGoalsAttempted"),
+    ft:ix("freeThrowsMade-freeThrowsAttempted"),reb:ix("totalRebounds"),
+    ast:ix("assists"),blk:ix("blocks"),stl:ix("steals"),pf:ix("fouls"),
+    to:ix("turnovers"),pts:ix("points")};
+  for(const st of j.seasonTypes||[]){
+    // Current season regular season only - preseason rotations say nothing about
+    // real roles, and ESPN already separates them for us.
+    if(!/Regular Season/i.test(st.displayName)||/Preseason/i.test(st.displayName))continue;
+    for(const cat of st.categories||[]){
+      for(const ev of cat.events||[]){
+        const s=ev.stats||[],meta=(j.events||{})[ev.eventId]||{};
+        const min=parseFloat(s[I.min])||0;
+        const [fgm,fga]=split(s[I.fg]),[tpm]=split(s[I.tp]),[ftm,fta]=split(s[I.ft]);
+        const hs=+meta.homeTeamScore||0,as=+meta.awayTeamScore||0;
+        out.push({eid:ev.eventId,date:meta.gameDate||"",
+          opp:(meta.opponent||{}).abbreviation||"",at:meta.atVs||"vs",
+          res:meta.gameResult||"",score:meta.score||"",
+          margin:Math.abs(hs-as),
+          min,pts:+s[I.pts]||0,reb:+s[I.reb]||0,ast:+s[I.ast]||0,stl:+s[I.stl]||0,
+          blk:+s[I.blk]||0,to:+s[I.to]||0,pf:+s[I.pf]||0,fgm,fga,tpm,ftm,fta});
+      }
+    }
+  }
+  out.sort((a,b)=>(b.date>a.date?1:b.date<a.date?-1:0));   // newest first
+  for(const g of out){
+    g.fgi=g.fgm-LG.fg*g.fga; g.fti=g.ftm-LG.ft*g.fta;
+    g.z={};
+    const src={pts:"pts",tpm:"tpm",reb:"reb",ast:"ast",stl:"stl",blk:"blk",fg:"fgi",ft:"fti",to:"to"};
+    for(const c of CATS){const k=src[c.k];
+      g.z[c.k]=(c.k==="to"?-1:1)*((g[k]-LG.mean[k])/LG.sd[k])}
+    g.value=CATS.reduce((a,c)=>a+g.z[c.k],0)/9;
+  }
+  return out;
+}
+
+function avgOf(gs){
+  if(!gs.length)return null;
+  const n=gs.length,s=k=>gs.reduce((a,g)=>a+g[k],0);
+  const o={g:n,min:s("min")/n,pts:s("pts")/n,tpm:s("tpm")/n,reb:s("reb")/n,ast:s("ast")/n,
+    stl:s("stl")/n,blk:s("blk")/n,to:s("to")/n,
+    fgm:s("fgm"),fga:s("fga"),ftm:s("ftm"),fta:s("fta"),
+    value:s("value")/n,starts:0};
+  // Value for the span: average of per-game Values, same as the nightly page's mean-of-z
+  o.fgi=(o.fgm-LG.fg*o.fga)/n; o.fti=(o.ftm-LG.ft*o.fta)/n;
+  o.z={};
+  const src={pts:"pts",tpm:"tpm",reb:"reb",ast:"ast",stl:"stl",blk:"blk",fg:"fgi",ft:"fti",to:"to"};
+  for(const c of CATS){const k=src[c.k];
+    o.z[c.k]=(c.k==="to"?-1:1)*((o[k]-LG.mean[k])/LG.sd[k])}
+  return o;
+}
+
+function cell(o,c,isAvg){
+  const z=o.z[c.k],fg=c.k==="fg",ft=c.k==="ft";
+  let main;
+  if(fg)main=pct(o.fgm,o.fga); else if(ft)main=pct(o.ftm,o.fta);
+  else main=isAvg?o[c.k].toFixed(1):o[c.k];
+  const m=fg?o.fgm:o.ftm,a=fg?o.fga:o.fta;
+  const sub=(fg||ft)?`<i>${m}/${a}</i>${sgn(z,1)}`:sgn(z,1);
+  return`<div class="c" style="${heat(z)}">${main}<span class="z">${sub}</span></div>`;
+}
+
+function fmtDate(iso){
+  if(!iso)return"";
+  const d=new Date(iso);
+  return d.toLocaleDateString(undefined,{month:"numeric",day:"numeric"});
+}
+
+function render(){
+  const all=S.games, n=S.n||all.length, gs=all.slice(0,n);
+  $("ranges").hidden=false; $("ruler").hidden=false;
+  $("cats").innerHTML=CATS.map(c=>`<span>${c.l}</span>`).join("");
+  $("rangeSeg").querySelectorAll("button").forEach(b=>{
+    const v=+b.dataset.n;
+    b.setAttribute("aria-pressed",v===S.n);
+    b.disabled=v>0&&v>all.length;       // don't offer L20 when there are 4 games
+  });
+
+  const a=avgOf(gs);
+  if(a){
+    $("avg").innerHTML=
+      `<span class="big"><u>value / g</u>${sgn(a.value)}</span>`
+     +`<span class="big"><u>min / g</u>${a.min.toFixed(1)}</span>`
+     +`<span class="pair">${a.g} game${a.g===1?"":"s"}<br>`
+     +`${a.pts?"":""}${a.pts.toFixed(1)} pts &middot; ${a.reb.toFixed(1)} reb &middot; ${a.ast.toFixed(1)} ast</span>`;
+  }
+  $("status").textContent=`${all.length} game${all.length===1?"":"s"} this season`;
+  $("span").textContent=S.n?`last ${gs.length}`:"season";
+
+  $("log").innerHTML=gs.map(g=>{
+    const blow=g.margin>=20;
+    return`<article class="g">
+      <div class="top">
+        <span class="dt">${fmtDate(g.date)}</span>
+        <span class="opp">${g.at==="@"?"@":"vs"} ${esc(g.opp)}</span>
+        <span class="res ${g.res.toLowerCase()==="w"?"w":"l"}">${esc(g.res)}</span>
+        <span>${esc(g.score)}</span>
+        ${blow?'<span class="bo" title="Decided by 20+">blowout</span>':""}
+        <span class="mn">${Math.round(g.min)}m</span>
+      </div>
+      <div class="strip">${CATS.map(c=>cell(g,c,false)).join("")}</div>
+    </article>`}).join("");
+
+  $("foot").textContent=
+    "Value is the mean of the 9 category z-scores, scored against season-long league "
+   +"averages rather than one night's pool, so games from different dates are comparable. "
+   +"Blowout marks games decided by 20 or more, where minutes are often garbage time. "
+   +"Current regular season only; preseason is excluded.";
+}
+
+function renderHdr(info,id){
+  const u=`https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${id}.png&w=60&h=60&scale=crop`;
+  $("hdr").innerHTML=
+    `<i><img src="${u}" alt="" width="30" height="30" onerror="this.classList.add('bad')"></i>`
+   +`<div class="nm"><b>${esc(info.name)}</b><span>${esc(info.team)}${info.pos?" · "+esc(info.pos):""}</span></div>`;
+  document.title=info.name+" · 9-Cat Box";
+}
+
+function fail(msg){$("log").innerHTML=`<div class="msg err">${esc(msg)}</div>`}
+
+async function load(){
+  const q=new URLSearchParams(location.search);
+  const id=q.get("id");
+  if(!id)return fail("No player id. Open this page by tapping a player on the box score.");
+  S.id=id;
+  if(q.get("name"))renderHdr({name:q.get("name"),team:q.get("team")||"",pos:q.get("pos")||""},id);
+  $("log").innerHTML='<div class="msg">Loading game log…</div>';
+  let log,ath;
+  try{
+    [log,ath]=await Promise.all([
+      getJSON(`${WEB}/${encodeURIComponent(id)}/gamelog`),
+      getJSON(`${WEB}/${encodeURIComponent(id)}`).catch(()=>null)
+    ]);
+  }catch(e){return fail("Couldn't load this player's game log from ESPN. Check your connection and reload.")}
+  if(ath){const a=ath.athlete||ath;
+    renderHdr({name:a.displayName||q.get("name")||"Player",
+      team:(a.team||{}).abbreviation||q.get("team")||"",
+      pos:(a.position||{}).abbreviation||q.get("pos")||""},id)}
+  S.games=parseLog(log);
+  if(!S.games.length){
+    $("ranges").hidden=true;$("ruler").hidden=true;
+    return fail("No regular-season games yet this season.");
+  }
+  if(S.games.length<S.n)S.n=S.games.length>=5?5:0;
+  render();
+}
+
+$("rangeSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.n=+b.dataset.n;render()});
+load();
+</script>
+</body>
+</html>
