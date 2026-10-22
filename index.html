@@ -61,6 +61,7 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 .sheet{background:var(--panel);border-bottom:1px solid var(--rule);padding-block:12px 14px;display:grid;gap:12px}
 .sheet h3{margin:0 0 6px;font:600 11px/1 var(--name);text-transform:uppercase;letter-spacing:.1em;color:var(--dim)}
 .toggles{display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
+.toggles .tog{font-size:11px}
 .tog{font:600 12px/1 var(--num);padding:9px 0;border-radius:4px;background:var(--cell);text-align:center}
 .tog[aria-pressed="true"]{background:transparent;color:var(--dim);text-decoration:line-through;box-shadow:inset 0 0 0 1px var(--rule)}
 .seg{display:inline-flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden}
@@ -93,8 +94,9 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 .meta .sort{display:flex;gap:2px}
 .meta .sort button{font:600 12px/1 var(--name);letter-spacing:.06em;padding:6px 7px;border-radius:4px;color:var(--dim)}
 .meta .sort button[aria-pressed="true"]{color:var(--ink);background:var(--cell)}
-.cats{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;margin-top:4px}
-.cats button{font:600 10.5px/1 var(--num);color:var(--dim);padding:6px 0 7px;text-align:center;letter-spacing:.02em}
+.cats{margin-top:4px}
+.cats button,.cats span{font:600 9.5px/1 var(--num);color:var(--dim);padding:6px 0 7px;text-align:center;letter-spacing:0}
+.cats span{opacity:.6}
 .cats button[aria-pressed="true"]{color:var(--ball)}
 .cats button.punted{text-decoration:line-through;opacity:.5}
 
@@ -122,10 +124,15 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 .mins{display:flex;align-items:center;gap:6px;grid-column:2/4;margin-top:4px;font:500 11.5px/1 var(--num);color:var(--dim)}
 .mins .track{flex:1;max-width:120px;height:3px;background:var(--cell);border-radius:2px}
 .mins .track i{display:block;height:100%;background:var(--ink);opacity:.55;border-radius:2px}
-.strip{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;margin-top:8px}
-.c{border-radius:3px;padding:6px 0 5px;text-align:center;font:500 13px/1.1 var(--num);background:var(--cell);min-width:0}
+/* 11 columns at 390px: makes/attempts need room for "10/12", counting stats need
+   almost none, so the tracks are proportional rather than equal. */
+.strip,.cats{display:grid;gap:3px;
+  grid-template-columns:1.62fr 1.34fr 1.62fr 1.34fr repeat(7,1fr)}
+.strip{margin-top:8px}
+.c{border-radius:3px;padding:6px 0 5px;text-align:center;font:500 12px/1.1 var(--num);background:var(--cell);min-width:0}
+.c.ma{background:transparent;color:var(--dim);font-size:11.5px}
 .c.off{background:transparent;color:var(--dim);opacity:.45;box-shadow:inset 0 0 0 1px var(--rule)}
-.c .z{display:block;font-size:9.5px;margin-top:2px;color:var(--ink);opacity:.55}
+.c .z{display:block;font-size:8.5px;margin-top:2px;color:var(--ink);opacity:.55;min-height:8.5px}
 .more{display:none;margin-top:8px;font:500 12px/1.5 var(--num);color:var(--dim)}
 .p.open .more{display:block}
 .warn{background:color-mix(in oklab,var(--ball) 10%,var(--panel));border-bottom:1px solid var(--rule);
@@ -135,7 +142,9 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 .empty.err{color:var(--neg)}
 @media (min-width:720px){
   main,.games,.ruler>div,.sheet>div{max-width:760px;margin-inline:auto}
-  .c{font-size:14px}
+  .c{font-size:13.5px}
+  .c.ma{font-size:13px}
+  .cats button,.cats span{font-size:11px}
 }
 </style>
 </head>
@@ -179,9 +188,15 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 <main class="gut" id="list"></main>
 
 <script>
+// Display order. `ma` columns show makes/attempts and are reference only: they feed
+// the percentage cell beside them, so they carry no z-score and no heat (coloring both
+// would count the same signal twice). `cat:true` marks the 9 scoring categories.
 const CATS=[
-  {k:"pts",l:"PTS"},{k:"tpm",l:"3PM"},{k:"reb",l:"REB"},{k:"ast",l:"AST"},
-  {k:"stl",l:"STL"},{k:"blk",l:"BLK"},{k:"fg",l:"FG%"},{k:"ft",l:"FT%"},{k:"to",l:"TO"}];
+  {k:"fgma",l:"FG",ma:"fg"},{k:"fg",l:"FG%",cat:1},
+  {k:"ftma",l:"FT",ma:"ft"},{k:"ft",l:"FT%",cat:1},
+  {k:"tpm",l:"3PM",cat:1},{k:"pts",l:"PTS",cat:1},{k:"reb",l:"REB",cat:1},
+  {k:"ast",l:"AST",cat:1},{k:"stl",l:"STL",cat:1},{k:"blk",l:"BLK",cat:1},{k:"to",l:"TO",cat:1}];
+const SCATS=CATS.filter(c=>c.cat);   // the 9 that make up Value
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const S={date:null,events:[],players:[],game:"all",punt:new Set(store.get("punt",[])),
@@ -258,13 +273,13 @@ function compute(){
   const lgFG=sum(base,"fgm")/Math.max(1,sum(base,"fga")),lgFT=sum(base,"ftm")/Math.max(1,sum(base,"fta"));
   for(const p of P){p.fgi=p.fgm-lgFG*p.fga;p.fti=p.ftm-lgFT*p.fta}
   const src={pts:"pts",tpm:"tpm",reb:"reb",ast:"ast",stl:"stl",blk:"blk",fg:"fgi",ft:"fti",to:"to"};
-  for(const c of CATS){const k=src[c.k],m=sum(base,k)/base.length;
+  for(const c of SCATS){const k=src[c.k],m=sum(base,k)/base.length;
     const sd=Math.sqrt(base.reduce((a,p)=>a+(p[k]-m)**2,0)/base.length)||1;
     for(const p of P){(p.z||(p.z={}))[c.k]=(c.k==="to"?-1:1)*(p[k]-m)/sd}}
   scoreValue();
 }
 function scoreValue(){
-  const act=CATS.filter(c=>!S.punt.has(c.k));
+  const act=SCATS.filter(c=>!S.punt.has(c.k));
   for(const p of S.players)p.value=act.length?act.reduce((a,c)=>a+p.z[c.k],0)/act.length:0;
   [...S.players].sort((a,b)=>b.value-a.value).forEach((p,i)=>p.rank=i+1);
 }
@@ -305,9 +320,11 @@ function renderGames(){
   g.querySelectorAll(".tile").forEach(b=>b.onclick=()=>{S.game=b.dataset.g;renderGames();render()});
 }
 function renderCats(){
-  $("cats").innerHTML=CATS.map(c=>`<button data-k="${c.k}" class="${S.punt.has(c.k)?"punted":""}" aria-pressed="${S.sort===c.k}">${c.l}</button>`).join("");
+  $("cats").innerHTML=CATS.map(c=>c.cat
+    ?`<button data-k="${c.k}" class="${S.punt.has(c.k)?"punted":""}" aria-pressed="${S.sort===c.k}">${c.l}</button>`
+    :`<span>${c.l}</span>`).join("");
   $("cats").querySelectorAll("button").forEach(b=>b.onclick=()=>setSort(S.sort===b.dataset.k?"value":b.dataset.k));
-  $("toggles").innerHTML=CATS.map(c=>`<button class="tog" data-k="${c.k}" aria-pressed="${S.punt.has(c.k)}">${c.l}</button>`).join("");
+  $("toggles").innerHTML=SCATS.map(c=>`<button class="tog" data-k="${c.k}" aria-pressed="${S.punt.has(c.k)}">${c.l}</button>`).join("");
   $("toggles").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.k;
     S.punt.has(k)?S.punt.delete(k):S.punt.add(k);store.set("punt",[...S.punt]);
     $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
@@ -318,9 +335,11 @@ function setSort(k){S.sort=k;renderCats();render()}
 function sortKey(p){const k=S.sort;if(k==="value"||k==="min"||k==="usg")return p[k];return p.z[k]}
 
 function cell(p,c){
+  // Reference column: makes/attempts for the percentage beside it. No z, no heat.
+  if(c.ma){const m=c.ma==="fg"?p.fgm:p.ftm,a=c.ma==="fg"?p.fga:p.fta;
+    return`<div class="c ma">${m}/${a}<span class="z"></span></div>`}
   const off=S.punt.has(c.k),z=p.z[c.k];
-  // Every cell is exactly two lines - stat, then z - so the strip has no dead space.
-  // Makes/attempts won't fit beside the z at 390px; they live in .more on tap.
+  // Two lines per cell - stat, then z - so the strip has no dead space.
   const main=c.k==="fg"?pct(p.fgm,p.fga):c.k==="ft"?pct(p.ftm,p.fta):p[c.k];
   return`<div class="c${off?" off":""}" style="${off?"":heat(z)}">${main}<span class="z">${sgn(z,1)}</span></div>`;
 }
