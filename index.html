@@ -94,6 +94,8 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 .meta .sort{display:flex;gap:2px}
 .meta .sort button{font:600 12px/1 var(--name);letter-spacing:.06em;padding:6px 7px;border-radius:4px;color:var(--dim)}
 .meta .sort button[aria-pressed="true"]{color:var(--ink);background:var(--cell)}
+#teamBtn{margin-left:4px;border:1px solid var(--rule)}
+#teamBtn[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 .cats{margin-top:4px}
 .cats button{font:600 10.5px/1 var(--num);color:var(--dim);padding:6px 0 7px;text-align:center;letter-spacing:.02em}
 .cats button[aria-pressed="true"]{color:var(--ball)}
@@ -103,17 +105,21 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 #list{display:grid}
 .p{border-bottom:1px solid var(--rule);padding-block:9px 10px;cursor:pointer}
 .p:active{opacity:.8}
-.top{display:grid;grid-template-columns:34px 1fr auto;align-items:start;column-gap:8px}
+.top{display:grid;grid-template-columns:22px 34px 1fr;align-items:center;column-gap:8px}
+/* Slate-wide rank, so it still means something when a single game is filtered.
+   .pos is the position inside the current group, shown only when grouping by team. */
+.rail{text-align:right}
+.rail .rk{font:600 13px/1 var(--num);color:var(--dim);display:block;font-variant-numeric:tabular-nums}
+.rail .pos{font:500 9px/1.3 var(--name);color:var(--dim);opacity:.7;display:block;margin-top:2px}
 /* Face over rank in one narrow column: recognition while scanning, without
    spending a second column on it. Reserve the box so rows don't reflow as
    images arrive, and keep the element present when an image fails. */
-.mug{width:34px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.mug{width:34px}
 .mug i{width:34px;height:34px;border-radius:50%;background:var(--cell);display:block;
   overflow:hidden;flex:none;position:relative}
 .mug img{width:100%;height:100%;display:block;object-fit:cover;object-position:top center;
   background:var(--cell)}
 .mug img.bad{visibility:hidden}
-.rk{font:500 10.5px/1 var(--num);color:var(--dim)}
 .who{min-width:0}
 .who a.pl{display:block;min-width:0;text-decoration:none;-webkit-tap-highlight-color:transparent}
 .who a.pl:active b{color:var(--ball)}
@@ -121,24 +127,25 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 .who b::after{content:"›";color:var(--dim);font-weight:500;margin-left:4px;font-size:14px}
 .who span{font:500 12.5px/1.3 var(--name);color:var(--dim);white-space:nowrap}
 .who .st{color:var(--ink);font-weight:700}
-.val{font:600 17px/1 var(--num);text-align:right}
-.val small{display:block;font:500 10px/1.4 var(--name);color:var(--dim);text-transform:uppercase;letter-spacing:.08em;text-align:right}
-.mins{display:flex;align-items:center;gap:6px;grid-column:2/4;margin-top:4px;font:500 11.5px/1 var(--num);color:var(--dim)}
-.mins .track{flex:1;max-width:120px;height:3px;background:var(--cell);border-radius:2px}
-.mins .track i{display:block;height:100%;background:var(--ink);opacity:.55;border-radius:2px}
-/* FG%/FT% get a wider track so their second line fits makes/attempts beside the z;
+/* Value leads the strip so the eye reads value-then-categories in one pass.
+   FG%/FT% get a wider track so their second line fits makes/attempts beside the z;
    the counting stats only ever hold 1-2 digits. */
-.strip,.cats{display:grid;gap:3px;grid-template-columns:1.6fr 1.6fr repeat(7,1fr)}
+.strip,.cats{display:grid;gap:3px;grid-template-columns:1.55fr 1.72fr 1.72fr repeat(7,1fr)}
+.c.vl{background:var(--cell);font-weight:600}
+.cats .vlh{color:var(--ink)}
 .strip{margin-top:8px}
 .c{border-radius:3px;padding:6px 0 5px;text-align:center;font:500 13px/1.1 var(--num);background:var(--cell);min-width:0}
 .c.off{background:transparent;color:var(--dim);opacity:.45;box-shadow:inset 0 0 0 1px var(--rule)}
-.c .z{display:block;font-size:8.5px;margin-top:3px;color:var(--ink);opacity:.55;white-space:nowrap}
-.c .z i{font-style:normal;opacity:.72;margin-right:3px;letter-spacing:-.02em}
+.c .z{display:block;font-size:8px;margin-top:3px;color:var(--ink);opacity:.55;white-space:nowrap}
+.c .z i{font-style:normal;opacity:.72;margin-right:2px;letter-spacing:-.02em}
 .more{display:none;margin-top:8px;font:500 12px/1.5 var(--num);color:var(--dim)}
 .p.open .more{display:block}
 .warn{background:color-mix(in oklab,var(--ball) 10%,var(--panel));border-bottom:1px solid var(--rule);
   padding-block:8px 9px;font:500 12.5px/1.35 var(--name);color:var(--ink)}
 .warn b{font-weight:700}
+.thead{display:flex;align-items:baseline;gap:7px;padding:10px 0 6px;border-bottom:1px solid var(--rule)}
+.thead b{font:700 13px/1 var(--name);text-transform:uppercase;letter-spacing:.07em}
+.thead span{font:500 11px/1 var(--num);color:var(--dim)}
 .empty{padding:40px 0;color:var(--dim);text-align:center;font-size:15px}
 .empty.err{color:var(--neg)}
 @media (min-width:720px){
@@ -318,18 +325,27 @@ function renderGames(){
   g.querySelectorAll(".tile").forEach(b=>b.onclick=()=>{S.game=b.dataset.g;renderGames();render()});
 }
 function renderCats(){
-  $("cats").innerHTML=CATS.map(c=>`<button data-k="${c.k}" class="${S.punt.has(c.k)?"punted":""}" aria-pressed="${S.sort===c.k}">${c.l}</button>`).join("");
+  $("cats").innerHTML=`<button data-k="value" class="vlh" aria-pressed="${S.sort==="value"}">VAL</button>`
+    +CATS.map(c=>`<button data-k="${c.k}" class="${S.punt.has(c.k)?"punted":""}" aria-pressed="${S.sort===c.k}">${c.l}</button>`).join("");
   $("cats").querySelectorAll("button").forEach(b=>b.onclick=()=>setSort(S.sort===b.dataset.k?"value":b.dataset.k));
   $("toggles").innerHTML=SCATS.map(c=>`<button class="tog" data-k="${c.k}" aria-pressed="${S.punt.has(c.k)}">${c.l}</button>`).join("");
   $("toggles").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.k;
     S.punt.has(k)?S.punt.delete(k):S.punt.add(k);store.set("punt",[...S.punt]);
     $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
     renderCats();if(S.players.length){scoreValue();render()}});
-  $("sortSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",S.sort===b.dataset.k));
+  $("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.setAttribute("aria-pressed",S.sort===b.dataset.k));
 }
 function setSort(k){S.sort=k;renderCats();render()}
 function sortKey(p){const k=S.sort;if(k==="value"||k==="min"||k==="usg")return p[k];return p.z[k]}
 
+// Value gets the leading cell: same two-line shape as a category cell, but the
+// sub-line carries minutes and usage, which were previously a separate row.
+function valCell(p){
+  const v=p.value;
+  const col=Math.abs(v)<.5?"var(--ink)":v>0?"var(--pos)":"var(--neg)";
+  return`<div class="c vl" style="color:${col}">${sgn(v)}<span class="z"
+    ><i>${Math.round(p.min)}m</i>${p.usg.toFixed(0)}%</span></div>`;
+}
 function cell(p,c){
   const off=S.punt.has(c.k),z=p.z[c.k],fg=c.k==="fg",ft=c.k==="ft";
   // Every cell is two lines. The percentage cells get a wider track so their second
@@ -346,16 +362,35 @@ function render(){
   setWarn();
   const t=S.updated?S.updated.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}):"";
   setStatus(`${rows.length} players · ${live?live+" live · ":""}${t}`);
-  $("list").innerHTML=rows.map(p=>`<article class="p${S.open.has(p.id)?" open":""}" data-id="${esc(p.id)}">
+  $("teamBtn").setAttribute("aria-pressed",S.byTeam);
+  // Grouped: teams ordered by their best player, rows inside each team keeping the
+  // active sort, plus a position-within-team counter. Flat list is the default.
+  let out;
+  if(S.byTeam){
+    const teams=[];
+    for(const p of rows){let g=teams.find(x=>x.team===p.team);
+      if(!g){g={team:p.team,opp:p.opp,home:p.home,rows:[]};teams.push(g)}
+      g.rows.push(p)}
+    for(const g of teams)g.top=Math.max(...g.rows.map(sortKey));
+    teams.sort((a,b)=>b.top-a.top);
+    out=[];
+    for(const g of teams){
+      out.push(`<div class="thead"><b>${g.team}</b><span>${g.home?"vs":"@"} ${g.opp} · ${g.rows.length} played</span></div>`);
+      g.rows.forEach((p,i)=>out.push(prow(p,i+1)));
+    }
+  }else out=rows.map(p=>prow(p,0));
+  $("list").innerHTML=out.join("");
+}
+function prow(p,pos){
+  return`<article class="p${S.open.has(p.id)?" open":""}" data-id="${esc(p.id)}">
     <div class="top">
+      <div class="rail"><span class="rk">${p.rank}</span>${pos?`<span class="pos">#${pos}</span>`:""}</div>
       ${mug(p)}
       <div class="who"><a class="pl" href="player.html?id=${encodeURIComponent(p.eid||p.id)}&name=${encodeURIComponent(p.name)}&team=${encodeURIComponent(p.team)}&pos=${encodeURIComponent(p.pos)}"><b>${esc(p.name)}</b></a><span>${p.team} ${p.home?"vs":"@"} ${p.opp} · ${esc(p.pos)}${p.starter?' · <span class="st">S</span>':""}</span></div>
-      <div class="val" style="color:${Math.abs(p.value)<.5?"var(--ink)":p.value>0?"var(--pos)":"var(--neg)"}">${sgn(p.value)}<small>value</small></div>
-      <div class="mins"><span>${Math.round(p.min)}m</span><span class="track"><i style="width:${Math.min(100,p.min/48*100)}%"></i></span><span>${p.usg.toFixed(0)}% usg</span></div>
     </div>
-    <div class="strip">${CATS.map(c=>cell(p,c)).join("")}</div>
+    <div class="strip">${valCell(p)}${CATS.map(c=>cell(p,c)).join("")}</div>
     <div class="more">FG ${p.fgm}/${p.fga} · FT ${p.ftm}/${p.fta} · 3P ${p.tpm}/${p.tpa} · +/− ${p.pm>0?"+":""}${p.pm} · PF ${p.pf}</div>
-  </article>`).join("");
+  </article>`;
 }
 // Preseason rotations are nothing like regular-season ones: starters play 20 minutes and
 // deep-bench players play 40, so Value and rank off these games mean very little.
@@ -379,7 +414,8 @@ $("date").onchange=e=>e.target.value&&loadDate(e.target.value);
 $("date").onclick=()=>{if(S.err)loadDate(S.date)};
 $("gear").onclick=()=>{const o=$("sheet").hidden;$("sheet").hidden=!o;$("gear").setAttribute("aria-expanded",o)};
 $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
-$("sortSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>setSort(b.dataset.k));
+$("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>setSort(b.dataset.k));
+$("teamBtn").onclick=()=>{S.byTeam=!S.byTeam;store.set("byTeam",S.byTeam);render()};
 function paintPool(){$("poolSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===S.pool))}
 $("poolSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pool=+b.dataset.v;store.set("pool",S.pool);paintPool();
   if(S.players.length){compute();render()}});
