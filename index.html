@@ -102,10 +102,19 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 #list{display:grid}
 .p{border-bottom:1px solid var(--rule);padding-block:9px 10px;cursor:pointer}
 .p:active{opacity:.8}
-.top{display:grid;grid-template-columns:26px 1fr auto;align-items:baseline;column-gap:6px}
-.rk{font:500 12px/1 var(--num);color:var(--dim)}
+.top{display:grid;grid-template-columns:34px 1fr auto;align-items:start;column-gap:8px}
+/* Face over rank in one narrow column: recognition while scanning, without
+   spending a second column on it. Reserve the box so rows don't reflow as
+   images arrive, and keep the element present when an image fails. */
+.mug{width:34px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.mug i{width:34px;height:34px;border-radius:50%;background:var(--cell);display:block;
+  overflow:hidden;flex:none;position:relative}
+.mug img{width:100%;height:100%;display:block;object-fit:cover;object-position:top center;
+  background:var(--cell)}
+.mug img.bad{visibility:hidden}
+.rk{font:500 10.5px/1 var(--num);color:var(--dim)}
 .who{min-width:0}
-.who b{font:600 16px/1.15 var(--name);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who b{font:600 15.5px/1.2 var(--name);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .who span{font:500 12.5px/1.3 var(--name);color:var(--dim);white-space:nowrap}
 .who .st{color:var(--ink);font-weight:700}
 .val{font:600 17px/1 var(--num);text-align:right}
@@ -229,7 +238,7 @@ function parseBox(ev,j){
       if(a.didNotPlay||!a.stats||!a.stats.length)continue;
       const s=a.stats,min=parseFloat(s[I.min])||0;if(min<=0)continue;
       const [fgm,fga]=split(s[I.fg]),[tpm,tpa]=split(s[I.tp]),[ftm,fta]=split(s[I.ft]);
-      rows.push({id:(a.athlete.id||a.athlete.displayName)+"",name:a.athlete.displayName,pos:(a.athlete.position||{}).abbreviation||"",
+      rows.push({id:(a.athlete.id||a.athlete.displayName)+"",eid:a.athlete.id||"",name:a.athlete.displayName,pos:(a.athlete.position||{}).abbreviation||"",
         team:abbr,opp,home:abbr===ev.home,game:ev.id,starter:!!a.starter,min,
         pts:+s[I.pts]||0,reb:+s[I.reb]||0,ast:+s[I.ast]||0,stl:+s[I.stl]||0,blk:+s[I.blk]||0,to:+s[I.to]||0,
         pf:+s[I.pf]||0,pm:parseInt(s[I.pm])||0,fgm,fga,tpm,tpa,ftm,fta});
@@ -270,6 +279,16 @@ function heat(z){const a=Math.abs(z),s=a<.75?0:a<1.5?14:a<2.5?30:48;
 function pct(m,a){return !a?"–":m===a?"1.00":(m/a).toFixed(3).replace(/^0/,"")}
 function setStatus(t){$("status").textContent=t}
 
+// ESPN ships a full-size PNG (~178KB) per player; its combiner endpoint returns a
+// ~7KB crop instead. 2x for retina, lazy so only visible rows fetch.
+const MUG=34, MUGPX=MUG*2;
+function mug(p){
+  const r=`<span class="rk">${p.rank}</span>`;
+  if(!p.eid)return`<div class="mug"><i></i>${r}</div>`;
+  const u=`https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${p.eid}.png&w=${MUGPX}&h=${MUGPX}&scale=crop`;
+  return`<div class="mug"><i><img src="${u}" alt="" loading="lazy" decoding="async"
+    width="${MUG}" height="${MUG}" onerror="this.classList.add('bad')"></i>${r}</div>`;
+}
 function renderGames(){
   const g=$("games");
   const tiles=[];
@@ -314,7 +333,7 @@ function render(){
   setStatus(`${rows.length} players · ${live?live+" live · ":""}${t}`);
   $("list").innerHTML=rows.map(p=>`<article class="p${S.open.has(p.id)?" open":""}" data-id="${esc(p.id)}">
     <div class="top">
-      <span class="rk">${p.rank}</span>
+      ${mug(p)}
       <div class="who"><b>${esc(p.name)}</b><span>${p.team} ${p.home?"vs":"@"} ${p.opp} · ${esc(p.pos)}${p.starter?' · <span class="st">S</span>':""}</span></div>
       <div class="val" style="color:${Math.abs(p.value)<.5?"var(--ink)":p.value>0?"var(--pos)":"var(--neg)"}">${sgn(p.value)}<small>value</small></div>
       <div class="mins"><span>${Math.round(p.min)}m</span><span class="track"><i style="width:${Math.min(100,p.min/48*100)}%"></i></span><span>${p.usg.toFixed(0)}% usg</span></div>
