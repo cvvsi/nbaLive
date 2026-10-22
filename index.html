@@ -119,6 +119,9 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 .c .z{display:block;font-size:9.5px;margin-top:2px;color:var(--ink);opacity:.55}
 .more{display:none;margin-top:8px;font:500 12px/1.5 var(--num);color:var(--dim)}
 .p.open .more{display:block}
+.warn{background:color-mix(in oklab,var(--ball) 10%,var(--panel));border-bottom:1px solid var(--rule);
+  padding-block:8px 9px;font:500 12.5px/1.35 var(--name);color:var(--ink)}
+.warn b{font-weight:700}
 .empty{padding:40px 0;color:var(--dim);text-align:center;font-size:15px}
 .empty.err{color:var(--neg)}
 @media (min-width:720px){
@@ -149,6 +152,8 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 </div>
 
 <div class="games gut" id="games" role="group" aria-label="Games"></div>
+
+<div class="warn gut" id="warn" hidden></div>
 
 <div class="ruler gut">
   <div>
@@ -193,6 +198,7 @@ async function loadDate(d,auto){
   const evs=(sb.events||[]).map(e=>{
     const c=e.competitions[0],h=c.competitors.find(x=>x.homeAway==="home"),a=c.competitors.find(x=>x.homeAway==="away");
     return{id:e.id,state:e.status.type.state,detail:e.status.type.shortDetail,
+      season:(e.season&&e.season.slug)||"",
       home:h.team.abbreviation,away:a.team.abbreviation,hs:+h.score||0,as:+a.score||0};
   });
   const started=evs.filter(e=>e.state!=="pre");
@@ -303,6 +309,7 @@ function render(){
   if(!S.players.length)return;
   const rows=S.players.filter(p=>S.game==="all"||p.game===S.game).sort((a,b)=>sortKey(b)-sortKey(a));
   const live=S.events.filter(e=>e.state==="in").length;
+  setWarn();
   const t=S.updated?S.updated.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}):"";
   setStatus(`${rows.length} players · ${live?live+" live · ":""}${t}`);
   $("list").innerHTML=rows.map(p=>`<article class="p${S.open.has(p.id)?" open":""}" data-id="${esc(p.id)}">
@@ -316,7 +323,17 @@ function render(){
     <div class="more">FG ${p.fgm}/${p.fga} · FT ${p.ftm}/${p.fta} · 3P ${p.tpm}/${p.tpa} · +/− ${p.pm>0?"+":""}${p.pm} · PF ${p.pf}</div>
   </article>`).join("");
 }
-function renderList(msg,err){$("list").innerHTML=`<div class="empty${err?" err":""}">${esc(msg)}</div>`;setStatus(err?"Offline":"")}
+// Preseason rotations are nothing like regular-season ones: starters play 20 minutes and
+// deep-bench players play 40, so Value and rank off these games mean very little.
+function setWarn(){
+  const w=$("warn"),pre=S.events.filter(e=>e.season==="preseason").length;
+  if(!pre){w.hidden=true;return}
+  const all=pre===S.events.length;
+  w.innerHTML=`<b>Preseason.</b> ${all?"These games don't":"Some of these games don't"} reflect real rotations — rank and Value here aren't predictive.`;
+  w.hidden=false;
+}
+function renderList(msg,err){$("list").innerHTML=`<div class="empty${err?" err":""}">${esc(msg)}</div>`;
+  setStatus(err?"Offline":"");setWarn()}
 
 // ---- controls
 $("list").onclick=e=>{const a=e.target.closest(".p");if(!a)return;const id=a.dataset.id;
