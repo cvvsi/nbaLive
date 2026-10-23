@@ -128,12 +128,9 @@ function compute(P, pool = 10) {
   for (const ev of evs) {
     const j = await J(`${API}/summary?event=${ev.id}`);
     P.push(...parseBox(ev, j));
-    const art = j.article || {};
     games.push({
       id: ev.id, date: ev.date, away: ev.away, home: ev.home, score: `${ev.as}-${ev.hs}`,
       margin: Math.abs(ev.hs - ev.as), blowout: Math.abs(ev.hs - ev.as) >= 20,
-      espnHeadline: art.headline || '',
-      espnRecap: (art.story || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
     });
   }
   // z and rank per date, against that night's own pool
@@ -144,21 +141,39 @@ function compute(P, pool = 10) {
     for (const p of slates[d]) { p.slateSize = slates[d].length; p.slateGames = games.filter(g => g.date === d).length; }
   }
 
-  // ---- ESPN fantasy ownership: percent of ESPN leagues rostering each player.
-  // CORS-open and unauthenticated, keyed by the same athlete ids we already use.
-  // This is the availability signal - a 13%-owned player is on the wire in most
-  // leagues, a 90% one is not a pick-up no matter how well he played.
-  const own = {};
+  // ---- Yahoo ownership (primary). Yahoo's read-only public API needs no auth and
+  // is the right source because the league is on Yahoo: ESPN's valuations differ enough
+  // to be misleading - Day'Ron Sharpe reads 19% on ESPN and 85% on Yahoo.
+  // percent_owned also carries a weekly delta, which is the ownership-trend number.
+  const own = {}, ownDelta = {};
+  const YB = 'https://pub-api-ro.fantasysports.yahoo.com/fantasy/v2';
+  const ynorm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+    .replace(/(jr|sr|ii|iii|iv|v)/g, '').replace(/[^a-z]/g, '');
   try {
-    const r = await fetch(
-      'https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/2027/players'
-      + '?scoringPeriodId=0&view=players_wl',
-      { headers: { 'x-fantasy-filter': JSON.stringify({ players: { limit: 2000 } }) } });
-    for (const p of await r.json()) {
-      if (p.ownership && p.ownership.percentOwned != null)
-        own[String(p.id)] = +p.ownership.percentOwned.toFixed(1);
+    for (let st = 0; st < 800; st += 100) {
+      const r = await fetch(`${YB}/game/nba/players;start=${st};count=100/percent_owned?format=json`);
+      if (!r.ok) break;
+      const pl = (await r.json()).fantasy_content.game[1].players;
+      let got = 0;
+      for (const k of Object.keys(pl)) {
+        if (k === 'count') continue;
+        const a = pl[k].player; got++;
+        const f = {}; for (const o of a[0]) Object.assign(f, o);
+        let v = null, d = null;
+        for (const o of (a[1] && a[1].percent_owned) || []) {
+          if ('value' in o) v = o.value;
+          if ('delta' in o) d = o.delta;
+        }
+        const nm = f.name && (f.name.ascii_first ? f.name.ascii_first + ' ' + f.name.ascii_last : f.name.full);
+        if (!nm) continue;
+        // Players past the owned tail have no percent_owned at all: that's <1%, not unknown.
+        own[ynorm(nm)] = v == null ? 0 : +v;
+        if (d != null) ownDelta[ynorm(nm)] = +d;
+      }
+      if (!got) break;
     }
-  } catch (e) { console.error('ownership fetch failed: ' + e.message); }
+  } catch (e) { console.error('yahoo ownership failed: ' + e.message); }
+  console.error(`yahoo ownership: ${Object.keys(own).length} players`);
 
   // ---- baselines + league injury feed
   const B = JSON.parse(fs.readFileSync(path.join('data', 'baselines.json'), 'utf8')).players;
@@ -194,7 +209,8 @@ function compute(P, pool = 10) {
       pts: p.pts, reb: p.reb, ast: p.ast, stl: p.stl, blk: p.blk, to: p.to,
       fg: `${p.fgm}/${p.fga}`, ft: `${p.ftm}/${p.fta}`, tp: `${p.tpm}/${p.tpa}`,
       pm: p.pm, pf: p.pf,
-      owned: own[p.id] != null ? own[p.id] : null,
+      owned: own[ynorm(p.name)] != null ? own[ynorm(p.name)] : null,
+      ownDelta: ownDelta[ynorm(p.name)] != null ? ownDelta[ynorm(p.name)] : null,
       base: b ? {
         mpg: bmpg, usg: busg, gp: b.prior_gp,
         dMin: bmpg != null ? +(p.min - bmpg).toFixed(1) : null,
@@ -239,7 +255,7 @@ function compute(P, pool = 10) {
       const b = gs[0].base;
       return {
         name, team: gs[0].team, pos: gs[0].pos, games: gs.length,
-        owned: gs[0].owned, base: b,
+        owned: gs[0].owned, ownDelta: gs[0].ownDelta, base: b,
         avgMin: +(gs.reduce((a, g) => a + g.min, 0) / gs.length).toFixed(1),
         avgUsg: +(gs.reduce((a, g) => a + g.usg, 0) / gs.length).toFixed(1),
         avgValue: +(gs.reduce((a, g) => a + g.value, 0) / gs.length).toFixed(2),

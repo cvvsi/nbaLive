@@ -98,12 +98,6 @@ section+section{border-top:1px solid var(--rule)}
 .inj u{text-decoration:none;color:var(--dim);font-size:10px;text-transform:uppercase;
   letter-spacing:.08em;display:block;margin-bottom:2px}
 
-/* games */
-.g{border-bottom:1px solid var(--rule);padding-block:10px 11px}
-.gh{display:flex;align-items:baseline;gap:8px;font:500 12.5px/1.2 var(--num)}
-.gh .t{font-family:var(--name);font-weight:600;font-size:14px}
-.gh .sc{color:var(--dim)}
-.gh .bo{font:600 9px/1 var(--name);text-transform:uppercase;letter-spacing:.07em;color:var(--dim);
   border:1px solid var(--rule);border-radius:3px;padding:3px 4px}
 .gh .dt{margin-left:auto;color:var(--dim);font-size:11px}
 .hl{margin-top:5px;font:600 13.5px/1.35 var(--name)}
@@ -117,7 +111,7 @@ section+section{border-top:1px solid var(--rule)}
 <div class="bar gut"><div class="mark"><i></i>9-Cat <em>/ Recap Review</em></div></div>
 
 <div class="note gut"><div class="inner">
-<p><b>No AI here.</b> Everything below is computed from the box scores, your two-season baselines, and ESPN's injury feed &mdash; this is the raw material a written recap would be built from. The question is whether it's good enough to be worth generating one.</p>
+<p><b>No AI here.</b> Everything below is computed from the box scores, your two-season baselines, Yahoo ownership, and ESPN's injury feed &mdash; the raw material a fantasy recap would be written from. The question is whether it's good enough to be worth generating prose over.</p>
 <p><b>Move the slider.</b> I don't know where the cutoff belongs. At the loose end you get 85 players, which is unreadable; tight gives about 10. For reference, the analyst you follow picked <b>3</b> players out of the Oct 21 slate &mdash; Moussa Diabate, Dennis Schroder, and Grayson Allen.</p>
 </div></div>
 
@@ -128,7 +122,7 @@ section+section{border-top:1px solid var(--rule)}
     <span class="val" id="thv">+8</span>
   </div>
   <div class="row" style="margin-top:11px">
-    <label for="ow">Max % rostered (ESPN leagues)</label>
+    <label for="ow">Max % rostered on Yahoo</label>
     <input type="range" id="ow" min="5" max="100" step="5" value="50">
     <span class="val" id="owv">50%</span>
   </div>
@@ -143,13 +137,8 @@ section+section{border-top:1px solid var(--rule)}
 
 <main>
 <section class="gut"><div class="inner">
-  <h2>Role changes &mdash; the shortlist</h2>
+  <h2>Pickup candidates</h2>
   <div id="list"></div>
-</div></section>
-
-<section class="gut"><div class="inner">
-  <h2>Games &mdash; with ESPN's own recap</h2>
-  <div id="games"></div>
 </div></section>
 
 <div class="gut"><div class="inner foot" id="foot"></div></div>
@@ -182,7 +171,8 @@ function playerCard(p){
     +'<div class="ph"><b>'+esc(p.name)+'</b>'
       +'<span class="tm">'+esc(p.team)+(p.pos?' &middot; '+esc(p.pos):'')+' &middot; '+p.games+'g</span>'
       +(p.owned!=null?'<span class="own '+(p.owned<=35?'free':p.owned<=70?'mid':'taken')+'">'
-        +p.owned+'% rostered</span>':'')
+        +p.owned+'% rostered'+(p.ownDelta?' '+(p.ownDelta>0?'↑':'↓')+Math.abs(p.ownDelta):'')
+        +'</span>':'')
       +'<span class="dm '+cls+'">'+dm+' vs base</span></div>'
     +'<div class="facts">'
       +'<span><b>'+p.avgMin.toFixed(0)+'</b> min/g <span style="opacity:.7">(base '
@@ -231,34 +221,16 @@ function draw(){
   });
 }
 
-document.getElementById("games").innerHTML=D.games.map(function(g){
-  return '<div class="g">'
-    +'<div class="gh"><span class="t">'+esc(g.away)+' @ '+esc(g.home)+'</span>'
-      +'<span class="sc">'+esc(g.score)+'</span>'
-      +(g.blowout?'<span class="bo">blowout</span>':'')
-      +'<span class="dt">'+fdate(g.date)+'</span></div>'
-    +(g.espnHeadline?'<div class="hl">'+esc(g.espnHeadline)+'</div>':'')
-    +(g.espnRecap?'<div class="rc clip" data-full="1">'+esc(g.espnRecap)+'</div>'
-      +'<div class="more">Read more</div>':'')
-  +'</div>';
-}).join("");
-document.getElementById("games").onclick=function(e){
-  var m=e.target.closest(".more"); if(!m)return;
-  var rc=m.previousElementSibling;
-  var clipped=rc.classList.toggle("clip");
-  m.textContent=clipped?"Read more":"Show less";
-};
-
 document.getElementById("foot").innerHTML=
   'Baselines: '+D.meta.matchedToBaseline+'/'+D.meta.players+' player-games matched, exported '
   +D.meta.exported+'. Value is the mean of 9 category z-scores against that night\'s 10+ minute '
   +'pool, so each date is ranked against its own slate. '
-  +'Ownership is ESPN\'s percentOwned across all ESPN leagues, not your Yahoo league, so '
-  +'treat it as a strong proxy rather than a roster check \u2014 the 40-70% band is where it is '
-  +'least certain. <b>What it still can\'t see:</b> Grayson Allen is 13% rostered and was a '
-  +'pick-up to the analyst on category scarcity \u2014 a guard helping in points, assists and '
-  +'FT% \u2014 not on a minutes jump; he is only +2.8 against his own baseline here. Scarcity '
-  +'reasoning of that kind is the gap this page does not close.';
+  +'Ownership is Yahoo\'s percent_owned from their read-only public API (no login), '
+  +'which is the right source for a Yahoo league \u2014 ESPN figures differ enough to mislead. '
+  +'<b>What it still can\'t see:</b> Grayson Allen is 30% rostered and was a pick-up to the '
+  +'analyst on category scarcity \u2014 a guard helping in points, assists and FT% \u2014 not '
+  +'on a minutes jump; he is only +2.8 against his own baseline here. Scarcity reasoning '
+  +'of that kind is the gap this page does not close.';
 
 document.getElementById("th").oninput=draw;
 document.getElementById("ow").oninput=draw;
