@@ -6,21 +6,27 @@ output is committed so the app never has to touch elitefantasybasketball.com.
 """
 import io, json, os, re, sys
 
-# "Save Page As" appends a random suffix to the saved iframe (regression_dashboard-6_vLU_.htm),
-# so glob for it rather than hardcoding - otherwise every re-export breaks this.
-def find(folder_glob):
+# Saved filenames vary between exports ("Save Page As" adds a random suffix to the
+# iframe, and the page titles themselves change), so discover the dashboards by
+# content rather than by name: find every saved regression_dashboard iframe, then
+# tell 1-season from 2-season apart by the header its table actually uses.
+def discover():
+    """Newest export wins: several saves of the same dashboard may be lying around."""
     import glob as g
-    for d in sorted(g.glob(folder_glob)):
-        hits = sorted(g.glob(os.path.join(d, 'regression_dashboard*.htm')))
-        if hits:
-            return hits[0]
-    return None
+    cands = []
+    for d in g.glob('*_files'):
+        for f in g.glob(os.path.join(d, 'regression_dashboard*.htm')):
+            cands.append((os.path.getmtime(f), f))
+    found = {}
+    for _, f in sorted(cands, reverse=True):          # newest first
+        head = io.open(f, encoding='utf-8', errors='replace').read(400000)
+        kind = '2y' if '2-Yr' in head else ('1y' if re.search(r'>\s*2[45]-2[56]\s*<', head) else None)
+        if kind:
+            found.setdefault(kind, f)
+    return found
 
 
-SRC = {
-    '1y': find('Regression Dashboard - Elite Fantasy Basketball_files'),
-    '2y': find('Regression Dashboard (2 seasons gp weighted) - Elite Fantasy Basketball_files'),
-}
+SRC = discover()
 
 strip = lambda h: re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', h)).strip()
 unesc = lambda t: (t.replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>')

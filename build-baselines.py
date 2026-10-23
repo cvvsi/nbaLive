@@ -3,7 +3,7 @@
 Column layout of the saved dashboards: 6 flat columns (Rk, Player, Team, Value, GP, MPG)
 then 16 stat groups of 3 (prior, current, diff) = 54 cells.
 """
-import io, json, re
+import datetime, glob, io, json, os, re
 
 GROUPS = ['usg', 'fg_pct', 'fga36', 'p2_pct', 'p3_pct', 'p3ar', 'ft_pct', 'ftar',
           'fta36', 'pts36', 'p3_36', 'reb36', 'ast36', 'stl36', 'blk36', 'to36']
@@ -54,24 +54,31 @@ raw = json.load(io.open('regression-raw.json', encoding='utf-8'))
 one = rows_of(raw['1y'])
 two = rows_of(raw['2y'])
 
+# Union of both exports. The two files are taken at different times, so one may
+# cover teams the other misses - a team that hadn't yet played when an export was
+# made simply isn't in that table. Prefer the 2-season blend where it exists and
+# fall back to the single season, recording which was used per player.
 players = {}
-for name, r in two.items():
+for name in sorted(set(two) | set(one)):
+    r = two.get(name) or one[name]
     o = one.get(name, {})
-    seasons = r.get('seasons', {})
+    seasons = r.get('seasons', {}) or o.get('seasons', {})
     prior = {k: v for k, v in seasons.items() if k != '2026-27'}
     gp_total = sum(v.get('gp', 0) for v in prior.values())
     mpg_w = (sum(v.get('gp', 0) * v.get('mpg', 0) for v in prior.values()) / gp_total
              if gp_total else None)
+    b2 = {g: (two.get(name) or {}).get('base_' + g) for g in GROUPS}
+    b1 = {g: o.get('base_' + g) for g in GROUPS}
     players[name] = {
         'name': name,
         'team': r['team'],
         'prior_seasons': prior,
         'prior_gp': gp_total,
         'prior_mpg': round(mpg_w, 1) if mpg_w is not None else None,
-        # baseline per-36 / rate profile, 2-season GP-weighted (EFB's own blend)
-        'base2y': {g: r.get('base_' + g) for g in GROUPS},
-        # single prior season, for when last year is the more relevant context
-        'base1y': {g: o.get('base_' + g) for g in GROUPS},
+        # 2-season GP-weighted (EFB's own blend) where available, else last season
+        'base2y': b2 if any(v is not None for v in b2.values()) else b1,
+        'base1y': b1,
+        'baseSource': '2y' if any(v is not None for v in b2.values()) else '1y',
         'cur': {g: r.get('cur_' + g) for g in GROUPS},
         'cur_gp': r['cur_gp'],
         'cur_mpg': r['cur_mpg'],
@@ -81,16 +88,26 @@ for name, r in two.items():
 
 meta = {
     'source': 'Elite Fantasy Basketball regression dashboards (saved export)',
-    'exported': '2026-10-22',
+    # newest saved dashboard, so the file says when the data was actually taken
+    'exported': max((datetime.date.fromtimestamp(os.path.getmtime(f)).isoformat()
+                     for f in glob.glob(os.path.join('*_files', 'regression_dashboard*.htm'))),
+                    default='unknown'),
     'players': len(players),
     'groups': GROUPS,
     'note': 'Baselines only. Nightly stats come from ESPN at runtime.',
+    'teams': sorted({p['team'] for p in players.values()}),
 }
 io.open('data/baselines.json', 'w', encoding='utf-8').write(
     json.dumps({'meta': meta, 'players': players}, ensure_ascii=False, separators=(',', ':')))
 
 print('players:', len(players))
+src = {}
+for p in players.values():
+    src[p['baseSource']] = src.get(p['baseSource'], 0) + 1
+print('baseline source:', src)
+teams = sorted({p['team'] for p in players.values()})
+print('teams:', len(teams), '->', ' '.join(teams))
 mt = [n for n, p in players.items() if not p['prior_gp']]
-print('no prior GP:', len(mt), mt[:6])
+print('no prior season (rookies):', len(mt))
 print('median prior GP:', sorted(p['prior_gp'] for p in players.values())[len(players) // 2])
 print('wrote data/baselines.json')
