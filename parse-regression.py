@@ -4,11 +4,22 @@ The dashboards render a table whose title= attributes carry each season's GP and
 which is what makes a GP-weighted baseline possible. Run once per saved export; the
 output is committed so the app never has to touch elitefantasybasketball.com.
 """
-import io, json, re, sys
+import io, json, os, re, sys
+
+# "Save Page As" appends a random suffix to the saved iframe (regression_dashboard-6_vLU_.htm),
+# so glob for it rather than hardcoding - otherwise every re-export breaks this.
+def find(folder_glob):
+    import glob as g
+    for d in sorted(g.glob(folder_glob)):
+        hits = sorted(g.glob(os.path.join(d, 'regression_dashboard*.htm')))
+        if hits:
+            return hits[0]
+    return None
+
 
 SRC = {
-    '1y': 'Regression Dashboard - Elite Fantasy Basketball_files/regression_dashboard-6_vLU_.htm',
-    '2y': 'Regression Dashboard (2 seasons gp weighted) - Elite Fantasy Basketball_files/regression_dashboard-6_HYXb.htm',
+    '1y': find('Regression Dashboard - Elite Fantasy Basketball_files'),
+    '2y': find('Regression Dashboard (2 seasons gp weighted) - Elite Fantasy Basketball_files'),
 }
 
 strip = lambda h: re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', h)).strip()
@@ -89,6 +100,11 @@ def parse(path):
 
 if __name__ == '__main__':
     out = {}
+    missing = [k for k, v in SRC.items() if not v]
+    if missing:
+        print('ERROR: no saved dashboard found for: ' + ', '.join(missing))
+        print('Save both Regression Dashboard pages into this folder and re-run.')
+        raise SystemExit(1)
     for key, path in SRC.items():
         hs, rows = parse(path)
         print('=' * 72)
