@@ -79,6 +79,10 @@ section+section{border-top:1px solid var(--rule)}
 .ph{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .ph b{font:600 16px/1.15 var(--name)}
 .ph .tm{font:500 11.5px/1 var(--num);color:var(--dim)}
+.own{font:600 10px/1 var(--name);text-transform:uppercase;letter-spacing:.06em;
+  padding:4px 6px;border-radius:3px;background:var(--cell);color:var(--dim)}
+.own.free{background:color-mix(in oklab,var(--pos) 18%,var(--cell));color:var(--pos)}
+.own.mid{background:color-mix(in oklab,var(--mid) 20%,var(--cell));color:var(--mid)}
 .ph .dm{font:600 13px/1 var(--num);margin-left:auto;font-variant-numeric:tabular-nums}
 .ph .dm.up{color:var(--pos)}
 .ph .dm.dn{color:var(--neg)}
@@ -123,11 +127,16 @@ section+section{border-top:1px solid var(--rule)}
     <input type="range" id="th" min="0" max="14" step="0.5" value="8">
     <span class="val" id="thv">+8</span>
   </div>
+  <div class="row" style="margin-top:11px">
+    <label for="ow">Max % rostered (ESPN leagues)</label>
+    <input type="range" id="ow" min="5" max="100" step="5" value="50">
+    <span class="val" id="owv">50%</span>
+  </div>
   <div class="row" style="margin-top:10px">
-    <span class="chk"><input type="checkbox" id="pos" checked> Only players who also produced (Value &gt; 0)</span>
+    <span class="chk"><input type="checkbox" id="pos"> Only players who also produced (Value &gt; 0)</span>
   </div>
   <div class="preset" id="preset">
-    <button data-t="8" data-p="1">Tight</button><button data-t="6" data-p="1">Medium</button><button data-t="6" data-p="0">Loose</button><button data-t="0" data-p="0">Everything</button>
+    <button data-t="6" data-o="50" data-p="0">Pickups</button><button data-t="8" data-o="50" data-p="1">Pickups+produced</button><button data-t="6" data-o="100" data-p="0">Ignore ownership</button><button data-t="0" data-o="100" data-p="0">Everything</button>
   </div>
   <div class="count" id="count"></div>
 </div></div>
@@ -172,6 +181,8 @@ function playerCard(p){
   return '<div class="p">'
     +'<div class="ph"><b>'+esc(p.name)+'</b>'
       +'<span class="tm">'+esc(p.team)+(p.pos?' &middot; '+esc(p.pos):'')+' &middot; '+p.games+'g</span>'
+      +(p.owned!=null?'<span class="own '+(p.owned<=35?'free':p.owned<=70?'mid':'taken')+'">'
+        +p.owned+'% rostered</span>':'')
       +'<span class="dm '+cls+'">'+dm+' vs base</span></div>'
     +'<div class="facts">'
       +'<span><b>'+p.avgMin.toFixed(0)+'</b> min/g <span style="opacity:.7">(base '
@@ -197,14 +208,17 @@ function playerCard(p){
 
 function draw(){
   var th=+document.getElementById("th").value;
+  var ow=+document.getElementById("ow").value;
   var onlyPos=document.getElementById("pos").checked;
   document.getElementById("thv").textContent=(th>0?"+":"")+th;
+  document.getElementById("owv").textContent=ow>=100?"any":ow+"%";
   var rows=D.notable.filter(function(p){
+    if(p.owned!=null&&ow<100&&p.owned>ow)return false;
     if(p.dMinAvg==null)return th<=0;
     if(p.dMinAvg<th)return false;
     if(onlyPos&&p.avgValue<=0)return false;
     return true;
-  });
+  }).sort(function(a,b){return (b.dMinAvg==null?-99:b.dMinAvg)-(a.dMinAvg==null?-99:a.dMinAvg)});
   document.getElementById("count").innerHTML=
     '<b>'+rows.length+'</b> of '+D.notable.length+' flagged players shown'
     +' &middot; '+D.meta.games+' games, '+D.meta.players+' player-games'
@@ -213,7 +227,7 @@ function draw(){
     ? rows.map(playerCard).join("")
     : '<p style="color:var(--dim);font-size:13px">Nothing at this threshold.</p>';
   Array.prototype.forEach.call(document.querySelectorAll("#preset button"),function(b){
-    b.setAttribute("aria-pressed", +b.dataset.t===th && (b.dataset.p==="1")===onlyPos);
+    b.setAttribute("aria-pressed", +b.dataset.t===th && +b.dataset.o===ow && (b.dataset.p==="1")===onlyPos);
   });
 }
 
@@ -239,16 +253,20 @@ document.getElementById("foot").innerHTML=
   'Baselines: '+D.meta.matchedToBaseline+'/'+D.meta.players+' player-games matched, exported '
   +D.meta.exported+'. Value is the mean of 9 category z-scores against that night\'s 10+ minute '
   +'pool, so each date is ranked against its own slate. '
-  +'<b>What this can\'t see:</b> the analyst\'s third pick, Grayson Allen, is absent at every '
-  +'threshold — he played 29 minutes against a 26.2 baseline and finished RK41, so nothing '
-  +'about his line is unusual. He was a pick-up because guards who help in points, assists and '
-  +'FT% are scarce on waivers, which needs league ownership data this tool doesn\'t have.';
+  +'Ownership is ESPN\'s percentOwned across all ESPN leagues, not your Yahoo league, so '
+  +'treat it as a strong proxy rather than a roster check \u2014 the 40-70% band is where it is '
+  +'least certain. <b>What it still can\'t see:</b> Grayson Allen is 13% rostered and was a '
+  +'pick-up to the analyst on category scarcity \u2014 a guard helping in points, assists and '
+  +'FT% \u2014 not on a minutes jump; he is only +2.8 against his own baseline here. Scarcity '
+  +'reasoning of that kind is the gap this page does not close.';
 
 document.getElementById("th").oninput=draw;
+document.getElementById("ow").oninput=draw;
 document.getElementById("pos").onchange=draw;
 Array.prototype.forEach.call(document.querySelectorAll("#preset button"),function(b){
   b.onclick=function(){
     document.getElementById("th").value=b.dataset.t;
+    document.getElementById("ow").value=b.dataset.o;
     document.getElementById("pos").checked=b.dataset.p==="1";
     draw();
   };

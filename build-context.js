@@ -144,6 +144,22 @@ function compute(P, pool = 10) {
     for (const p of slates[d]) { p.slateSize = slates[d].length; p.slateGames = games.filter(g => g.date === d).length; }
   }
 
+  // ---- ESPN fantasy ownership: percent of ESPN leagues rostering each player.
+  // CORS-open and unauthenticated, keyed by the same athlete ids we already use.
+  // This is the availability signal - a 13%-owned player is on the wire in most
+  // leagues, a 90% one is not a pick-up no matter how well he played.
+  const own = {};
+  try {
+    const r = await fetch(
+      'https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/2027/players'
+      + '?scoringPeriodId=0&view=players_wl',
+      { headers: { 'x-fantasy-filter': JSON.stringify({ players: { limit: 2000 } }) } });
+    for (const p of await r.json()) {
+      if (p.ownership && p.ownership.percentOwned != null)
+        own[String(p.id)] = +p.ownership.percentOwned.toFixed(1);
+    }
+  } catch (e) { console.error('ownership fetch failed: ' + e.message); }
+
   // ---- baselines + league injury feed
   const B = JSON.parse(fs.readFileSync(path.join('data', 'baselines.json'), 'utf8')).players;
   const bidx = {}; for (const n of Object.keys(B)) bidx[norm(n)] = n;
@@ -178,6 +194,7 @@ function compute(P, pool = 10) {
       pts: p.pts, reb: p.reb, ast: p.ast, stl: p.stl, blk: p.blk, to: p.to,
       fg: `${p.fgm}/${p.fga}`, ft: `${p.ftm}/${p.fta}`, tp: `${p.tpm}/${p.tpa}`,
       pm: p.pm, pf: p.pf,
+      owned: own[p.id] != null ? own[p.id] : null,
       base: b ? {
         mpg: bmpg, usg: busg, gp: b.prior_gp,
         dMin: bmpg != null ? +(p.min - bmpg).toFixed(1) : null,
@@ -204,6 +221,8 @@ function compute(P, pool = 10) {
     if (b && b.gp < 30 && p.min >= 20) r.push('only ' + b.gp + ' prior games, played ' + p.min);
     if (d != null && d <= -8 && b.mpg >= 24) r.push('minutes ' + d + ' vs ' + b.mpg + ' baseline');
     if (!b && p.min >= 24) r.push('no baseline exported for this player');
+    if (p.owned != null && p.owned <= 40 && d != null && d >= 4)
+      r.push('only ' + p.owned + '% owned');
     return r;
   };
   const flagged = players.map(p => Object.assign({}, p, { why: reasons(p) })).filter(p => p.why.length);
@@ -220,7 +239,7 @@ function compute(P, pool = 10) {
       const b = gs[0].base;
       return {
         name, team: gs[0].team, pos: gs[0].pos, games: gs.length,
-        base: b,
+        owned: gs[0].owned, base: b,
         avgMin: +(gs.reduce((a, g) => a + g.min, 0) / gs.length).toFixed(1),
         avgUsg: +(gs.reduce((a, g) => a + g.usg, 0) / gs.length).toFixed(1),
         avgValue: +(gs.reduce((a, g) => a + g.value, 0) / gs.length).toFixed(2),
