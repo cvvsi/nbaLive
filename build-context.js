@@ -3,8 +3,10 @@
  * handed. No model is called here - the point is to see whether the inputs are good
  * enough to write analysis from before paying for tokens.
  *
- * Usage:  node build-context.js [YYYYMMDD]   (defaults to the latest finished slate)
- * Writes: data/context-<date>.json  and prints a readable digest.
+ * Usage:  node build-context.js                    latest finished slate
+ *         node build-context.js 20261021          one slate
+ *         node build-context.js 20261020-20261022 a date range, pooled
+ * Writes: data/context-<label>.json  and prints a readable digest.
  */
 const fs = require('fs');
 const path = require('path');
@@ -43,7 +45,7 @@ function parseBox(ev, j) {
       if (min <= 0) { dnp.push(nm); continue; }
       const [fgm, fga] = split(s[I.fg]), [tpm, tpa] = split(s[I.tp]), [ftm, fta] = split(s[I.ft]);
       rows.push({
-        id: String(a.athlete.id || nm), name: nm,
+        id: String(a.athlete.id || nm), name: nm, date: ev.date,
         pos: (a.athlete.position || {}).abbreviation || '', team: abbr, opp,
         home: abbr === ev.home, game: ev.id, starter: !!a.starter, min,
         pts: +s[I.pts] || 0, reb: +s[I.reb] || 0, ast: +s[I.ast] || 0, stl: +s[I.stl] || 0,
@@ -81,31 +83,45 @@ function compute(P, pool = 10) {
 }
 
 (async () => {
-  // ---- which slate
-  let date = process.argv[2];
-  if (!date) {
-    for (let i = 0; i < 8 && !date; i++) {
+  // ---- which slate(s)
+  const step = (ds, n) => { const t = new Date(ds.slice(0,4)+'-'+ds.slice(4,6)+'-'+ds.slice(6)+'T12:00:00Z');
+    t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0,10).replace(/-/g,''); };
+  const arg = process.argv[2];
+  let dates = [];
+  if (arg && arg.includes('-')) {
+    const [a, b] = arg.split('-');
+    for (let d = a; d <= b; d = step(d, 1)) dates.push(d);
+  } else if (arg) dates = [arg];
+  else {
+    for (let i = 0; i < 8 && !dates.length; i++) {
       const d = new Date(); d.setUTCDate(d.getUTCDate() - i);
       const ds = d.toISOString().slice(0, 10).replace(/-/g, '');
       const sb = await J(`${API}/scoreboard?dates=${ds}`);
-      if ((sb.events || []).some(e => e.status.type.state === 'post')) date = ds;
+      if ((sb.events || []).some(e => e.status.type.state === 'post')) dates = [ds];
     }
   }
-  if (!date) { console.error('no finished slate found'); process.exit(1); }
+  if (!dates.length) { console.error('no finished slate found'); process.exit(1); }
 
-  const sb = await J(`${API}/scoreboard?dates=${date}`);
-  const evs = (sb.events || [])
-    .filter(e => (e.season && e.season.slug) === 'regular-season' && e.status.type.state === 'post')
-    .map(e => {
+  // Each date is ranked against its OWN pool - that's what Value means on the nightly
+  // page - then the slates are pooled for the shortlist. Pooling the z-scores instead
+  // would let a 2-game Thursday dilute an 11-game Wednesday.
+  const evs = [];
+  for (const date of dates) {
+    const sb = await J(`${API}/scoreboard?dates=${date}`);
+    for (const e of sb.events || []) {
+      if ((e.season && e.season.slug) !== 'regular-season') continue;
+      if (e.status.type.state !== 'post') continue;
       const c = e.competitions[0];
       const h = c.competitors.find(x => x.homeAway === 'home');
       const a = c.competitors.find(x => x.homeAway === 'away');
-      return {
-        id: e.id, home: h.team.abbreviation, away: a.team.abbreviation,
+      evs.push({
+        id: e.id, date, home: h.team.abbreviation, away: a.team.abbreviation,
         hs: +h.score || 0, as: +a.score || 0, name: e.name,
-      };
-    });
-  if (!evs.length) { console.error('no final regular-season games on ' + date); process.exit(1); }
+      });
+    }
+  }
+  if (!evs.length) { console.error('no final regular-season games in ' + arg); process.exit(1); }
+  const label = dates.length > 1 ? dates[0] + '-' + dates[dates.length - 1] : dates[0];
 
   // ---- box scores, plus ESPN's own written recap per game
   const P = [], games = [];
@@ -114,13 +130,19 @@ function compute(P, pool = 10) {
     P.push(...parseBox(ev, j));
     const art = j.article || {};
     games.push({
-      id: ev.id, away: ev.away, home: ev.home, score: `${ev.as}-${ev.hs}`,
+      id: ev.id, date: ev.date, away: ev.away, home: ev.home, score: `${ev.as}-${ev.hs}`,
       margin: Math.abs(ev.hs - ev.as), blowout: Math.abs(ev.hs - ev.as) >= 20,
       espnHeadline: art.headline || '',
       espnRecap: (art.story || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
     });
   }
-  compute(P);
+  // z and rank per date, against that night's own pool
+  const slates = {};
+  for (const p of P) (slates[p.date] || (slates[p.date] = [])).push(p);
+  for (const d of Object.keys(slates)) {
+    compute(slates[d]);
+    for (const p of slates[d]) { p.slateSize = slates[d].length; p.slateGames = games.filter(g => g.date === d).length; }
+  }
 
   // ---- baselines + league injury feed
   const B = JSON.parse(fs.readFileSync(path.join('data', 'baselines.json'), 'utf8')).players;
@@ -150,8 +172,8 @@ function compute(P, pool = 10) {
     const bmpg = b ? b.prior_mpg : null;
     const busg = b && b.base2y ? b.base2y.usg : null;
     return {
-      name: p.name, team: p.team, opp: p.opp, pos: p.pos, starter: p.starter,
-      rank: p.rank, value: +p.value.toFixed(2),
+      name: p.name, date: p.date, team: p.team, opp: p.opp, pos: p.pos, starter: p.starter,
+      rank: p.rank, slateSize: p.slateSize, slateGames: p.slateGames, value: +p.value.toFixed(2),
       min: Math.round(p.min), usg: +p.usg.toFixed(1),
       pts: p.pts, reb: p.reb, ast: p.ast, stl: p.stl, blk: p.blk, to: p.to,
       fg: `${p.fgm}/${p.fga}`, ft: `${p.ftm}/${p.fta}`, tp: `${p.tpm}/${p.tpa}`,
@@ -172,20 +194,46 @@ function compute(P, pool = 10) {
   // Rank thresholds have to scale with the slate: RK25 of 45 players on a 2-game
   // night is most of the rotation, while RK25 of 300 is genuinely elite.
   const ROSTER = 130;                       // 10 teams x 13 = your league's depth
-  const N = players.length;
-  const eliteRank = Math.max(5, Math.round(N * 0.08));   // top 8% of the slate
+  // 8% of the player's OWN slate, so a thin night can't manufacture elite finishes
+  const eliteOf = p => Math.max(5, Math.round((p.slateSize || players.length) * 0.08));
   const reasons = p => {
     const r = [], b = p.base, d = b && b.dMin;
     if (d != null && d >= 6) r.push('minutes +' + d + ' vs ' + b.mpg + ' baseline');
-    if (p.rank <= eliteRank) r.push('top-' + eliteRank + ' night on this slate');
+    const cut = eliteOf(p);
+    if (p.rank <= cut) r.push('top-' + cut + ' of ' + p.slateSize + ' that night');
     if (b && b.gp < 30 && p.min >= 20) r.push('only ' + b.gp + ' prior games, played ' + p.min);
     if (d != null && d <= -8 && b.mpg >= 24) r.push('minutes ' + d + ' vs ' + b.mpg + ' baseline');
     if (!b && p.min >= 24) r.push('no baseline exported for this player');
     return r;
   };
-  const notable = players.map(p => Object.assign({}, p, { why: reasons(p) }))
-    .filter(p => p.why.length)
-    .sort((a, b) => a.rank - b.rank);
+  const flagged = players.map(p => Object.assign({}, p, { why: reasons(p) })).filter(p => p.why.length);
+
+  // Group by player: a repeated pattern over several nights is the real signal, and
+  // a single outlier night is the thing most likely to be noise.
+  const byPlayer = {};
+  for (const p of players) (byPlayer[p.name] || (byPlayer[p.name] = [])).push(p);
+  const med = a => { const s = [...a].sort((x, y) => x - y), n = s.length;
+    return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
+  const notable = Object.entries(byPlayer)
+    .filter(([n]) => flagged.some(f => f.name === n))
+    .map(([name, gs]) => {
+      const b = gs[0].base;
+      return {
+        name, team: gs[0].team, pos: gs[0].pos, games: gs.length,
+        base: b,
+        avgMin: +(gs.reduce((a, g) => a + g.min, 0) / gs.length).toFixed(1),
+        avgUsg: +(gs.reduce((a, g) => a + g.usg, 0) / gs.length).toFixed(1),
+        avgValue: +(gs.reduce((a, g) => a + g.value, 0) / gs.length).toFixed(2),
+        bestRank: Math.min(...gs.map(g => g.rank)),
+        medValue: +med(gs.map(g => g.value)).toFixed(2),
+        starts: gs.filter(g => g.starter).length,
+        dMinAvg: b && b.mpg != null ? +(gs.reduce((a, g) => a + g.min, 0) / gs.length - b.mpg).toFixed(1) : null,
+        why: [...new Set(flagged.filter(f => f.name === name).flatMap(f => f.why))],
+        log: gs.map(g => ({ date: g.date, opp: g.opp, rank: g.rank, of: g.slateSize,
+          value: g.value, min: g.min, usg: g.usg, starter: g.starter })),
+      };
+    })
+    .sort((a, b) => (b.dMinAvg ?? -99) - (a.dMinAvg ?? -99));
 
   const teamsInvolved = [...new Set(P.map(p => p.team))];
   const relevantInjuries = teamsInvolved.flatMap(t => injByTeam[t] || []);
@@ -196,10 +244,11 @@ function compute(P, pool = 10) {
 
   const ctx = {
     meta: {
-      date, games: games.length, players: players.length,
+      label, games: games.length, players: players.length,
+      playerGames: players.length,
       matchedToBaseline: players.filter(p => p.base).length,
+      dates,
       teamsWithoutBaselines: teamsNoBase,
-      eliteRankCutoff: eliteRank,
       league: { teams: 10, roster: 13, rosteredDepth: ROSTER },
       note: 'Value = mean of 9 category z-scores vs this slate\'s 10+ minute pool. '
           + 'base = two-season GP-weighted baseline from the EFB regression dashboard. '
@@ -210,42 +259,48 @@ function compute(P, pool = 10) {
   };
 
   fs.mkdirSync('data', { recursive: true });
-  const out = path.join('data', `context-${date}.json`);
+  const out = path.join('data', `context-${label}.json`);
   fs.writeFileSync(out, JSON.stringify(ctx, null, 1));
 
   // ---- digest
   const kb = n => (n / 1024).toFixed(1) + 'KB';
-  console.log(`slate ${date} - ${games.length} game(s), ${players.length} players, `
-    + `${ctx.meta.matchedToBaseline} matched to a baseline`);
+  console.log(`${label}  ${dates.length} date(s), ${games.length} games, `
+    + `${players.length} player-games, ${new Set(players.map(p => p.name)).size} distinct players`);
+  console.log(`baselines matched: ${ctx.meta.matchedToBaseline}/${players.length}`
+    + (teamsNoBase.length ? `  (no baselines: ${teamsNoBase.join(', ')})` : '  (all teams covered)'));
   console.log('');
-  for (const g of games) {
-    console.log(`  ${g.away} @ ${g.home}  ${g.score}${g.blowout ? '  [blowout]' : ''}`);
-    console.log(`    ESPN: ${g.espnHeadline.slice(0, 96)}`);
+  for (const d of dates) {
+    const gs = games.filter(g => g.date === d);
+    if (!gs.length) continue;
+    console.log(`  ${d}  ${gs.length} game(s), ${(slates[d] || []).length} players`);
   }
   console.log('');
-  if (teamsNoBase.length) {
-    console.log(`WARNING: no baselines for ${teamsNoBase.join(', ')} - those teams had not `
-      + `played when the EFB dashboard was exported. Re-export to cover them.`);
-    console.log('');
-  }
-  console.log(`NOTABLE (${notable.length} of ${players.length}, elite cutoff RK${eliteRank}):`);
+  console.log(`NOTABLE: ${notable.length} players`);
+  console.log('  g = games in window, dMin = avg minutes vs own two-season baseline');
+  console.log('');
   for (const p of notable) {
     const b = p.base;
-    const d = b && b.dMin != null ? (b.dMin > 0 ? '+' : '') + b.dMin : ' n/a';
-    console.log(`  RK${String(p.rank).padStart(3)}  ${p.name.slice(0, 21).padEnd(21)} ${p.team.padEnd(4)}`
-      + ` val ${(p.value > 0 ? '+' : '') + p.value.toFixed(2)}  ${String(p.min).padStart(2)}m`
-      + ` ${String(d).padStart(5)}  usg ${String(p.usg.toFixed(0)).padStart(2)}%`
-      + ` ${p.starter ? 'ST' : '  '}  ${p.why.join('; ')}`);
+    const d = p.dMinAvg == null ? ' n/a' : (p.dMinAvg > 0 ? '+' : '') + p.dMinAvg;
+    console.log(`  ${p.name.slice(0, 21).padEnd(21)} ${p.team.padEnd(4)} ${p.games}g  `
+      + `min ${String(p.avgMin.toFixed(0)).padStart(2)} (${String(d).padStart(5)} vs `
+      + `${b && b.mpg != null ? String(b.mpg.toFixed(1)).padStart(4) : ' ?  '})  `
+      + `val ${(p.avgValue > 0 ? '+' : '') + p.avgValue.toFixed(2)}  `
+      + `best RK${String(p.bestRank).padStart(3)}  ${p.starts}/${p.games} st`);
+    console.log(`      ${p.why.join(' | ')}`);
+    console.log(`      ` + p.log.map(g => `${g.date.slice(4)} ${g.opp} RK${g.rank}/${g.of} `
+      + `${g.min}m ${g.usg.toFixed(0)}%${g.starter ? ' ST' : ''}`).join('  ·  '));
   }
   console.log('');
-  console.log(`INJURY CONTEXT for teams that played (${relevantInjuries.length}):`);
-  for (const i of relevantInjuries) {
-    console.log(`  ${i.team.padEnd(4)} ${i.name.slice(0, 22).padEnd(22)} ${(i.status || '').padEnd(11)}`
-      + ` back ${i.returnDate || '?'}   ${i.injury || ''}`);
+  console.log(`INJURY CONTEXT (${relevantInjuries.length} players on the teams involved):`);
+  for (const i of relevantInjuries.slice(0, 14)) {
+    console.log(`  ${i.team.padEnd(4)} ${i.name.slice(0, 21).padEnd(21)} ${(i.status || '').padEnd(11)}`
+      + ` back ${i.returnDate || '?'}  ${i.injury || ''}`);
   }
+  if (relevantInjuries.length > 14) console.log(`  ... and ${relevantInjuries.length - 14} more`);
   console.log('');
-  const full = JSON.stringify(ctx).length, trim = JSON.stringify({ ...ctx, allPlayers: undefined }).length;
-  console.log(`payload: full ${kb(full)} | without allPlayers ${kb(trim)}`);
-  console.log(`         ~${Math.round(trim / 4)} tokens trimmed, ~${Math.round(full / 4)} full`);
+  const full = JSON.stringify(ctx).length;
+  const trim = JSON.stringify(Object.assign({}, ctx, { allPlayers: undefined })).length;
+  console.log(`payload: full ${kb(full)} (~${Math.round(full / 4)} tok) | `
+    + `shortlist only ${kb(trim)} (~${Math.round(trim / 4)} tok)`);
   console.log(`wrote ${out}`);
 })();
