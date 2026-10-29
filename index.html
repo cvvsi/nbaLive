@@ -105,7 +105,14 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 #list{display:grid}
 .p{border-bottom:1px solid var(--rule);padding-block:9px 10px;cursor:pointer}
 .p:active{opacity:.8}
-.top{display:grid;grid-template-columns:22px 34px 1fr;align-items:center;column-gap:8px}
+.top{display:grid;grid-template-columns:22px 34px 1fr auto;align-items:center;column-gap:8px}
+/* Season / 30 / 14 / 7-day ranks beside the name: "is this guy rosterable?" at a glance.
+   Top-100 reads green, outside 150 fades, so a hot night from a deep-bench guy stands out. */
+.rks{display:grid;grid-template-columns:repeat(4,27px);gap:3px;text-align:center}
+.rks span{font:500 12.5px/1 var(--num);font-variant-numeric:tabular-nums;color:var(--ink)}
+.rks i{display:block;font:600 8.5px/1 var(--name);font-style:normal;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:3px}
+.rks .hi{color:var(--pos);font-weight:600}
+.rks .lo,.rks .na{color:var(--dim)}
 /* Slate-wide rank, so it still means something when a single game is filtered.
    .pos is the position inside the current group, shown only when grouping by team. */
 .rail{text-align:right}
@@ -173,7 +180,8 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
       <button data-v="0">Everyone</button><button data-v="10">10+ min</button><button data-v="15">15+ min</button><button data-v="20">20+ min</button>
     </div>
   </div>
-  <div><p><b>Value</b> is a player's average z-score across your active categories, relative to everyone in the comparison pool who played that day. FG% and FT% count makes above or below average on their attempts, so volume matters. Turnovers count against. Tap a player to see the z-score under each stat.</p></div>
+  <div><p><b>Value</b> is a player's average z-score across your active categories, relative to everyone in the comparison pool who played that day. FG% and FT% count makes above or below average on their attempts, so volume matters. Turnovers count against. Tap a player to see the z-score under each stat.</p>
+    <p style="margin-top:8px"><b>Szn / 30 / 14 / 7</b> beside each name are 9-cat ranks on per-game averages over the season and the last 30, 14 and 7 days, against a top-156 pool and with your punts applied. They're rebuilt every morning, so they run through last night. Top 100 is green.</p></div>
 </div>
 
 <div class="games gut" id="games" role="group" aria-label="Games"></div>
@@ -289,6 +297,26 @@ function scoreValue(){
   [...S.players].sort((a,b)=>b.value-a.value).forEach((p,i)=>p.rank=i+1);
 }
 
+// ---- multi-day ranks: data/rankings.json, built nightly by build-rankings.js. It stores
+// per-window z-scores rather than ranks so punts re-rank here exactly like tonight's Value.
+const WINS=[{k:"season",l:"Szn",n:"Season"},{k:"d30",l:"30",n:"L30"},{k:"d14",l:"14",n:"L14"},{k:"d7",l:"7",n:"L7"}];
+const TOP=100;
+let R=null;
+function rankWindows(){
+  if(!R)return;
+  const ix=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>2+R.cats.indexOf(c.k));
+  S.rk={};
+  for(const w of WINS){
+    const v=[];
+    for(const id in R.players){const a=R.players[id].w[w.k];
+      if(a)v.push([id,ix.length?ix.reduce((s,i)=>s+a[i],0)/ix.length:0])}
+    v.sort((a,b)=>b[1]-a[1]);
+    S.rk[w.k]={};v.forEach(([id],i)=>S.rk[w.k][id]=i+1);
+  }
+}
+fetch("data/rankings.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
+  .then(j=>{if(!j)return;R=j;rankWindows();if(S.players.length)render()}).catch(()=>{});
+
 // ---- render
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const sgn=(v,d=2)=>(v>0?"+":v<0?"−":"")+Math.abs(v).toFixed(d);
@@ -332,7 +360,7 @@ function renderCats(){
   $("toggles").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.k;
     S.punt.has(k)?S.punt.delete(k):S.punt.add(k);store.set("punt",[...S.punt]);
     $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
-    renderCats();if(S.players.length){scoreValue();render()}});
+    renderCats();rankWindows();if(S.players.length){scoreValue();render()}});
   $("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.setAttribute("aria-pressed",S.sort===b.dataset.k));
 }
 function setSort(k){S.sort=k;renderCats();render()}
@@ -387,10 +415,23 @@ function prow(p,pos){
       <div class="rail"><span class="rk">${p.rank}</span>${pos?`<span class="pos">#${pos}</span>`:""}</div>
       ${mug(p)}
       <div class="who"><a class="pl" href="player.html?id=${encodeURIComponent(p.eid||p.id)}&name=${encodeURIComponent(p.name)}&team=${encodeURIComponent(p.team)}&pos=${encodeURIComponent(p.pos)}"><b>${esc(p.name)}</b></a><span>${p.team} ${p.home?"vs":"@"} ${p.opp} · ${esc(p.pos)}${p.starter?' · <span class="st">S</span>':""}</span></div>
+      ${ranks(p)}
     </div>
     <div class="strip">${valCell(p)}${CATS.map(c=>cell(p,c)).join("")}</div>
-    <div class="more">FG ${p.fgm}/${p.fga} · FT ${p.ftm}/${p.fta} · 3P ${p.tpm}/${p.tpa} · +/− ${p.pm>0?"+":""}${p.pm} · PF ${p.pf}</div>
+    <div class="more">FG ${p.fgm}/${p.fga} · FT ${p.ftm}/${p.fta} · 3P ${p.tpm}/${p.tpa} · +/− ${p.pm>0?"+":""}${p.pm} · PF ${p.pf}${rankLine(p)}</div>
   </article>`;
+}
+function ranks(p){
+  if(!R)return"";
+  return`<div class="rks">${WINS.map(w=>{const r=S.rk[w.k][p.eid];
+    const cl=!r?"na":r<=TOP?"hi":r<=TOP*1.5?"":"lo";
+    return`<span class="${cl}"><i>${w.l}</i>${r||"–"}</span>`}).join("")}</div>`;
+}
+// Games and minutes behind each rank, so a top-50 on 2 games reads as the small sample it is.
+function rankLine(p){
+  const q=R&&R.players[p.eid];if(!q)return"";
+  const parts=WINS.filter(w=>q.w[w.k]).map(w=>`${w.n} #${S.rk[w.k][p.eid]} (${q.w[w.k][0]}g, ${Math.round(q.w[w.k][1])}m)`);
+  return`<br>${parts.join(" · ")} · thru ${fmtDate(R.asOf)}`;
 }
 // Preseason rotations are nothing like regular-season ones: starters play 20 minutes and
 // deep-bench players play 40, so Value and rank off these games mean very little.

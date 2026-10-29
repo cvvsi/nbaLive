@@ -1,0 +1,43 @@
+# Rebuild data/rankings.json every morning after the night's games are final, and commit it.
+# The push redeploys GitHub Pages, so the box score's rank columns pick it up on next load.
+name: Rankings
+
+on:
+  schedule:
+    - cron: "0 10 * * *"   # 6am ET in season (EDT); 5am after the clocks change
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rankings
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Finished box scores never change, so keep them between runs; only new games are fetched.
+      - uses: actions/cache@v4
+        with:
+          path: .cache
+          key: games-${{ github.run_id }}
+          restore-keys: games-
+
+      - run: node build-rankings.js
+
+      - name: Commit if changed
+        run: |
+          git add data/rankings.json
+          if git diff --cached --quiet; then echo "No change"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Rankings through $(node -p "require('./data/rankings.json').asOf")"
+          git push

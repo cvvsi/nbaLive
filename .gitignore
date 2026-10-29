@@ -12,3 +12,6 @@ mockdata.json
 data/context-*.json
 oct21-analysis.txt
 recap-data.json
+
+# build-rankings.js box score cache (the Action keeps its own copy)
+.cache/

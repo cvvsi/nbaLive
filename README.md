@@ -34,6 +34,15 @@ For one date (or one game, when filtered), relative to the **pool** = players at
 
 Checked against Basketball Monster: the mean of the 9 z-scores reproduces its Value column (e.g. 0.21 for Nickeil Alexander-Walker, ATL @ ORL, Oct 21 2026). Absolute numbers can differ slightly because their pool definition isn't public.
 
+## Season / 30 / 14 / 7-day ranks
+
+Each row shows the player's 9-cat rank over the season and the last 30, 14 and 7 days, so a big night from someone outside the top 100 stands out as a possible pickup. Ranks 1–100 are green, 101–150 plain, and anything lower dimmed. Tapping the row shows the games and minutes behind each rank.
+
+- **Built nightly** by `build-rankings.js`, run by `.github/workflows/rankings.yml` at 10:00 UTC. The script commits `data/rankings.json`, and that push redeploys Pages. Run it by hand from the Actions tab (*Rankings → Run workflow*) or locally with `node build-rankings.js`.
+- **Math:** per-game averages over the window, z-scored against a top-156 pool (12 teams × 13). The pool is iterated so it settles on rosterable players, and only players with at least half the window's max games are eligible for it. FG%/FT% use the same impact formula as the box score. Regular season only.
+- The JSON stores per-window z-scores, not ranks, so the page re-ranks with your punts applied.
+- Finished box scores are cached in `.cache/games.json` (git-ignored; the Action keeps it with `actions/cache`), so each run only fetches new games.
+
 ## Data source
 
 ESPN's public site API. It's free, needs no key, updates live during games, and is readable directly from the browser, so there's no server.
