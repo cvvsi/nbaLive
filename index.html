@@ -28,6 +28,8 @@
   --name:"Archivo Narrow","Arial Narrow","Roboto Condensed",system-ui,sans-serif;
   --num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   --bar:48px;
+  --mug:28px;          /* headshot column; the ruler indents by it so cells line up */
+  --mgap:6px;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root{
@@ -103,49 +105,51 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 
 /* player rows */
 #list{display:grid}
-.p{border-bottom:1px solid var(--rule);padding-block:9px 10px;cursor:pointer}
+/* Compact by default: one name line + one single-line strip, so a phone screen holds
+   about twice the players. Tapping a row opens the detail: z-scores, percentages,
+   usage, and a label in every cell so nothing needs the header. */
+.p{border-bottom:1px solid var(--rule);padding-block:7px 8px;cursor:pointer;
+  display:grid;grid-template-columns:var(--mug) 1fr;column-gap:var(--mgap)}
 .p:active{opacity:.8}
-.top{display:grid;grid-template-columns:22px 34px 1fr auto;align-items:center;column-gap:8px}
+.body{min-width:0}
+.l1{display:flex;align-items:center;gap:6px;min-width:0;height:20px}
+/* Slate-wide rank, so it still means something when a single game is filtered. */
+.l1 .rk{font:600 12px/1 var(--num);color:var(--dim);font-variant-numeric:tabular-nums;min-width:17px;flex:none}
+.l1 a.pl{min-width:0;color:var(--ink);text-decoration:none;-webkit-tap-highlight-color:transparent}
+.l1 b{font:600 15px/1.2 var(--name);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.l1 .mt{font:500 12px/1 var(--name);color:var(--dim);white-space:nowrap;flex:none}
 /* Season / 30 / 14 / 7-day ranks beside the name: "is this guy rosterable?" at a glance.
-   Top-100 reads green, outside 150 fades, so a hot night from a deep-bench guy stands out. */
-.rks{display:grid;grid-template-columns:repeat(4,27px);gap:3px;text-align:center}
-.rks span{font:500 12.5px/1 var(--num);font-variant-numeric:tabular-nums;color:var(--ink)}
-.rks i{display:block;font:600 8.5px/1 var(--name);font-style:normal;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:3px}
+   Top-100 reads green, outside 150 fades, so a hot night from a deep-bench guy stands out.
+   Their labels live once in the sticky ruler (.rkh), on the same 4-column grid. */
+.rks,.rkh{display:grid;grid-template-columns:repeat(4,27px);gap:3px;text-align:center;margin-left:auto;flex:none}
+.rks span{font:500 12px/1 var(--num);font-variant-numeric:tabular-nums;color:var(--ink)}
 .rks .hi{color:var(--pos);font-weight:600}
 .rks .lo,.rks .na{color:var(--dim)}
-/* Slate-wide rank, so it still means something when a single game is filtered.
+.rkh{width:max-content;margin-top:2px}
+.rkh span{font:600 9px/1 var(--name);text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
+/* Headshot in its own narrow column spanning both lines. Reserve the box so rows don't
+   reflow as images arrive, and keep the element present when an image fails.
    .pos is the position inside the current group, shown only when grouping by team. */
-.rail{text-align:right}
-.rail .rk{font:600 13px/1 var(--num);color:var(--dim);display:block;font-variant-numeric:tabular-nums}
-.rail .pos{font:500 9px/1.3 var(--name);color:var(--dim);opacity:.7;display:block;margin-top:2px}
-/* Face over rank in one narrow column: recognition while scanning, without
-   spending a second column on it. Reserve the box so rows don't reflow as
-   images arrive, and keep the element present when an image fails. */
-.mug{width:34px}
-.mug i{width:34px;height:34px;border-radius:50%;background:var(--cell);display:block;
-  overflow:hidden;flex:none;position:relative}
-.mug img{width:100%;height:100%;display:block;object-fit:cover;object-position:top center;
-  background:var(--cell)}
+.mug{padding-top:2px;text-align:center}
+.mug i{width:var(--mug);height:var(--mug);border-radius:50%;background:var(--cell);display:block;overflow:hidden}
+.mug img{width:100%;height:100%;display:block;object-fit:cover;object-position:top center;background:var(--cell)}
 .mug img.bad{visibility:hidden}
-.who{min-width:0}
-.who a.pl{display:block;min-width:0;text-decoration:none;-webkit-tap-highlight-color:transparent}
-.who a.pl:active b{color:var(--ball)}
-.who b{font:600 15.5px/1.2 var(--name);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.who b::after{content:"›";color:var(--dim);font-weight:500;margin-left:4px;font-size:14px}
-.who span{font:500 12.5px/1.3 var(--name);color:var(--dim);white-space:nowrap}
-.who .st{color:var(--ink);font-weight:700}
+.mug .pos{font:500 9px/1.3 var(--name);color:var(--dim);display:block;margin-top:3px}
 /* Value leads the strip so the eye reads value-then-categories in one pass.
-   FG%/FT% get a wider track so their second line fits makes/attempts beside the z;
-   the counting stats only ever hold 1-2 digits. */
+   FG/FT get a wider track for makes/attempts; the counting stats hold 1-2 digits. */
 .strip,.cats{display:grid;gap:3px;grid-template-columns:1.55fr 1.72fr 1.72fr repeat(7,1fr)}
+.cats{padding-left:calc(var(--mug) + var(--mgap))}
 .c.vl{background:var(--cell);font-weight:600}
 .cats .vlh{color:var(--ink)}
-.strip{margin-top:8px}
-.c{border-radius:3px;padding:6px 0 5px;text-align:center;font:500 13px/1.1 var(--num);background:var(--cell);min-width:0}
+.strip{margin-top:5px}
+.c{border-radius:3px;padding:5px 0;text-align:center;font:500 12px/1.1 var(--num);background:var(--cell);min-width:0;white-space:nowrap}
 .c.off{background:transparent;color:var(--dim);opacity:.45;box-shadow:inset 0 0 0 1px var(--rule)}
-.c .z{display:block;font-size:8px;margin-top:3px;color:var(--ink);opacity:.55;white-space:nowrap}
+.c .z,.c .lb{display:none;font-size:8px;color:var(--ink);opacity:.55;white-space:nowrap}
+.c .lb{font:600 8px/1 var(--name);letter-spacing:.06em;margin-bottom:3px;opacity:.6}
+.c .z{margin-top:3px}
 .c .z i{font-style:normal;opacity:.72;margin-right:2px;letter-spacing:-.02em}
-.more{display:none;margin-top:8px;font:500 12px/1.5 var(--num);color:var(--dim)}
+.p.open .c .z,.p.open .c .lb{display:block}
+.more{display:none;margin-top:6px;font:500 12px/1.5 var(--num);color:var(--dim)}
 .p.open .more{display:block}
 .warn{background:color-mix(in oklab,var(--ball) 10%,var(--panel));border-bottom:1px solid var(--rule);
   padding-block:8px 9px;font:500 12.5px/1.35 var(--name);color:var(--ink)}
@@ -196,6 +200,7 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
         <button data-k="value" aria-pressed="true">Value</button><button data-k="min">Min</button><button data-k="usg">Usg</button><button id="teamBtn" aria-pressed="false" title="Group by team">Teams</button>
       </div>
     </div>
+    <div class="rkh" id="rkh" hidden><span>Szn</span><span>30</span><span>14</span><span>7</span></div>
     <div class="cats" id="cats"></div>
   </div>
 </div>
@@ -315,7 +320,7 @@ function rankWindows(){
   }
 }
 fetch("data/rankings.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
-  .then(j=>{if(!j)return;R=j;rankWindows();if(S.players.length)render()}).catch(()=>{});
+  .then(j=>{if(!j)return;R=j;rankWindows();$("rkh").hidden=false;if(S.players.length)render()}).catch(()=>{});
 
 // ---- render
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -329,9 +334,9 @@ function setStatus(t){$("status").textContent=t}
 
 // ESPN ships a full-size PNG (~178KB) per player; its combiner endpoint returns a
 // ~7KB crop instead. 2x for retina, lazy so only visible rows fetch.
-const MUG=34, MUGPX=MUG*2;
-function mug(p){
-  const r=`<span class="rk">${p.rank}</span>`;
+const MUG=28, MUGPX=MUG*2;
+function mug(p,pos){
+  const r=pos?`<span class="pos">#${pos}</span>`:"";
   if(!p.eid)return`<div class="mug"><i></i>${r}</div>`;
   const u=`https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${p.eid}.png&w=${MUGPX}&h=${MUGPX}&scale=crop`;
   return`<div class="mug"><i><img src="${u}" alt="" loading="lazy" decoding="async"
@@ -366,22 +371,22 @@ function renderCats(){
 function setSort(k){S.sort=k;renderCats();render()}
 function sortKey(p){const k=S.sort;if(k==="value"||k==="min"||k==="usg")return p[k];return p.z[k]}
 
-// Value gets the leading cell: same two-line shape as a category cell, but the
-// sub-line carries minutes and usage, which were previously a separate row.
+// Value gets the leading cell. Closed rows show one line per cell; an open row adds a
+// label above and a sub-line below (minutes/usage here, the z on the categories).
 function valCell(p){
   const v=p.value;
   const col=Math.abs(v)<.5?"var(--ink)":v>0?"var(--pos)":"var(--neg)";
-  return`<div class="c vl" style="color:${col}">${sgn(v)}<span class="z"
-    ><i>${Math.round(p.min)}m</i>${p.usg.toFixed(0)}%</span></div>`;
+  return`<div class="c vl" style="color:${col}"><span class="lb">VAL</span>${sgn(v)}<span class="z"
+    >${p.usg.toFixed(0)}% usg</span></div>`;
 }
 function cell(p,c){
   const off=S.punt.has(c.k),z=p.z[c.k],fg=c.k==="fg",ft=c.k==="ft";
-  // Every cell is two lines. The percentage cells get a wider track so their second
-  // line can hold makes/attempts next to the z; the other seven just show the z.
-  const main=fg?pct(p.fgm,p.fga):ft?pct(p.ftm,p.fta):p[c.k];
+  // FG/FT show makes/attempts (volume is what moves the cat; the heat color carries
+  // the verdict), with the percentage next to the z once the row is open.
   const m=fg?p.fgm:p.ftm,a=fg?p.fga:p.fta;
-  const sub=(fg||ft)?`<i>${m}/${a}</i>${sgn(z,1)}`:sgn(z,1);
-  return`<div class="c${off?" off":""}" style="${off?"":heat(z)}">${main}<span class="z">${sub}</span></div>`;
+  const main=(fg||ft)?`${m}/${a}`:p[c.k];
+  const sub=(fg||ft)?`<i>${pct(m,a)}</i>${sgn(z,1)}`:sgn(z,1);
+  return`<div class="c${off?" off":""}" style="${off?"":heat(z)}"><span class="lb">${c.l}</span>${main}<span class="z">${sub}</span></div>`;
 }
 function render(){
   if(!S.players.length)return;
@@ -411,27 +416,25 @@ function render(){
 }
 function prow(p,pos){
   return`<article class="p${S.open.has(p.id)?" open":""}" data-id="${esc(p.id)}">
-    <div class="top">
-      <div class="rail"><span class="rk">${p.rank}</span>${pos?`<span class="pos">#${pos}</span>`:""}</div>
-      ${mug(p)}
-      <div class="who"><a class="pl" href="player.html?id=${encodeURIComponent(p.eid||p.id)}&name=${encodeURIComponent(p.name)}&team=${encodeURIComponent(p.team)}&pos=${encodeURIComponent(p.pos)}"><b>${esc(p.name)}</b></a><span>${p.team} ${p.home?"vs":"@"} ${p.opp} · ${esc(p.pos)}${p.starter?' · <span class="st">S</span>':""}</span></div>
-      ${ranks(p)}
+    ${mug(p,pos)}
+    <div class="body">
+      <div class="l1"><span class="rk">${p.rank}</span><a class="pl" href="player.html?id=${encodeURIComponent(p.eid||p.id)}&name=${encodeURIComponent(p.name)}&team=${encodeURIComponent(p.team)}&pos=${encodeURIComponent(p.pos)}"><b>${esc(p.name)}</b></a><span class="mt">${p.team} · ${Math.round(p.min)}m</span>${ranks(p)}</div>
+      <div class="strip">${valCell(p)}${CATS.map(c=>cell(p,c)).join("")}</div>
+      <div class="more">${p.team} ${p.home?"vs":"@"} ${p.opp} · ${esc(p.pos)}${p.starter?" · starter":""} · 3P ${p.tpm}/${p.tpa} · +/− ${p.pm>0?"+":""}${p.pm} · PF ${p.pf}${rankLine(p)}</div>
     </div>
-    <div class="strip">${valCell(p)}${CATS.map(c=>cell(p,c)).join("")}</div>
-    <div class="more">FG ${p.fgm}/${p.fga} · FT ${p.ftm}/${p.fta} · 3P ${p.tpm}/${p.tpa} · +/− ${p.pm>0?"+":""}${p.pm} · PF ${p.pf}${rankLine(p)}</div>
   </article>`;
 }
 function ranks(p){
   if(!R)return"";
   return`<div class="rks">${WINS.map(w=>{const r=S.rk[w.k][p.eid];
     const cl=!r?"na":r<=TOP?"hi":r<=TOP*1.5?"":"lo";
-    return`<span class="${cl}"><i>${w.l}</i>${r||"–"}</span>`}).join("")}</div>`;
+    return`<span class="${cl}">${r||"–"}</span>`}).join("")}</div>`;
 }
 // Games and minutes behind each rank, so a top-50 on 2 games reads as the small sample it is.
 function rankLine(p){
   const q=R&&R.players[p.eid];if(!q)return"";
-  const parts=WINS.filter(w=>q.w[w.k]).map(w=>`${w.n} #${S.rk[w.k][p.eid]} (${q.w[w.k][0]}g, ${Math.round(q.w[w.k][1])}m)`);
-  return`<br>${parts.join(" · ")} · thru ${fmtDate(R.asOf)}`;
+  const parts=WINS.filter(w=>q.w[w.k]).map(w=>`${w.n} #${S.rk[w.k][p.eid]} ${q.w[w.k][0]}g`);
+  return`<br>${parts.join(" · ")} · thru ${fmtDate(R.asOf).replace(/^\w+, /,"")}`;
 }
 // Preseason rotations are nothing like regular-season ones: starters play 20 minutes and
 // deep-bench players play 40, so Value and rank off these games mean very little.
