@@ -34,9 +34,15 @@ For one date (or one game, when filtered), relative to the **pool** = players at
 
 Checked against Basketball Monster: the mean of the 9 z-scores reproduces its Value column (e.g. 0.21 for Nickeil Alexander-Walker, ATL @ ORL, Oct 21 2026). Absolute numbers can differ slightly because their pool definition isn't public.
 
-## Season / 30 / 14 / 7-day ranks
+## Season / 14 / 7 / 3G ranks and movers
 
-Each row shows the player's 9-cat rank over the season and the last 30, 14 and 7 days, so a big night from someone outside the top 100 stands out as a possible pickup. Ranks 1–100 are green, 101–150 plain, and anything lower dimmed. Tapping the row shows the games and minutes behind each rank.
+Each row shows the player's 9-cat rank over the season, the last 14 and 7 days, and **3G**: the team's last 3 games, where a game the player missed counts as a zero night so resting or injured players can't look hot. A big night from someone outside the top 100 stands out as a possible pickup. Ranks 1–100 are green, 101–150 plain, and anything lower dimmed. Tapping the row shows the games behind each rank. The JSON also carries a 30-day window that the page doesn't show.
+
+**Movers** (logic in `rankWindows()`, constants `MOVE` and `MINUP`):
+- Green 3G pill (riser): 3G rank inside 150 and at least 40% better than season rank, and 20+ spots.
+- Red 3G pill (faller): the mirror case, for anyone inside 150 on the season.
+- **▲n** after minutes: n more minutes a game over the last 3 than in the games before them (`pm` in the JSON), at least +6 and landing at 24+. It's the earliest sign of a role change.
+- The **Movers** sort shows only flagged players, with the biggest jumps first.
 
 - **Built nightly** by `build-rankings.js`, run by `.github/workflows/rankings.yml` at 10:00 UTC. The script commits `data/rankings.json`, and that push redeploys Pages. Run it by hand from the Actions tab (*Rankings → Run workflow*) or locally with `node build-rankings.js`.
 - **Math:** per-game averages over the window, z-scored against a top-156 pool (12 teams × 13). The pool is iterated so it settles on rosterable players, and only players with at least half the window's max games are eligible for it. FG%/FT% use the same impact formula as the box score. Regular season only.

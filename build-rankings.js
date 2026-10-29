@@ -1,5 +1,5 @@
-/* Season / last-30 / last-14 / last-7 day 9-cat rankings -> data/rankings.json (committed;
- * index.html reads it to show each player's ranks beside tonight's line).
+/* Season / last-30 / last-14 / last-7 day / last-3-team-games 9-cat rankings -> data/rankings.json
+ * (committed; index.html reads it to show each player's ranks beside tonight's line).
  *
  * Per-game averages over each window, z-scored against a top-156 pool (12 teams x 13),
  * iterated so the pool settles on the players who'd actually be rostered. FG%/FT% use the
@@ -16,7 +16,7 @@ const fs = require('fs');
 const API = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba';
 const CATS = ['fg', 'ft', 'tpm', 'pts', 'reb', 'ast', 'stl', 'blk', 'to'];
 const WINDOWS = { season: 0, d30: 30, d14: 14, d7: 7 };
-const POOL = 156, ITER = 4;
+const POOL = 156, ITER = 4, G3 = 3;
 const CACHE = '.cache/games.json', OUT = 'data/rankings.json';
 
 const J = async u => {
@@ -83,14 +83,18 @@ async function loadGames(through) {
   return games;
 }
 
-function rankWindow(games) {
+// teamGames (team -> games in the window) switches to per-TEAM-game averages: a game the
+// player missed counts as a zero night, so resting or hurt players can't look hot.
+function rankWindow(games, teamGames) {
   const by = {};
   for (const g of games) for (const r of g.rows) {
     const p = by[r.id] || (by[r.id] = { id: r.id, gp: 0, min: 0, pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, to: 0, fgm: 0, fga: 0, tpm: 0, ftm: 0, fta: 0 });
+    p.team = r.team;
     p.gp++; for (const k of ['min', 'pts', 'reb', 'ast', 'stl', 'blk', 'to', 'fgm', 'fga', 'tpm', 'ftm', 'fta']) p[k] += r[k];
   }
   const P = Object.values(by);
-  for (const p of P) for (const k of ['min', 'pts', 'reb', 'ast', 'stl', 'blk', 'to', 'fgm', 'fga', 'tpm', 'ftm', 'fta']) p[k] /= p.gp;
+  for (const p of P) { const n = teamGames ? teamGames[p.team] : p.gp;
+    for (const k of ['min', 'pts', 'reb', 'ast', 'stl', 'blk', 'to', 'fgm', 'fga', 'tpm', 'ftm', 'fta']) p[k] /= n; }
   // A pool member must have played at least half as many games as the busiest player in the
   // window, so a single 40-minute blowout doesn't stretch the pool's spread.
   const maxGP = Math.max(...P.map(p => p.gp)), elig = P.filter(p => p.gp >= Math.ceil(maxGP / 2));
@@ -128,6 +132,26 @@ function rankWindow(games) {
     for (const p of rankWindow(inW))
       players[p.id].w[w] = [p.gp, Math.round(p.min * 10) / 10, ...CATS.map(c => r2(p.z[c]))];
   }
+  // g3: each team's last 3 games, per team game. Calendar windows hold 2-4 games depending
+  // on the schedule; this is the "3 straight decent games" read, with DNPs as zeros.
+  const byTeam = {};
+  for (const g of games) for (const t of new Set(g.rows.map(r => r.team))) (byTeam[t] || (byTeam[t] = [])).push(g);
+  const last = {}, teamGames = {};
+  for (const [t, gs] of Object.entries(byTeam)) {
+    gs.sort((a, b) => a.date < b.date ? -1 : 1);
+    last[t] = new Set(gs.slice(-G3)); teamGames[t] = Math.min(G3, gs.length);
+  }
+  const g3 = games.map(g => ({ rows: g.rows.filter(r => last[r.team] && last[r.team].has(g)) }));
+  windows.g3 = { games: G3, perTeamGame: true, to: asOf };
+  for (const p of rankWindow(g3, teamGames))
+    players[p.id].w.g3 = [p.gp, Math.round(p.min * 10) / 10, ...CATS.map(c => r2(p.z[c]))];
+  // pm: minutes per game played BEFORE those 3, the baseline for the role-change flag.
+  // (Comparing against the season would dilute the jump with the very games that show it.)
+  const before = {};
+  for (const g of games) for (const r of g.rows) if (!last[r.team].has(g)) {
+    const b = before[r.id] || (before[r.id] = { gp: 0, min: 0 }); b.gp++; b.min += r.min;
+  }
+  for (const [id, b] of Object.entries(before)) players[id].pm = Math.round(b.min / b.gp * 10) / 10;
   fs.mkdirSync('data', { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify({ asOf, cats: CATS, fields: ['gp', 'mpg', ...CATS], windows, players }));
   console.log(`${OUT}: ${Object.keys(players).length} players through ${asOf}`, JSON.stringify(windows));
