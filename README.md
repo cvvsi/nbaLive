@@ -63,6 +63,8 @@ Each row: **Now** (season rank), **Exp**, **LY** (last season's final per-game r
 - **Baseline** = last season. If the player logged under 500 minutes last season, the season before is added (totals add, so it's minutes-weighted). Players with no baseline (rookies) show Exp as "–" and never get flagged, but still hold their rank slot.
 - Punts re-rank Now, Exp and LY, like everything else.
 
+**Analyst note.** Tapping a player on either tab opens a written read (`analyst()` in `index.html`), followed by a labeled grid of the numbers behind it. It's templated from the data, with no AI and no outside info: tonight's game (Box tab), the season line, role vs. last season (and that season's finish), blowouts and foul trouble (`cx` in the JSON: blowout games and their mpg, other games and their mpg, games with 5+ fouls), shooting luck with attempts, per-36 changes, the role-upside line (`up`: the same blended rates at 30 min, for anyone under 26 mpg), the Exp gap, the trend, category profile and punt fit. It ends with a tag: Buy low / Pick up / Sell high / Ride it / Hold / Streamer / Watch / Pass. The ⓘ on the Buy/Sell tab explains all of it in the app.
+
 **Data:** `build-history.js` pulls the last two completed regular seasons from the same ESPN endpoints (~1,230 box scores a season, cached in `.cache/season-YYYY.json`) and writes `data/history.json`: per-player season totals plus last season's z-scores. **Run it once a season** (after the regular season ends) and commit the output. The nightly `build-rankings.js` reads it and writes `data/regression.json`. Without `history.json` it skips that step.
 
 ## Data source

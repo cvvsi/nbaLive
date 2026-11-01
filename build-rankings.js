@@ -22,7 +22,7 @@ const CATS = ['fg', 'ft', 'tpm', 'pts', 'reb', 'ast', 'stl', 'blk', 'to'];
 const WINDOWS = { season: 0, d30: 30, d14: 14, d7: 7 };
 const POOL = 156, ITER = 4, G3 = 3;
 const CACHE = '.cache/games.json', OUT = 'data/rankings.json', REG = 'data/regression.json', HIST = 'data/history.json';
-const CACHE_V = 2;   // bump when parseBox's row shape changes, so stale cached rows are refetched
+const CACHE_V = 3;   // bump when parseBox's row shape changes, so stale cached rows are refetched
 
 const J = async u => {
   for (let i = 0; ; i++) {
@@ -46,7 +46,7 @@ function parseBox(j) {
       min: ix('minutes'), pts: ix('points'), fg: ix('fieldGoalsMade-fieldGoalsAttempted'),
       tp: ix('threePointFieldGoalsMade-threePointFieldGoalsAttempted'),
       ft: ix('freeThrowsMade-freeThrowsAttempted'), reb: ix('rebounds'), ast: ix('assists'),
-      to: ix('turnovers'), stl: ix('steals'), blk: ix('blocks'),
+      to: ix('turnovers'), stl: ix('steals'), blk: ix('blocks'), pf: ix('fouls'),
     };
     for (const a of st.athletes) {
       if (a.didNotPlay || !a.stats || !a.stats.length || !a.athlete.id) continue;
@@ -55,7 +55,7 @@ function parseBox(j) {
       out.push({
         id: String(a.athlete.id), name: a.athlete.displayName, team: t.team.abbreviation, min,
         pts: +s[I.pts] || 0, reb: +s[I.reb] || 0, ast: +s[I.ast] || 0, stl: +s[I.stl] || 0,
-        blk: +s[I.blk] || 0, to: +s[I.to] || 0, fgm, fga, tpm, tpa, ftm, fta,
+        blk: +s[I.blk] || 0, to: +s[I.to] || 0, pf: +s[I.pf] || 0, fgm, fga, tpm, tpa, ftm, fta,
       });
     }
   }
@@ -117,12 +117,14 @@ function rankWindow(games, teamGames) {
 }
 
 // z-scores and Value for per-game lines (p.min, p.pts, ... p.fta per game, p.gp for eligibility).
+// P.pool keeps the final pool's averages and spreads, so a hypothetical line can be scored
+// against the same pool afterwards (zOf).
 function score(P) {
   // A pool member must have played at least half as many games as the busiest player in the
   // window, so a single 40-minute blowout doesn't stretch the pool's spread.
   const maxGP = Math.max(...P.map(p => p.gp)), elig = P.filter(p => p.gp >= Math.ceil(maxGP / 2));
   let pool = [...elig].sort((a, b) => b.min * b.gp - a.min * a.gp).slice(0, POOL);
-  const src = { pts: 'pts', tpm: 'tpm', reb: 'reb', ast: 'ast', stl: 'stl', blk: 'blk', fg: 'fgi', ft: 'fti', to: 'to' };
+  const src = { pts: 'pts', tpm: 'tpm', reb: 'reb', ast: 'ast', stl: 'stl', blk: 'blk', fg: 'fgi', ft: 'fti', to: 'to' }, st = {};
   for (let it = 0; it < ITER; it++) {
     const lgFG = sum(pool, 'fgm') / Math.max(1, sum(pool, 'fga')), lgFT = sum(pool, 'ftm') / Math.max(1, sum(pool, 'fta'));
     for (const p of P) { p.fgi = p.fgm - lgFG * p.fga; p.fti = p.ftm - lgFT * p.fta; }
@@ -130,11 +132,17 @@ function score(P) {
       const k = src[c], m = sum(pool, k) / pool.length;
       const sd = Math.sqrt(pool.reduce((a, p) => a + (p[k] - m) ** 2, 0) / pool.length) || 1;
       for (const p of P) (p.z || (p.z = {}))[c] = (c === 'to' ? -1 : 1) * (p[k] - m) / sd;
+      st[c] = { k, m, sd };
     }
+    P.pool = { lgFG, lgFT, st };
     for (const p of P) p.value = CATS.reduce((a, c) => a + p.z[c], 0) / 9;
     pool = [...elig].sort((a, b) => b.value - a.value).slice(0, POOL);
   }
   return P;
+}
+function zOf(l, { lgFG, lgFT, st }) {
+  const v = { ...l, fgi: l.fgm - lgFG * l.fga, fti: l.ftm - lgFT * l.fta };
+  return Object.fromEntries(CATS.map(c => [c, (c === 'to' ? -1 : 1) * (v[st[c].k] - st[c].m) / st[c].sd]));
 }
 
 // ---- regression: is the start real?
@@ -149,6 +157,9 @@ const PRIOR = { fga: 150, tpa: 200, fta: 250, reb: 200, ast: 250, to: 300, stl: 
   fg: 250, tp: 500, ft: 200 };                                                                  // attempts
 const PRIOR_GP = 3;          // minutes: this season's mpg, nudged by 3 games of last season's
 const BASE_MIN = 500;        // under this many minutes last season, add the season before it
+const UP_MIN = 30, UP_BELOW = 26;   // role upside: the same rates at 30 min, for anyone under 26 now
+const BLOWOUT = 20;                  // final margin that counts as a blowout
+const PG = ['pts', 'reb', 'ast', 'stl', 'blk', 'tpm', 'to'];
 const RATES = ['mpg', 'usg', 'fg', 'ft', 'tp', 'tpm', 'pts', 'reb', 'ast', 'stl', 'blk', 'to', 'fga', 'fta', 'tpa'];
 const r1 = v => Math.round(v * 10) / 10;
 
@@ -172,10 +183,13 @@ function baseline(h) {
 }
 
 // Per-game expected line from season totals s and baseline totals b (see the note above).
-function expectedLine(s, b) {
+// mpgAt replaces the minutes, for the role-upside line. With no baseline, b is all zeros
+// and every rate is just this season's.
+const NOBASE = { gp: 1, ...Object.fromEntries(STATS.map(k => [k, 0])) };
+function expectedLine(s, b, mpgAt) {
   const w = (k, n) => Math.min(PRIOR[k], n);
   const rate = (k, cur, curN, base, baseN) => baseN ? (cur + base / baseN * w(k, baseN)) / (curN + w(k, baseN)) : cur / Math.max(1, curN);
-  const mpg = (s.min + (b.min / b.gp) * PRIOR_GP) / (s.gp + PRIOR_GP);
+  const mpg = mpgAt || (s.min + (b.min / b.gp) * PRIOR_GP) / (s.gp + PRIOR_GP);
   const per = k => rate(k, s[k], s.min, b[k], b.min) * mpg;
   const fga = per('fga'), tpa = per('tpa'), fta = per('fta');
   const fgm = fga * rate('fg', s.fgm, s.fga, b.fgm, b.fga);
@@ -183,6 +197,25 @@ function expectedLine(s, b) {
   const ftm = fta * rate('ft', s.ftm, s.fta, b.ftm, b.fta);
   return { min: mpg, fga, fgm, tpa, tpm, fta, ftm, pts: 2 * fgm + tpm + ftm,   // a 3 is a 2 plus one
     reb: per('reb'), ast: per('ast'), stl: per('stl'), blk: per('blk'), to: per('to') };
+}
+
+// Game context for the note: blowouts and foul trouble cut minutes without saying anything
+// about the role. Margins come from summing each team's points in the box score.
+// cx = [blowout games, mpg in them, other games, mpg in them, games with 5+ fouls]
+function context(games) {
+  const by = {};
+  for (const g of games) {
+    const pts = {};
+    for (const r of g.rows) pts[r.team] = (pts[r.team] || 0) + r.pts;
+    const tot = Object.values(pts).reduce((a, v) => a + v, 0);
+    for (const r of g.rows) {
+      const c = by[r.id] || (by[r.id] = [0, 0, 0, 0, 0]), blow = Math.abs(2 * pts[r.team] - tot) >= BLOWOUT;
+      if (blow) { c[0]++; c[1] += r.min; } else { c[2]++; c[3] += r.min; }
+      if (r.pf >= 5) c[4]++;
+    }
+  }
+  for (const c of Object.values(by)) { c[1] = c[0] ? r1(c[1] / c[0]) : 0; c[3] = c[2] ? r1(c[3] / c[2]) : 0; }
+  return by;
 }
 
 function buildRegression(games, asOf, rankings) {
@@ -193,23 +226,30 @@ function buildRegression(games, asOf, rankings) {
   for (const s of Object.values(tot)) {
     const h = H.players[s.id], b = baseline(h && { seasons: H.seasons, s: h.s });
     // No baseline (rookies, long absences): the expected line is just the actual one.
-    const x = b ? expectedLine(s, b.t) : Object.fromEntries(STATS.map(k => [k, s[k] / s.gp]));
+    const x = b ? expectedLine(s, b.t) : expectedLine(s, NOBASE, s.min / s.gp);
     lines.push({ id: s.id, gp: s.gp, ...x, s, b });
   }
-  const out = {};
-  for (const p of score(lines)) {
+  const out = {}, cx = context(games), scored = score(lines);
+  for (const p of scored) {
     out[p.id] = { n: p.s.name, t: p.s.team,
       now: rankings[p.id].w.season,
       x: [p.gp, r1(p.min), ...CATS.map(c => r2(p.z[c]))],
-      r: rates(p.s) };
+      r: rates(p.s),
+      // for the page's analyst note: exact per-game averages, and shot attempts behind each %
+      pg: PG.map(k => r1(p.s[k] / p.s.gp)), att: [p.s.fga, p.s.tpa, p.s.fta], cx: cx[p.id] };
+    // Role upside: what the same (blended) per-minute numbers are worth at 30 minutes.
+    if (p.s.min / p.s.gp < UP_BELOW && p.gp >= 3) {
+      const z = zOf(expectedLine(p.s, p.b ? p.b.t : NOBASE, UP_MIN), scored.pool);
+      out[p.id].up = [p.gp, UP_MIN, ...CATS.map(c => r2(z[c]))];
+    }
     if (p.b) Object.assign(out[p.id], { b: rates(p.b.t), bs: p.b.src, bgp: p.b.t.gp });
   }
   // Last season's z-scores for everyone who qualified, not just this season's players, so
   // the page's LY rank is the real final rank (retired players still hold their spots).
   const ly = {};
   for (const [id, h] of Object.entries(H.players)) if (h.ly) ly[id] = h.ly;
-  fs.writeFileSync(REG, JSON.stringify({ asOf, cats: CATS, fields: ['gp', 'mpg', ...CATS], rates: RATES,
-    seasons: H.seasons, prior: PRIOR, players: out, ly }));
+  fs.writeFileSync(REG, JSON.stringify({ asOf, cats: CATS, fields: ['gp', 'mpg', ...CATS], rates: RATES, pgf: PG,
+    seasons: H.seasons, prior: PRIOR, priorGp: PRIOR_GP, baseMin: BASE_MIN, players: out, ly }));
   console.log(`${REG}: ${lines.filter(l => l.b).length}/${lines.length} players with a baseline`);
 }
 

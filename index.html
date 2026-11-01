@@ -161,6 +161,18 @@ body:not([data-view="bs"]) .bsv,body[data-view="bs"] .boxv{display:none!importan
 .c .z i{font-style:normal;opacity:.72;margin-right:2px;letter-spacing:-.02em}
 .p.open .c .z,.p.open .c .lb{display:block}
 .more{display:none;margin-top:6px;font:500 12px/1.5 var(--num);color:var(--dim)}
+/* Open-row detail: the analyst note (prose written from the numbers), then a labeled grid. */
+.note{margin:8px 0 10px;font:500 14px/1.45 var(--name);color:var(--ink);max-width:62ch}
+.tag{display:inline-block;font:700 10px/1 var(--name);text-transform:uppercase;letter-spacing:.08em;padding:4px 6px 3px;
+  border-radius:3px;margin-right:7px;vertical-align:1px;background:var(--cell);color:var(--ink)}
+.tag.good{background:color-mix(in oklab,var(--pos) 26%,transparent)}
+.tag.bad{background:color-mix(in oklab,var(--neg) 26%,transparent)}
+.tag.dim{color:var(--dim)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin:0;font:500 12px/1.4 var(--num);color:var(--ink)}
+.kv dt{font:600 10px/1.65 var(--name);text-transform:uppercase;letter-spacing:.08em;color:var(--dim);white-space:nowrap}
+.kv dd{margin:0;min-width:0}
+.kv i{font-style:normal;color:var(--dim)}
+.cap{margin:8px 0 0;font:500 11px/1.3 var(--name);color:var(--dim)}
 .p.open .more{display:block}
 .warn{background:color-mix(in oklab,var(--ball) 10%,var(--panel));border-bottom:1px solid var(--rule);
   padding-block:8px 9px;font:500 12.5px/1.35 var(--name);color:var(--ink)}
@@ -180,6 +192,22 @@ body:not([data-view="bs"]) .bsv,body[data-view="bs"] .boxv{display:none!importan
 .bscats{padding-left:calc(var(--mug) + var(--mgap));margin-top:4px}
 .bscats span{font:600 9.5px/1 var(--num);color:var(--dim);padding:6px 0 7px;text-align:center;white-space:nowrap}
 .bscats span.punted{text-decoration:line-through;opacity:.5}
+/* ⓘ beside the Buy/Sell count opens #bsHelp, the full how-it-works, built from the same
+   constants and data the tab uses so it can't drift from the math. */
+.info{width:22px;height:22px;border-radius:50%;border:1px solid var(--rule);font:700 12px/1 Georgia,serif;font-style:italic;
+  color:var(--dim);display:inline-grid;place-items:center;margin-left:8px;flex:none;text-transform:none}
+.info[aria-expanded="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.bsmeta{display:flex;align-items:center}
+.help{gap:0;padding-block:6px 16px}
+.help h3{margin:16px 0 6px}
+.help p{color:var(--ink);margin:0 0 8px;font-size:14px;line-height:1.45}
+.help .f{font:500 12.5px/1.5 var(--num);background:var(--cell);border-radius:4px;padding:8px 10px}
+.help .dim{color:var(--dim);font-size:12.5px}
+.help table{border-collapse:collapse;font:500 12.5px/1.3 var(--num);margin:2px 0 10px;width:100%;max-width:420px}
+.help th{font:600 10px/1 var(--name);text-transform:uppercase;letter-spacing:.08em;color:var(--dim);text-align:left;padding:4px 10px 6px 0}
+.help td{padding:5px 10px 5px 0;border-top:1px solid var(--rule)}
+.help td:nth-child(2){text-align:right}
+.help .x{margin-top:10px;font:600 13px/1 var(--name);text-transform:uppercase;letter-spacing:.06em;padding:9px 14px;border:1px solid var(--rule);border-radius:6px}
 .empty{padding:40px 0;color:var(--dim);text-align:center;font-size:15px}
 .empty.err{color:var(--neg)}
 @media (min-width:720px){
@@ -213,7 +241,7 @@ body:not([data-view="bs"]) .bsv,body[data-view="bs"] .boxv{display:none!importan
   <div><p><b>Value</b> is a player's average z-score across your active categories, relative to everyone in the comparison pool who played that day. FG% and FT% count makes above or below average on their attempts, so volume matters. Turnovers count against. Tap a player to see the z-score under each stat.</p>
     <p style="margin-top:8px"><b>Szn / 14 / 7 / 3G</b> beside each name are 9-cat ranks: per-game over the season and the last 14 and 7 days, and over the team's last 3 games with any game the player missed counted as zero, so resting doesn't flatter anyone. All are against a top-156 pool with your punts applied, rebuilt every morning through last night. Top 100 is green.</p>
     <p style="margin-top:8px"><b>Movers.</b> A green 3G pill means the last-3 rank is at least 40% better than the season rank (inside the top 150); red means at least 40% worse for someone inside 150 on the season. <b style="color:var(--ball)">▲n</b> after minutes means n more minutes a game over the last 3 than before them, usually the first sign of a new role. The Movers sort shows only flagged players.</p>
-    <p style="margin-top:8px"><b>Buy/Sell</b> asks whether a start is real. A few games of hot or cold shooting, blowouts and foul trouble can swing a rank a long way, so it compares this season's per-minute numbers with last season's. <b>Exp</b> is the rank from this season's minutes with each per-36 rate and shooting % blended back toward last season: more for the noisy ones (steals, blocks, 3P%), less as games pile up. <b>Buy</b>: Exp at least 40% better than Now, the season rank. <b>Sell</b>: the reverse. <b>LY</b> is last season's final rank. Strip colors compare each number with last season's.</p></div>
+    <p style="margin-top:8px"><b>Buy/Sell</b> asks whether a start is real by comparing this season's per-minute numbers with last season's. Tap the <b>i</b> on that tab for the full explanation.</p></div>
 </div>
 
 <div class="games gut boxv" id="games" role="group" aria-label="Games"></div>
@@ -235,10 +263,12 @@ body:not([data-view="bs"]) .bsv,body[data-view="bs"] .boxv{display:none!importan
 
 <main class="gut boxv" id="list"></main>
 
+<div class="sheet help gut bsv" id="bsHelp" hidden><div id="bsHelpBody"></div></div>
+
 <div class="ruler gut bsv">
   <div>
     <div class="meta">
-      <span id="bsStatus" class="num">Loading</span>
+      <span class="bsmeta"><span id="bsStatus" class="num">Loading</span><button class="info" id="bsInfo" aria-expanded="false" aria-controls="bsHelp" aria-label="How Buy/Sell works">i</button></span>
       <div class="sort" id="bsSort">
         <button data-k="buy">Buy</button><button data-k="sell">Sell</button><button data-k="x">Exp</button><button data-k="now">Now</button>
       </div>
@@ -480,7 +510,7 @@ function prow(p,pos){
     <div class="body">
       <div class="l1"><span class="rk">${p.rank}</span><a class="pl" href="player.html?id=${encodeURIComponent(p.eid||p.id)}&name=${encodeURIComponent(p.name)}&team=${encodeURIComponent(p.team)}&pos=${encodeURIComponent(p.pos)}"><b>${esc(p.name)}</b></a><span class="mt">${p.team} · ${Math.round(p.min)}m${minUp(p)}</span>${ranks(p)}</div>
       <div class="strip">${valCell(p)}${CATS.map(c=>cell(p,c)).join("")}</div>
-      <div class="more">${p.team} ${p.home?"vs":"@"} ${p.opp} · ${esc(p.pos)}${p.starter?" · starter":""} · 3P ${p.tpm}/${p.tpa} · +/− ${p.pm>0?"+":""}${p.pm} · PF ${p.pf}${rankLine(p)}</div>
+      <div class="more">${noteHTML(p.eid,p)}<dl class="kv">${kv("Tonight",`${p.team} ${p.home?"vs":"@"} ${p.opp} · ${esc(p.pos)}${p.starter?" · starter":""} · 3P ${p.tpm}/${p.tpa} · +/− ${p.pm>0?"+":""}${p.pm} · PF ${p.pf}`)}${rankKV(p.eid)}${factsKV(p.eid)}</dl></div>
     </div>
   </article>`;
 }
@@ -494,15 +524,30 @@ function ranks(p){
 }
 // Minutes jump vs the games before the last 3: the earliest sign of a new role.
 function minUp(p){const m=S.mv&&S.mv[p.eid];return m&&m.mup?`<span class="mu">▲${Math.round(m.mu)}</span>`:""}
-// Games and minutes behind each rank, so a top-50 on 2 games reads as the small sample it is.
-function rankLine(p){
-  const q=R&&R.players[p.eid];if(!q)return"";
-  const parts=WINS.filter(w=>q.w[w.k]).map(w=>`${w.n} #${S.rk[w.k][p.eid]} ${w.k==="g3"?q.w.g3[0]+"/3":q.w[w.k][0]}g`);
-  const mins=q.w.g3&&q.pm!=null?`<br>Min ${Math.round(q.pm)} before → ${Math.round(q.w.g3[1])} last 3`:"";
-  // From the Buy/Sell data: where the rates say this player should be, and last season's finish.
-  const x=G&&S.bs&&G.players[p.eid]&&G.players[p.eid].b?`<br>Exp #${S.bs.x[p.eid]}${S.bs.v[p.eid]?" ("+S.bs.v[p.eid]+")":""}`
-    +(S.bs.ly[p.eid]?` · LY #${S.bs.ly[p.eid]}`:""):"";
-  return`<br>${parts.join(" · ")} · thru ${fmtDate(R.asOf).replace(/^\w+, /,"")}${mins}${x}`;
+// Open-row detail grid. Ranks carry the games behind them, so a top-50 on 2 games reads as
+// the small sample it is.
+const kv=(k,v)=>`<dt>${k}</dt><dd>${v}</dd>`;
+function rankKV(id){
+  const q=R&&R.players[id];if(!q)return"";
+  const parts=WINS.filter(w=>q.w[w.k]).map(w=>`${w.n} ${S.rk[w.k][id]} <i>${w.k==="g3"?q.w.g3[0]+"/3":q.w[w.k][0]}g</i>`);
+  let h=kv("Ranks",parts.join(" · "));
+  if(q.w.g3&&q.pm!=null)h+=kv("Minutes",`${Math.round(q.pm)} before → ${Math.round(q.w.g3[1])} last 3`);
+  return h;
+}
+// Season vs. baseline from the Buy/Sell data: role, shooting with volume, Exp and LY.
+function factsKV(id,noRanks){
+  const q=G&&G.players[id];if(!q)return"";
+  const F=G.rates,at=(a,k)=>a?a[F.indexOf(k)]:null,r=q.r,b=q.b,B=S.bs,f=v=>v==null?"–":v.toFixed(1);
+  const yr=s=>s.slice(2),lbl=q.bs?(q.bs.includes("+")?`${yr(q.bs.split("+")[1]).slice(0,2)}–${yr(q.bs).slice(3)}`:yr(q.bs)):"";
+  let h="";
+  if(!noRanks)h+=kv("Exp / LY",`${b?"#"+B.x[id]:"–"} · ${B.ly[id]?"#"+B.ly[id]:"–"}`);
+  h+=kv("Season",`${q.now[0]} GP · ${f(at(r,"mpg"))} min · ${Math.round(at(r,"usg"))}% usg`);
+  if(b)h+=kv(lbl,`${q.bgp} GP · ${f(at(b,"mpg"))} min · ${Math.round(at(b,"usg"))}% usg`);
+  [["FG","fg",0],["3P","tp",1],["FT","ft",2]].forEach(([l,k,i])=>{
+    h+=kv(l,`${f(at(r,k))}% <i>on ${q.att[i]}</i>${b?` · <i>${lbl}</i> ${f(at(b,k))}%`:""}`)});
+  if(q.cx&&q.cx[0])h+=kv("Blowouts",`${q.cx[0]} of ${q.now[0]} · ${f(q.cx[1])} min <i>${q.cx[2]?`vs ${f(q.cx[3])} in others`:"(every game so far)"}</i>`);
+  if(q.cx&&q.cx[4])h+=kv("Fouls",`5+ in ${q.cx[4]} of ${q.now[0]}`);
+  return h;
 }
 // Preseason rotations are nothing like regular-season ones: starters play 20 minutes and
 // deep-bench players play 40, so Value and rank off these games mean very little.
@@ -539,7 +584,9 @@ function rankBS(){
   const val=a=>ix.length?ix.reduce((s,i)=>s+a[i],0)/ix.length:0;
   const rank=src=>{const o={};Object.entries(src).map(([id,a])=>[id,val(a)]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>o[id]=i+1);return o};
   const pick=k=>Object.fromEntries(Object.entries(G.players).map(([id,q])=>[id,q[k]]));
-  S.bs={now:rank(pick("now")),x:rank(pick("x")),ly:rank(G.ly),v:{}};
+  // val and xs (Exp values, best first) let the note rank a hypothetical line, like the 30-minute one.
+  S.bs={now:rank(pick("now")),x:rank(pick("x")),ly:rank(G.ly),v:{},val,
+    xs:Object.values(G.players).map(q=>val(q.x)).sort((a,b)=>b-a)};
   for(const id in G.players){const q=G.players[id],n=S.bs.now[id],x=S.bs.x[id];
     if(!q.b||q.now[0]<BSMIN_GP)continue;
     const v=x<=TOP*1.5&&x<=n*MOVE&&n-x>=20?"buy":n<=TOP*1.5&&n<=x*MOVE&&x-n>=20?"sell":"";
@@ -562,11 +609,8 @@ function bsRow(id){
   const rk=(r,cl="")=>`<span class="${(!r?"na":r<=TOP?"hi":r<=TOP*1.5?"":"lo")+cl}">${r||"–"}</span>`;
   const cells=BSC.map(c=>{const x=at(q.r,c.k),y=at(b,c.k),off=c.c&&S.punt.has(c.c);
     return`<div class="c${off?" off":""}" style="${off||!b?"":heat(bsDelta(c.k,x,y))}"><span class="lb">${c.l}</span>${f1(x)}<span class="z">${b?f1(y):"–"}</span></div>`}).join("");
-  const shot=(l,k,a)=>`${l} ${f1(at(q.r,k))}%${b?` (LY ${f1(at(b,k))})`:""} on ${at(q.r,a)}`;
-  const ly=G.ly[id];
-  const more=(b?"Under each number: last season's. ":"")+`${q.now[0]} GP at ${q.now[1]} min`+(b?` · baseline ${q.bs.replace("+"," + ")}: ${q.bgp} GP at ${at(b,"mpg")} min`:" · no baseline (rookie, or no recent minutes)")
-    +`<br>${shot("FG","fg","fga")} · ${shot("3P","tp","tpa")} · ${shot("FT","ft","fta")} attempts per 36`
-    +(b?`<br>Exp line at ${q.x[1]} min a game`:"")+(ly?` · LY #${B.ly[id]} on ${ly[0]} GP`:"");
+  const more=noteHTML(id)+`<dl class="kv">${kv("Ranks",`Now ${B.now[id]} · Exp ${b?`${B.x[id]} <i>at ${q.x[1]} min</i>`:"–"} · LY ${B.ly[id]||"–"}`)}${factsKV(id,true)}</dl>`
+    +(b?`<p class="cap">Small numbers under the strip: ${q.bs.includes("+")?"last two seasons":"last season"}.</p>`:"");
   return`<article class="p${S.bsOpen.has(id)?" open":""}" data-id="${esc(id)}">
     ${mug({eid:id})}
     <div class="body">
@@ -576,6 +620,213 @@ function bsRow(id){
       <div class="more">${more}</div>
     </div>
   </article>`;
+}
+// The ⓘ panel. Every number in it comes from the data file or the constants above, so if
+// the K values or thresholds are tuned, the explanation follows.
+const PRIOR_L={fga:"Shot attempts (FGA)",reb:"Rebounds",ast:"Assists",fta:"Free throw attempts",tpa:"3-point attempts",
+  to:"Turnovers",blk:"Blocks",stl:"Steals",fg:"FG%",ft:"FT%",tp:"3P%"};
+function renderHelp(){
+  if(!G)return;
+  const P=G.prior,pg=G.priorGp||3,bm=G.baseMin||500,pct=Math.round((1-MOVE)*100),cut=TOP*1.5;
+  const rows=(ks,u)=>ks.filter(k=>P[k]!=null).sort((a,b)=>P[a]-P[b])
+    .map(k=>`<tr><td>${PRIOR_L[k]||k}</td><td>${P[k]}</td><td>${u}</td></tr>`).join("");
+  const ex=(15+.38*P.tp)/(50+P.tp)*100;
+  $("bsHelpBody").innerHTML=`
+<h3>What this tab answers</h3>
+<p>Is a player's start real? Over a handful of games, hot or cold shooting, blowouts and foul trouble can move a 9-cat rank 100 spots. This tab compares this season's per-minute numbers with last season's (${G.seasons[0]}), to separate what tends to stick from what usually doesn't.</p>
+
+<h3>The three ranks</h3>
+<p><b>Now</b>: 9-cat per-game rank this season.<br>
+<b>Exp</b>: the rank of the line the player would have if their per-minute production and shooting moved back toward last season's, at this season's minutes.<br>
+<b>LY</b>: last season's final per-game rank (20+ games).<br>
+All three use your punts and the same top-156 pool.</p>
+
+<h3>How Exp is built</h3>
+<p><b>Role is kept.</b> Minutes per game stay at this season's, nudged by just ${pg} games' worth of last season's. Role changes usually stick.</p>
+<p><b>Rates are blended.</b> Each per-minute rate and shooting % is mixed with last season's:</p>
+<p class="f">blended = (this season's total + last season's rate × K) ÷ (this season's minutes or attempts + K)</p>
+<p>K is how much of this season it takes to count as much as last season. Small K: the stat settles fast, so this season is trusted sooner. Large K: noisy, so last season carries more weight for longer.</p>
+<table><tr><th>Stat</th><th>K</th><th></th></tr>${rows(["fga","reb","ast","fta","tpa","to","blk","stl"],"min")}${rows(["fg","ft","tp"],"attempts")}</table>
+<p><b>Example.</b> A player shooting 30% from three on 50 attempts, who hit 38% last season: (15 + 0.38 × ${P.tp}) ÷ (50 + ${P.tp}) = <b>${ex.toFixed(1)}%</b>. Fifty attempts barely move it.</p>
+<p><b>Points follow shooting.</b> Points and 3PM are rebuilt from the blended makes (2 × FGM + 3PM + FTM), so a slump gets corrected in every category it touches, not just FG%.</p>
+<p><b>Baseline.</b> Last season never counts for more than it actually saw (40 three-point attempts can't count as ${P.tp}). Under ${bm} minutes last season, the season before is added (${G.seasons.join(" + ")}). Rookies have no baseline, so Exp shows –.</p>
+
+<h3>Buy and Sell</h3>
+<p><b>Buy</b>: Exp inside the top ${cut}, at least ${pct}% better than Now, and 20+ spots better. Example: Now 131 → Exp 32.<br>
+<b>Sell</b>: the mirror case, for anyone inside the top ${cut} now.<br>
+Needs ${BSMIN_GP}+ games and a baseline. The percentage rule scales with rank: #10 → #18 isn't news, #130 → #40 is.</p>
+
+<h3>Reading a row</h3>
+<p>The strip is this season: MIN, USG, FG%, FT%, then per-36 3PM, PTS, REB, AST, STL, BLK, TO. <b style="color:var(--pos)">Green</b> = better for fantasy than last season, <b style="color:var(--neg)">red</b> = worse (more turnovers is red). Darker = bigger gap. Exp gets a green pill for Buy, red for Sell. Tap a row to see last season's number under each cell, plus the shot volume behind each percentage.</p>
+<p><b>Quick read.</b> MIN and USG steady but FG% or 3P% red: probably a slump that bounces back. MIN or USG down: a role change. Exp won't flag that, and it may well be real. Shooting way up with nothing else changed: enjoy it, but it's the first thing to fade.</p>
+
+<h3>The analyst note</h3>
+<p>Tap any player, on either tab, for a written read. It's built only from the numbers: minutes, usage, shooting with its sample size, per-36 changes against last season, blowouts (20+ point margins) and foul trouble (5+ fouls) that cut minutes, the team's last 3 games, what the same per-minute numbers would rank at ${(Object.values(G.players).find(q=>q.up)||{up:[0,30]}).up[1]} minutes for bench players, the category profile and any punt build it suits. On the Box tab it starts with that night's game. It knows nothing about injuries, news or depth charts. Missed games get flagged so you can go check.</p>
+<table><tr><th>Tag</th><th></th></tr>
+<tr><td><b>Buy low</b></td><td style="text-align:left">Flagged Buy and inside the top ${cut} now: trade for this player.</td></tr>
+<tr><td><b>Pick up</b></td><td style="text-align:left">Flagged Buy but outside ${cut} now, so probably on waivers.</td></tr>
+<tr><td><b>Sell high</b></td><td style="text-align:left">Flagged Sell, and was rosterable last season: trade while the rank is high.</td></tr>
+<tr><td><b>Ride it</b></td><td style="text-align:left">Flagged Sell, but wasn't top ${cut} last season: nothing much to sell, so keep until it fades.</td></tr>
+<tr><td><b>Hold</b></td><td style="text-align:left">Exp inside ${TOP}.</td></tr>
+<tr><td><b>Streamer</b></td><td style="text-align:left">Exp ${TOP+1}–${cut}.</td></tr>
+<tr><td><b>Watch</b></td><td style="text-align:left">Below that, but trending up, gaining minutes, or productive enough per minute to be top ${TOP} with a bigger role.</td></tr>
+<tr><td><b>Pass</b></td><td style="text-align:left">Everyone else.</td></tr></table>
+
+<h3>Blind spots</h3>
+<p><b>Real change looks like luck.</b> A young player who actually got better shows up as Sell; a veteran who slipped shows up as Buy. Check age and the LY column.<br>
+<b>Lost minutes count.</b> Minutes from blowouts or foul trouble are taken at face value, so they lower Exp too.<br>
+<b>Box scores only.</b> Injuries, trades and new teammates aren't modeled.<br>
+<b>The K values are judgment calls</b>, based on how fast these stats are generally thought to settle, not fitted to data.</p>
+
+<p class="dim">Rebuilt every morning through last night (now through ${fmtDate(G.asOf).replace(/^\w+, /,"")}). The short version: before reacting to a few games, compare per-minute numbers with last season's.</p>
+<button class="x" id="bsHelpX">Close</button>`;
+  $("bsHelpX").onclick=()=>toggleHelp(false);
+}
+function toggleHelp(open){
+  if(open)renderHelp();
+  $("bsHelp").hidden=!open;$("bsInfo").setAttribute("aria-expanded",open);
+  if(open)window.scrollTo(0,0);
+}
+// ---- analyst note: a scout-style read written from the numbers alone. It knows minutes,
+// usage, shooting, per-minute rates, blowouts and fouls; it doesn't know injuries, news or
+// rosters. Shared by both tabs; tn = tonight's box score line when opened from the Box tab.
+// Written without pronouns: the surname or no subject at all.
+const CW={fg:"FG%",ft:"FT%",tpm:"threes",pts:"points",reb:"rebounds",ast:"assists",stl:"steals",blk:"blocks",to:"turnovers"};
+const andList=a=>a.length<3?a.join(" and "):a.slice(0,-1).join(", ")+" and "+a[a.length-1];
+const plural=(n,w)=>`${n} ${w}${n===1?"":"s"}`;
+const d1=v=>v.toFixed(1);
+function surname(n){const t=String(n).split(" ");let i=t.length-1;while(i>1&&/^(jr\.?|sr\.?|ii|iii|iv)$/i.test(t[i]))i--;return t[i]}
+function tierText(r){return r<=50?"a weekly starter in any format":r<=TOP?"a starter in 12-team leagues"
+  :r<=TOP*1.5?"a high-end streamer in 12-team leagues and a hold in deeper ones":r<=200?"a streamer at best in 12-team leagues"
+  :"not someone to roster in standard leagues"}
+function tonightNote(p,mpg){
+  const e=S.events.find(x=>x.id===p.game),live=e&&e.state==="in",v=p.value;
+  const head=live?"So far tonight":v>=1?"Big night":v>=.4?"Good night":v>=-.2?"Middling night":v>=-.6?"Quiet night":"Rough night";
+  const good=[],bad=[];
+  if(p.z.tpm>=1)good.push(plural(p.tpm,"three"));
+  if(p.z.reb>=1)good.push(plural(p.reb,"rebound"));
+  if(p.z.ast>=1)good.push(plural(p.ast,"assist"));
+  if(p.z.stl>=1)good.push(plural(p.stl,"steal"));
+  if(p.z.blk>=1)good.push(plural(p.blk,"block"));
+  // Only call out what actually hurt: 3 turnovers on a 40-point night isn't the story.
+  if(p.to>=4&&p.z.to<=-1)bad.push(plural(p.to,"turnover"));
+  if(p.z.ft<=-1&&(p.fta-p.ftm>=4||p.fta>=4&&p.ftm/p.fta<.6))bad.push(`${p.ftm}-of-${p.fta} at the line`);
+  if(p.tpa>=4&&!p.tpm)bad.push(`0-of-${p.tpa} from three`);
+  let t=`${head}: ${plural(p.pts,"point")} ${p.fga?`on ${p.fgm}-of-${p.fga} shooting`:"without a shot from the field"}`;
+  if(good.length)t+=` with ${andList(good)}`;
+  if(bad.length)t+=good.length?`, but ${andList(bad)}`:` with ${andList(bad)}`;
+  // Short minutes usually have a reason the box score can show.
+  if(!live&&mpg&&p.min<=mpg-8){const m=e?Math.abs(e.hs-e.as):0;
+    t+=` in just ${p.min} minutes${p.pf>=5?` (${p.pf} fouls)`:m>=20?` (a ${m}-point blowout)`:""}`}
+  return t+".";
+}
+function analyst(id,tn){
+  const q=G&&G.players[id],s=[];
+  if(tn)s.push(tonightNote(tn,q&&q.now[1]));
+  if(!q||!S.bs)return{text:s.join(" ")};
+  const F=G.rates,at=(a,k)=>a?a[F.indexOf(k)]:null,r=q.r,b=q.b,gp=q.now[0],nm=esc(surname(q.n));
+  const B=S.bs,now=B.now[id],x=B.x[id],ly=B.ly[id],v=B.v[id],mv=S.mv&&S.mv[id],rq=R&&R.players[id];
+  const act=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>c.k),zi=k=>2+G.cats.indexOf(k);
+  const lyT=q.bs&&q.bs.includes("+")?"the last two seasons":"last season";
+  const sure=b&&gp>=BSMIN_GP,mpg=at(r,"mpg"),bm=b?at(b,"mpg"):0,dm=mpg-bm,cx=q.cx||[0,0,0,0,0];
+
+  // The season line, leading with the categories this player actually helps in.
+  const pg=k=>q.pg[G.pgf.indexOf(k)],fg=at(r,"fg");
+  const extra=["tpm","reb","ast","stl","blk"].filter(k=>q.now[zi(k)]>=.3).sort((a,c)=>q.now[zi(c)]-q.now[zi(a)])
+    .slice(0,3).map(k=>`${d1(pg(k))} ${CW[k]}`);
+  s.push(`${tn?"On the season, ":""}${nm} is averaging ${d1(pg("pts"))} points${fg!=null?` on ${d1(fg)}% shooting`:""}${extra.length?`${extra.length>1?",":" and"} ${andList(extra)}`:""} in ${d1(mpg)} minutes over ${plural(gp,"game")}.`);
+  if(gp<BSMIN_GP)s.push("That's a tiny sample, so treat all of this as noise for now.");
+  if(!b)s.push(`There's no baseline from ${G.seasons[0]} (a rookie, or no real minutes), so this season is all there is to go on.`);
+
+  // Role: minutes and usage against the baseline.
+  if(b){
+    const u=at(r,"usg"),bu=at(b,"usg"),du=u-bu,bigM=Math.abs(dm)>=3,bigU=Math.abs(du)>=3;
+    const fin=ly?`, a season that ended at #${ly}`:"";
+    if(!bigM&&!bigU)s.push(`The role looks the same as ${lyT}${fin}: ${d1(mpg)} minutes and ${Math.round(u)}% usage, against ${d1(bm)} and ${Math.round(bu)}%.`);
+    else{
+      const parts=[bigM&&`minutes ${dm>0?"up":"down"} from ${d1(bm)} to ${d1(mpg)}`,bigU&&`usage ${du>0?"up":"down"} from ${Math.round(bu)}% to ${Math.round(u)}%`].filter(Boolean);
+      const up=(!bigM||dm>0)&&(!bigU||du>0),dn=(!bigM||dm<0)&&(!bigU||du<0);
+      s.push(`${up?"A bigger role than":dn?"A smaller role than":"The role has shifted since"} ${lyT}: ${andList(parts)}.`);
+      if(!bigU&&dm<0)s.push(`Usage is close to ${lyT}${fin}, so the touches are still there on the floor.`);
+    }
+  }
+  // Game context that bends minutes without saying anything about the role.
+  const blow=cx[0]>=Math.max(2,gp*.4);
+  if(blow&&cx[2]&&cx[1]<cx[3]-3)
+    s.push(`${cx[0]} of ${gp} games have been blowouts (20+ points), and the minutes in them (${d1(cx[1])}) trail the closer games (${d1(cx[3])})${b&&dm<=-2&&cx[3]>=bm-2?`, which are right in line with ${lyT}`:""}.`);
+  else if(blow&&cx[2]&&cx[1]>cx[3]+5)
+    s.push(`Some of this is garbage time: ${cx[0]} of ${gp} games have been blowouts, with ${d1(cx[1])} minutes in them against ${d1(cx[3])} in closer games.`);
+  else if(cx[0]&&!cx[2]&&gp>=2)s.push("Every game so far has been a blowout, so the minutes may not show the real role yet.");
+  if(cx[4]&&cx[4]>=Math.max(1,gp*.25))s.push(`Foul trouble (5+ fouls) in ${cx[4]} of ${gp} games has cost minutes too.`);
+  // The 3G window counts missed games as zeros, so a "minutes drop" there is often absences;
+  // the note can't see injuries, so it says so and points at the injury report.
+  if(rq&&rq.w.g3&&rq.pm!=null){const d=rq.w.g3[1]-rq.pm,miss=3-rq.w.g3[0];
+    if(miss&&d<0)s.push(`Missed ${miss} of the team's last 3 games; worth checking the injury report.`);
+    else if(Math.abs(d)>=5)s.push(`Minutes have ${d>0?"jumped":"dropped"} to ${Math.round(rq.w.g3[1])} a game over the team's last 3 (${Math.round(rq.pm)} before).`)}
+
+  if(b){
+    // Shooting luck, with the attempts behind it.
+    const hot=[],cold=[];
+    [["fg",0,"from the field",4,20],["tp",1,"from three",6,8],["ft",2,"at the line",7,6]].forEach(([k,i,l,th,mn])=>{
+      const c=at(r,k),y=at(b,k),n=q.att[i];if(c==null||y==null||n<mn)return;
+      const o={c,y,n,l};if(c-y>=th)hot.push(o);else if(y-c>=th)cold.push(o)});
+    const fmt=(a,first)=>andList(a.map((o,j)=>`${d1(o.c)}% ${o.l} on ${o.n} attempts (${d1(o.y)}%${j||!first?"":" "+lyT})`));
+    // Missed shots from the field (not the line) are what get a player pulled.
+    const why=dm<=-3&&cold.some(o=>o.l!=="at the line")?", and it may be part of why the minutes are down":"";
+    if(cold.length&&hot.length)s.push(`The shooting luck is mixed: cold at ${fmt(cold,1)}, but hot at ${fmt(hot)}. Both should drift back toward ${lyT}${why}.`);
+    else if(cold.length)s.push(`The shooting is running cold: ${fmt(cold,1)}. On a sample this size, that usually swings back${why}.`);
+    else if(hot.length)s.push(`The shooting is running hot: ${fmt(hot,1)}. That's usually the first thing to cool off.`);
+    if(!hot.length&&!cold.length&&gp>=BSMIN_GP)s.push(`The shooting is in line with ${lyT}, so there's no obvious luck either way.`);
+    // Other per-minute changes; steals and blocks are the noisiest.
+    const ch=["reb","ast","stl","blk","to"].map(k=>{const c=at(r,k),y=at(b,k);return{k,c,y,d:(c-y)/Math.max(y,BSFLOOR[k])}})
+      .filter(o=>Math.abs(o.d)>=.3).sort((a,c)=>Math.abs(c.d)-Math.abs(a.d)).slice(0,2);
+    if(ch.length){const def=ch.filter(o=>o.k==="stl"||o.k==="blk"),defUp=def.some(o=>o.d>=.5),dn=def.filter(o=>o.d<0).map(o=>CW[o.k]);
+      s.push(`Per 36 minutes, ${andList(ch.map(o=>`${CW[o.k]} are ${o.d>0?"up":"down"} (${d1(o.c)}, from ${d1(o.y)})`))}`
+        +(defUp?`. Defensive numbers that far above ${lyT} are the least likely part to last.`
+          :dn.length?`; ${andList(dn)} swing a lot early and should come back.`:"."))}
+  }
+  // Role upside: what these per-minute numbers are worth at 30 minutes.
+  let upR=0;
+  if(q.up){const uv=B.val(q.up),ur=1+B.xs.filter(t=>t>uv).length;
+    if(ur<=TOP*1.5&&ur<=(sure?x:now)-25){upR=ur;
+      const p36=["pts","tpm","reb","ast","stl","blk"].filter(k=>k==="pts"||at(r,k)>=({tpm:1,reb:6,ast:3,stl:.8,blk:.8})[k]).map(k=>`${d1(at(r,k))} ${CW[k]}`);
+      s.push(`The per-minute production is the encouraging part: ${andList(p36)} per 36. At ${q.up[1]} minutes a game${sure?`, blended with ${lyT}`:""}, that would rank around #${ur}, so the upside rides on the role growing.`)}}
+  // What the expected line says about the current rank.
+  if(sure){
+    const gap=act.map(k=>({k,d:q.x[zi(k)]-q.now[zi(k)]}));
+    if(v==="buy"){const top=gap.filter(o=>o.d>.1).sort((a,c)=>c.d-a.d).slice(0,2).map(o=>CW[o.k]);
+      s.push(`With those numbers drifting back toward ${lyT}, the line grades out around #${x}, far better than the current #${now}${top.length?`; most of the gap is in ${andList(top)}`:""}.`)}
+    else if(v==="sell"){const top=gap.filter(o=>o.d<-.1).sort((a,c)=>a.d-c.d).slice(0,2).map(o=>CW[o.k]);
+      s.push(`Pull the hot spots back toward ${lyT} and the line grades out nearer #${x} than the current #${now}${top.length?`; the value most at risk is in ${andList(top)}`:""}.`)}
+    else{const g=Math.log(now/x);
+      s.push(Math.abs(g)<.25?`The expected line (#${x}) sits close to the current rank (#${now}), so the start looks real.`
+        :`The expected line grades out ${g>0?"better":"worse"} (#${x}) than the current rank (#${now}).`)}
+  }
+  if(mv&&(mv.hot||mv.cold)&&rq&&rq.w.g3)
+    s.push(`Trending ${mv.hot?"up":"down"}: #${S.rk.g3[id]} over the team's last 3 games against #${now} on the season.`);
+  // Category profile, and a punt build it suits.
+  const zs=act.map(k=>({k,z:q.now[zi(k)]})),str=zs.filter(o=>o.z>=.75).sort((a,c)=>c.z-a.z).slice(0,3),
+    weak=zs.filter(o=>o.z<=-.75).sort((a,c)=>a.z-c.z).slice(0,2);
+  if(str.length||weak.length)s.push(`${str.length?`Helps most in ${andList(str.map(o=>CW[o.k]))}`:"No standout category so far"}${weak.length?`; hurts in ${andList(weak.map(o=>CW[o.k]))}`:""}.`);
+  if(weak.length&&weak[0].z<=-1&&zs.length>2){const t=zs.reduce((a,o)=>a+o.z,0);
+    if((t-weak[0].z)/(zs.length-1)-t/zs.length>=.2)s.push(`A much better fit in builds that punt ${CW[weak[0].k]}.`)}
+  // Bottom line. A hot start from someone who wasn't rosterable last season is "ride it", not
+  // "sell high": there's little to sell, and nothing lost by holding until it fades.
+  const ref=sure?x:now,cheap=!ly||ly>TOP*1.5;
+  let tag,cls="",end="";
+  if(v==="buy"){const w=now>TOP*1.5;tag=w?"Pick up":"Buy low";cls="good";end=w?`; worth grabbing while the rank says #${now}`:`; buy while the rank says #${now}`}
+  else if(v==="sell"&&cheap){tag="Ride it";end=`; worth a roster spot while it lasts, but expect a fade toward #${x}`}
+  else if(v==="sell"){tag="Sell high";cls="bad";end=`; sell while the rank says #${now}`}
+  else if(ref<=TOP)tag="Hold";
+  else if(ref<=TOP*1.5)tag="Streamer";
+  else if(mv&&(mv.hot||mv.mup)||upR&&upR<=TOP){tag="Watch";end="; worth watching in case the role grows"}
+  else{tag="Pass";cls="dim"}
+  s.push(`Bottom line: ${sure?"the numbers say":"for now,"} ${nm} profiles as ${tierText(ref)}${end}.`);
+  return{tag,cls,text:s.join(" ")};
+}
+function noteHTML(id,tn){
+  const a=analyst(id,tn);if(!a.text)return"";
+  return`<p class="note">${a.tag?`<b class="tag ${a.cls}">${a.tag}</b>`:""}${a.text}</p>`;
 }
 function bsMsg(m){$("bsList").innerHTML=`<div class="empty">${esc(m)}</div>`;$("bsStatus").textContent=""}
 function setView(v){
@@ -598,6 +849,7 @@ $("bsList").onclick=e=>{if(e.target.closest(".pl"))return;
   S.bsOpen.has(id)?S.bsOpen.delete(id):S.bsOpen.add(id);a.classList.toggle("open")};
 $("bsSort").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsSort=b.dataset.k;store.set("bsSort",S.bsSort);renderBS()});
 $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>setView(b.dataset.v));
+$("bsInfo").onclick=()=>toggleHelp($("bsHelp").hidden);
 setView(location.hash==="#buysell"?"bs":"box");
 $("prev").onclick=()=>loadDate(shift(S.date,-1));
 $("next").onclick=()=>loadDate(shift(S.date,1));
