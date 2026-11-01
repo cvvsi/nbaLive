@@ -6,6 +6,10 @@
  * same volume-weighted impact as the box score: makes - poolPct * attempts, per game.
  * The page re-ranks from the stored z-scores, so punts apply to these ranks too.
  *
+ * Also writes data/regression.json for the Buy/Sell tab: each player's per-minute rates now
+ * vs. data/history.json (last season, from build-history.js), and an "expected" rank from
+ * current minutes x rates regressed toward that baseline. See expectedLine().
+ *
  * Usage:  node build-rankings.js            through yesterday (US Eastern)
  *         node build-rankings.js 20261028   through that date
  * Finished box scores are cached in .cache/games.json (the nightly Action keeps it
@@ -17,7 +21,8 @@ const API = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba';
 const CATS = ['fg', 'ft', 'tpm', 'pts', 'reb', 'ast', 'stl', 'blk', 'to'];
 const WINDOWS = { season: 0, d30: 30, d14: 14, d7: 7 };
 const POOL = 156, ITER = 4, G3 = 3;
-const CACHE = '.cache/games.json', OUT = 'data/rankings.json';
+const CACHE = '.cache/games.json', OUT = 'data/rankings.json', REG = 'data/regression.json', HIST = 'data/history.json';
+const CACHE_V = 2;   // bump when parseBox's row shape changes, so stale cached rows are refetched
 
 const J = async u => {
   for (let i = 0; ; i++) {
@@ -46,21 +51,21 @@ function parseBox(j) {
     for (const a of st.athletes) {
       if (a.didNotPlay || !a.stats || !a.stats.length || !a.athlete.id) continue;
       const s = a.stats, min = parseFloat(s[I.min]) || 0; if (min <= 0) continue;
-      const [fgm, fga] = split(s[I.fg]), [tpm] = split(s[I.tp]), [ftm, fta] = split(s[I.ft]);
+      const [fgm, fga] = split(s[I.fg]), [tpm, tpa] = split(s[I.tp]), [ftm, fta] = split(s[I.ft]);
       out.push({
         id: String(a.athlete.id), name: a.athlete.displayName, team: t.team.abbreviation, min,
         pts: +s[I.pts] || 0, reb: +s[I.reb] || 0, ast: +s[I.ast] || 0, stl: +s[I.stl] || 0,
-        blk: +s[I.blk] || 0, to: +s[I.to] || 0, fgm, fga, tpm, ftm, fta,
+        blk: +s[I.blk] || 0, to: +s[I.to] || 0, fgm, fga, tpm, tpa, ftm, fta,
       });
     }
   }
   return out;
 }
 
-async function loadGames(through) {
+async function loadGames(through, file = CACHE) {
   // days[d] = true once every game on d is final (or it's a preseason date); games[eventId] = rows.
-  let cache = { days: {}, games: {} };
-  try { cache = JSON.parse(fs.readFileSync(CACHE, 'utf8')); } catch (e) {}
+  let cache = { v: CACHE_V, days: {}, games: {} };
+  try { const c = JSON.parse(fs.readFileSync(file, 'utf8')); if (c.v === CACHE_V) cache = c; } catch (e) {}
   const sb = await J(`${API}/scoreboard?dates=${through.replace(/-/g, '')}`);
   const dates = (sb.leagues[0].calendar || []).map(d => d.slice(0, 10)).filter(d => d <= through);
   const games = [];
@@ -79,22 +84,40 @@ async function loadGames(through) {
     process.stderr.write(`${d}: ${(day.events || []).length} games${settled ? '' : ' (some not final)'}\n`);
   }
   fs.mkdirSync('.cache', { recursive: true });
-  fs.writeFileSync(CACHE, JSON.stringify(cache));
+  fs.writeFileSync(file, JSON.stringify(cache));
   return games;
 }
 
 // teamGames (team -> games in the window) switches to per-TEAM-game averages: a game the
 // player missed counts as a zero night, so resting or hurt players can't look hot.
-function rankWindow(games, teamGames) {
+// Per-player totals over some games. use/tpos are usage's numerator and denominator
+// (possessions used, and team possessions while on the floor), with team totals summed
+// from the box score, so usage over any span is 100 * use / tpos.
+const STATS = ['min', 'pts', 'reb', 'ast', 'stl', 'blk', 'to', 'fgm', 'fga', 'tpm', 'tpa', 'ftm', 'fta'];
+function totals(games) {
   const by = {};
-  for (const g of games) for (const r of g.rows) {
-    const p = by[r.id] || (by[r.id] = { id: r.id, gp: 0, min: 0, pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, to: 0, fgm: 0, fga: 0, tpm: 0, ftm: 0, fta: 0 });
-    p.team = r.team;
-    p.gp++; for (const k of ['min', 'pts', 'reb', 'ast', 'stl', 'blk', 'to', 'fgm', 'fga', 'tpm', 'ftm', 'fta']) p[k] += r[k];
+  for (const g of games) {
+    const T = {};
+    for (const r of g.rows) { const t = T[r.team] || (T[r.team] = { min: 0, poss: 0 });
+      t.min += r.min; t.poss += r.fga + .44 * r.fta + r.to; }
+    for (const r of g.rows) {
+      const p = by[r.id] || (by[r.id] = { id: r.id, gp: 0, use: 0, tpos: 0, ...Object.fromEntries(STATS.map(k => [k, 0])) });
+      p.team = r.team; p.name = r.name;
+      p.gp++; for (const k of STATS) p[k] += r[k];
+      const t = T[r.team]; p.use += r.fga + .44 * r.fta + r.to; p.tpos += r.min * t.poss / (t.min / 5);
+    }
   }
-  const P = Object.values(by);
-  for (const p of P) { const n = teamGames ? teamGames[p.team] : p.gp;
-    for (const k of ['min', 'pts', 'reb', 'ast', 'stl', 'blk', 'to', 'fgm', 'fga', 'tpm', 'ftm', 'fta']) p[k] /= n; }
+  return by;
+}
+
+function rankWindow(games, teamGames) {
+  const P = Object.values(totals(games));
+  for (const p of P) { const n = teamGames ? teamGames[p.team] : p.gp; for (const k of STATS) p[k] /= n; }
+  return score(P);
+}
+
+// z-scores and Value for per-game lines (p.min, p.pts, ... p.fta per game, p.gp for eligibility).
+function score(P) {
   // A pool member must have played at least half as many games as the busiest player in the
   // window, so a single 40-minute blowout doesn't stretch the pool's spread.
   const maxGP = Math.max(...P.map(p => p.gp)), elig = P.filter(p => p.gp >= Math.ceil(maxGP / 2));
@@ -114,7 +137,83 @@ function rankWindow(games, teamGames) {
   return P;
 }
 
-(async () => {
+// ---- regression: is the start real?
+// A season-to-date rank mixes role (minutes, usage), which tends to stick, with per-minute
+// production and shooting, which are noisy over a few games. The expected line keeps this
+// season's minutes and blends each per-minute rate and shooting % with last season's:
+//   rate = (this season's count + baseline rate * K) / (this season's minutes or attempts + K)
+// so K is how many minutes (or attempts) of this season it takes to count as much as the
+// baseline. Fast-settling rates (shot volume, boards) have a small K; steals, blocks and 3P%
+// a large one. The baseline never counts for more than it actually saw.
+const PRIOR = { fga: 150, tpa: 200, fta: 250, reb: 200, ast: 250, to: 300, stl: 600, blk: 500,  // minutes
+  fg: 250, tp: 500, ft: 200 };                                                                  // attempts
+const PRIOR_GP = 3;          // minutes: this season's mpg, nudged by 3 games of last season's
+const BASE_MIN = 500;        // under this many minutes last season, add the season before it
+const RATES = ['mpg', 'usg', 'fg', 'ft', 'tp', 'tpm', 'pts', 'reb', 'ast', 'stl', 'blk', 'to', 'fga', 'fta', 'tpa'];
+const r1 = v => Math.round(v * 10) / 10;
+
+// Per-36 counting rates, shooting % and usage from a totals object.
+function rates(t) {
+  const m = t.min || 1, per = k => r1(t[k] * 36 / m), pc = (a, b) => b ? r1(100 * a / b) : null;
+  return [r1(t.min / t.gp), t.tpos ? r1(100 * t.use / t.tpos) : 0, pc(t.fgm, t.fga), pc(t.ftm, t.fta), pc(t.tpm, t.tpa),
+    per('tpm'), per('pts'), per('reb'), per('ast'), per('stl'), per('blk'), per('to'), per('fga'), per('fta'), per('tpa')];
+}
+
+// Baseline totals for a player: last season, plus the one before when last season was short
+// (injury, rookie year cut short). Totals add, so the blend is weighted by minutes played.
+function baseline(h) {
+  if (!h) return null;
+  const [ly, prev] = h.seasons, s = h.s;
+  const pick = s[ly] && s[ly].min >= BASE_MIN ? [ly] : [ly, prev].filter(k => s[k]);
+  if (!pick.length) return null;
+  const t = { gp: 0, use: 0, tpos: 0, ...Object.fromEntries(STATS.map(k => [k, 0])) };
+  for (const k of pick) for (const f in t) t[f] += s[k][f] || 0;
+  return t.min >= 200 ? { t, src: pick.join('+') } : null;
+}
+
+// Per-game expected line from season totals s and baseline totals b (see the note above).
+function expectedLine(s, b) {
+  const w = (k, n) => Math.min(PRIOR[k], n);
+  const rate = (k, cur, curN, base, baseN) => baseN ? (cur + base / baseN * w(k, baseN)) / (curN + w(k, baseN)) : cur / Math.max(1, curN);
+  const mpg = (s.min + (b.min / b.gp) * PRIOR_GP) / (s.gp + PRIOR_GP);
+  const per = k => rate(k, s[k], s.min, b[k], b.min) * mpg;
+  const fga = per('fga'), tpa = per('tpa'), fta = per('fta');
+  const fgm = fga * rate('fg', s.fgm, s.fga, b.fgm, b.fga);
+  const tpm = tpa * rate('tp', s.tpm, s.tpa, b.tpm, b.tpa);
+  const ftm = fta * rate('ft', s.ftm, s.fta, b.ftm, b.fta);
+  return { min: mpg, fga, fgm, tpa, tpm, fta, ftm, pts: 2 * fgm + tpm + ftm,   // a 3 is a 2 plus one
+    reb: per('reb'), ast: per('ast'), stl: per('stl'), blk: per('blk'), to: per('to') };
+}
+
+function buildRegression(games, asOf, rankings) {
+  let H = null;
+  try { H = JSON.parse(fs.readFileSync(HIST, 'utf8')); }
+  catch (e) { console.log(`${HIST} missing: run node build-history.js once. Skipping ${REG}.`); return; }
+  const tot = totals(games), lines = [];
+  for (const s of Object.values(tot)) {
+    const h = H.players[s.id], b = baseline(h && { seasons: H.seasons, s: h.s });
+    // No baseline (rookies, long absences): the expected line is just the actual one.
+    const x = b ? expectedLine(s, b.t) : Object.fromEntries(STATS.map(k => [k, s[k] / s.gp]));
+    lines.push({ id: s.id, gp: s.gp, ...x, s, b });
+  }
+  const out = {};
+  for (const p of score(lines)) {
+    out[p.id] = { n: p.s.name, t: p.s.team,
+      now: rankings[p.id].w.season,
+      x: [p.gp, r1(p.min), ...CATS.map(c => r2(p.z[c]))],
+      r: rates(p.s) };
+    if (p.b) Object.assign(out[p.id], { b: rates(p.b.t), bs: p.b.src, bgp: p.b.t.gp });
+  }
+  // Last season's z-scores for everyone who qualified, not just this season's players, so
+  // the page's LY rank is the real final rank (retired players still hold their spots).
+  const ly = {};
+  for (const [id, h] of Object.entries(H.players)) if (h.ly) ly[id] = h.ly;
+  fs.writeFileSync(REG, JSON.stringify({ asOf, cats: CATS, fields: ['gp', 'mpg', ...CATS], rates: RATES,
+    seasons: H.seasons, prior: PRIOR, players: out, ly }));
+  console.log(`${REG}: ${lines.filter(l => l.b).length}/${lines.length} players with a baseline`);
+}
+
+async function main() {
   const arg = process.argv[2];
   const through = arg ? `${arg.slice(0, 4)}-${arg.slice(4, 6)}-${arg.slice(6, 8)}` : shift(etToday(), -1);
   const games = await loadGames(through);
@@ -155,4 +254,8 @@ function rankWindow(games, teamGames) {
   fs.mkdirSync('data', { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify({ asOf, cats: CATS, fields: ['gp', 'mpg', ...CATS], windows, players }));
   console.log(`${OUT}: ${Object.keys(players).length} players through ${asOf}`, JSON.stringify(windows));
-})();
+  buildRegression(games, asOf, players);
+}
+
+module.exports = { loadGames, totals, rankWindow, STATS, CATS, r2 };
+if (require.main === module) main();

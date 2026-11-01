@@ -9,6 +9,7 @@ A phone-first NBA box score viewer for **9-category fantasy basketball**. It ran
 ## What it does
 
 - Loads every game for a date (US Eastern) and ranks all players who played by **Value**.
+- **Buy/Sell tab:** is a hot or cold start real? This season's per-minute numbers against last season's, with an expected rank (see below).
 - Shows each player's 9 categories as a heat-colored strip (green = helped, red = hurt), plus minutes, usage %, starter flag and matchup.
 - **Live:** in-progress games refresh every 60 s, and again whenever the page comes back into view.
 - On first load, if no game has tipped off today, it shows the previous night.
@@ -48,6 +49,21 @@ Each row shows the player's 9-cat rank over the season, the last 14 and 7 days, 
 - **Math:** per-game averages over the window, z-scored against a top-156 pool (12 teams × 13). The pool is iterated so it settles on rosterable players, and only players with at least half the window's max games are eligible for it. FG%/FT% use the same impact formula as the box score. Regular season only.
 - The JSON stores per-window z-scores, not ranks, so the page re-ranks with your punts applied.
 - Finished box scores are cached in `.cache/games.json` (git-ignored; the Action keeps it with `actions/cache`), so each run only fetches new games.
+
+## Buy/Sell tab (regression)
+
+Early-season ranks are noisy. Five games of hot or cold shooting, a couple of blowouts or some foul trouble can move a rank by 100 spots. The tab asks whether a start is real by comparing this season's **per-minute** numbers with last season's. The heuristic: role (minutes, usage) tends to stick, while per-minute production and shooting over a few games mostly don't.
+
+Each row: **Now** (season rank), **Exp**, **LY** (last season's final per-game rank), then this season's MIN, USG, FG%, FT% and per-36 counting stats, each colored by how far it sits from last season. Tapping a row shows last season's number under each cell, plus the shooting volume behind the percentages.
+
+- **Exp** = the rank of an *expected line*: this season's minutes (nudged by 3 games of last season's mpg) × per-minute rates and shooting % blended toward last season's:
+  `rate = (this season's count + baseline rate × K) / (this season's minutes or attempts + K)`.
+  K (`PRIOR` in `build-rankings.js`) is how much of this season it takes to count as much as the baseline. It is small for fast-settling rates (FGA 150 min, REB 200 min) and large for noisy ones (STL 600 min, 3P% 500 attempts). The baseline never weighs more than it actually observed. Points are rebuilt from the blended makes (`2·FGM + 3PM + FTM`), so a shooting slump flows through to PTS and 3PM.
+- **Buy**: Exp inside 150, at least 40% better than Now and 20+ spots. **Sell**: the mirror case for anyone inside 150 now. Needs 3+ games and a baseline. The same `MOVE` threshold as the movers.
+- **Baseline** = last season. If the player logged under 500 minutes last season, the season before is added (totals add, so it's minutes-weighted). Players with no baseline (rookies) show Exp as "–" and never get flagged, but still hold their rank slot.
+- Punts re-rank Now, Exp and LY, like everything else.
+
+**Data:** `build-history.js` pulls the last two completed regular seasons from the same ESPN endpoints (~1,230 box scores a season, cached in `.cache/season-YYYY.json`) and writes `data/history.json`: per-player season totals plus last season's z-scores. **Run it once a season** (after the regular season ends) and commit the output. The nightly `build-rankings.js` reads it and writes `data/regression.json`. Without `history.json` it skips that step.
 
 ## Data source
 

@@ -51,6 +51,11 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
   border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:6px}
 .mark{font:700 15px/1 var(--name);letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;gap:6px;flex:none}
 .mark i{width:10px;height:10px;border-radius:50%;background:var(--ball);display:block}
+.tabs button{padding:8px 9px;text-transform:none;letter-spacing:.02em}
+/* Two views share the bar and settings: the night's box score, and Buy/Sell (season so far
+   vs. last season's rates). body[data-view] shows one set and hides the other. */
+body:not([data-view="bs"]) .bsv,body[data-view="bs"] .boxv{display:none!important}
+.asof{flex:1;text-align:center;font:500 12px/1 var(--num);color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .datenav{flex:1;display:flex;justify-content:center;align-items:center;gap:2px;min-width:0}
 .arrow{width:36px;height:36px;display:grid;place-items:center;font-size:20px;color:var(--dim);border-radius:6px}
 .arrow:active{background:var(--cell)}
@@ -163,19 +168,34 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 .thead{display:flex;align-items:baseline;gap:7px;padding:10px 0 6px;border-bottom:1px solid var(--rule)}
 .thead b{font:700 13px/1 var(--name);text-transform:uppercase;letter-spacing:.07em}
 .thead span{font:500 11px/1 var(--num);color:var(--dim)}
+/* Buy/Sell rows: Now / Exp / LY ranks, then this season's rates (per 36) heat-colored by how far
+   they sit from last season's. Open a row to see last season's number under each one. */
+.rkh.r3,.rks.r3{grid-template-columns:repeat(3,27px)}
+.vd{font:700 9.5px/1 var(--name);text-transform:uppercase;letter-spacing:.06em;min-width:26px;flex:none}
+.vd.buy{color:var(--pos)}
+.vd.sell{color:var(--neg)}
+.bstrip,.bscats{display:grid;gap:3px;grid-template-columns:repeat(11,1fr)}
+.bstrip{margin-top:5px}
+.bstrip .c{font-size:11.5px}
+.bscats{padding-left:calc(var(--mug) + var(--mgap));margin-top:4px}
+.bscats span{font:600 9.5px/1 var(--num);color:var(--dim);padding:6px 0 7px;text-align:center;white-space:nowrap}
+.bscats span.punted{text-decoration:line-through;opacity:.5}
 .empty{padding:40px 0;color:var(--dim);text-align:center;font-size:15px}
 .empty.err{color:var(--neg)}
 @media (min-width:720px){
   main,.games,.ruler>div,.sheet>div{max-width:760px;margin-inline:auto}
   .c{font-size:14px}
   .cats button{font-size:11px}
+  .bstrip .c{font-size:13px}
+  #bsList{max-width:760px;margin-inline:auto}
 }
 </style>
 </head>
 <body>
 <div class="bar gut">
-  <div class="mark"><i></i>9-Cat</div>
-  <div class="datenav">
+  <div class="mark"><i></i><div class="seg tabs" id="tabs"><button data-v="box">Box</button><button data-v="bs">Buy/Sell</button></div></div>
+  <div class="asof bsv" id="bsAsOf"></div>
+  <div class="datenav boxv">
     <button class="arrow" id="prev" aria-label="Previous day">‹</button>
     <label class="datelbl"><span id="dateTxt">—</span><input type="date" id="date" aria-label="Pick a date"></label>
     <button class="arrow" id="next" aria-label="Next day">›</button>
@@ -192,14 +212,15 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
   </div>
   <div><p><b>Value</b> is a player's average z-score across your active categories, relative to everyone in the comparison pool who played that day. FG% and FT% count makes above or below average on their attempts, so volume matters. Turnovers count against. Tap a player to see the z-score under each stat.</p>
     <p style="margin-top:8px"><b>Szn / 14 / 7 / 3G</b> beside each name are 9-cat ranks: per-game over the season and the last 14 and 7 days, and over the team's last 3 games with any game the player missed counted as zero, so resting doesn't flatter anyone. All are against a top-156 pool with your punts applied, rebuilt every morning through last night. Top 100 is green.</p>
-    <p style="margin-top:8px"><b>Movers.</b> A green 3G pill means the last-3 rank is at least 40% better than the season rank (inside the top 150); red means at least 40% worse for someone inside 150 on the season. <b style="color:var(--ball)">▲n</b> after minutes means n more minutes a game over the last 3 than before them, usually the first sign of a new role. The Movers sort shows only flagged players.</p></div>
+    <p style="margin-top:8px"><b>Movers.</b> A green 3G pill means the last-3 rank is at least 40% better than the season rank (inside the top 150); red means at least 40% worse for someone inside 150 on the season. <b style="color:var(--ball)">▲n</b> after minutes means n more minutes a game over the last 3 than before them, usually the first sign of a new role. The Movers sort shows only flagged players.</p>
+    <p style="margin-top:8px"><b>Buy/Sell</b> asks whether a start is real. A few games of hot or cold shooting, blowouts and foul trouble can swing a rank a long way, so it compares this season's per-minute numbers with last season's. <b>Exp</b> is the rank from this season's minutes with each per-36 rate and shooting % blended back toward last season: more for the noisy ones (steals, blocks, 3P%), less as games pile up. <b>Buy</b>: Exp at least 40% better than Now, the season rank. <b>Sell</b>: the reverse. <b>LY</b> is last season's final rank. Strip colors compare each number with last season's.</p></div>
 </div>
 
-<div class="games gut" id="games" role="group" aria-label="Games"></div>
+<div class="games gut boxv" id="games" role="group" aria-label="Games"></div>
 
-<div class="warn gut" id="warn" hidden></div>
+<div class="warn gut boxv" id="warn" hidden></div>
 
-<div class="ruler gut">
+<div class="ruler gut boxv">
   <div>
     <div class="meta">
       <span id="status" class="num">Loading</span>
@@ -212,7 +233,21 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
   </div>
 </div>
 
-<main class="gut" id="list"></main>
+<main class="gut boxv" id="list"></main>
+
+<div class="ruler gut bsv">
+  <div>
+    <div class="meta">
+      <span id="bsStatus" class="num">Loading</span>
+      <div class="sort" id="bsSort">
+        <button data-k="buy">Buy</button><button data-k="sell">Sell</button><button data-k="x">Exp</button><button data-k="now">Now</button>
+      </div>
+    </div>
+    <div class="rkh r3"><span>Now</span><span>Exp</span><span>LY</span></div>
+    <div class="bscats" id="bsCats"></div>
+  </div>
+</div>
+<main class="gut bsv" id="bsList"></main>
 
 <script>
 // Display order. All 9 are scoring categories, so every cell is heat-colored - the
@@ -384,7 +419,8 @@ function renderCats(){
   $("toggles").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.k;
     S.punt.has(k)?S.punt.delete(k):S.punt.add(k);store.set("punt",[...S.punt]);
     $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
-    renderCats();rankWindows();if(S.players.length){scoreValue();render()}});
+    renderCats();rankWindows();rankBS();renderBS();if(S.players.length){scoreValue();render()}});
+  $("bsCats").innerHTML=BSC.map(c=>`<span class="${c.c&&S.punt.has(c.c)?"punted":""}">${c.l}</span>`).join("");
   $("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.setAttribute("aria-pressed",S.sort===b.dataset.k));
 }
 function setSort(k){S.sort=k;renderCats();render()}
@@ -463,7 +499,10 @@ function rankLine(p){
   const q=R&&R.players[p.eid];if(!q)return"";
   const parts=WINS.filter(w=>q.w[w.k]).map(w=>`${w.n} #${S.rk[w.k][p.eid]} ${w.k==="g3"?q.w.g3[0]+"/3":q.w[w.k][0]}g`);
   const mins=q.w.g3&&q.pm!=null?`<br>Min ${Math.round(q.pm)} before → ${Math.round(q.w.g3[1])} last 3`:"";
-  return`<br>${parts.join(" · ")} · thru ${fmtDate(R.asOf).replace(/^\w+, /,"")}${mins}`;
+  // From the Buy/Sell data: where the rates say this player should be, and last season's finish.
+  const x=G&&S.bs&&G.players[p.eid]&&G.players[p.eid].b?`<br>Exp #${S.bs.x[p.eid]}${S.bs.v[p.eid]?" ("+S.bs.v[p.eid]+")":""}`
+    +(S.bs.ly[p.eid]?` · LY #${S.bs.ly[p.eid]}`:""):"";
+  return`<br>${parts.join(" · ")} · thru ${fmtDate(R.asOf).replace(/^\w+, /,"")}${mins}${x}`;
 }
 // Preseason rotations are nothing like regular-season ones: starters play 20 minutes and
 // deep-bench players play 40, so Value and rank off these games mean very little.
@@ -477,10 +516,89 @@ function setWarn(){
 function renderList(msg,err){$("list").innerHTML=`<div class="empty${err?" err":""}">${esc(msg)}</div>`;
   setStatus(err?"Offline":"");setWarn()}
 
+// ---- Buy/Sell: data/regression.json, built nightly alongside the rankings. Per player:
+// now = season z-scores, x = z-scores of the expected line (this season's minutes, with
+// per-minute rates and shooting blended toward last season's), r/b = this season's and the
+// baseline's rates. ly = last season's z-scores for everyone who qualified. All three re-rank
+// here with punts, exactly like the other ranks.
+const BSC=[{k:"mpg",l:"MIN"},{k:"usg",l:"USG"},{k:"fg",l:"FG%",c:"fg"},{k:"ft",l:"FT%",c:"ft"},{k:"tpm",l:"3PM",c:"tpm"},
+  {k:"pts",l:"PTS",c:"pts"},{k:"reb",l:"REB",c:"reb"},{k:"ast",l:"AST",c:"ast"},{k:"stl",l:"STL",c:"stl"},{k:"blk",l:"BLK",c:"blk"},{k:"to",l:"TO",c:"to"}];
+// Distance from last season in heat() units: FG%/FT% by percentage points (4 and 6 points = 1),
+// everything else by relative change (20% = 1), floored so 0.3 -> 0.6 steals isn't a 100% jump.
+const BSPP={fg:4,ft:6},BSFLOOR={mpg:10,usg:10,tpm:.8,pts:8,reb:3,ast:2,stl:.8,blk:.6,to:1.5};
+const BSMIN_GP=3,BSREL=200;   // no verdict before 3 games; Exp/Now sorts list anyone inside 200
+let G=null;
+S.bsSort=store.get("bsSort","buy");S.bsOpen=new Set();
+function bsDelta(k,v,b){if(v==null||b==null)return 0;
+  const d=BSPP[k]?(v-b)/BSPP[k]:(v-b)/Math.max(b,BSFLOOR[k])/.2;return k==="to"?-d:d}
+// Same thresholds as the movers: Buy when Exp is inside 150 and 40%+ (and 20+ spots) better
+// than Now; Sell is the mirror for anyone inside 150 now.
+function rankBS(){
+  if(!G)return;
+  const ix=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>2+G.cats.indexOf(c.k));
+  const val=a=>ix.length?ix.reduce((s,i)=>s+a[i],0)/ix.length:0;
+  const rank=src=>{const o={};Object.entries(src).map(([id,a])=>[id,val(a)]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>o[id]=i+1);return o};
+  const pick=k=>Object.fromEntries(Object.entries(G.players).map(([id,q])=>[id,q[k]]));
+  S.bs={now:rank(pick("now")),x:rank(pick("x")),ly:rank(G.ly),v:{}};
+  for(const id in G.players){const q=G.players[id],n=S.bs.now[id],x=S.bs.x[id];
+    if(!q.b||q.now[0]<BSMIN_GP)continue;
+    const v=x<=TOP*1.5&&x<=n*MOVE&&n-x>=20?"buy":n<=TOP*1.5&&n<=x*MOVE&&x-n>=20?"sell":"";
+    if(v)S.bs.v[id]=v}
+}
+const f1=v=>v==null?"–":v>=10?String(Math.round(v)):v.toFixed(1);
+function renderBS(){
+  if(!G)return;
+  const B=S.bs,st=S.bsSort,flag=st==="buy"||st==="sell";
+  const key={buy:id=>Math.log(B.now[id]/B.x[id]),sell:id=>Math.log(B.x[id]/B.now[id]),x:id=>-B.x[id],now:id=>-B.now[id]}[st];
+  const ids=Object.keys(G.players).filter(id=>flag?B.v[id]===st:Math.min(B.now[id],B.x[id])<=BSREL).sort((a,b)=>key(b)-key(a));
+  $("bsSort").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===st));
+  $("bsStatus").textContent=`${ids.length} · vs ${G.seasons[0]}`;
+  $("bsAsOf").textContent=`Season thru ${fmtDate(G.asOf).replace(/^\w+, /,"")}`;
+  $("bsList").innerHTML=ids.length?ids.map(bsRow).join("")
+    :`<div class="empty">No ${st==="buy"?"buy-low":"sell-high"} flags with these punts. Sort by Exp to see everyone.</div>`;
+}
+function bsRow(id){
+  const q=G.players[id],B=S.bs,v=B.v[id]||"",b=q.b,F=G.rates,at=(a,k)=>a?a[F.indexOf(k)]:null;
+  const rk=(r,cl="")=>`<span class="${(!r?"na":r<=TOP?"hi":r<=TOP*1.5?"":"lo")+cl}">${r||"–"}</span>`;
+  const cells=BSC.map(c=>{const x=at(q.r,c.k),y=at(b,c.k),off=c.c&&S.punt.has(c.c);
+    return`<div class="c${off?" off":""}" style="${off||!b?"":heat(bsDelta(c.k,x,y))}"><span class="lb">${c.l}</span>${f1(x)}<span class="z">${b?f1(y):"–"}</span></div>`}).join("");
+  const shot=(l,k,a)=>`${l} ${f1(at(q.r,k))}%${b?` (LY ${f1(at(b,k))})`:""} on ${at(q.r,a)}`;
+  const ly=G.ly[id];
+  const more=(b?"Under each number: last season's. ":"")+`${q.now[0]} GP at ${q.now[1]} min`+(b?` · baseline ${q.bs.replace("+"," + ")}: ${q.bgp} GP at ${at(b,"mpg")} min`:" · no baseline (rookie, or no recent minutes)")
+    +`<br>${shot("FG","fg","fga")} · ${shot("3P","tp","tpa")} · ${shot("FT","ft","fta")} attempts per 36`
+    +(b?`<br>Exp line at ${q.x[1]} min a game`:"")+(ly?` · LY #${B.ly[id]} on ${ly[0]} GP`:"");
+  return`<article class="p${S.bsOpen.has(id)?" open":""}" data-id="${esc(id)}">
+    ${mug({eid:id})}
+    <div class="body">
+      <div class="l1"><span class="vd ${v}">${v}</span><a class="pl" href="player.html?id=${encodeURIComponent(id)}&name=${encodeURIComponent(q.n)}&team=${encodeURIComponent(q.t)}"><b>${esc(q.n)}</b></a><span class="mt">${q.t} · ${q.now[0]}g</span>
+        <div class="rks r3">${rk(B.now[id])}${b?rk(B.x[id],v==="buy"?" up":v==="sell"?" dn":""):rk(0)}${rk(B.ly[id])}</div></div>
+      <div class="strip bstrip">${cells}</div>
+      <div class="more">${more}</div>
+    </div>
+  </article>`;
+}
+function bsMsg(m){$("bsList").innerHTML=`<div class="empty">${esc(m)}</div>`;$("bsStatus").textContent=""}
+function setView(v){
+  document.body.dataset.view=v;
+  $("tabs").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v));
+  try{history.replaceState(null,"",v==="bs"?"#buysell":location.pathname+location.search)}catch(e){}
+  window.scrollTo(0,0);
+}
+fetch("data/regression.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
+  .then(j=>{if(!j)return bsMsg("No Buy/Sell data yet: it's built each morning with the rankings.");
+    G=j;rankBS();renderBS();if(S.players.length)render()})
+  .catch(()=>bsMsg("Couldn't load the Buy/Sell data."));
+
 // ---- controls
 $("list").onclick=e=>{if(e.target.closest(".pl"))return;   // name taps go to the player log
   const a=e.target.closest(".p");if(!a)return;const id=a.dataset.id;
   S.open.has(id)?S.open.delete(id):S.open.add(id);a.classList.toggle("open")};
+$("bsList").onclick=e=>{if(e.target.closest(".pl"))return;
+  const a=e.target.closest(".p");if(!a)return;const id=a.dataset.id;
+  S.bsOpen.has(id)?S.bsOpen.delete(id):S.bsOpen.add(id);a.classList.toggle("open")};
+$("bsSort").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsSort=b.dataset.k;store.set("bsSort",S.bsSort);renderBS()});
+$("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>setView(b.dataset.v));
+setView(location.hash==="#buysell"?"bs":"box");
 $("prev").onclick=()=>loadDate(shift(S.date,-1));
 $("next").onclick=()=>loadDate(shift(S.date,1));
 $("date").onchange=e=>e.target.value&&loadDate(e.target.value);
