@@ -1,7 +1,7 @@
 /* Season / last-30 / last-14 / last-7 day / last-3-team-games 9-cat rankings -> data/rankings.json
  * (committed; index.html reads it to show each player's ranks beside tonight's line).
  *
- * Per-game averages over each window, z-scored against a top-156 pool (12 teams x 13),
+ * Per-game averages over each window, z-scored against a top-130 pool (10 teams x 13),
  * iterated so the pool settles on the players who'd actually be rostered. FG%/FT% use the
  * same volume-weighted impact as the box score: makes - poolPct * attempts, per game.
  * The page re-ranks from the stored z-scores, so punts apply to these ranks too.
@@ -20,7 +20,7 @@ const fs = require('fs');
 const API = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba';
 const CATS = ['fg', 'ft', 'tpm', 'pts', 'reb', 'ast', 'stl', 'blk', 'to'];
 const WINDOWS = { season: 0, d30: 30, d14: 14, d7: 7 };
-const POOL = 156, ITER = 4, G3 = 3;
+const POOL = 130, ITER = 4, G3 = 3;
 const CACHE = '.cache/games.json', OUT = 'data/rankings.json', REG = 'data/regression.json', HIST = 'data/history.json';
 const CACHE_V = 3;   // bump when parseBox's row shape changes, so stale cached rows are refetched
 

@@ -124,7 +124,7 @@ body:not([data-view="bs"]) .bsv,body[data-view="bs"] .boxv{display:none!importan
 .l1 b{font:600 15px/1.2 var(--name);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .l1 .mt{font:500 12px/1 var(--name);color:var(--dim);white-space:nowrap;flex:none}
 /* Season / 30 / 14 / 7-day ranks beside the name: "is this guy rosterable?" at a glance.
-   Top-100 reads green, outside 150 fades, so a hot night from a deep-bench guy stands out.
+   Top-100 reads green, outside 130 fades, so a hot night from a deep-bench guy stands out.
    Their labels live once in the sticky ruler (.rkh), on the same 4-column grid. */
 .rks,.rkh{display:grid;grid-template-columns:repeat(4,27px);gap:3px;text-align:center;margin-left:auto;flex:none}
 .rks span{font:500 12px/1 var(--num);font-variant-numeric:tabular-nums;color:var(--ink)}
@@ -168,10 +168,28 @@ body:not([data-view="bs"]) .bsv,body[data-view="bs"] .boxv{display:none!importan
 .tag.good{background:color-mix(in oklab,var(--pos) 26%,transparent)}
 .tag.bad{background:color-mix(in oklab,var(--neg) 26%,transparent)}
 .tag.dim{color:var(--dim)}
-.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin:0;font:500 12px/1.4 var(--num);color:var(--ink)}
-.kv dt{font:600 10px/1.65 var(--name);text-transform:uppercase;letter-spacing:.08em;color:var(--dim);white-space:nowrap}
-.kv dd{margin:0;min-width:0}
-.kv i{font-style:normal;color:var(--dim)}
+.tn{margin:0 0 8px;font:500 12px/1.3 var(--name);color:var(--dim)}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 6px}
+.chip{display:inline-flex;align-items:baseline;gap:5px;padding:5px 7px;border-radius:4px;background:var(--cell);
+  font:600 13px/1 var(--num);font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
+.chip b{font:600 9.5px/1 var(--name);text-transform:uppercase;letter-spacing:.08em;color:var(--dim)}
+.chip i{font:500 10.5px/1 var(--num);font-style:normal;color:var(--dim)}
+.chip .hi{color:var(--pos)}
+.chip .lo{color:var(--dim)}
+.chip.good{background:color-mix(in oklab,var(--pos) 22%,var(--cell))}
+.chip.bad{background:color-mix(in oklab,var(--neg) 22%,var(--cell))}
+.chip.flag{background:color-mix(in oklab,var(--ball) 15%,var(--cell))}
+.cmp{width:100%;max-width:420px;border-collapse:collapse;margin-top:6px;font:500 13px/1 var(--num);font-variant-numeric:tabular-nums}
+.cmp th{font:600 9.5px/1 var(--name);text-transform:uppercase;letter-spacing:.08em;color:var(--dim);text-align:right;padding:4px 0 7px;white-space:nowrap}
+.cmp th i,.cmp td i{font:500 10px/1 var(--num);font-style:normal;color:var(--dim);text-transform:none;letter-spacing:0;margin-left:4px}
+.cmp td{padding:7px 0;border-top:1px solid var(--rule);text-align:right;white-space:nowrap}
+.cmp th:first-child,.cmp td:first-child{text-align:left}
+.cmp td:first-child{font:600 13px/1 var(--name);color:var(--ink)}
+.cmp .now{color:var(--ink);font-weight:600}
+.cmp .ly{color:var(--dim)}
+.cmp .d{color:var(--dim);width:54px}
+.cmp .d.up{color:var(--pos);font-weight:600}
+.cmp .d.dn{color:var(--neg);font-weight:600}
 .cap{margin:8px 0 0;font:500 11px/1.3 var(--name);color:var(--dim)}
 .p.open .more{display:block}
 .warn{background:color-mix(in oklab,var(--ball) 10%,var(--panel));border-bottom:1px solid var(--rule);
@@ -239,8 +257,8 @@ body:not([data-view="bs"]) .bsv,body[data-view="bs"] .boxv{display:none!importan
     </div>
   </div>
   <div><p><b>Value</b> is a player's average z-score across your active categories, relative to everyone in the comparison pool who played that day. FG% and FT% count makes above or below average on their attempts, so volume matters. Turnovers count against. Tap a player to see the z-score under each stat.</p>
-    <p style="margin-top:8px"><b>Szn / 14 / 7 / 3G</b> beside each name are 9-cat ranks: per-game over the season and the last 14 and 7 days, and over the team's last 3 games with any game the player missed counted as zero, so resting doesn't flatter anyone. All are against a top-156 pool with your punts applied, rebuilt every morning through last night. Top 100 is green.</p>
-    <p style="margin-top:8px"><b>Movers.</b> A green 3G pill means the last-3 rank is at least 40% better than the season rank (inside the top 150); red means at least 40% worse for someone inside 150 on the season. <b style="color:var(--ball)">▲n</b> after minutes means n more minutes a game over the last 3 than before them, usually the first sign of a new role. The Movers sort shows only flagged players.</p>
+    <p style="margin-top:8px"><b>Szn / 14 / 7 / 3G</b> beside each name are 9-cat ranks: per-game over the season and the last 14 and 7 days, and over the team's last 3 games with any game the player missed counted as zero, so resting doesn't flatter anyone. All are against a top-130 pool with your punts applied, rebuilt every morning through last night. Top 100 is green.</p>
+    <p style="margin-top:8px"><b>Movers.</b> A green 3G pill means the last-3 rank is at least 40% better than the season rank (inside the top 130); red means at least 40% worse for someone inside 130 on the season. <b style="color:var(--ball)">▲n</b> after minutes means n more minutes a game over the last 3 than before them, usually the first sign of a new role. The Movers sort shows only flagged players.</p>
     <p style="margin-top:8px"><b>Buy/Sell</b> asks whether a start is real by comparing this season's per-minute numbers with last season's. Tap the <b>i</b> on that tab for the full explanation.</p></div>
 </div>
 
@@ -378,10 +396,11 @@ function scoreValue(){
 // per-window z-scores rather than ranks so punts re-rank here exactly like tonight's Value.
 // g3 = the team's last 3 games, with games the player missed counted as zero nights.
 const WINS=[{k:"season",l:"Szn",n:"Season"},{k:"d14",l:"14",n:"L14"},{k:"d7",l:"7",n:"L7"},{k:"g3",l:"3G",n:"3G"}];
-const TOP=100;
-// Movers. Riser: 3G rank inside 150 and at least 40% better than season (and 20+ spots), so
+// League: 10 teams. TOP = starting spots (10 x 10), ROST = rostered players (10 x 13).
+const TOP=100,ROST=130;
+// Movers. Riser: 3G rank inside 130 and at least 40% better than season (and 20+ spots), so
 // #1 staying #1 isn't news and #300 -> #250 isn't either. Faller is the mirror, for anyone
-// inside 150 on the season. Minutes: last 3 up MINUP+ on the games before them and landing
+// inside 130 on the season. Minutes: last 3 up MINUP+ on the games before them and landing
 // at 24+, because the role change usually shows before the production does.
 const MOVE=.6,MINUP=6;
 let R=null;
@@ -399,8 +418,8 @@ function rankWindows(){
   S.mv={};
   for(const id in R.players){const q=R.players[id],g=q.w.g3;if(!g||!q.w.season)continue;
     const rs=S.rk.season[id],r3=S.rk.g3[id],mu=q.pm!=null?g[1]-q.pm:0;
-    const m={dv:Math.log(rs/r3),mu,hot:r3<=TOP*1.5&&r3<=rs*MOVE&&rs-r3>=20,
-      cold:rs<=TOP*1.5&&r3>=rs/MOVE&&r3-rs>=20,mup:mu>=MINUP&&g[1]>=24};
+    const m={dv:Math.log(rs/r3),mu,hot:r3<=ROST&&r3<=rs*MOVE&&rs-r3>=20,
+      cold:rs<=ROST&&r3>=rs/MOVE&&r3-rs>=20,mup:mu>=MINUP&&g[1]>=24};
     if(m.hot||m.cold||m.mup)S.mv[id]=m}
 }
 fetch("data/rankings.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
@@ -510,7 +529,7 @@ function prow(p,pos){
     <div class="body">
       <div class="l1"><span class="rk">${p.rank}</span><a class="pl" href="player.html?id=${encodeURIComponent(p.eid||p.id)}&name=${encodeURIComponent(p.name)}&team=${encodeURIComponent(p.team)}&pos=${encodeURIComponent(p.pos)}"><b>${esc(p.name)}</b></a><span class="mt">${p.team} · ${Math.round(p.min)}m${minUp(p)}</span>${ranks(p)}</div>
       <div class="strip">${valCell(p)}${CATS.map(c=>cell(p,c)).join("")}</div>
-      <div class="more">${noteHTML(p.eid,p)}<dl class="kv">${kv("Tonight",`${p.team} ${p.home?"vs":"@"} ${p.opp} · ${esc(p.pos)}${p.starter?" · starter":""} · 3P ${p.tpm}/${p.tpa} · +/− ${p.pm>0?"+":""}${p.pm} · PF ${p.pf}`)}${rankKV(p.eid)}${factsKV(p.eid)}</dl></div>
+      <div class="more">${noteHTML(p.eid,p)}${detailHTML(p.eid,p)}</div>
     </div>
   </article>`;
 }
@@ -518,36 +537,53 @@ function ranks(p){
   if(!R)return"";
   const m=S.mv[p.eid];
   return`<div class="rks">${WINS.map(w=>{const r=S.rk[w.k][p.eid];
-    let cl=!r?"na":r<=TOP?"hi":r<=TOP*1.5?"":"lo";
+    let cl=!r?"na":r<=TOP?"hi":r<=ROST?"":"lo";
     if(w.k==="g3"&&m)cl+=m.hot?" up":m.cold?" dn":"";
     return`<span class="${cl}">${r||"–"}</span>`}).join("")}</div>`;
 }
 // Minutes jump vs the games before the last 3: the earliest sign of a new role.
 function minUp(p){const m=S.mv&&S.mv[p.eid];return m&&m.mup?`<span class="mu">▲${Math.round(m.mu)}</span>`:""}
-// Open-row detail grid. Ranks carry the games behind them, so a top-50 on 2 games reads as
-// the small sample it is.
-const kv=(k,v)=>`<dt>${k}</dt><dd>${v}</dd>`;
-function rankKV(id){
-  const q=R&&R.players[id];if(!q)return"";
-  const parts=WINS.filter(w=>q.w[w.k]).map(w=>`${w.n} ${S.rk[w.k][id]} <i>${w.k==="g3"?q.w.g3[0]+"/3":q.w[w.k][0]}g</i>`);
-  let h=kv("Ranks",parts.join(" · "));
-  if(q.w.g3&&q.pm!=null)h+=kv("Minutes",`${Math.round(q.pm)} before → ${Math.round(q.w.g3[1])} last 3`);
-  return h;
+// Open-row detail under the note, in three layers so the eye finds things fast:
+//   1. rank chips (colored like the rank columns; Exp tinted when it's a Buy or Sell)
+//   2. context flags, only when something bent the minutes (blowouts, fouls, missed games)
+//   3. this season vs. last, with the change colored when it's big enough to matter
+const chip=(l,v,cl="")=>`<span class="chip ${cl}"><b>${l}</b>${v}</span>`;
+const rkTxt=r=>r?`<span class="${r<=TOP?"hi":r<=ROST?"":"lo"}">${r}</span>`:"–";
+function detailHTML(id,tn){
+  const q=G&&G.players[id],rq=R&&R.players[id],B=S.bs,v=B&&B.v[id],ranks=[],flags=[];
+  if(tn&&rq)for(const w of WINS)if(rq.w[w.k])
+    ranks.push(chip(w.n,`${rkTxt(S.rk[w.k][id])}<i>${w.k==="g3"?rq.w.g3[0]+"/3":rq.w[w.k][0]}g</i>`));
+  if(q&&B){
+    if(!tn)ranks.push(chip("Now",rkTxt(B.now[id])));
+    ranks.push(chip("Exp",q.b?rkTxt(B.x[id]):"–",v==="buy"?"good":v==="sell"?"bad":""),chip("LY",rkTxt(B.ly[id])));
+    const c=q.cx,gp=q.now[0];
+    if(c&&c[0])flags.push(chip("Blowouts",`${c[0]} of ${gp}<i>${d1(c[1])} min${c[2]?` vs ${d1(c[3])}`:""}</i>`,"flag"));
+    if(c&&c[4])flags.push(chip("5+ fouls",`${c[4]} of ${gp}`,"flag"));
+  }
+  if(rq&&rq.w.g3&&rq.pm!=null){const miss=3-rq.w.g3[0],d=rq.w.g3[1]-rq.pm;
+    if(miss)flags.push(chip("Missed",`${miss} of last 3`,"flag"));
+    else if(Math.abs(d)>=3)flags.push(chip("Last 3",`${Math.round(rq.w.g3[1])} min<i>${Math.round(rq.pm)} before</i>`,d>0?"good":"bad"))}
+  const tonight=tn?`<p class="tn">${tn.home?"vs":"@"} ${tn.opp} · ${esc(tn.pos)}${tn.starter?" · starter":""} · 3P ${tn.tpm}/${tn.tpa} · +/− ${tn.pm>0?"+":""}${tn.pm} · ${tn.pf} PF</p>`:"";
+  return tonight+(ranks.length?`<div class="chips">${ranks.join("")}</div>`:"")
+    +(flags.length?`<div class="chips">${flags.join("")}</div>`:"")+cmpTable(q);
 }
-// Season vs. baseline from the Buy/Sell data: role, shooting with volume, Exp and LY.
-function factsKV(id,noRanks){
-  const q=G&&G.players[id];if(!q)return"";
-  const F=G.rates,at=(a,k)=>a?a[F.indexOf(k)]:null,r=q.r,b=q.b,B=S.bs,f=v=>v==null?"–":v.toFixed(1);
-  const yr=s=>s.slice(2),lbl=q.bs?(q.bs.includes("+")?`${yr(q.bs.split("+")[1]).slice(0,2)}–${yr(q.bs).slice(3)}`:yr(q.bs)):"";
-  let h="";
-  if(!noRanks)h+=kv("Exp / LY",`${b?"#"+B.x[id]:"–"} · ${B.ly[id]?"#"+B.ly[id]:"–"}`);
-  h+=kv("Season",`${q.now[0]} GP · ${f(at(r,"mpg"))} min · ${Math.round(at(r,"usg"))}% usg`);
-  if(b)h+=kv(lbl,`${q.bgp} GP · ${f(at(b,"mpg"))} min · ${Math.round(at(b,"usg"))}% usg`);
-  [["FG","fg",0],["3P","tp",1],["FT","ft",2]].forEach(([l,k,i])=>{
-    h+=kv(l,`${f(at(r,k))}% <i>on ${q.att[i]}</i>${b?` · <i>${lbl}</i> ${f(at(b,k))}%`:""}`)});
-  if(q.cx&&q.cx[0])h+=kv("Blowouts",`${q.cx[0]} of ${q.now[0]} · ${f(q.cx[1])} min <i>${q.cx[2]?`vs ${f(q.cx[3])} in others`:"(every game so far)"}</i>`);
-  if(q.cx&&q.cx[4])h+=kv("Fouls",`5+ in ${q.cx[4]} of ${q.now[0]}`);
-  return h;
+// What the baseline is, in words: usually last season; the last two when last season was
+// short; or just the season before when the player missed all of last season.
+function baseName(q){return !q.bs?"":q.bs.includes("+")?"the last two seasons":q.bs===G.seasons[0]?"last season":q.bs}
+function cmpTable(q){
+  if(!q)return"";
+  const F=G.rates,at=(a,k)=>a?a[F.indexOf(k)]:null,r=q.r,b=q.b;
+  const yr=s=>s.slice(2),lbl=!b?"":q.bs.includes("+")?`${yr(q.bs.split("+")[1]).slice(0,2)}–${yr(q.bs).slice(3)}`:yr(q.bs);
+  const row=(l,k,sub,fmt)=>{
+    const c=at(r,k),y=at(b,k);let d="",cl="";
+    if(c!=null&&y!=null){const h=bsDelta(k,c,y),dd=c-y;
+      const t=fmt(Math.abs(dd));d=+t?(dd>0?"+":"−")+t:"0";cl=Math.abs(h)<.75?"":h>0?"up":"dn"}
+    return`<tr><td>${l}${sub!=null?`<i>${sub} att</i>`:""}</td><td class="now">${c==null?"–":fmt(c)}</td>`
+      +(b?`<td class="ly">${y==null?"–":fmt(y)}</td><td class="d ${cl}">${d}</td>`:"")+"</tr>"};
+  const pc=v=>v.toFixed(1),n0=v=>String(Math.round(v));
+  return`<table class="cmp"><tr><th></th><th>This yr <i>${q.now[0]}g</i></th>${b?`<th>${lbl} <i>${q.bgp}g</i></th><th>Chg</th>`:""}</tr>`
+    +row("Minutes","mpg",null,pc)+row("Usage %","usg",null,n0)
+    +row("FG%","fg",q.att[0],pc)+row("3P%","tp",q.att[1],pc)+row("FT%","ft",q.att[2],pc)+"</table>";
 }
 // Preseason rotations are nothing like regular-season ones: starters play 20 minutes and
 // deep-bench players play 40, so Value and rank off these games mean very little.
@@ -568,16 +604,16 @@ function renderList(msg,err){$("list").innerHTML=`<div class="empty${err?" err":
 // here with punts, exactly like the other ranks.
 const BSC=[{k:"mpg",l:"MIN"},{k:"usg",l:"USG"},{k:"fg",l:"FG%",c:"fg"},{k:"ft",l:"FT%",c:"ft"},{k:"tpm",l:"3PM",c:"tpm"},
   {k:"pts",l:"PTS",c:"pts"},{k:"reb",l:"REB",c:"reb"},{k:"ast",l:"AST",c:"ast"},{k:"stl",l:"STL",c:"stl"},{k:"blk",l:"BLK",c:"blk"},{k:"to",l:"TO",c:"to"}];
-// Distance from last season in heat() units: FG%/FT% by percentage points (4 and 6 points = 1),
+// Distance from last season in heat() units: FG%/FT%/3P% by percentage points (4, 6, 6 points = 1),
 // everything else by relative change (20% = 1), floored so 0.3 -> 0.6 steals isn't a 100% jump.
-const BSPP={fg:4,ft:6},BSFLOOR={mpg:10,usg:10,tpm:.8,pts:8,reb:3,ast:2,stl:.8,blk:.6,to:1.5};
+const BSPP={fg:4,ft:6,tp:6},BSFLOOR={mpg:10,usg:10,tpm:.8,pts:8,reb:3,ast:2,stl:.8,blk:.6,to:1.5};
 const BSMIN_GP=3,BSREL=200;   // no verdict before 3 games; Exp/Now sorts list anyone inside 200
 let G=null;
 S.bsSort=store.get("bsSort","buy");S.bsOpen=new Set();
 function bsDelta(k,v,b){if(v==null||b==null)return 0;
   const d=BSPP[k]?(v-b)/BSPP[k]:(v-b)/Math.max(b,BSFLOOR[k])/.2;return k==="to"?-d:d}
-// Same thresholds as the movers: Buy when Exp is inside 150 and 40%+ (and 20+ spots) better
-// than Now; Sell is the mirror for anyone inside 150 now.
+// Same thresholds as the movers: Buy when Exp is inside 130 and 40%+ (and 20+ spots) better
+// than Now; Sell is the mirror for anyone inside 130 now.
 function rankBS(){
   if(!G)return;
   const ix=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>2+G.cats.indexOf(c.k));
@@ -589,7 +625,7 @@ function rankBS(){
     xs:Object.values(G.players).map(q=>val(q.x)).sort((a,b)=>b-a)};
   for(const id in G.players){const q=G.players[id],n=S.bs.now[id],x=S.bs.x[id];
     if(!q.b||q.now[0]<BSMIN_GP)continue;
-    const v=x<=TOP*1.5&&x<=n*MOVE&&n-x>=20?"buy":n<=TOP*1.5&&n<=x*MOVE&&x-n>=20?"sell":"";
+    const v=x<=ROST&&x<=n*MOVE&&n-x>=20?"buy":n<=ROST&&n<=x*MOVE&&x-n>=20?"sell":"";
     if(v)S.bs.v[id]=v}
 }
 const f1=v=>v==null?"–":v>=10?String(Math.round(v)):v.toFixed(1);
@@ -606,11 +642,11 @@ function renderBS(){
 }
 function bsRow(id){
   const q=G.players[id],B=S.bs,v=B.v[id]||"",b=q.b,F=G.rates,at=(a,k)=>a?a[F.indexOf(k)]:null;
-  const rk=(r,cl="")=>`<span class="${(!r?"na":r<=TOP?"hi":r<=TOP*1.5?"":"lo")+cl}">${r||"–"}</span>`;
+  const rk=(r,cl="")=>`<span class="${(!r?"na":r<=TOP?"hi":r<=ROST?"":"lo")+cl}">${r||"–"}</span>`;
   const cells=BSC.map(c=>{const x=at(q.r,c.k),y=at(b,c.k),off=c.c&&S.punt.has(c.c);
     return`<div class="c${off?" off":""}" style="${off||!b?"":heat(bsDelta(c.k,x,y))}"><span class="lb">${c.l}</span>${f1(x)}<span class="z">${b?f1(y):"–"}</span></div>`}).join("");
-  const more=noteHTML(id)+`<dl class="kv">${kv("Ranks",`Now ${B.now[id]} · Exp ${b?`${B.x[id]} <i>at ${q.x[1]} min</i>`:"–"} · LY ${B.ly[id]||"–"}`)}${factsKV(id,true)}</dl>`
-    +(b?`<p class="cap">Small numbers under the strip: ${q.bs.includes("+")?"last two seasons":"last season"}.</p>`:"");
+  const more=noteHTML(id)+detailHTML(id)
+    +(b?`<p class="cap">Small numbers under the strip: ${baseName(q)}.</p>`:"");
   return`<article class="p${S.bsOpen.has(id)?" open":""}" data-id="${esc(id)}">
     ${mug({eid:id})}
     <div class="body">
@@ -627,7 +663,7 @@ const PRIOR_L={fga:"Shot attempts (FGA)",reb:"Rebounds",ast:"Assists",fta:"Free 
   to:"Turnovers",blk:"Blocks",stl:"Steals",fg:"FG%",ft:"FT%",tp:"3P%"};
 function renderHelp(){
   if(!G)return;
-  const P=G.prior,pg=G.priorGp||3,bm=G.baseMin||500,pct=Math.round((1-MOVE)*100),cut=TOP*1.5;
+  const P=G.prior,pg=G.priorGp||3,bm=G.baseMin||500,pct=Math.round((1-MOVE)*100),cut=ROST;
   const rows=(ks,u)=>ks.filter(k=>P[k]!=null).sort((a,b)=>P[a]-P[b])
     .map(k=>`<tr><td>${PRIOR_L[k]||k}</td><td>${P[k]}</td><td>${u}</td></tr>`).join("");
   const ex=(15+.38*P.tp)/(50+P.tp)*100;
@@ -639,7 +675,7 @@ function renderHelp(){
 <p><b>Now</b>: 9-cat per-game rank this season.<br>
 <b>Exp</b>: the rank of the line the player would have if their per-minute production and shooting moved back toward last season's, at this season's minutes.<br>
 <b>LY</b>: last season's final per-game rank (20+ games).<br>
-All three use your punts and the same top-156 pool.</p>
+All three use your punts and the same top-130 pool.</p>
 
 <h3>How Exp is built</h3>
 <p><b>Role is kept.</b> Minutes per game stay at this season's, nudged by just ${pg} games' worth of last season's. Role changes usually stick.</p>
@@ -696,9 +732,10 @@ const andList=a=>a.length<3?a.join(" and "):a.slice(0,-1).join(", ")+" and "+a[a
 const plural=(n,w)=>`${n} ${w}${n===1?"":"s"}`;
 const d1=v=>v.toFixed(1);
 function surname(n){const t=String(n).split(" ");let i=t.length-1;while(i>1&&/^(jr\.?|sr\.?|ii|iii|iv)$/i.test(t[i]))i--;return t[i]}
-function tierText(r){return r<=50?"a weekly starter in any format":r<=TOP?"a starter in 12-team leagues"
-  :r<=TOP*1.5?"a high-end streamer in 12-team leagues and a hold in deeper ones":r<=200?"a streamer at best in 12-team leagues"
-  :"not someone to roster in standard leagues"}
+// Tiers for a 10-team league: 100 starting spots, 130 roster spots.
+function tierText(r){return r<=50?"an early-round, every-week starter":r<=TOP?"a starter in 10-team leagues"
+  :r<=ROST?"a bench hold or high-end streamer in 10-team leagues":r<=170?"a streamer at best in 10-team leagues"
+  :"not someone to roster in 10-team leagues"}
 function tonightNote(p,mpg){
   const e=S.events.find(x=>x.id===p.game),live=e&&e.state==="in",v=p.value;
   const head=live?"So far tonight":v>=1?"Big night":v>=.4?"Good night":v>=-.2?"Middling night":v>=-.6?"Quiet night":"Rough night";
@@ -727,7 +764,7 @@ function analyst(id,tn){
   const F=G.rates,at=(a,k)=>a?a[F.indexOf(k)]:null,r=q.r,b=q.b,gp=q.now[0],nm=esc(surname(q.n));
   const B=S.bs,now=B.now[id],x=B.x[id],ly=B.ly[id],v=B.v[id],mv=S.mv&&S.mv[id],rq=R&&R.players[id];
   const act=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>c.k),zi=k=>2+G.cats.indexOf(k);
-  const lyT=q.bs&&q.bs.includes("+")?"the last two seasons":"last season";
+  const lyT=baseName(q),lyIn=/^d/.test(lyT)?"in "+lyT:lyT;   // "in 2024-25" reads better in comparisons
   const sure=b&&gp>=BSMIN_GP,mpg=at(r,"mpg"),bm=b?at(b,"mpg"):0,dm=mpg-bm,cx=q.cx||[0,0,0,0,0];
 
   // The season line, leading with the categories this player actually helps in.
@@ -741,12 +778,12 @@ function analyst(id,tn){
   // Role: minutes and usage against the baseline.
   if(b){
     const u=at(r,"usg"),bu=at(b,"usg"),du=u-bu,bigM=Math.abs(dm)>=3,bigU=Math.abs(du)>=3;
-    const fin=ly?`, a season that ended at #${ly}`:"";
-    if(!bigM&&!bigU)s.push(`The role looks the same as ${lyT}${fin}: ${d1(mpg)} minutes and ${Math.round(u)}% usage, against ${d1(bm)} and ${Math.round(bu)}%.`);
+    const fin=ly&&q.bs===G.seasons[0]?`, a season that ended at #${ly}`:"";
+    if(!bigM&&!bigU)s.push(`The role looks the same as ${lyIn}${fin}: ${d1(mpg)} minutes and ${Math.round(u)}% usage, against ${d1(bm)} and ${Math.round(bu)}%.`);
     else{
       const parts=[bigM&&`minutes ${dm>0?"up":"down"} from ${d1(bm)} to ${d1(mpg)}`,bigU&&`usage ${du>0?"up":"down"} from ${Math.round(bu)}% to ${Math.round(u)}%`].filter(Boolean);
       const up=(!bigM||dm>0)&&(!bigU||du>0),dn=(!bigM||dm<0)&&(!bigU||du<0);
-      s.push(`${up?"A bigger role than":dn?"A smaller role than":"The role has shifted since"} ${lyT}: ${andList(parts)}.`);
+      s.push(`${up?"A bigger role than "+lyIn:dn?"A smaller role than "+lyIn:"The role has shifted since "+lyT}: ${andList(parts)}.`);
       if(!bigU&&dm<0)s.push(`Usage is close to ${lyT}${fin}, so the touches are still there on the floor.`);
     }
   }
@@ -770,7 +807,7 @@ function analyst(id,tn){
     [["fg",0,"from the field",4,20],["tp",1,"from three",6,8],["ft",2,"at the line",7,6]].forEach(([k,i,l,th,mn])=>{
       const c=at(r,k),y=at(b,k),n=q.att[i];if(c==null||y==null||n<mn)return;
       const o={c,y,n,l};if(c-y>=th)hot.push(o);else if(y-c>=th)cold.push(o)});
-    const fmt=(a,first)=>andList(a.map((o,j)=>`${d1(o.c)}% ${o.l} on ${o.n} attempts (${d1(o.y)}%${j||!first?"":" "+lyT})`));
+    const fmt=(a,first)=>andList(a.map((o,j)=>`${d1(o.c)}% ${o.l} on ${o.n} attempts (${d1(o.y)}%${j||!first?"":" "+lyIn})`));
     // Missed shots from the field (not the line) are what get a player pulled.
     const why=dm<=-3&&cold.some(o=>o.l!=="at the line")?", and it may be part of why the minutes are down":"";
     if(cold.length&&hot.length)s.push(`The shooting luck is mixed: cold at ${fmt(cold,1)}, but hot at ${fmt(hot)}. Both should drift back toward ${lyT}${why}.`);
@@ -788,7 +825,7 @@ function analyst(id,tn){
   // Role upside: what these per-minute numbers are worth at 30 minutes.
   let upR=0;
   if(q.up){const uv=B.val(q.up),ur=1+B.xs.filter(t=>t>uv).length;
-    if(ur<=TOP*1.5&&ur<=(sure?x:now)-25){upR=ur;
+    if(ur<=ROST&&ur<=(sure?x:now)-25){upR=ur;
       const p36=["pts","tpm","reb","ast","stl","blk"].filter(k=>k==="pts"||at(r,k)>=({tpm:1,reb:6,ast:3,stl:.8,blk:.8})[k]).map(k=>`${d1(at(r,k))} ${CW[k]}`);
       s.push(`The per-minute production is the encouraging part: ${andList(p36)} per 36. At ${q.up[1]} minutes a game${sure?`, blended with ${lyT}`:""}, that would rank around #${ur}, so the upside rides on the role growing.`)}}
   // What the expected line says about the current rank.
@@ -812,13 +849,13 @@ function analyst(id,tn){
     if((t-weak[0].z)/(zs.length-1)-t/zs.length>=.2)s.push(`A much better fit in builds that punt ${CW[weak[0].k]}.`)}
   // Bottom line. A hot start from someone who wasn't rosterable last season is "ride it", not
   // "sell high": there's little to sell, and nothing lost by holding until it fades.
-  const ref=sure?x:now,cheap=!ly||ly>TOP*1.5;
+  const ref=sure?x:now,cheap=!ly||ly>ROST;
   let tag,cls="",end="";
-  if(v==="buy"){const w=now>TOP*1.5;tag=w?"Pick up":"Buy low";cls="good";end=w?`; worth grabbing while the rank says #${now}`:`; buy while the rank says #${now}`}
+  if(v==="buy"){const w=now>ROST;tag=w?"Pick up":"Buy low";cls="good";end=w?`; worth grabbing while the rank says #${now}`:`; buy while the rank says #${now}`}
   else if(v==="sell"&&cheap){tag="Ride it";end=`; worth a roster spot while it lasts, but expect a fade toward #${x}`}
   else if(v==="sell"){tag="Sell high";cls="bad";end=`; sell while the rank says #${now}`}
   else if(ref<=TOP)tag="Hold";
-  else if(ref<=TOP*1.5)tag="Streamer";
+  else if(ref<=ROST)tag="Streamer";
   else if(mv&&(mv.hot||mv.mup)||upR&&upR<=TOP){tag="Watch";end="; worth watching in case the role grows"}
   else{tag="Pass";cls="dim"}
   s.push(`Bottom line: ${sure?"the numbers say":"for now,"} ${nm} profiles as ${tierText(ref)}${end}.`);

@@ -37,16 +37,18 @@ Checked against Basketball Monster: the mean of the 9 z-scores reproduces its Va
 
 ## Season / 14 / 7 / 3G ranks and movers
 
-Each row shows the player's 9-cat rank over the season, the last 14 and 7 days, and **3G**: the team's last 3 games, where a game the player missed counts as a zero night so resting or injured players can't look hot. A big night from someone outside the top 100 stands out as a possible pickup. Ranks 1–100 are green, 101–150 plain, and anything lower dimmed. Tapping the row shows the games behind each rank. The JSON also carries a 30-day window that the page doesn't show.
+**League size: 10 teams.** 100 starting spots (`TOP` in `index.html`, green ranks, the "starter" tier), and 130 roster spots (`ROST`, the cutoff for movers, Buy/Sell and the "streamer" tier). The z-score pool is the top 130 (`POOL` in `build-rankings.js`). To switch league size, change all three, then rerun `build-history.js` and `build-rankings.js`.
+
+Each row shows the player's 9-cat rank over the season, the last 14 and 7 days, and **3G**: the team's last 3 games, where a game the player missed counts as a zero night so resting or injured players can't look hot. A big night from someone outside the top 100 stands out as a possible pickup. Ranks 1–100 are green (starters in a 10-team league), 101–130 plain (bench), and anything lower dimmed. Tapping the row shows the games behind each rank. The JSON also carries a 30-day window that the page doesn't show.
 
 **Movers** (logic in `rankWindows()`, constants `MOVE` and `MINUP`):
-- Green 3G pill (riser): 3G rank inside 150 and at least 40% better than season rank, and 20+ spots.
-- Red 3G pill (faller): the mirror case, for anyone inside 150 on the season.
+- Green 3G pill (riser): 3G rank inside 130 and at least 40% better than season rank, and 20+ spots.
+- Red 3G pill (faller): the mirror case, for anyone inside 130 on the season.
 - **▲n** after minutes: n more minutes a game over the last 3 than in the games before them (`pm` in the JSON), at least +6 and landing at 24+. It's the earliest sign of a role change.
 - The **Movers** sort shows only flagged players, with the biggest jumps first.
 
 - **Built nightly** by `build-rankings.js`, run by `.github/workflows/rankings.yml` at 10:00 UTC. The script commits `data/rankings.json`, and that push redeploys Pages. Run it by hand from the Actions tab (*Rankings → Run workflow*) or locally with `node build-rankings.js`.
-- **Math:** per-game averages over the window, z-scored against a top-156 pool (12 teams × 13). The pool is iterated so it settles on rosterable players, and only players with at least half the window's max games are eligible for it. FG%/FT% use the same impact formula as the box score. Regular season only.
+- **Math:** per-game averages over the window, z-scored against a top-130 pool (10 teams × 13). The pool is iterated so it settles on rosterable players, and only players with at least half the window's max games are eligible for it. FG%/FT% use the same impact formula as the box score. Regular season only.
 - The JSON stores per-window z-scores, not ranks, so the page re-ranks with your punts applied.
 - Finished box scores are cached in `.cache/games.json` (git-ignored; the Action keeps it with `actions/cache`), so each run only fetches new games.
 
@@ -59,7 +61,7 @@ Each row: **Now** (season rank), **Exp**, **LY** (last season's final per-game r
 - **Exp** = the rank of an *expected line*: this season's minutes (nudged by 3 games of last season's mpg) × per-minute rates and shooting % blended toward last season's:
   `rate = (this season's count + baseline rate × K) / (this season's minutes or attempts + K)`.
   K (`PRIOR` in `build-rankings.js`) is how much of this season it takes to count as much as the baseline. It is small for fast-settling rates (FGA 150 min, REB 200 min) and large for noisy ones (STL 600 min, 3P% 500 attempts). The baseline never weighs more than it actually observed. Points are rebuilt from the blended makes (`2·FGM + 3PM + FTM`), so a shooting slump flows through to PTS and 3PM.
-- **Buy**: Exp inside 150, at least 40% better than Now and 20+ spots. **Sell**: the mirror case for anyone inside 150 now. Needs 3+ games and a baseline. The same `MOVE` threshold as the movers.
+- **Buy**: Exp inside 130, at least 40% better than Now and 20+ spots. **Sell**: the mirror case for anyone inside 130 now. Needs 3+ games and a baseline. The same `MOVE` threshold as the movers.
 - **Baseline** = last season. If the player logged under 500 minutes last season, the season before is added (totals add, so it's minutes-weighted). Players with no baseline (rookies) show Exp as "–" and never get flagged, but still hold their rank slot.
 - Punts re-rank Now, Exp and LY, like everything else.
 
