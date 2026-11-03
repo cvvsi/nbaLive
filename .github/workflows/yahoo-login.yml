@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
     inputs:
       code:
-        description: Code from the address bar after approving on Yahoo
-        required: true
+        description: Code from the address bar after approving on Yahoo (leave empty to only run the access check)
+        required: false
 
 permissions:
   contents: write
@@ -28,11 +28,18 @@ jobs:
           node-version: 22
 
       - name: Trade the code for a refresh token
+        if: inputs.code != ''
         env:
           YAHOO_CLIENT_ID: ${{ secrets.YAHOO_CLIENT_ID }}
           YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
           YAHOO_AUTH_CODE: ${{ inputs.code }}
         run: node yahoo-auth.js
+
+      - name: Access check
+        env:
+          YAHOO_CLIENT_ID: ${{ secrets.YAHOO_CLIENT_ID }}
+          YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
+        run: node yahoo-check.js
 
       - name: Pull the league once
         continue-on-error: true
@@ -48,6 +55,7 @@ jobs:
           for f in data/yahoo.json data/yahoo-owned.json; do [ -f "$f" ] && git add "$f"; done; true
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          if git diff --cached --quiet; then echo "No change"; exit 0; fi
           git commit -m "Connect Yahoo league"
           git pull --rebase
           git push
