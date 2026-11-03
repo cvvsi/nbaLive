@@ -51,10 +51,12 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
   border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:6px}
 .mark{font:700 15px/1 var(--name);letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;gap:6px;flex:none}
 .mark i{width:10px;height:10px;border-radius:50%;background:var(--ball);display:block}
-.tabs button{padding:8px 9px;text-transform:none;letter-spacing:.02em}
-/* Two views share the bar and settings: the night's box score, and Buy/Sell (season so far
-   vs. last season's rates). body[data-view] shows one set and hides the other. */
-body:not([data-view="bs"]) .bsv,body[data-view="bs"] .boxv{display:none!important}
+.tabs button{padding:8px 7px;text-transform:none;letter-spacing:.02em}
+/* Three views share the bar and settings: the night's box score, Buy/Sell (season so far
+   vs. last season's rates) and Buzz (Yahoo's most added / dropped). body[data-view] shows one
+   set and hides the others; no data-view yet means the box score. */
+body:not([data-view="bs"]) .bsv,body:not([data-view="bz"]) .bzv,
+body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
 .asof{flex:1;text-align:center;font:500 12px/1 var(--num);color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .datenav{flex:1;display:flex;justify-content:center;align-items:center;gap:2px;min-width:0}
 .arrow{width:36px;height:36px;display:grid;place-items:center;font-size:20px;color:var(--dim);border-radius:6px}
@@ -227,20 +229,29 @@ body:not([data-view="bs"]) .bsv,body[data-view="bs"] .boxv{display:none!importan
 .help td:nth-child(2){text-align:right}
 .help .x{margin-top:10px;font:600 13px/1 var(--name);text-transform:uppercase;letter-spacing:.06em;padding:9px 14px;border:1px solid var(--rule);border-radius:6px}
 .empty{padding:40px 0;color:var(--dim);text-align:center;font-size:15px}
+/* Buzz rows: Yahoo's adds or drops for the day, then my ranks (Szn / 3G / Exp) and a Follow /
+   Fade read built only from those numbers. */
+.bzl{margin-top:4px;font:500 12.5px/1.35 var(--name);color:var(--dim);display:flex;flex-wrap:wrap;gap:1px 8px}
+.bzl .n{font:600 12px/1.35 var(--num);color:var(--ink)}
+.bzl .why{color:var(--ink)}
+.bzl .dn{color:var(--neg);font-weight:700;margin-left:4px}
+.bzcap{font:500 12.5px/1.4 var(--name);color:var(--dim);padding:8px 0 2px;max-width:62ch}
+.vd.dim{color:var(--dim)}
 .empty.err{color:var(--neg)}
 @media (min-width:720px){
   main,.games,.ruler>div,.sheet>div{max-width:760px;margin-inline:auto}
   .c{font-size:14px}
   .cats button{font-size:11px}
   .bstrip .c{font-size:13px}
-  #bsList{max-width:760px;margin-inline:auto}
+  #bsList,#bzList{max-width:760px;margin-inline:auto}
 }
 </style>
 </head>
 <body>
 <div class="bar gut">
-  <div class="mark"><i></i><div class="seg tabs" id="tabs"><button data-v="box">Box</button><button data-v="bs">Buy/Sell</button></div></div>
+  <div class="mark"><i></i><div class="seg tabs" id="tabs"><button data-v="box">Box</button><button data-v="bs">Buy/Sell</button><button data-v="bz">Buzz</button></div></div>
   <div class="asof bsv" id="bsAsOf"></div>
+  <div class="asof bzv" id="bzAsOf"></div>
   <div class="datenav boxv">
     <button class="arrow" id="prev" aria-label="Previous day">‹</button>
     <label class="datelbl"><span id="dateTxt">—</span><input type="date" id="date" aria-label="Pick a date"></label>
@@ -259,7 +270,8 @@ body:not([data-view="bs"]) .bsv,body[data-view="bs"] .boxv{display:none!importan
   <div><p><b>Value</b> is a player's average z-score across your active categories, relative to everyone in the comparison pool who played that day. FG% and FT% count makes above or below average on their attempts, so volume matters. Turnovers count against. Tap a player to see the z-score under each stat.</p>
     <p style="margin-top:8px"><b>Szn / 14 / 7 / 3G</b> beside each name are 9-cat ranks: per-game over the season and the last 14 and 7 days, and over the team's last 3 games with any game the player missed counted as zero, so resting doesn't flatter anyone. All are against a top-130 pool with your punts applied, rebuilt every morning through last night. Top 100 is green.</p>
     <p style="margin-top:8px"><b>Movers.</b> A green 3G pill means the last-3 rank is at least 40% better than the season rank (inside the top 130); red means at least 40% worse for someone inside 130 on the season. <b style="color:var(--ball)">▲n</b> after minutes means n more minutes a game over the last 3 than before them, usually the first sign of a new role. The Movers sort shows only flagged players.</p>
-    <p style="margin-top:8px"><b>Buy/Sell</b> asks whether a start is real by comparing this season's per-minute numbers with last season's. Tap the <b>i</b> on that tab for the full explanation.</p></div>
+    <p style="margin-top:8px"><b>Buy/Sell</b> asks whether a start is real by comparing this season's per-minute numbers with last season's. Tap the <b>i</b> on that tab for the full explanation.</p>
+    <p style="margin-top:8px"><b>Buzz</b> is Yahoo's most added and dropped players for the day across all Yahoo leagues, next to your Szn / 3G / Exp ranks. <b>Follow</b> or <b>Fade</b> comes only from those numbers and the minutes trend: a real minutes jump or an Exp inside 130 says follow; a season and Exp outside 130 with no new minutes says fade. For drops, <b>Panic</b> means the numbers say he's still worth a spot and <b>Agree</b> means the role really shrank. It knows nothing about news, so a <b>Check</b> (missed games) is worth a look.</p></div>
 </div>
 
 <div class="games gut boxv" id="games" role="group" aria-label="Games"></div>
@@ -296,6 +308,17 @@ body:not([data-view="bs"]) .bsv,body[data-view="bs"] .boxv{display:none!importan
   </div>
 </div>
 <main class="gut bsv" id="bsList"></main>
+
+<div class="ruler gut bzv">
+  <div>
+    <div class="meta">
+      <span id="bzStatus" class="num">Loading</span>
+      <div class="sort" id="bzSort"><button data-k="adds">Adds</button><button data-k="drops">Drops</button></div>
+    </div>
+    <div class="rkh r3"><span>Szn</span><span>3G</span><span>Exp</span></div>
+  </div>
+</div>
+<main class="gut bzv" id="bzList"></main>
 
 <script>
 // Display order. All 9 are scoring categories, so every cell is heat-colored - the
@@ -423,7 +446,7 @@ function rankWindows(){
     if(m.hot||m.cold||m.mup)S.mv[id]=m}
 }
 fetch("data/rankings.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
-  .then(j=>{if(!j)return;R=j;rankWindows();$("rkh").hidden=false;$("moversBtn").hidden=false;if(S.players.length)render()}).catch(()=>{});
+  .then(j=>{if(!j)return;R=j;rankWindows();$("rkh").hidden=false;$("moversBtn").hidden=false;if(S.players.length)render();if(BZ)renderBZ()}).catch(()=>{});
 
 // ---- render
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -468,7 +491,7 @@ function renderCats(){
   $("toggles").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.k;
     S.punt.has(k)?S.punt.delete(k):S.punt.add(k);store.set("punt",[...S.punt]);
     $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
-    renderCats();rankWindows();rankBS();renderBS();if(S.players.length){scoreValue();render()}});
+    renderCats();rankWindows();rankBS();renderBS();renderBZ();if(S.players.length){scoreValue();render()}});
   $("bsCats").innerHTML=BSC.map(c=>`<span class="${c.c&&S.punt.has(c.c)?"punted":""}">${c.l}</span>`).join("");
   $("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.setAttribute("aria-pressed",S.sort===b.dataset.k));
 }
@@ -865,16 +888,88 @@ function noteHTML(id,tn){
   const a=analyst(id,tn);if(!a.text)return"";
   return`<p class="note">${a.tag?`<b class="tag ${a.cls}">${a.tag}</b>`:""}${a.text}</p>`;
 }
+// ---- Buzz: data/buzz.json, Yahoo's public Buzz Index (most added / dropped across Yahoo
+// leagues) for yesterday, pulled nightly by fetch-buzz.js. Names are matched to the ESPN ids in
+// rankings.json, then judged with the same ranks, movers and Exp as the other tabs.
+let BZ=null;
+S.bzSort=store.get("bzSort","adds");S.bzOpen=new Set();
+const normN=s=>String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()
+  .replace(/\b(jr|sr|ii|iii|iv|v)\b\.?/g,"").replace(/[^a-z]/g,"");
+function bzId(row){
+  if(!R)return null;
+  if(!S.nameIx){S.nameIx={};for(const id in R.players){const k=normN(R.players[id].n);(S.nameIx[k]=S.nameIx[k]||[]).push(id)}}
+  const c=S.nameIx[normN(row.name)]||[];return c[0]||null;
+}
+// The read. Adds: a minutes jump or an Exp inside 130 = Follow; a regression sell = Fade;
+// season and Exp both outside 130 with no new minutes = Fade. Drops: Exp still inside 130 with
+// minutes steady, or a minutes jump = Panic (the crowd is wrong); minutes down 5+ or nothing
+// worth rostering = Agree.
+// Missing 2 of the last 3 = Check, since this can't see injury news.
+function bzRead(id,drop){
+  const rq=R&&R.players[id];if(!rq||!S.rk)return{t:"",c:"dim",why:"not in my ranks yet"};
+  const g=rq.w.g3,rs=S.rk.season[id],r3=g?S.rk.g3[id]:0,q=G&&G.players[id],B=S.bs;
+  const x=q&&q.b&&B?B.x[id]:0,v=B&&B.v[id],miss=g?3-g[0]:3,mu=g&&rq.pm!=null?g[1]-rq.pm:0;
+  const outs=rs>ROST&&(!x||x>ROST);
+  if(miss>=2)return{t:"Check",c:"dim",why:`missed ${miss} of last 3: check news`};
+  if(!drop){
+    if(mu>=MINUP&&g[1]>=24)return{t:"Follow",c:"buy",why:`+${Math.round(mu)} min over the last 3${r3>ROST?` (#${r3} in them)`:""}`};
+    if(x&&x<=ROST)return{t:"Follow",c:"buy",why:v==="sell"?`rosterable, but expect cooling toward Exp #${x}`
+      :`Exp #${x}${rs>ROST?`, ahead of his #${rs} rank`:""}`};
+    if(v==="sell")return{t:"Fade",c:"sell",why:`Exp #${x}: hot shooting, not role`};
+    if(r3&&r3<=ROST&&mu>=3)return{t:"Follow",c:"buy",why:`#${r3} over the last 3 on more minutes`};
+    if(outs)return{t:"Fade",c:"sell",why:`#${rs} season${x?`, Exp #${x}`:""}, no new minutes`};
+    return{t:"Watch",c:"dim",why:r3?`#${r3} over the last 3`:""};
+  }
+  if(mu<=-5)return{t:"Agree",c:"sell",why:`${Math.round(mu)} min over the last 3`};
+  if(mu>=MINUP&&g[1]>=24)return{t:"Panic",c:"buy",why:`+${Math.round(mu)} min over the last 3: the role is growing`};
+  if(v==="buy"||(x&&x<=ROST&&mu>-4))return{t:"Panic",c:"buy",why:`Exp #${x}, minutes steady: hold or grab`};
+  if(outs)return{t:"Agree",c:"sell",why:`#${rs} season${x?`, Exp #${x}`:""}`};
+  return{t:"Watch",c:"dim",why:r3?`#${r3} over the last 3`:""};
+}
+const fmtN=n=>Number(n).toLocaleString("en-US");
+function bzRow(r){
+  const drop=S.bzSort==="drops",id=bzId(r),rq=id&&R.players[id],g=rq&&rq.w.g3;
+  const q=id&&G&&G.players[id],B=S.bs;
+  const rk=(n,cl="")=>`<span class="${(!n?"na":n<=TOP?"hi":n<=ROST?"":"lo")+cl}">${n||"–"}</span>`;
+  const rd=id?bzRead(id,drop):{t:"",c:"dim",why:"not in my ranks yet"};
+  const mu=g&&rq.pm!=null?g[1]-rq.pm:0;
+  const min=g?`${Math.round(g[1])} min${mu>=3?`<span class="mu">▲${Math.round(mu)}</span>`:mu<=-3?`<span class="dn">▼${Math.round(-mu)}</span>`:""}`:"";
+  const key=r.name;let more="";
+  if(id&&S.bzOpen.has(key)){try{more=(G?noteHTML(id):"")+detailHTML(id)}catch(e){more=""}}
+  const nm=id?`<a class="pl" href="player.html?id=${encodeURIComponent(id)}&name=${encodeURIComponent(rq.n)}&team=${encodeURIComponent(rq.t)}"><b>${esc(r.name)}</b></a>`:`<b>${esc(r.name)}</b>`;
+  return`<article class="p${S.bzOpen.has(key)?" open":""}" data-k="${esc(key)}">
+    ${mug({eid:id})}
+    <div class="body">
+      <div class="l1"><span class="vd ${rd.c}">${rd.t}</span>${nm}<span class="mt">${esc(r.team)}</span>
+        <div class="rks r3">${rk(id&&S.rk?S.rk.season[id]:0)}${rk(g&&S.rk?S.rk.g3[id]:0)}${rk(q&&q.b&&B?B.x[id]:0,B&&B.v[id]==="buy"?" up":B&&B.v[id]==="sell"?" dn":"")}</div></div>
+      <div class="bzl"><span><span class="n">${drop?"−"+fmtN(r.drops):"+"+fmtN(r.adds)}</span> ${drop?"drops":"adds"}</span><span>${esc(r.pos)} · ${r.ros}% ros</span>${min?`<span>${min}</span>`:""}${rd.why?`<span class="why">${esc(rd.why)}</span>`:""}</div>
+      <div class="more">${more}</div>
+    </div>
+  </article>`;
+}
+function renderBZ(){
+  if(!BZ)return;
+  const drop=S.bzSort==="drops",rows=drop?BZ.dropped:BZ.added;
+  $("bzSort").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.bzSort));
+  $("bzStatus").textContent=`${rows.length} · Yahoo ${drop?"drops":"adds"}`;
+  $("bzAsOf").textContent=fmtDate(BZ.date).replace(/^\w+, /,"");
+  const cap=`<p class="bzcap">Across all Yahoo leagues on ${fmtDate(BZ.date)}. ${drop?"<b>Panic</b> = my numbers still like him; <b>Agree</b> = the role shrank.":"<b>Follow</b> = minutes or Exp back it up; <b>Fade</b> = it doesn't."} Ranks${R?` thru ${fmtDate(R.asOf).replace(/^\w+, /,"")}`:" loading"}. Tap a player for the full read.</p>`;
+  $("bzList").innerHTML=rows.length?cap+rows.map(bzRow).join(""):`<div class="empty">No Yahoo buzz for this day.</div>`;
+}
+fetch("data/buzz.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
+  .then(j=>{if(!j){$("bzList").innerHTML=`<div class="empty">No Yahoo buzz yet: it's pulled each morning with the rankings.</div>`;$("bzStatus").textContent="";return}
+    BZ=j;renderBZ()})
+  .catch(()=>{$("bzList").innerHTML=`<div class="empty err">Couldn't load the Yahoo buzz.</div>`;$("bzStatus").textContent=""});
 function bsMsg(m){$("bsList").innerHTML=`<div class="empty">${esc(m)}</div>`;$("bsStatus").textContent=""}
 function setView(v){
   document.body.dataset.view=v;
   $("tabs").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v));
-  try{history.replaceState(null,"",v==="bs"?"#buysell":location.pathname+location.search)}catch(e){}
+  try{history.replaceState(null,"",v==="bs"?"#buysell":v==="bz"?"#buzz":location.pathname+location.search)}catch(e){}
   window.scrollTo(0,0);
 }
 fetch("data/regression.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
   .then(j=>{if(!j)return bsMsg("No Buy/Sell data yet: it's built each morning with the rankings.");
-    G=j;rankBS();renderBS();if(S.players.length)render()})
+    G=j;rankBS();renderBS();if(S.players.length)render();if(BZ)renderBZ()})
   .catch(()=>bsMsg("Couldn't load the Buy/Sell data."));
 
 // ---- controls
@@ -887,7 +982,11 @@ $("bsList").onclick=e=>{if(e.target.closest(".pl"))return;
 $("bsSort").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsSort=b.dataset.k;store.set("bsSort",S.bsSort);renderBS()});
 $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>setView(b.dataset.v));
 $("bsInfo").onclick=()=>toggleHelp($("bsHelp").hidden);
-setView(location.hash==="#buysell"?"bs":"box");
+$("bzList").onclick=e=>{if(e.target.closest(".pl"))return;
+  const a=e.target.closest(".p");if(!a)return;const k=a.dataset.k;
+  S.bzOpen.has(k)?S.bzOpen.delete(k):S.bzOpen.add(k);renderBZ()};
+$("bzSort").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bzSort=b.dataset.k;store.set("bzSort",S.bzSort);S.bzOpen.clear();renderBZ()});
+setView(location.hash==="#buysell"?"bs":location.hash==="#buzz"?"bz":"box");
 $("prev").onclick=()=>loadDate(shift(S.date,-1));
 $("next").onclick=()=>loadDate(shift(S.date,1));
 $("date").onchange=e=>e.target.value&&loadDate(e.target.value);
