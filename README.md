@@ -9,6 +9,7 @@ A phone-first NBA box score viewer for **9-category fantasy basketball**. It ran
 ## What it does
 
 - Loads every game for a date (US Eastern) and ranks all players who played by **Value**.
+- **Buzz tab:** Yahoo's most added and dropped players for yesterday, next to your Szn / 3G / Exp ranks and minutes trend, with a Follow / Fade (adds) or Panic / Agree (drops) read built from those numbers. Linkable at `#buzz`.
 - **Buy/Sell tab:** is a hot or cold start real? This season's per-minute numbers against last season's, with an expected rank (see below).
 - Shows each player's 9 categories as a heat-colored strip (green = helped, red = hurt), plus minutes, usage %, starter flag and matchup.
 - **Live:** in-progress games refresh every 60 s, and again whenever the page comes back into view.
