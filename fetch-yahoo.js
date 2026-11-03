@@ -142,8 +142,8 @@ async function main() {
 
   // Yahoo-wide ownership movement. Snapshot percent owned across rostered players, the top 300
   // overall and the free agents above, then diff against earlier snapshots we kept.
-  const top = await players(`/game/${game.game_key}/players;sort=AR;sort_type=lastweek`, 300).catch(e => {
-    console.log('Game-wide players skipped: ' + e.message); return [];
+  const top = await players(`/league/${LK}/players;sort=AR;sort_type=lastweek`, 300).catch(e => {
+    console.log('Top players skipped: ' + e.message); return [];
   });
   const rosterPct = [];
   const keys = [...rostered];
