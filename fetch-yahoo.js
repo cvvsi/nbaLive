@@ -74,7 +74,7 @@ let AT;
 async function Y(path) {
   const r = await fetch(API + path + (path.includes('?') ? '&' : '?') + 'format=json',
     { headers: { Authorization: 'Bearer ' + AT } });
-  if (!r.ok) throw new Error(r.status + ' ' + path + ' ' + (await r.text()).slice(0, 200));
+  if (!r.ok) throw new Error(r.status + ' ' + path + ' ' + (await r.text()).replace(/\s+/g, ' ').slice(0, 500));
   return (await r.json()).fantasy_content;
 }
 
