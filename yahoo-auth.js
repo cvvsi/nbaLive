@@ -1,7 +1,9 @@
 /* One-time Yahoo login, to get the refresh token the nightly Action uses.
  *
  *   1. node yahoo-auth.js <client_id>
- *        prints a Yahoo URL. Open it, sign in, click Agree, and copy the code Yahoo shows.
+ *        prints a Yahoo URL. Open it, sign in and click Agree. The browser then goes to
+ *        https://localhost:8080/?code=XXXX and shows an error page; that's expected.
+ *        Copy the code from the address bar (everything after code=, before any &).
  *   2. node yahoo-auth.js <client_id> <client_secret> <code>
  *        prints the refresh token. Add it as the repo secret YAHOO_REFRESH_TOKEN.
  *
@@ -9,7 +11,8 @@
  * Nothing is saved to disk; keep the token out of the repo.
  */
 const [id, secret, code] = process.argv.slice(2);
-const REDIRECT = 'oob';
+// Must match the Redirect URI on the Yahoo app exactly. Yahoo no longer accepts 'oob'.
+const REDIRECT = process.env.YAHOO_REDIRECT_URI || 'https://localhost:8080';
 
 if (!id) {
   console.log('Usage: node yahoo-auth.js <client_id> [<client_secret> <code>]');
@@ -18,7 +21,8 @@ if (!id) {
 if (!code) {
   const u = new URL('https://api.login.yahoo.com/oauth2/request_auth');
   u.search = new URLSearchParams({ client_id: id, redirect_uri: REDIRECT, response_type: 'code', language: 'en-us' });
-  console.log('Open this, sign in, click Agree, then copy the code:\n\n' + u + '\n');
+  console.log('Open this, sign in, click Agree. The browser lands on an error page at localhost;\n' +
+    'copy the code from the address bar (after code=, before any &):\n\n' + u + '\n');
   console.log('Then run:  node yahoo-auth.js ' + id + ' <client_secret> <code>');
   process.exit(0);
 }

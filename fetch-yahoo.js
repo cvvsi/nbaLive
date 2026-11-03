@@ -56,7 +56,7 @@ async function token() {
     method: 'POST',
     headers: { Authorization: 'Basic ' + Buffer.from(ID + ':' + SECRET).toString('base64'),
       'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: REFRESH, redirect_uri: 'oob' }),
+    body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: REFRESH, redirect_uri: process.env.YAHOO_REDIRECT_URI || 'https://localhost:8080' }),
   });
   const j = await r.json();
   if (!j.access_token) throw new Error('Yahoo token refresh failed: ' + (j.error_description || j.error || r.status));

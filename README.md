@@ -75,7 +75,7 @@ Each row: **Now** (season rank), **Exp**, **LY** (last season's final per-game r
 
 It needs four repo secrets (Settings → Secrets and variables → Actions): `YAHOO_CLIENT_ID`, `YAHOO_CLIENT_SECRET`, `YAHOO_REFRESH_TOKEN`, and optionally `YAHOO_LEAGUE_ID` (otherwise the account's first NBA league). Without them the step skips itself.
 
-**One-time setup:** create an app at https://developer.yahoo.com/apps/create/ (Fantasy Sports: Read, redirect URI `oob`), then run `node yahoo-auth.js <client_id>`, open the URL, approve, and run `node yahoo-auth.js <client_id> <client_secret> <code>` to print the refresh token. Since the repo is public, `yahoo.json` (league rosters) is public too; tokens never leave the secrets.
+**One-time setup:** create an app at https://developer.yahoo.com/apps/create/ (Confidential Client, Fantasy Sports: Read, redirect URI `https://localhost:8080`), then run `node yahoo-auth.js <client_id>`, open the URL, approve, copy the `code=` value from the address bar of the localhost error page, and run `node yahoo-auth.js <client_id> <client_secret> <code>` to print the refresh token. Since the repo is public, `yahoo.json` (league rosters) is public too; tokens never leave the secrets.
 
 ## Data source
 
