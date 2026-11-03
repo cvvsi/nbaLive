@@ -1,0 +1,53 @@
+# One-time Yahoo connection. Open the login URL from yahoo-auth.js, click Agree, copy the code
+# from the localhost address bar, then run this with it (within a few minutes; codes expire).
+# It saves the refresh token encrypted (key = YAHOO_CLIENT_SECRET) to data/yahoo-token.enc,
+# then pulls the league once so you can see it worked.
+name: Yahoo login
+
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: Code from the address bar after approving on Yahoo
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rankings
+  cancel-in-progress: false
+
+jobs:
+  login:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Trade the code for a refresh token
+        env:
+          YAHOO_CLIENT_ID: ${{ secrets.YAHOO_CLIENT_ID }}
+          YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
+          YAHOO_AUTH_CODE: ${{ inputs.code }}
+        run: node yahoo-auth.js
+
+      - name: Pull the league once
+        continue-on-error: true
+        env:
+          YAHOO_CLIENT_ID: ${{ secrets.YAHOO_CLIENT_ID }}
+          YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
+          YAHOO_LEAGUE_ID: ${{ secrets.YAHOO_LEAGUE_ID }}
+        run: node fetch-yahoo.js
+
+      - name: Commit
+        run: |
+          git add data/yahoo-token.enc
+          for f in data/yahoo.json data/yahoo-owned.json; do [ -f "$f" ] && git add "$f"; done; true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Connect Yahoo league"
+          git pull --rebase
+          git push

@@ -1,8 +1,9 @@
 /* Pull my Yahoo league into data/yahoo.json: who is rostered by whom, the best free agents,
  * yesterday's league transactions, and Yahoo-wide percent-owned movement (most added / dropped).
  *
- * Runs in the nightly Action after build-rankings.js. Needs repo secrets:
- *   YAHOO_CLIENT_ID, YAHOO_CLIENT_SECRET, YAHOO_REFRESH_TOKEN   (get the token once with yahoo-auth.js)
+ * Runs in the nightly Action after build-rankings.js. Needs repo secrets YAHOO_CLIENT_ID and
+ *   YAHOO_CLIENT_SECRET, plus a refresh token: data/yahoo-token.enc from the Yahoo login workflow
+ *   (or a YAHOO_REFRESH_TOKEN secret)
  *   YAHOO_LEAGUE_ID (optional; without it, the first NBA league on the account is used)
  * Without the secrets it logs a note and exits 0, so rankings still publish.
  *
@@ -11,8 +12,12 @@
  */
 const fs = require('fs');
 
-const { YAHOO_CLIENT_ID: ID, YAHOO_CLIENT_SECRET: SECRET, YAHOO_REFRESH_TOKEN: REFRESH,
-  YAHOO_LEAGUE_ID: LEAGUE_ID } = process.env;
+const store = require('./yahoo-token.js');
+const { YAHOO_CLIENT_ID: ID, YAHOO_CLIENT_SECRET: SECRET, YAHOO_LEAGUE_ID: LEAGUE_ID } = process.env;
+// The refresh token comes from the secret if set, else from the encrypted file the
+// "Yahoo login" workflow writes (see yahoo-auth.js).
+const FROM_FILE = !process.env.YAHOO_REFRESH_TOKEN;
+let REFRESH = process.env.YAHOO_REFRESH_TOKEN || (SECRET ? store.load(SECRET) : null);
 const API = 'https://fantasysports.yahooapis.com/fantasy/v2';
 const OUT = 'data/yahoo.json', OWNED = 'data/yahoo-owned.json';
 const etToday = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
@@ -60,6 +65,8 @@ async function token() {
   });
   const j = await r.json();
   if (!j.access_token) throw new Error('Yahoo token refresh failed: ' + (j.error_description || j.error || r.status));
+  // Yahoo can hand back a new refresh token; keep the stored one current.
+  if (FROM_FILE && j.refresh_token && j.refresh_token !== REFRESH) { REFRESH = j.refresh_token; store.save(REFRESH, SECRET); }
   return j.access_token;
 }
 
@@ -86,7 +93,7 @@ async function players(base, max) {
 
 async function main() {
   if (!ID || !SECRET || !REFRESH) {
-    console.log('Yahoo secrets not set (YAHOO_CLIENT_ID / YAHOO_CLIENT_SECRET / YAHOO_REFRESH_TOKEN); skipping.');
+    console.log('Yahoo not connected (needs YAHOO_CLIENT_ID and YAHOO_CLIENT_SECRET secrets, then the Yahoo login workflow); skipping.');
     return;
   }
   AT = await token();

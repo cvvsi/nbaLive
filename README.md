@@ -73,9 +73,9 @@ Each row: **Now** (season rank), **Exp**, **LY** (last season's final per-game r
 
 `fetch-yahoo.js` runs in the same Action and writes `data/yahoo.json`: every team's roster (mine flagged), the best free agents by season rank and by last week's rank, recent league adds/drops/trades, and Yahoo-wide **most added / most dropped** (change in percent owned over 1 and 7 days, from snapshots kept in `data/yahoo-owned.json`). The morning report reads it. The page doesn't use it yet.
 
-It needs four repo secrets (Settings → Secrets and variables → Actions): `YAHOO_CLIENT_ID`, `YAHOO_CLIENT_SECRET`, `YAHOO_REFRESH_TOKEN`, and optionally `YAHOO_LEAGUE_ID` (otherwise the account's first NBA league). Without them the step skips itself.
+It needs two repo secrets (Settings → Secrets and variables → Actions), `YAHOO_CLIENT_ID` and `YAHOO_CLIENT_SECRET`, plus optionally `YAHOO_LEAGUE_ID` (otherwise the account's first NBA league). The refresh token lives in `data/yahoo-token.enc`, encrypted with a key derived from the client secret, so it's safe in a public repo; a `YAHOO_REFRESH_TOKEN` secret overrides it. Without these the step skips itself.
 
-**One-time setup:** create an app at https://developer.yahoo.com/apps/create/ (Confidential Client, Fantasy Sports: Read, redirect URI `https://localhost:8080`), then run `node yahoo-auth.js <client_id>`, open the URL, approve, copy the `code=` value from the address bar of the localhost error page, and run `node yahoo-auth.js <client_id> <client_secret> <code>` to print the refresh token. Since the repo is public, `yahoo.json` (league rosters) is public too; tokens never leave the secrets.
+**One-time setup:** create an app at https://developer.yahoo.com/apps/create/ (Confidential Client, Fantasy Sports: Read, redirect URI `https://localhost:8080`) and add the two secrets. Run `node yahoo-auth.js <client_id>` (or build the URL by hand) to get the login link, open it, click Agree, and copy the `code=` value from the address bar of the localhost error page. Then run **Actions → Yahoo login → Run workflow** with that code within a few minutes. It saves the token and pulls the league once. Since the repo is public, `yahoo.json` (league rosters) is public too.
 
 ## Data source
 

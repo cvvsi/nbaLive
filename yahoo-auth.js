@@ -1,21 +1,27 @@
 /* One-time Yahoo login, to get the refresh token the nightly Action uses.
  *
- *   1. node yahoo-auth.js <client_id>
- *        prints a Yahoo URL. Open it, sign in and click Agree. The browser then goes to
- *        https://localhost:8080/?code=XXXX and shows an error page; that's expected.
- *        Copy the code from the address bar (everything after code=, before any &).
- *   2. node yahoo-auth.js <client_id> <client_secret> <code>
- *        prints the refresh token. Add it as the repo secret YAHOO_REFRESH_TOKEN.
+ * Easiest: the "Yahoo login" workflow (Actions tab). Open the URL below, click Agree, copy the
+ * code from the address bar of the localhost error page, and run the workflow with it. It trades
+ * the code for a refresh token and commits it encrypted as data/yahoo-token.enc.
  *
+ * Locally instead:
+ *   1. node yahoo-auth.js <client_id>                          prints the login URL
+ *   2. node yahoo-auth.js <client_id> <client_secret> <code>   prints the refresh token,
+ *      to add as the repo secret YAHOO_REFRESH_TOKEN.
  * The code expires in a few minutes, so do step 2 right after step 1.
- * Nothing is saved to disk; keep the token out of the repo.
+ *
+ * In the workflow it reads YAHOO_CLIENT_ID, YAHOO_CLIENT_SECRET and YAHOO_AUTH_CODE from the
+ * environment and never prints the token.
  */
-const [id, secret, code] = process.argv.slice(2);
 // Must match the Redirect URI on the Yahoo app exactly. Yahoo no longer accepts 'oob'.
 const REDIRECT = process.env.YAHOO_REDIRECT_URI || 'https://localhost:8080';
+const CI = !!process.env.YAHOO_AUTH_CODE;
+const [id, secret, code] = CI
+  ? [process.env.YAHOO_CLIENT_ID, process.env.YAHOO_CLIENT_SECRET, process.env.YAHOO_AUTH_CODE.trim()]
+  : process.argv.slice(2);
 
 if (!id) {
-  console.log('Usage: node yahoo-auth.js <client_id> [<client_secret> <code>]');
+  console.log(CI ? 'YAHOO_CLIENT_ID secret is not set.' : 'Usage: node yahoo-auth.js <client_id> [<client_secret> <code>]');
   process.exit(1);
 }
 if (!code) {
@@ -26,6 +32,7 @@ if (!code) {
   console.log('Then run:  node yahoo-auth.js ' + id + ' <client_secret> <code>');
   process.exit(0);
 }
+if (!secret) { console.log('YAHOO_CLIENT_SECRET is not set.'); process.exit(1); }
 
 fetch('https://api.login.yahoo.com/oauth2/get_token', {
   method: 'POST',
@@ -33,7 +40,12 @@ fetch('https://api.login.yahoo.com/oauth2/get_token', {
     'Content-Type': 'application/x-www-form-urlencoded' },
   body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: REDIRECT }),
 }).then(r => r.json()).then(j => {
-  if (!j.refresh_token) { console.error('Failed:', j.error_description || j.error || JSON.stringify(j)); process.exit(1); }
+  if (!j.refresh_token) { console.error('Failed:', j.error_description || j.error || 'no refresh token returned'); process.exit(1); }
+  if (CI) {
+    require('./yahoo-token.js').save(j.refresh_token, secret);
+    console.log('Connected. Refresh token saved encrypted to data/yahoo-token.enc.');
+    return;
+  }
   console.log('\nYAHOO_REFRESH_TOKEN =\n\n' + j.refresh_token + '\n');
   console.log('Add it at GitHub: repo Settings > Secrets and variables > Actions > New repository secret.');
 });
