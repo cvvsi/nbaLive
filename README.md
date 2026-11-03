@@ -69,7 +69,14 @@ Each row: **Now** (season rank), **Exp**, **LY** (last season's final per-game r
 
 **Data:** `build-history.js` pulls the last two completed regular seasons from the same ESPN endpoints (~1,230 box scores a season, cached in `.cache/season-YYYY.json`) and writes `data/history.json`: per-player season totals plus last season's z-scores. **Run it once a season** (after the regular season ends) and commit the output. The nightly `build-rankings.js` reads it and writes `data/regression.json`. Without `history.json` it skips that step.
 
+## Yahoo Buzz Index
+
+`fetch-buzz.js` runs in the nightly Action and writes `data/buzz.json`: yesterday's most added and most dropped players across all Yahoo leagues, from the public [Buzz Index](https://basketball.fantasysports.yahoo.com/nba/buzzindex) page (no login). Each row has adds, drops, trades and % rostered / started. The page is parsed from HTML, so if Yahoo changes its layout the step logs "No rows parsed" and the rankings still publish. The morning report judges each move as Follow or Fade.
+
 ## Yahoo league data
+
+**Paused:** since July 2026 Yahoo's Fantasy API answers 403 until the developer account is approved (apply at sports.yahoo.com/developer/access/). Sign-in works; data calls don't.
+
 
 `fetch-yahoo.js` runs in the same Action and writes `data/yahoo.json`: every team's roster (mine flagged), the best free agents by season rank and by last week's rank, recent league adds/drops/trades, and Yahoo-wide **most added / most dropped** (change in percent owned over 1 and 7 days, from snapshots kept in `data/yahoo-owned.json`). The morning report reads it. The page doesn't use it yet.
 
