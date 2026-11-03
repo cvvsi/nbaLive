@@ -3,8 +3,14 @@
 name: Rankings
 
 on:
+  # GitHub delays scheduled runs badly at the top of the hour (this one ran 6-10 h late at
+  # "0 10"), so use odd minutes and three tries. Each run only commits if something changed,
+  # and unfinished games are skipped and picked up by the next try. Times are ET in winter
+  # (an hour later during daylight time): 1:23, 2:41 and 3:53am, all before the 4:39am report.
   schedule:
-    - cron: "0 10 * * *"   # 6am ET in season (EDT); 5am after the clocks change
+    - cron: "23 6 * * *"
+    - cron: "41 7 * * *"
+    - cron: "53 8 * * *"
   workflow_dispatch:
 
 permissions:
@@ -33,11 +39,24 @@ jobs:
 
       - run: node build-rankings.js
 
+      # My Yahoo league: rosters, free agents, league moves, most added/dropped.
+      # Skips itself when the secrets aren't set, and a Yahoo failure never blocks the rankings.
+      - name: Yahoo league
+        continue-on-error: true
+        env:
+          YAHOO_CLIENT_ID: ${{ secrets.YAHOO_CLIENT_ID }}
+          YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
+          YAHOO_REFRESH_TOKEN: ${{ secrets.YAHOO_REFRESH_TOKEN }}
+          YAHOO_LEAGUE_ID: ${{ secrets.YAHOO_LEAGUE_ID }}
+        run: node fetch-yahoo.js
+
       - name: Commit if changed
         run: |
           git add data/rankings.json data/regression.json
+          git add data/yahoo.json data/yahoo-owned.json 2>/dev/null || true
           if git diff --cached --quiet; then echo "No change"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
           git commit -m "Rankings through $(node -p "require('./data/rankings.json').asOf")"
+          git pull --rebase
           git push

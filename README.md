@@ -47,7 +47,7 @@ Each row shows the player's 9-cat rank over the season, the last 14 and 7 days, 
 - **▲n** after minutes: n more minutes a game over the last 3 than in the games before them (`pm` in the JSON), at least +6 and landing at 24+. It's the earliest sign of a role change.
 - The **Movers** sort shows only flagged players, with the biggest jumps first.
 
-- **Built nightly** by `build-rankings.js`, run by `.github/workflows/rankings.yml` at 10:00 UTC. The script commits `data/rankings.json`, and that push redeploys Pages. Run it by hand from the Actions tab (*Rankings → Run workflow*) or locally with `node build-rankings.js`.
+- **Built nightly** by `build-rankings.js`, run by `.github/workflows/rankings.yml` at 06:23, 07:41 and 08:53 UTC (three tries on odd minutes, because GitHub runs top-of-the-hour schedules hours late). The script commits `data/rankings.json`, and that push redeploys Pages. Run it by hand from the Actions tab (*Rankings → Run workflow*) or locally with `node build-rankings.js`.
 - **Math:** per-game averages over the window, z-scored against a top-130 pool (10 teams × 13). The pool is iterated so it settles on rosterable players, and only players with at least half the window's max games are eligible for it. FG%/FT% use the same impact formula as the box score. Regular season only.
 - The JSON stores per-window z-scores, not ranks, so the page re-ranks with your punts applied.
 - Finished box scores are cached in `.cache/games.json` (git-ignored; the Action keeps it with `actions/cache`), so each run only fetches new games.
@@ -68,6 +68,14 @@ Each row: **Now** (season rank), **Exp**, **LY** (last season's final per-game r
 **Analyst note.** Tapping a player on either tab opens a written read (`analyst()` in `index.html`), followed by a labeled grid of the numbers behind it. It's templated from the data, with no AI and no outside info: tonight's game (Box tab), the season line, role vs. last season (and that season's finish), blowouts and foul trouble (`cx` in the JSON: blowout games and their mpg, other games and their mpg, games with 5+ fouls), shooting luck with attempts, per-36 changes, the role-upside line (`up`: the same blended rates at 30 min, for anyone under 26 mpg), the Exp gap, the trend, category profile and punt fit. It ends with a tag: Buy low / Pick up / Sell high / Ride it / Hold / Streamer / Watch / Pass. The ⓘ on the Buy/Sell tab explains all of it in the app.
 
 **Data:** `build-history.js` pulls the last two completed regular seasons from the same ESPN endpoints (~1,230 box scores a season, cached in `.cache/season-YYYY.json`) and writes `data/history.json`: per-player season totals plus last season's z-scores. **Run it once a season** (after the regular season ends) and commit the output. The nightly `build-rankings.js` reads it and writes `data/regression.json`. Without `history.json` it skips that step.
+
+## Yahoo league data
+
+`fetch-yahoo.js` runs in the same Action and writes `data/yahoo.json`: every team's roster (mine flagged), the best free agents by season rank and by last week's rank, recent league adds/drops/trades, and Yahoo-wide **most added / most dropped** (change in percent owned over 1 and 7 days, from snapshots kept in `data/yahoo-owned.json`). The morning report reads it. The page doesn't use it yet.
+
+It needs four repo secrets (Settings → Secrets and variables → Actions): `YAHOO_CLIENT_ID`, `YAHOO_CLIENT_SECRET`, `YAHOO_REFRESH_TOKEN`, and optionally `YAHOO_LEAGUE_ID` (otherwise the account's first NBA league). Without them the step skips itself.
+
+**One-time setup:** create an app at https://developer.yahoo.com/apps/create/ (Fantasy Sports: Read, redirect URI `oob`), then run `node yahoo-auth.js <client_id>`, open the URL, approve, and run `node yahoo-auth.js <client_id> <client_secret> <code>` to print the refresh token. Since the repo is public, `yahoo.json` (league rosters) is public too; tokens never leave the secrets.
 
 ## Data source
 
