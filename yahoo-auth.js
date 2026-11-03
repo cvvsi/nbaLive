@@ -26,7 +26,7 @@ if (!id) {
 }
 if (!code) {
   const u = new URL('https://api.login.yahoo.com/oauth2/request_auth');
-  u.search = new URLSearchParams({ client_id: id, redirect_uri: REDIRECT, response_type: 'code', language: 'en-us' });
+  u.search = new URLSearchParams({ client_id: id, redirect_uri: REDIRECT, response_type: 'code', scope: 'fspt-r', language: 'en-us' });
   console.log('Open this, sign in, click Agree. The browser lands on an error page at localhost;\n' +
     'copy the code from the address bar (after code=, before any &):\n\n' + u + '\n');
   console.log('Then run:  node yahoo-auth.js ' + id + ' <client_secret> <code>');
