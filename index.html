@@ -296,6 +296,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
 .wi i{font-style:normal;color:var(--dim)}
 .wi b{font:500 12.5px/1 var(--num);color:var(--ink)}
 .wi.sh b{color:var(--neg)}
+.wi small{font:500 11.5px/1 var(--num);color:var(--dim)}
 .wu{margin-top:3px;padding-left:98px;font:500 10.5px/1 var(--name);color:var(--dim)}
 .pr{margin-top:5px;font:500 12.5px/1.3 var(--name);color:var(--dim)}.pr b{color:var(--ink);font-weight:600}
 .bzb{display:flex;align-items:baseline;gap:12px;margin-top:4px;flex-wrap:wrap}
@@ -883,12 +884,12 @@ function whyGroups(q){
     const h=bsDelta(k,c,y);if(Math.abs(h)<.75)continue;
     const fmt=v=>k==="usg"?Math.round(v)+"%":f1(v);
     const role=k==="mpg"||k==="usg",shrink=role&&c<y;
-    const item={h:Math.abs(h),txt:`<span class="wi${shrink?" sh":""}"><i>${WHYS[k]}</i> <b>${fmt(y)}→${fmt(c)}</b></span>`};
+    const item={h:Math.abs(h),txt:`<span class="wi${shrink?" sh":""}"><i>${WHYS[k]}</i> <b>${fmt(c)}</b> <small>vs ${fmt(y)}</small></span>`};
     (role?g.role:h<0?g.up:g.down).push(item);
   }
   const row=(l,cl,a)=>a.length?`<li><em class="${cl}">${l}</em><span>${a.sort((x,y)=>y.h-x.h).slice(0,3).map(o=>o.txt).join("")}</span></li>`:"";
   const out=row("Role","k",g.role)+row("Bounce back","good",g.up)+row("Cool off","bad",g.down);
-  return out?`<ul class="why">${out}</ul>${S.bsUnit==="g"?"":`<div class="wu">counting stats per 36</div>`}`:"";
+  return out?`<ul class="why">${out}</ul><div class="wu">now vs ${q.bs&&q.bs.includes("+")?"last 2 seasons":"last season"}${S.bsUnit==="g"?"":" · per 36"}</div>`:"";
 }
 function bsRow(id){
   const q=G.players[id],B=S.bs,v=B.v[id]||"",now=B.now[id],x=B.x[id],ly=B.ly[id];
@@ -904,7 +905,6 @@ function bsRow(id){
       <div class="c1"><b class="nm">${esc(q.n)}</b><span class="mt">${q.t} · ${q.now[0]}g</span><span class="vt ${a.cls||"ok"}">${a.tag||""}</span></div>
       <div class="mv"><span class="r now"><b>#${now}</b><i>now</i></span><span class="ar" aria-hidden="true">→</span><span class="r x ${vc}"><b>${q.b?"#"+x:"–"}</b><i>expected</i></span><span class="r ly"><b>${ly?"#"+ly:"–"}</b><i>last season</i></span></div>
       ${why}
-      ${pr?`<div class="pr">${pr}</div>`:""}
     </div>
   </article>`;
 }
@@ -947,7 +947,7 @@ Needs ${BSMIN_GP}+ games and a baseline. The percentage rule scales with rank: #
 <p>The big number on the left is the season rank now, the green one the expected rank, and last season's finish sits on the right. Under it, what changed since last season, grouped by what it means: <b>Role</b> (minutes and usage, which tend to stick), <b style="color:var(--pos)">Bounce back</b> (rates running below his norm, so they should recover) and <b style="color:var(--neg)">Cool off</b> (rates running above it). A shrinking role shows in red. The Per 36 / Per game switch sets the units. Tap a card for the full page: the season line, ranks, a game-by-game chart, the written read and the full comparison with last season.</p>
 
 <h3>The analyst note</h3>
-<p>Tap any player, on any tab, for their page and a written read for a 10-team league. It opens with the call, then the why. It's built only from the numbers: minutes, usage, shooting with its sample size, per-36 changes against last season, blowouts (20+ point margins) and foul trouble (5+ fouls) that cut minutes, the team's last 3 games, what the same per-minute numbers would rank at ${(Object.values(G.players).find(q=>q.up)||{up:[0,30]}).up[1]} minutes for bench players, the category profile and any punt build it suits. It says which parts are role (minutes and usage tend to stick) and which are luck (shooting, steals and blocks swing), and puts a price on buy-low and sell-high trades: a player ranked about halfway between Now and Exp. On the Box tab, that night's game comes right after the call. It knows nothing about injuries, news or depth charts. Missed games get flagged so you can go check.</p>
+<p>Tap any player, on any tab, for their page and a written read for a 10-team league. It opens with the call, then the why. It's built only from the numbers: minutes, usage, shooting with its sample size, per-36 changes against last season, blowouts (20+ point margins) and foul trouble (5+ fouls) that cut minutes, the team's last 3 games, what the same per-minute numbers would rank at ${(Object.values(G.players).find(q=>q.up)||{up:[0,30]}).up[1]} minutes for bench players, the category profile and any punt build it suits. It says which parts are role (minutes and usage tend to stick) and which are luck (shooting, steals and blocks swing),. On the Box tab, that night's game comes right after the call. It knows nothing about injuries, news or depth charts. Missed games get flagged so you can go check.</p>
 <table><tr><th>Tag</th><th></th></tr>
 <tr><td><b>Buy low</b></td><td style="text-align:left">Flagged Buy and probably rostered (inside ${cut} now or last season, or 40%+ rostered on Yahoo): trade for this player.</td></tr>
 <tr><td><b>Pick up</b></td><td style="text-align:left">Flagged Buy, outside ${cut} now and last season: probably on waivers.</td></tr>
@@ -1134,7 +1134,7 @@ function analyst(id,tn){
     lead=`Drop in 10-team leagues: ${nm} profiles as #${ref}${ly&&ly<=ROST?`, well off ${lyT}'s #${ly}`:""}${deepText(ref)}.`}
   else{tag="Pass";cls="dim";lead=`Pass in 10-team leagues: ${nm} profiles as #${ref}${deepText(ref)}.`}
   if(!sure)lead=lead.replace(/\.$/,"; early, so this can change fast.");
-  if(after)s.push(after);
+
   const parts=[lead,tnote,...s].filter(Boolean);
   return{tag,cls,text:parts.join(" "),parts};
 }
