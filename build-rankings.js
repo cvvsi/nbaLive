@@ -156,7 +156,10 @@ function zOf(l, { lgFG, lgFT, st }) {
 const PRIOR = { fga: 150, tpa: 200, fta: 250, reb: 200, ast: 250, to: 300, stl: 600, blk: 500,  // minutes
   fg: 250, tp: 500, ft: 200 };                                                                  // attempts
 const PRIOR_GP = 3;          // minutes: this season's mpg, nudged by 3 games of last season's
-const BASE_MIN = 500;        // under this many minutes last season, add the season before it
+const BASE_MIN = 500;        // under this many minutes last season, the season before counts in full
+const PREV_W = 0.5;          // otherwise the season before counts at half weight (Marcel-style 1 : 0.5).
+                             // Checked against an analyst's projections (Nov 2026): closer on every
+                             // category, most on FT% and FG%, without touching minutes.
 const UP_MIN = 30, UP_BELOW = 26;   // role upside: the same rates at 30 min, for anyone under 26 now
 const BLOWOUT = 20;                  // final margin that counts as a blowout
 const PG = ['pts', 'reb', 'ast', 'stl', 'blk', 'tpm', 'to'];
@@ -170,16 +173,28 @@ function rates(t) {
     per('tpm'), per('pts'), per('reb'), per('ast'), per('stl'), per('blk'), per('to'), per('fga'), per('fta'), per('tpa')];
 }
 
-// Baseline totals for a player: last season, plus the one before when last season was short
-// (injury, rookie year cut short). Totals add, so the blend is weighted by minutes played.
+// Baseline totals for a player: last season plus the season before at PREV_W (in full when
+// last season was short: injury, rookie year cut short). Totals add, so the blend is weighted
+// by minutes played; two seasons steady the rates, shooting % most of all.
+// t.mpg stays last season's minutes (both seasons' only when last season was short), so the
+// minutes nudge is unchanged: role comes from this season and last.
 function baseline(h) {
   if (!h) return null;
-  const [ly, prev] = h.seasons, s = h.s;
-  const pick = s[ly] && s[ly].min >= BASE_MIN ? [ly] : [ly, prev].filter(k => s[k]);
+  const [ly, prev] = h.seasons, s = h.s, short = !(s[ly] && s[ly].min >= BASE_MIN);
+  const wt = { [ly]: 1, [prev]: short ? 1 : PREV_W };
+  const pick = [ly, prev].filter(k => s[k]);
   if (!pick.length) return null;
-  const t = { gp: 0, use: 0, tpos: 0, ...Object.fromEntries(STATS.map(k => [k, 0])) };
-  for (const k of pick) for (const f in t) t[f] += s[k][f] || 0;
-  return t.min >= 200 ? { t, src: pick.join('+') } : null;
+  const add = (ks, w) => {
+    const t = { gp: 0, use: 0, tpos: 0, ...Object.fromEntries(STATS.map(k => [k, 0])) };
+    for (const k of ks) for (const f in t) t[f] += (s[k][f] || 0) * w(k);
+    return t;
+  };
+  const t = add(pick, k => wt[k]);
+  // What the page shows as "last season" (comparisons, the note): last season alone, or both
+  // seasons in full when it was short, as before. Its minutes are also the minutes nudge.
+  const show = short ? pick : [ly], st = add(show, () => 1);
+  t.mpg = st.min / st.gp;
+  return t.min >= 200 ? { t, show: st, src: show.join('+') } : null;
 }
 
 // Per-game expected line from season totals s and baseline totals b (see the note above).
@@ -189,7 +204,7 @@ const NOBASE = { gp: 1, ...Object.fromEntries(STATS.map(k => [k, 0])) };
 function expectedLine(s, b, mpgAt) {
   const w = (k, n) => Math.min(PRIOR[k], n);
   const rate = (k, cur, curN, base, baseN) => baseN ? (cur + base / baseN * w(k, baseN)) / (curN + w(k, baseN)) : cur / Math.max(1, curN);
-  const mpg = mpgAt || (s.min + (b.min / b.gp) * PRIOR_GP) / (s.gp + PRIOR_GP);
+  const mpg = mpgAt || (s.min + (b.mpg ?? b.min / b.gp) * PRIOR_GP) / (s.gp + PRIOR_GP);
   const per = k => rate(k, s[k], s.min, b[k], b.min) * mpg;
   const fga = per('fga'), tpa = per('tpa'), fta = per('fta');
   const fgm = fga * rate('fg', s.fgm, s.fga, b.fgm, b.fga);
@@ -242,7 +257,7 @@ function buildRegression(games, asOf, rankings) {
       const z = zOf(expectedLine(p.s, p.b ? p.b.t : NOBASE, UP_MIN), scored.pool);
       out[p.id].up = [p.gp, UP_MIN, ...CATS.map(c => r2(z[c]))];
     }
-    if (p.b) Object.assign(out[p.id], { b: rates(p.b.t), bs: p.b.src, bgp: p.b.t.gp });
+    if (p.b) Object.assign(out[p.id], { b: rates(p.b.show), bs: p.b.src, bgp: p.b.show.gp });
   }
   // Last season's z-scores for everyone who qualified, not just this season's players, so
   // the page's LY rank is the real final rank (retired players still hold their spots).
