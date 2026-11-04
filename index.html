@@ -28,7 +28,7 @@
   --name:"Archivo Narrow","Arial Narrow","Roboto Condensed",system-ui,sans-serif;
   --num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   --bar:48px;
-  --mug:28px;          /* headshot column; the ruler indents by it so cells line up */
+  --mug:36px;          /* headshot on a card */
   --mgap:6px;
   color-scheme:light;
 }
@@ -59,7 +59,7 @@ body:not([data-view="bs"]) .bsv,body:not([data-view="bz"]) .bzv,
 body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
 .asof{flex:1;text-align:center;font:500 12px/1 var(--num);color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .datenav{flex:1;display:flex;justify-content:center;align-items:center;gap:2px;min-width:0}
-.arrow{width:36px;height:36px;display:grid;place-items:center;font-size:20px;color:var(--dim);border-radius:6px}
+.arrow{width:30px;height:36px;display:grid;place-items:center;font-size:20px;color:var(--dim);border-radius:6px}
 .arrow:active{background:var(--cell)}
 .datelbl{position:relative;font:600 16px/1 var(--name);padding:8px 6px;white-space:nowrap}
 .datelbl input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
@@ -236,7 +236,136 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
 .help td{padding:5px 10px 5px 0;border-top:1px solid var(--rule)}
 .help td:nth-child(2){text-align:right}
 .help .x{margin-top:10px;font:600 13px/1 var(--name);text-transform:uppercase;letter-spacing:.06em;padding:9px 14px;border:1px solid var(--rule);border-radius:6px}
-.empty{padding:40px 0;color:var(--dim);text-align:center;font-size:15px}
+.empty{padding:40px 0;color:var(--dim);text-align:center;font-size:15px;grid-column:1/-1}
+/* ---- Cards (all three tabs). Fixed stat order everywhere: PTS · REB · AST big, then
+   3PM · STL · BLK · TO · FG · FT small, then the role (MIN, USG). Every number carries its
+   label; color only marks a real standout (|z| >= 1), so a calm card means an ordinary night. */
+.ruler .rkh,.bscats{display:none!important}
+#cats{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin:4px 0 0;padding-bottom:6px;padding-left:0}
+#cats::-webkit-scrollbar{display:none}
+#cats button{flex:none;font:600 11.5px/1 var(--name);letter-spacing:.05em;padding:6px 8px;border-radius:12px;color:var(--dim)}
+#cats button[aria-pressed="true"]{background:var(--cell);color:var(--ball)}
+#cats .lbl{flex:none;font:600 10px/26px var(--name);letter-spacing:.08em;color:var(--dim);text-transform:uppercase;padding-right:2px}
+.cd{display:grid;grid-template-columns:var(--mug) 1fr;column-gap:10px;padding:10px 0 9px;border-bottom:1px solid var(--rule);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cd:active{opacity:.75}
+.cd .mug{padding-top:1px}
+.c1{display:flex;align-items:baseline;gap:6px;min-width:0}
+.c1 .rk{font:600 11.5px/1 var(--num);color:var(--dim);min-width:15px;flex:none}
+.c1 .nm{font:600 15.5px/1.15 var(--name);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.c1 .mt{font:500 13px/1 var(--name);color:var(--dim);white-space:nowrap;flex:none}
+.c1 .vl{margin-left:auto;font:600 14px/1 var(--num);flex:none;padding-left:6px}
+.vl.good,.bg.good>b,.sm.good>b,.sg .good>b{color:var(--pos)}.vl.bad,.bg.bad>b,.sm.bad>b,.sg .bad>b{color:var(--neg)}
+.c2{display:flex;align-items:flex-end;gap:10px;margin-top:4px}
+.bigs{display:flex;align-items:baseline;gap:13px;min-width:0}
+.bg{display:flex;align-items:baseline;gap:2px;white-space:nowrap}
+.bg b{font:700 25px/1 var(--name);letter-spacing:-.01em}
+.bg i,.sm i{font-style:normal;color:var(--dim)}
+.bg i{font:500 13px/1 var(--name)}
+.off{opacity:.38}.off b{text-decoration:line-through;text-decoration-thickness:1px}
+.lad{margin-left:auto;display:grid;grid-template-columns:repeat(4,30px);gap:2px;text-align:center;flex:none}
+.lad span{display:flex;flex-direction:column;gap:2px;padding:3px 0 2px;border-radius:4px}
+.lad i{font:600 8.5px/1 var(--name);letter-spacing:.07em;font-style:normal;color:var(--dim)}
+.lad b{font:500 12px/1 var(--num);color:var(--ink)}
+.lad .hi b{color:var(--pos);font-weight:600}.lad .lo b,.lad .na b{color:var(--dim)}
+.lad .up{background:color-mix(in oklab,var(--pos) 22%,transparent)}
+.lad .dn{background:color-mix(in oklab,var(--neg) 22%,transparent)}
+.c3{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 11px;margin-top:6px}
+.sm{display:flex;align-items:baseline;gap:2px;white-space:nowrap}
+.sm b{font:500 13px/1 var(--num)}
+.sm i{font:500 12px/1 var(--name)}
+.sm.good b,.sm.bad b{font-weight:600}
+.ht{font:600 12.5px/1 var(--name);color:var(--ball);white-space:nowrap}
+.c3 .ht:first-of-type{margin-left:auto}
+/* Buy/Sell and Buzz cards: the headline is the move itself. */
+.vt{margin-left:auto;font:700 10.5px/1 var(--name);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;flex:none;padding-left:6px}
+.vt.good{color:var(--pos)}.vt.bad{color:var(--neg)}.vt.dim{color:var(--dim)}.vt.ok{color:var(--ink)}
+.mv{display:flex;align-items:flex-end;gap:8px;margin-top:4px}
+.mv .r{display:flex;flex-direction:column;gap:2px}
+.mv .r b{font:700 25px/1 var(--name)}
+.mv .r i{font:500 11px/1 var(--name);font-style:normal;color:var(--dim)}
+.mv .r.now b{color:var(--dim)}
+.mv .r.x.good b{color:var(--pos)}.mv .r.x.bad b{color:var(--neg)}
+.mv .ar{font:500 18px/1 var(--name);color:var(--dim);padding-bottom:15px}
+.mv .r.ly{margin-left:auto;text-align:right}.mv .r.ly b{font-size:17px;color:var(--dim)}
+.why{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+.why li{display:flex;align-items:baseline;gap:6px;font:500 13.5px/1.2 var(--name);color:var(--dim)}
+.why li b{font:500 12.5px/1 var(--num);color:var(--ink)}
+.why li em{margin-left:auto;font-style:normal;font-weight:600;font-size:12.5px;white-space:nowrap}
+.why em.k{color:var(--ink)}.why em.good{color:var(--pos)}.why em.bad{color:var(--neg)}
+.pr{margin-top:5px;font:500 12.5px/1.3 var(--name);color:var(--dim)}.pr b{color:var(--ink);font-weight:600}
+.bzb{display:flex;align-items:baseline;gap:12px;margin-top:4px;flex-wrap:wrap}
+.bzb .bg b{font-size:21px}
+.bzb .up b{color:var(--ball)}.bzb .dn b{color:var(--neg)}
+.bzw{margin-top:5px;font:500 13.5px/1.3 var(--name);color:var(--ink)}
+.bzx{margin-top:4px;font:500 12px/1 var(--name);color:var(--dim)}.bzx b{font:500 12px/1 var(--num);color:var(--ink)}
+.bzcap{grid-column:1/-1}
+.thead{grid-column:1/-1}
+/* ---- Player sheet: one page per player, shared by every tab. Full screen on a phone,
+   a side panel on a wide screen. It holds everything the old open-row detail did. */
+.ps{position:fixed;inset:0;z-index:50;display:flex;justify-content:flex-end}
+.psb{position:absolute;inset:0;background:color-mix(in oklab,#000 45%,transparent)}
+.psp{position:relative;width:100%;max-width:520px;height:100%;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:calc(env(safe-area-inset-top,0px) + 8px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 28px) max(16px,env(safe-area-inset-left,0px));
+  box-shadow:-8px 0 30px rgba(0,0,0,.25)}
+.psn{display:flex;align-items:center;gap:10px;position:sticky;top:-8px;background:var(--bg);padding:6px 0 8px;z-index:2}
+.psn button{width:38px;height:38px;border-radius:50%;border:1px solid var(--rule);font:500 20px/1 var(--name);color:var(--ink);display:grid;place-items:center;flex:none}
+.psn span{font:600 14px/1 var(--name);color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.psn a{margin-left:auto;font:600 14px/1 var(--name);color:var(--ball);text-decoration:none;white-space:nowrap}
+.hero{display:flex;gap:12px;align-items:center;margin-top:6px}
+.hero .mug{padding:0}
+.hero .mug i{width:58px;height:58px}
+.hero h2{margin:0;font:700 22px/1.1 var(--name)}
+.hero p{margin:4px 0 0;font:500 14px/1.2 var(--name);color:var(--dim)}
+.hts{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:10px}
+.blk{margin-top:18px}
+.blk>h3{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 8px;font:700 15px/1 var(--name);color:var(--ink);text-transform:none;letter-spacing:0}
+.blk>h3 span{font:500 12px/1 var(--name);color:var(--dim)}
+.bign{display:flex;align-items:baseline;gap:16px}
+.bign .bg b{font-size:36px}.bign .bg i{font-size:15px}
+.bign .vlb{margin-left:auto;text-align:right}
+.bign .vlb i{display:block;font:600 9.5px/1 var(--name);letter-spacing:.08em;font-style:normal;color:var(--dim)}
+.bign .vlb b{font:600 18px/1.3 var(--num)}
+.sg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 8px;margin-top:14px}
+.sg div b{display:block;font:600 19px/1 var(--name)}
+.sg div i{display:block;margin-top:4px;font:600 10.5px/1.2 var(--name);letter-spacing:.06em;font-style:normal;color:var(--dim)}
+.sg div i em{font:500 10.5px/1 var(--num);font-style:normal;letter-spacing:0}
+.sg .role b{color:var(--dim)}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.tiles.t3{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:6px}
+.tl{background:var(--panel);border-radius:9px;padding:9px 9px 8px}
+.tl i{display:block;font:600 10px/1 var(--name);letter-spacing:.07em;font-style:normal;color:var(--dim);text-transform:uppercase}
+.tl b{display:block;margin-top:5px;font:700 21px/1 var(--name)}
+.tl small{display:block;margin-top:3px;font:500 10.5px/1 var(--num);color:var(--dim)}
+.tl.hi b{color:var(--pos)}.tl.lo b{color:var(--dim)}
+.tl.up{box-shadow:inset 0 0 0 1.5px var(--pos)}.tl.dn{box-shadow:inset 0 0 0 1.5px var(--neg)}
+.psp .note{margin:0;font-size:15px;line-height:1.5;max-width:none}
+.rd{background:var(--panel);border-radius:10px;padding:12px 12px 4px}
+.rd .lead{margin:0 0 10px;font:600 15.5px/1.4 var(--name);color:var(--ink)}
+.rp{display:grid;grid-template-columns:66px 1fr;gap:10px;padding:9px 0;border-top:1px solid var(--rule)}
+.rp i{font:700 10px/1.4 var(--name);letter-spacing:.07em;text-transform:uppercase;font-style:normal;color:var(--dim)}
+.rp p{margin:0;font:500 14.5px/1.45 var(--name);color:var(--ink)}
+.psp .chips{margin-top:10px}
+.psp .cmp{max-width:none}
+.ups{margin-top:8px;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:9px;border:1px solid var(--ball)}
+.ups b{font:700 26px/1 var(--name);color:var(--ball)}.ups p{margin:0;font:500 13.5px/1.35 var(--name);color:var(--ink)}
+.lg{background:var(--panel);border-radius:10px;padding:12px 10px 10px}
+.lgr{display:grid;grid-template-columns:34px repeat(var(--n),minmax(0,1fr));gap:4px;align-items:end}
+.lgr .ll{font:600 9.5px/1.2 var(--name);letter-spacing:.06em;color:var(--dim);align-self:center}
+.lgv{display:flex;flex-direction:column;height:72px}
+.lgv .u{height:36px;display:flex;align-items:flex-end;justify-content:center;border-bottom:1px solid var(--rule)}
+.lgv .d{height:36px;display:flex;align-items:flex-start;justify-content:center}
+.lgv b{width:70%;max-width:18px;display:block;border-radius:2px}
+.lgv .u b{background:var(--pos)}.lgv .d b{background:color-mix(in oklab,var(--neg) 55%,var(--panel))}
+.lgm{height:34px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+.lgm b{width:70%;max-width:18px;display:block;border-radius:2px 2px 0 0;background:color-mix(in oklab,var(--ball) 80%,transparent)}
+.lgt{font:500 9.5px/1.2 var(--num);color:var(--dim);text-align:center;white-space:nowrap;overflow:hidden}
+.lgk{margin-top:8px;font:500 11.5px/1.3 var(--name);color:var(--dim)}
+@media (min-width:900px){
+  .ruler>div,.games,.warn{max-width:1240px!important;margin-inline:auto}
+  #list,#bsList,#bzList{max-width:1240px!important;margin-inline:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));column-gap:32px}
+  .psp{max-width:480px}
+}
+
 /* Buzz rows: Yahoo's adds or drops for the day, then my ranks (Szn / 3G / Exp) and a Follow /
    Fade read built only from those numbers. */
 .bzl{margin-top:4px;font:500 12.5px/1.35 var(--name);color:var(--dim);display:flex;flex-wrap:wrap;gap:1px 8px}
@@ -329,13 +458,21 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
 </div>
 <main class="gut bzv" id="bzList"></main>
 
+<div class="ps" id="ps" hidden>
+  <div class="psb" id="psBack"></div>
+  <aside class="psp" id="psPanel" role="dialog" aria-modal="true" aria-labelledby="psTitle">
+    <div class="psn"><button id="psClose" aria-label="Close">‹</button><span id="psTitle">Player</span><a id="psLink" href="player.html">Game log ›</a></div>
+    <div id="psBody"></div>
+  </aside>
+</div>
+
 <script>
 // Display order. All 9 are scoring categories, so every cell is heat-colored - the
 // percentage cells carry makes/attempts alongside the z on their second line rather
 // than in a separate uncolored column, which broke the strip's rhythm.
 const CATS=[
-  {k:"fg",l:"FG%"},{k:"ft",l:"FT%"},{k:"tpm",l:"3PM"},{k:"pts",l:"PTS"},
-  {k:"reb",l:"REB"},{k:"ast",l:"AST"},{k:"stl",l:"STL"},{k:"blk",l:"BLK"},{k:"to",l:"TO"}];
+  {k:"pts",l:"PTS"},{k:"reb",l:"REB"},{k:"ast",l:"AST"},{k:"tpm",l:"3PM"},{k:"stl",l:"STL"},
+  {k:"blk",l:"BLK"},{k:"to",l:"TO"},{k:"fg",l:"FG%"},{k:"ft",l:"FT%"}];
 const SCATS=CATS;
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
@@ -354,7 +491,7 @@ async function getJSON(u){const r=await fetch(u,{cache:"no-store"});if(!r.ok)thr
 
 async function loadDate(d,auto){
   const same=d===S.date;
-  S.date=d;$("date").value=d;$("dateTxt").textContent=fmtDate(d);clearTimeout(S.timer);
+  S.date=d;$("date").value=d;$("dateTxt").textContent=innerWidth<430?fmtDate(d).replace(/^\w+, /,""):fmtDate(d);clearTimeout(S.timer);
   if(!same){S.players=[];S.events=[];S.open.clear();S.err=null;renderGames();renderList("Loading "+fmtDate(d)+"…")}
   let sb;
   try{sb=await getJSON(`${API}/scoreboard?dates=${d.replace(/-/g,"")}`)}
@@ -469,7 +606,7 @@ function setStatus(t){$("status").textContent=t}
 
 // ESPN ships a full-size PNG (~178KB) per player; its combiner endpoint returns a
 // ~7KB crop instead. 2x for retina, lazy so only visible rows fetch.
-const MUG=28, MUGPX=MUG*2;
+const MUG=36, MUGPX=MUG*2;
 function mug(p,pos){
   const r=pos?`<span class="pos">#${pos}</span>`:"";
   if(!p.eid)return`<div class="mug"><i></i>${r}</div>`;
@@ -493,14 +630,14 @@ function renderGames(){
   g.querySelectorAll(".tile").forEach(b=>b.onclick=()=>{S.game=b.dataset.g;renderGames();render()});
 }
 function renderCats(){
-  $("cats").innerHTML=`<button data-k="value" class="vlh" aria-pressed="${S.sort==="value"}">VAL</button>`
+  $("cats").innerHTML=`<span class="lbl">Sort</span><button data-k="value" class="vlh" aria-pressed="${S.sort==="value"}">VAL</button>`
     +CATS.map(c=>`<button data-k="${c.k}" class="${S.punt.has(c.k)?"punted":""}" aria-pressed="${S.sort===c.k}">${c.l}</button>`).join("");
   $("cats").querySelectorAll("button").forEach(b=>b.onclick=()=>setSort(S.sort===b.dataset.k?"value":b.dataset.k));
   $("toggles").innerHTML=SCATS.map(c=>`<button class="tog" data-k="${c.k}" aria-pressed="${S.punt.has(c.k)}">${c.l}</button>`).join("");
   $("toggles").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.k;
     S.punt.has(k)?S.punt.delete(k):S.punt.add(k);store.set("punt",[...S.punt]);
     $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
-    renderCats();rankWindows();rankBS();renderBS();renderBZ();if(S.players.length){scoreValue();render()}});
+    renderCats();rankWindows();rankBS();renderBS();renderBZ();if(S.players.length){scoreValue();render()}renderSheet()});
   $("bsCats").innerHTML=BSC.map(c=>`<span class="${c.c&&S.punt.has(c.c)?"punted":""}">${c.l}</span>`).join("");
   $("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.setAttribute("aria-pressed",S.sort===b.dataset.k));
 }
@@ -555,23 +692,39 @@ function render(){
   }else out=rows.map(p=>prow(p,0));
   $("list").innerHTML=out.join("");
 }
+// Card: name line (rank, name, team, minutes, Value), the big three beside the rank ladder
+// (Szn / 14 / 7 / last 3, labels attached), then the other six cats and any flags.
+const BIG=["pts","reb","ast"],SMALL=["tpm","stl","blk","to","fg","ft"];
+const CL={pts:"pts",reb:"reb",ast:"ast",tpm:"3pm",stl:"stl",blk:"blk",to:"to",fg:"fg",ft:"ft"};
+function zc(z,k){if(S.punt.has(k))return" off";return z>=1?" good":z<=-1?" bad":""}
 function prow(p,pos){
-  return`<article class="p${S.open.has(p.id)?" open":""}" data-id="${esc(p.id)}">
+  const big=BIG.map(k=>`<span class="bg${zc(p.z[k],k)}"><b>${p[k]}</b><i>${CL[k]}</i></span>`).join("");
+  const sm=SMALL.map(k=>`<span class="sm${zc(p.z[k],k)}"><b>${k==="fg"?p.fgm+"/"+p.fga:k==="ft"?p.ftm+"/"+p.fta:p[k]}</b><i>${CL[k]}</i></span>`).join("");
+  const v=p.value,vc=v>=.5?"good":v<=-.5?"bad":"";
+  return`<article class="cd" data-id="${esc(p.id)}" tabindex="0" aria-label="${esc(p.name)}: open details">
     ${mug(p,pos)}
     <div class="body">
-      <div class="l1"><span class="rk">${p.rank}</span><a class="pl" href="player.html?id=${encodeURIComponent(p.eid||p.id)}&name=${encodeURIComponent(p.name)}&team=${encodeURIComponent(p.team)}&pos=${encodeURIComponent(p.pos)}"><b>${esc(p.name)}</b></a><span class="mt">${p.team} · ${Math.round(p.min)}m${minUp(p)}</span>${ranks(p)}</div>
-      <div class="strip">${valCell(p)}${CATS.map(c=>cell(p,c)).join("")}</div>
-      <div class="more">${noteHTML(p.eid,p)}${detailHTML(p.eid,p)}</div>
+      <div class="c1"><span class="rk">${p.rank}</span><b class="nm">${esc(p.name)}</b><span class="mt">${p.team} · ${Math.round(p.min)}m${minUp(p)}</span><span class="vl ${vc}">${sgn(v)}</span></div>
+      <div class="c2"><div class="bigs">${big}</div>${ladder(p.eid)}</div>
+      <div class="c3">${sm}${hashtags(p.eid)}</div>
     </div>
   </article>`;
 }
-function ranks(p){
-  if(!R)return"";
-  const m=S.mv[p.eid];
-  return`<div class="rks">${WINS.map(w=>{const r=S.rk[w.k][p.eid];
+function ladder(id){
+  if(!R||!S.rk)return"";
+  const m=S.mv[id];
+  return`<div class="lad" aria-label="9-cat ranks">${WINS.map(w=>{const r=S.rk[w.k][id];
     let cl=!r?"na":r<=TOP?"hi":r<=ROST?"":"lo";
     if(w.k==="g3"&&m)cl+=m.hot?" up":m.cold?" dn":"";
-    return`<span class="${cl}">${r||"–"}</span>`}).join("")}</div>`;
+    return`<span class="${cl}"><i>${{season:"SZN",d14:"14D",d7:"7D",g3:"L3"}[w.k]}</i><b>${r||"–"}</b></span>`}).join("")}</div>`;
+}
+// Flags in the style of hashtags: the things worth acting on, in the accent color.
+function hashtags(id){
+  const t=[],m=S.mv&&S.mv[id],v=S.bs&&S.bs.v[id];
+  if(m&&m.mup)t.push("MinutesUp");
+  if(m&&m.hot)t.push("Riser");else if(m&&m.cold)t.push("Faller");
+  if(v==="buy")t.push(S.bs.now[id]>ROST?"PickUp":"BuyLow");else if(v==="sell")t.push("SellHigh");
+  return t.map(x=>`<span class="ht">#${x}</span>`).join("");
 }
 // Minutes jump vs the games before the last 3: the earliest sign of a new role.
 function minUp(p){const m=S.mv&&S.mv[p.eid];return m&&m.mup?`<span class="mu">▲${Math.round(m.mu)}</span>`:""}
@@ -581,7 +734,7 @@ function minUp(p){const m=S.mv&&S.mv[p.eid];return m&&m.mup?`<span class="mu">�
 //   3. this season vs. last, with the change colored when it's big enough to matter
 const chip=(l,v,cl="")=>`<span class="chip ${cl}"><b>${l}</b>${v}</span>`;
 const rkTxt=r=>r?`<span class="${r<=TOP?"hi":r<=ROST?"":"lo"}">${r}</span>`:"–";
-function detailHTML(id,tn){
+function detailHTML(id,tn,lite){
   const q=G&&G.players[id],rq=R&&R.players[id],B=S.bs,v=B&&B.v[id],ranks=[],flags=[];
   if(tn&&rq)for(const w of WINS)if(rq.w[w.k])
     ranks.push(chip(w.n,`${rkTxt(S.rk[w.k][id])}<i>${w.k==="g3"?rq.w.g3[0]+"/3":rq.w[w.k][0]}g</i>`));
@@ -595,6 +748,7 @@ function detailHTML(id,tn){
   if(rq&&rq.w.g3&&rq.pm!=null){const miss=3-rq.w.g3[0],d=rq.w.g3[1]-rq.pm;
     if(miss)flags.push(chip("Missed",`${miss} of last 3`,"flag"));
     else if(Math.abs(d)>=3)flags.push(chip("Last 3",`${Math.round(rq.w.g3[1])} min<i>${Math.round(rq.pm)} before</i>`,d>0?"good":"bad"))}
+  if(lite)return(flags.length?`<div class="chips">${flags.join("")}</div>`:"")+cmpTable(q);
   const tonight=tn?`<p class="tn">${tn.home?"vs":"@"} ${tn.opp} · ${esc(tn.pos)}${tn.starter?" · starter":""} · 3P ${tn.tpm}/${tn.tpa} · +/− ${tn.pm>0?"+":""}${tn.pm} · ${tn.pf} PF</p>`:"";
   return tonight+(ranks.length?`<div class="chips">${ranks.join("")}</div>`:"")
     +(flags.length?`<div class="chips">${flags.join("")}</div>`:"")+cmpTable(q);
@@ -687,20 +841,39 @@ function renderBS(){
   $("bsList").innerHTML=ids.length?ids.map(bsRow).join("")
     :`<div class="empty">No ${st==="buy"?"buy-low":"sell-high"} flags with these punts. Sort by Exp to see everyone.</div>`;
 }
+// The two biggest changes from last season, labeled with what they mean: minutes and usage
+// are the role (sticks); everything else is a rate that drifts back (hot cools, cold returns).
+const WHYL={mpg:"Minutes",usg:"Usage",fg:"FG%",ft:"FT%",tp:"3P%",pts:"Points",tpm:"Threes",reb:"Rebounds",ast:"Assists",stl:"Steals",blk:"Blocks",to:"Turnovers"};
+function whyLines(q,n){
+  if(!q.b)return[];
+  const F=G.rates,u=S.bsUnit==="g"?" /g":" /36",out=[];
+  for(const k of ["mpg","usg","fg","ft","tp","pts","tpm","reb","ast","stl","blk","to"]){
+    const c=unitVal(q.r,k,F),y=unitVal(q.b,k,F);if(c==null||y==null)continue;
+    if(k==="tp"&&q.att[1]<8)continue;
+    const h=bsDelta(k,c,y),role=k==="mpg"||k==="usg";if(Math.abs(h)<.75)continue;
+    const fmt=v=>k==="usg"?Math.round(v)+"%":f1(v);
+    let note,cl;
+    if(role){note=c>y?"bigger role · sticks":"smaller role";cl=c>y?"k":"bad"}
+    else if(h>0){note="running hot · cools";cl="bad"}else{note="running cold · returns";cl="good"}
+    out.push({w:Math.abs(h)*(role?1.6:1),html:`<li>${WHYL[k]}${PER36.has(k)?u:""} <b>${fmt(y)} → ${fmt(c)}</b><em class="${cl}">${note}</em></li>`});
+  }
+  return out.sort((a,b)=>b.w-a.w).slice(0,n).map(o=>o.html);
+}
 function bsRow(id){
-  const q=G.players[id],B=S.bs,v=B.v[id]||"",b=q.b,F=G.rates,at=(a,k)=>a?a[F.indexOf(k)]:null;
-  const rk=(r,cl="")=>`<span class="${(!r?"na":r<=TOP?"hi":r<=ROST?"":"lo")+cl}">${r||"–"}</span>`;
-  const cells=BSC.map(c=>{const x=unitVal(q.r,c.k,F),y=unitVal(b,c.k,F),off=c.c&&S.punt.has(c.c);
-    return`<div class="c${off?" off":""}" style="${off||!b?"":heat(bsDelta(c.k,x,y))}"><span class="lb">${c.l}</span>${f1(x)}<span class="z">${b?f1(y):"–"}</span></div>`}).join("");
-  const more=otherLine(q)+noteHTML(id)+detailHTML(id)
-    +(b?`<p class="cap">Small numbers under the strip: ${baseName(q)}. 3PM through TO are ${S.bsUnit==="g"?"per game":"per 36 minutes"}.</p>`:"");
-  return`<article class="p${S.bsOpen.has(id)?" open":""}" data-id="${esc(id)}">
+  const q=G.players[id],B=S.bs,v=B.v[id]||"",now=B.now[id],x=B.x[id],ly=B.ly[id];
+  const a=analyst(id),vc=v==="buy"?"good":v==="sell"?"bad":"";
+  const why=whyLines(q,2);
+  let pr="";
+  if(v==="buy"){const p=Math.round(Math.sqrt(now*x));pr=now>ROST&&!(ly&&ly<=ROST)?"Likely on waivers: <b>worth a pickup</b>":p>ROST?"Shouldn't cost more than <b>a bench piece</b>":`Offer <b>${priceText(p)}</b>`}
+  else if(a.tag==="Sell high")pr=`Ask for <b>${priceText(Math.round(Math.sqrt(now*x)))}</b> or better`;
+  else if(a.tag==="Ride it")pr=`Hold; expect a fade toward <b>#${x}</b>`;
+  return`<article class="cd" data-id="${esc(id)}" tabindex="0" aria-label="${esc(q.n)}: open details">
     ${mug({eid:id})}
     <div class="body">
-      <div class="l1"><span class="vd ${v}">${v}</span><a class="pl" href="player.html?id=${encodeURIComponent(id)}&name=${encodeURIComponent(q.n)}&team=${encodeURIComponent(q.t)}"><b>${esc(q.n)}</b></a><span class="mt">${q.t} · ${q.now[0]}g</span>
-        <div class="rks r3">${rk(B.now[id])}${b?rk(B.x[id],v==="buy"?" up":v==="sell"?" dn":""):rk(0)}${rk(B.ly[id])}</div></div>
-      <div class="strip bstrip">${cells}</div>
-      <div class="more">${more}</div>
+      <div class="c1"><b class="nm">${esc(q.n)}</b><span class="mt">${q.t} · ${q.now[0]}g</span><span class="vt ${a.cls||"ok"}">${a.tag||""}</span></div>
+      <div class="mv"><span class="r now"><b>#${now}</b><i>now</i></span><span class="ar" aria-hidden="true">→</span><span class="r x ${vc}"><b>${q.b?"#"+x:"–"}</b><i>expected</i></span><span class="r ly"><b>${ly?"#"+ly:"–"}</b><i>last season</i></span></div>
+      ${why.length?`<ul class="why">${why.join("")}</ul>`:""}
+      ${pr?`<div class="pr">${pr}</div>`:""}
     </div>
   </article>`;
 }
@@ -739,12 +912,11 @@ All three use your punts and the same top-130 pool.</p>
 <b>Sell</b>: the mirror case, for anyone inside the top ${cut} now.<br>
 Needs ${BSMIN_GP}+ games and a baseline. The percentage rule scales with rank: #10 → #18 isn't news, #130 → #40 is.</p>
 
-<h3>Reading a row</h3>
-<p>The strip is this season: MIN, USG, FG%, FT%, then 3PM, PTS, REB, AST, STL, BLK, TO, per 36 minutes or per game (the switch above the strip). <b>Per 36</b> is what a player would average in a full starter's 36 minutes, so a bench player and a starter compare fairly; it's the rate Exp is built from, so it shows the signal best. <b>Per game</b> is that rate times his actual minutes, the numbers your league sees. Opening a row shows the other one in words. <b style="color:var(--pos)">Green</b> = better for fantasy than last season, <b style="color:var(--neg)">red</b> = worse (more turnovers is red). Darker = bigger gap. Exp gets a green pill for Buy, red for Sell. Tap a row to see last season's number under each cell, plus the shot volume behind each percentage.</p>
-<p><b>Quick read.</b> MIN and USG steady but FG% or 3P% red: probably a slump that bounces back. MIN or USG down: a role change. Exp won't flag that, and it may well be real. Shooting way up with nothing else changed: enjoy it, but it's the first thing to fade.</p>
+<h3>Reading a card</h3>
+<p>The big number on the left is the season rank now, the green one the expected rank, and last season's finish sits on the right. Under it, the two biggest changes from last season: minutes and usage are the role (they tend to stick); everything else is a rate that drifts back, so <b style="color:var(--neg)">running hot</b> means expect cooling and <b style="color:var(--pos)">running cold</b> means expect a recovery. The Per 36 / Per game switch sets the units. Tap a card for the full page: the season line, ranks, a game-by-game chart, the written read and the full comparison with last season.</p>
 
 <h3>The analyst note</h3>
-<p>Tap any player, on any tab, for a written read for a 10-team league. It opens with the call, then the why. It's built only from the numbers: minutes, usage, shooting with its sample size, per-36 changes against last season, blowouts (20+ point margins) and foul trouble (5+ fouls) that cut minutes, the team's last 3 games, what the same per-minute numbers would rank at ${(Object.values(G.players).find(q=>q.up)||{up:[0,30]}).up[1]} minutes for bench players, the category profile and any punt build it suits. It says which parts are role (minutes and usage tend to stick) and which are luck (shooting, steals and blocks swing), and puts a price on buy-low and sell-high trades: a player ranked about halfway between Now and Exp. On the Box tab, that night's game comes right after the call. It knows nothing about injuries, news or depth charts. Missed games get flagged so you can go check.</p>
+<p>Tap any player, on any tab, for their page and a written read for a 10-team league. It opens with the call, then the why. It's built only from the numbers: minutes, usage, shooting with its sample size, per-36 changes against last season, blowouts (20+ point margins) and foul trouble (5+ fouls) that cut minutes, the team's last 3 games, what the same per-minute numbers would rank at ${(Object.values(G.players).find(q=>q.up)||{up:[0,30]}).up[1]} minutes for bench players, the category profile and any punt build it suits. It says which parts are role (minutes and usage tend to stick) and which are luck (shooting, steals and blocks swing), and puts a price on buy-low and sell-high trades: a player ranked about halfway between Now and Exp. On the Box tab, that night's game comes right after the call. It knows nothing about injuries, news or depth charts. Missed games get flagged so you can go check.</p>
 <table><tr><th>Tag</th><th></th></tr>
 <tr><td><b>Buy low</b></td><td style="text-align:left">Flagged Buy and probably rostered (inside ${cut} now or last season, or 40%+ rostered on Yahoo): trade for this player.</td></tr>
 <tr><td><b>Pick up</b></td><td style="text-align:left">Flagged Buy, outside ${cut} now and last season: probably on waivers.</td></tr>
@@ -932,7 +1104,8 @@ function analyst(id,tn){
   else{tag="Pass";cls="dim";lead=`Pass in 10-team leagues: ${nm} profiles as #${ref}${deepText(ref)}.`}
   if(!sure)lead=lead.replace(/\.$/,"; early, so this can change fast.");
   if(after)s.push(after);
-  return{tag,cls,text:[lead,tnote,...s].filter(Boolean).join(" ")};
+  const parts=[lead,tnote,...s].filter(Boolean);
+  return{tag,cls,text:parts.join(" "),parts};
 }
 function noteHTML(id,tn){
   const a=analyst(id,tn);if(!a.text)return"";
@@ -980,20 +1153,18 @@ const fmtN=n=>Number(n).toLocaleString("en-US");
 function bzRow(r){
   const drop=S.bzSort==="drops",id=bzId(r),rq=id&&R.players[id],g=rq&&rq.w.g3;
   const q=id&&G&&G.players[id],B=S.bs;
-  const rk=(n,cl="")=>`<span class="${(!n?"na":n<=TOP?"hi":n<=ROST?"":"lo")+cl}">${n||"–"}</span>`;
-  const rd=id?bzRead(id,drop):{t:"",c:"dim",why:"not in my ranks yet"};
-  const mu=g&&rq.pm!=null?g[1]-rq.pm:0;
-  const min=g?`${Math.round(g[1])} min${mu>=3?`<span class="mu">▲${Math.round(mu)}</span>`:mu<=-3?`<span class="dn">▼${Math.round(-mu)}</span>`:""}`:"";
-  const key=r.name;let more="";
-  if(id&&S.bzOpen.has(key)){try{more=(G?noteHTML(id):"")+detailHTML(id)}catch(e){more=""}}
-  const nm=id?`<a class="pl" href="player.html?id=${encodeURIComponent(id)}&name=${encodeURIComponent(rq.n)}&team=${encodeURIComponent(rq.t)}"><b>${esc(r.name)}</b></a>`:`<b>${esc(r.name)}</b>`;
-  return`<article class="p${S.bzOpen.has(key)?" open":""}" data-k="${esc(key)}">
+  const rd=id?bzRead(id,drop):{t:"",c:"dim",why:"Not in my ranks yet."};
+  const mu=g&&rq.pm!=null?Math.round(g[1]-rq.pm):0;
+  const tc={buy:"good",sell:"bad",dim:"dim"}[rd.c]||"ok";
+  const mins=g?`<span class="bg ${mu>=3?"up":mu<=-3?"dn":""}"><b>${mu>=3?"▲"+mu:mu<=-3?"▼"+(-mu):Math.round(g[1])}</b><i>${mu>=3||mu<=-3?"min":"min"}</i></span>`:"";
+  const ctx=id&&S.rk?`<div class="bzx">Szn <b>#${S.rk.season[id]||"–"}</b> · last 3 <b>#${g?S.rk.g3[id]:"–"}</b>${q&&q.b&&B?` · exp <b>#${B.x[id]}</b>`:""}</div>`:"";
+  return`<article class="cd" ${id?`data-id="${esc(id)}" tabindex="0"`:""} aria-label="${esc(r.name)}">
     ${mug({eid:id})}
     <div class="body">
-      <div class="l1"><span class="vd ${rd.c}">${rd.t}</span>${nm}<span class="mt">${esc(r.team)}</span>
-        <div class="rks r3">${rk(id&&S.rk?S.rk.season[id]:0)}${rk(g&&S.rk?S.rk.g3[id]:0)}${rk(q&&q.b&&B?B.x[id]:0,B&&B.v[id]==="buy"?" up":B&&B.v[id]==="sell"?" dn":"")}</div></div>
-      <div class="bzl"><span><span class="n">${drop?"−"+fmtN(r.drops):"+"+fmtN(r.adds)}</span> ${drop?"drops":"adds"}</span><span>${esc(r.pos)} · ${r.ros}% ros</span>${min?`<span>${min}</span>`:""}${rd.why?`<span class="why">${esc(rd.why)}</span>`:""}</div>
-      <div class="more">${more}</div>
+      <div class="c1"><b class="nm">${esc(r.name)}</b><span class="mt">${esc(r.team)} · ${esc(r.pos)}</span><span class="vt ${tc}">${rd.t}</span></div>
+      <div class="bzb"><span class="bg"><b>${drop?"−"+fmtN(r.drops):"+"+fmtN(r.adds)}</b><i>${drop?"drops":"adds"}</i></span><span class="bg"><b>${r.ros}%</b><i>rostered</i></span>${mins}</div>
+      ${rd.why?`<div class="bzw">${esc(rd.why.charAt(0).toUpperCase()+rd.why.slice(1))}</div>`:""}
+      ${ctx}
     </div>
   </article>`;
 }
@@ -1003,7 +1174,7 @@ function renderBZ(){
   $("bzSort").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.bzSort));
   $("bzStatus").textContent=`${rows.length} · Yahoo ${drop?"drops":"adds"}`;
   $("bzAsOf").textContent=fmtDate(BZ.date).replace(/^\w+, /,"");
-  const cap=`<p class="bzcap">Across all Yahoo leagues on ${fmtDate(BZ.date)}. ${drop?"<b>Panic</b> = my numbers still like him; <b>Agree</b> = the role shrank.":"<b>Follow</b> = minutes or Exp back it up; <b>Fade</b> = it doesn't."} Ranks${R?` thru ${fmtDate(R.asOf).replace(/^\w+, /,"")}`:" loading"}. Tap a player for the full read.</p>`;
+  const cap=`<p class="bzcap">Across all Yahoo leagues on ${fmtDate(BZ.date)}. ${drop?"<b>Panic</b> = my numbers still like him; <b>Agree</b> = the role shrank.":"<b>Follow</b> = minutes or Exp back it up; <b>Fade</b> = it doesn't."} Ranks${R?` thru ${fmtDate(R.asOf).replace(/^\w+, /,"")}`:" loading"}. Tap a player for the full page.</p>`;
   $("bzList").innerHTML=rows.length?cap+rows.map(bzRow).join(""):`<div class="empty">No Yahoo buzz for this day.</div>`;
 }
 fetch("data/buzz.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
@@ -1022,20 +1193,159 @@ fetch("data/regression.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
     G=j;rankBS();renderBS();if(S.players.length)render();if(BZ)renderBZ()})
   .catch(()=>bsMsg("Couldn't load the Buy/Sell data."));
 
+// ---- Player sheet: everything about one player, opened from any card. tn = that night's
+// box-score line when opened from the Box tab. Back (or the browser's back) closes it.
+const WEB="https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes";
+// Fixed league shape for one game's z-scores (same as player.html), since a game log spans
+// many nights rather than one slate.
+const LG={fg:.470,ft:.785,mean:{pts:11.2,tpm:1.3,reb:4.4,ast:2.6,stl:.7,blk:.5,to:1.3,fgi:0,fti:0},
+  sd:{pts:7.9,tpm:1.4,reb:3.1,ast:2.3,stl:.8,blk:.7,to:1.1,fgi:2.6,fti:1.3}};
+S.ps=null;
+function psName(id,tn){const q=G&&G.players[id],rq=R&&R.players[id];return tn?tn.name:q?q.n:rq?rq.n:"Player"}
+function openSheet(id,tn){
+  if(!id)return;
+  const was=!!S.ps;S.ps={id,tn};
+  $("ps").hidden=false;document.body.style.overflow="hidden";
+  if(!was)try{history.pushState({ps:1},"")}catch(e){}
+  renderSheet();$("psPanel").scrollTop=0;$("psClose").focus({preventScroll:true});
+  loadLog(id);
+}
+function closeSheet(fromPop){
+  if(!S.ps)return;S.ps=null;$("ps").hidden=true;document.body.style.overflow="";
+  if(!fromPop)try{history.back()}catch(e){}
+}
+window.addEventListener("popstate",()=>{if(S.ps)closeSheet(true)});
+function tile(l,r,sub,cl=""){return`<div class="tl ${r?(r<=TOP?"hi":r<=ROST?"":"lo"):"lo"} ${cl}"><i>${l}</i><b>${r?"#"+r:"–"}</b>${sub?`<small>${sub}</small>`:""}</div>`}
+function renderSheet(){
+  if(!S.ps)return;
+  const{id,tn}=S.ps,q=G&&G.players[id],rq=R&&R.players[id],B=S.bs,nm=psName(id,tn);
+  const team=tn?tn.team:q?q.t:rq?rq.t:"";
+  $("psTitle").textContent=nm;
+  $("psLink").href=`player.html?id=${encodeURIComponent(id)}&name=${encodeURIComponent(nm)}&team=${encodeURIComponent(team)}${tn?"&pos="+encodeURIComponent(tn.pos):""}`;
+  const a=G&&B?analyst(id,tn):{text:tn?tonightNote(tn):""};
+  const h=[];
+  // Header
+  const sub=tn?`${team} · ${tn.home?"vs":"@"} ${tn.opp}${tn.pos?" · "+esc(tn.pos):""}${tn.starter?" · starter":""}`
+    :`${team}${q?` · ${q.now[0]} games · ${f1(q.r[G.rates.indexOf("mpg")])} min`:""}`;
+  h.push(`<div class="hero">${mug({eid:id})}<div><h2>${esc(nm)}</h2><p>${sub}</p></div></div>`);
+  const tg=(a.tag?`<span class="vt ${a.cls||"ok"}" style="margin:0">${a.tag}</span>`:"")+hashtags(id);
+  if(tg)h.push(`<div class="hts">${tg}</div>`);
+  // Tonight
+  if(tn){
+    const z=k=>tn.z[k],zs=k=>S.punt.has(k)?"punted":sgn(z(k),1);
+    h.push(`<section class="blk"><h3>Tonight <span>${fmtDate(S.date)}</span></h3><div class="bign">${BIG.map(k=>`<span class="bg${zc(z(k),k)}"><b>${tn[k]}</b><i>${CL[k]}</i></span>`).join("")}
+      <span class="vlb"><i>VALUE · #${tn.rank}</i><b class="${tn.value>=.5?"good":tn.value<=-.5?"bad":""}" style="color:${tn.value>=.5?"var(--pos)":tn.value<=-.5?"var(--neg)":"var(--ink)"}">${sgn(tn.value)}</b></span></div>
+      <div class="sg">${SMALL.map(k=>{const v=k==="fg"?`${tn.fgm}/${tn.fga}`:k==="ft"?`${tn.ftm}/${tn.fta}`:tn[k];
+        return`<div class="${zc(z(k),k).trim()}"><b>${v}</b><i>${CL[k].toUpperCase()} <em>${zs(k)}</em></i></div>`}).join("")}
+        <div class="role"><b>${Math.round(tn.min)}</b><i>MIN</i></div><div class="role"><b>${tn.usg.toFixed(0)}%</b><i>USAGE</i></div>
+        <div class="role"><b>${tn.pm>0?"+":""}${tn.pm}</b><i>+/−</i></div><div class="role"><b>${tn.pf}</b><i>FOULS</i></div></div></section>`);
+  }
+  // Season line
+  if(q){
+    const pg=k=>q.pg[G.pgf.indexOf(k)],F=G.rates,r=k=>q.r[F.indexOf(k)],sz=rq&&rq.w.season,zi=k=>sz?sz[2+R.cats.indexOf(k)]:0;
+    const val=sz?SCATS.filter(c=>!S.punt.has(c.k)).reduce((s,c)=>s+zi(c.k),0)/Math.max(1,SCATS.filter(c=>!S.punt.has(c.k)).length):null;
+    h.push(`<section class="blk"><h3>Season <span>per game · ${q.now[0]} games</span></h3><div class="bign">${BIG.map(k=>`<span class="bg${zc(zi(k),k)}"><b>${f1(pg(k))}</b><i>${CL[k]}</i></span>`).join("")}
+      ${val!=null?`<span class="vlb"><i>VALUE</i><b style="color:${val>=.5?"var(--pos)":val<=-.5?"var(--neg)":"var(--ink)"}">${sgn(val)}</b></span>`:""}</div>
+      <div class="sg">${SMALL.map(k=>{const v=k==="fg"?d1(r("fg"))+"%":k==="ft"?d1(r("ft"))+"%":f1(pg(k));
+        const att=k==="fg"?` <em>${f1(q.att[0]/q.now[0])} att</em>`:k==="ft"?` <em>${f1(q.att[2]/q.now[0])} att</em>`:"";
+        return`<div class="${zc(zi(k),k).trim()}"><b>${v}</b><i>${CL[k].toUpperCase()}${att}</i></div>`}).join("")}
+        <div class="role"><b>${f1(r("mpg"))}</b><i>MIN</i></div><div class="role"><b>${Math.round(r("usg"))}%</b><i>USAGE</i></div></div></section>`);
+  }
+  // Ranks
+  if(rq&&S.rk){
+    const m=S.mv[id];
+    h.push(`<section class="blk"><h3>9-cat rank <span>top ${TOP} start · top ${ROST} rostered</span></h3><div class="tiles">${WINS.map(w=>{const a=rq.w[w.k];
+      return tile({season:"Season",d14:"14 days",d7:"7 days",g3:"Last 3"}[w.k],a?S.rk[w.k][id]:0,a?(w.k==="g3"?a[0]+"/3 played":a[0]+"g · "+Math.round(a[1])+"m"):"",w.k==="g3"&&m?(m.hot?"up":m.cold?"dn":""):"")}).join("")}</div>
+      ${q&&B?`<div class="tiles t3">${tile("Now",B.now[id],"this season")}${tile("Expected",q.b?B.x[id]:0,q.b?"if luck evens out":"no baseline",B.v[id]==="buy"?"up":B.v[id]==="sell"?"dn":"")}${tile("Last season",B.ly[id],"final rank")}</div>`:""}</section>`);
+  }
+  // Game log chart (filled in async)
+  h.push(`<section class="blk"><h3>Game by game <span>last 10 · value and minutes</span></h3><div class="lg" id="psLog"><p class="lgk">Loading game log…</p></div></section>`);
+  // The read
+  if(a.text)h.push(`<section class="blk"><h3>The read <span>from the numbers, 10-team league</span></h3>${readHTML(a)}</section>`);
+  if(q&&q.up&&B){const uv=B.val(q.up),ur=1+B.xs.filter(t=>t>uv).length;
+    if(ur<=ROST&&ur<(q.b?B.x[id]:B.now[id])-25)h.push(`<div class="ups"><b>#${ur}</b><p>If the minutes reach <b>${q.up[1]} a game</b>, these per-minute numbers rank around #${ur}. That's the upside.</p></div>`)}
+  // This season vs last
+  if(q){h.push(`<section class="blk"><h3>This season vs ${q.b?baseName(q):"last season"} <span>${S.bsUnit==="g"?"per game":"per 36"} · switch on Buy/Sell</span></h3>${detailHTML(id,tn,true)}${cmpCounts(q)}</section>`)}
+  $("psBody").innerHTML=h.join("");
+}
+// The analyst note split into labeled parts so it scans like a write-up: the call first, then
+// role, shooting, per-36, upside, outlook, fit and price. Same sentences as the note, nothing cut.
+const RL=[["Tonight",/^(Big|Good|Middling|Quiet|Rough) night|^So far tonight/],["Season",/is averaging|tiny sample|no baseline/i],
+  ["Role",/role|Minutes have|blowout|garbage time|Foul trouble|Missed \d|touches/i],["Shooting",/shooting|from the field|at the line/i],
+  ["Per 36",/^Per 36/],["Upside",/per-minute production/],["Outlook",/expected line|grades out|Pull the hot spots|With those numbers|start looks real/],
+  ["Trend",/^Trending/],["Fit",/Helps most|No standout|better fit|Most of the value/],["Price",/fair price|Aim for|cost more than|best time to ask/i]];
+function readHTML(a){
+  if(!a.parts)return`<p class="note">${a.text}</p>`;
+  const [lead,...rest]=a.parts,groups=[];
+  for(const t of rest){const l=(RL.find(([,re])=>re.test(t))||["More"])[0],g=groups[groups.length-1];
+    if(g&&g.l===l)g.t.push(t);else groups.push({l,t:[t]})}
+  return`<div class="rd"><p class="lead">${lead}</p>${groups.map(g=>`<div class="rp"><i>${g.l}</i><p>${g.t.join(" ")}</p></div>`).join("")}</div>`;
+}
+// Counting stats against the baseline, in the Buy/Sell tab's unit (per 36 or per game).
+function cmpCounts(q){
+  if(!q.b)return"";
+  const F=G.rates,rows=["pts","reb","ast","tpm","stl","blk","to"].map(k=>{
+    const c=unitVal(q.r,k,F),y=unitVal(q.b,k,F),h=bsDelta(k,c,y),d=c-y,cl=Math.abs(h)<.75?"":h>0?"up":"dn";
+    return`<tr><td>${WHYL[k]}</td><td class="now">${f1(c)}</td><td class="ly">${f1(y)}</td><td class="d ${cl}">${(d>0?"+":d<0?"−":"")+Math.abs(d).toFixed(1)}</td></tr>`}).join("");
+  return`<table class="cmp" style="margin-top:10px"><tr><th></th><th>Now</th><th>Before</th><th>Chg</th></tr>${rows}</table>`;
+}
+async function loadLog(id){
+  const box=()=>$("psLog");
+  try{
+    const j=await getJSON(`${WEB}/${encodeURIComponent(id)}/gamelog`);
+    if(!S.ps||S.ps.id!==id)return;
+    const gs=parseLog(j).slice(0,10).reverse();
+    if(!gs.length){box().innerHTML=`<p class="lgk">No regular-season games yet.</p>`;return}
+    const act=SCATS.filter(c=>!S.punt.has(c.k));
+    for(const g of gs)g.value=act.length?act.reduce((a,c)=>a+g.z[c.k],0)/act.length:0;
+    const vh=v=>Math.max(2,Math.round(Math.min(Math.abs(v),1.2)/1.2*34)),n=gs.length;
+    const col=g=>`<div class="lgv"><div class="u">${g.value>=0?`<b style="height:${vh(g.value)}px"></b>`:""}</div><div class="d">${g.value<0?`<b style="height:${vh(g.value)}px"></b>`:""}</div></div>`;
+    const md=d=>{const t=new Date(d);return isNaN(t)?"":(t.getMonth()+1)+"/"+t.getDate()};
+    box().innerHTML=`<div class="lgr" style="--n:${n}"><span class="ll">VALUE</span>${gs.map(col).join("")}</div>
+      <div class="lgr" style="--n:${n};margin-top:3px"><span></span>${gs.map(g=>`<span class="lgt">${sgn(g.value,1)}</span>`).join("")}</div>
+      <div class="lgr" style="--n:${n};margin-top:8px"><span class="ll">MIN</span>${gs.map(g=>`<div class="lgm"><span class="lgt">${Math.round(g.min)}</span><b style="height:${Math.round(Math.min(g.min,42)/42*24)}px"></b></div>`).join("")}</div>
+      <div class="lgr" style="--n:${n};margin-top:5px"><span></span>${gs.map(g=>`<span class="lgt">${md(g.date)}<br>${g.at==="@"?"@":""}${esc(g.opp)}</span>`).join("")}</div>
+      <p class="lgk">Each game scored on a fixed league scale with your punts applied. <a href="${$("psLink").href}" style="color:var(--ball)">Full game log ›</a></p>`;
+  }catch(e){if(S.ps&&S.ps.id===id)box().innerHTML=`<p class="lgk">Couldn't load the game log from ESPN.</p>`}
+}
+function parseLog(j){
+  const names=j.names||[],out=[],ix=n=>names.indexOf(n);
+  const I={min:ix("minutes"),fg:ix("fieldGoalsMade-fieldGoalsAttempted"),tp:ix("threePointFieldGoalsMade-threePointFieldGoalsAttempted"),
+    ft:ix("freeThrowsMade-freeThrowsAttempted"),reb:ix("totalRebounds"),ast:ix("assists"),blk:ix("blocks"),stl:ix("steals"),to:ix("turnovers"),pts:ix("points")};
+  for(const st of j.seasonTypes||[]){
+    if(!/Regular Season/i.test(st.displayName)||/Preseason/i.test(st.displayName))continue;
+    for(const cat of st.categories||[])for(const ev of cat.events||[]){
+      const s=ev.stats||[],meta=(j.events||{})[ev.eventId]||{};
+      const [fgm,fga]=split(s[I.fg]),[tpm]=split(s[I.tp]),[ftm,fta]=split(s[I.ft]);
+      out.push({date:meta.gameDate||"",opp:(meta.opponent||{}).abbreviation||"",at:meta.atVs||"vs",
+        min:parseFloat(s[I.min])||0,pts:+s[I.pts]||0,reb:+s[I.reb]||0,ast:+s[I.ast]||0,stl:+s[I.stl]||0,
+        blk:+s[I.blk]||0,to:+s[I.to]||0,fgm,fga,tpm,ftm,fta})}
+  }
+  out.sort((a,b)=>(b.date>a.date?1:b.date<a.date?-1:0));
+  const src={pts:"pts",tpm:"tpm",reb:"reb",ast:"ast",stl:"stl",blk:"blk",fg:"fgi",ft:"fti",to:"to"};
+  for(const g of out){g.fgi=g.fgm-LG.fg*g.fga;g.fti=g.ftm-LG.ft*g.fta;g.z={};
+    for(const c of SCATS){const k=src[c.k];g.z[c.k]=(c.k==="to"?-1:1)*((g[k]-LG.mean[k])/LG.sd[k])}}
+  return out;
+}
+function cardOpen(e,list){
+  const a=e.target.closest(".cd[data-id]");if(!a)return;
+  const id=a.dataset.id;
+  if(list==="list"){const p=S.players.find(x=>x.id===id);openSheet(p?p.eid||p.id:id,p)}
+  else openSheet(id,null);
+}
+
 // ---- controls
-$("list").onclick=e=>{if(e.target.closest(".pl"))return;   // name taps go to the player log
-  const a=e.target.closest(".p");if(!a)return;const id=a.dataset.id;
-  S.open.has(id)?S.open.delete(id):S.open.add(id);a.classList.toggle("open")};
-$("bsList").onclick=e=>{if(e.target.closest(".pl"))return;
-  const a=e.target.closest(".p");if(!a)return;const id=a.dataset.id;
-  S.bsOpen.has(id)?S.bsOpen.delete(id):S.bsOpen.add(id);a.classList.toggle("open")};
+for(const l of ["list","bsList","bzList"]){
+  $(l).onclick=e=>cardOpen(e,l);
+  $(l).onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();cardOpen(e,l)}};
+}
+$("psClose").onclick=()=>closeSheet();
+$("psBack").onclick=()=>closeSheet();
+$("ps").onkeydown=e=>{if(e.key==="Escape")closeSheet()};
 $("bsSort").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsSort=b.dataset.k;store.set("bsSort",S.bsSort);renderBS()});
-$("bsUnit").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsUnit=b.dataset.u;store.set("bsUnit",S.bsUnit);renderBS()});
+$("bsUnit").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsUnit=b.dataset.u;store.set("bsUnit",S.bsUnit);renderBS();renderSheet()});
 $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>setView(b.dataset.v));
 $("bsInfo").onclick=()=>toggleHelp($("bsHelp").hidden);
-$("bzList").onclick=e=>{if(e.target.closest(".pl"))return;
-  const a=e.target.closest(".p");if(!a)return;const k=a.dataset.k;
-  S.bzOpen.has(k)?S.bzOpen.delete(k):S.bzOpen.add(k);renderBZ()};
 $("bzSort").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bzSort=b.dataset.k;store.set("bzSort",S.bzSort);S.bzOpen.clear();renderBZ()});
 setView(location.hash==="#buysell"?"bs":location.hash==="#buzz"?"bz":"box");
 $("prev").onclick=()=>loadDate(shift(S.date,-1));

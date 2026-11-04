@@ -11,12 +11,12 @@ A phone-first NBA box score viewer for **9-category fantasy basketball**. It ran
 - Loads every game for a date (US Eastern) and ranks all players who played by **Value**.
 - **Buzz tab:** Yahoo's most added and dropped players for yesterday, next to your Szn / 3G / Exp ranks and minutes trend, with a Follow / Fade (adds) or Panic / Agree (drops) read built from those numbers. Linkable at `#buzz`.
 - **Buy/Sell tab:** is a hot or cold start real? This season's per-minute numbers against last season's, with an expected rank (see below).
-- Shows each player's 9 categories as a heat-colored strip (green = helped, red = hurt), plus minutes, usage %, starter flag and matchup.
+- **Cards, one per player.** Fixed stat order everywhere: PTS · REB · AST as big numbers, then 3PM · STL · BLK · TO · FG · FT, then the role (MIN, USG). Every number carries its label; green/red only marks a real standout (|z| ≥ 1). Each Box card also has the rank ladder (Szn / 14D / 7D / L3) and hashtag flags (#MinutesUp, #Riser, #Faller, #BuyLow, #PickUp, #SellHigh). On wide screens the cards flow into a grid.
+- **Player page:** tap any card on any tab. Tonight's line with z-scores, the season line, rank tiles (Season / 14 / 7 / Last 3, Now / Expected / Last season), a last-10 game-by-game chart (Value and minutes, from ESPN's game log, punts applied), the written read split into labeled parts, the 30-minute upside, and this season vs. last. Full screen on a phone, a side panel on desktop; back closes it.
 - **Live:** in-progress games refresh every 60 s, and again whenever the page comes back into view.
 - On first load, if no game has tipped off today, it shows the previous night.
 - **Punt** any categories (Value is recomputed without them). Choose the comparison pool (everyone / 10+ / 15+ / 20+ minutes).
 - Sort by Value, minutes, usage, or any single category's z-score (tap the category label).
-- Tap a player row to see each category's z-score, plus +/-, fouls and shot attempts.
 - Light and dark themes follow the phone's setting.
 
 ## How Value is calculated
