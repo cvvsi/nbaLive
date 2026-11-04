@@ -1,0 +1,36 @@
+# One-off: fit Proj's blend constants on last season (backtest.js). Manual only. The first run
+# fetches two seasons of box scores (~2,500, several minutes); they're cached for later runs.
+name: Backtest
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .cache/season-*.json
+          key: seasons-v1-${{ github.run_id }}
+          restore-keys: seasons-v1-
+      - run: node backtest.js 2> fetch.log
+      - run: tail -5 fetch.log
+        if: always()
+      - name: Commit the summary
+        run: |
+          git add data/backtest.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Backtest summary"
+          for i in 1 2 3; do git pull --rebase && git push && exit 0; sleep $((i*5)); done; exit 1
