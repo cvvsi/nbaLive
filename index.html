@@ -71,13 +71,16 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .cd.lr{display:block;padding:7px 0 7px}
 .lr .lr1{display:flex;align-items:baseline;gap:6px;min-width:0}
 .lr .rk{font:600 11.5px/1 var(--num);color:var(--dim);width:18px;flex:none}
+.lr .hs{width:26px;height:26px;border-radius:50%;background:var(--cell);flex:none;overflow:hidden;align-self:center;margin:-6px 1px -6px 0}
+.lr .hs img{width:100%;height:100%;display:block;object-fit:cover;object-position:top center}
+.lr .hs img.bad{visibility:hidden}
 .lr .nm{font:600 15px/1.2 var(--name);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .lr .mt{font:500 12px/1 var(--name);color:var(--dim);white-space:nowrap;flex:none}
 .lr .ij{font:600 11px/1 var(--name);color:var(--neg);white-space:nowrap;flex:none}
 .lr .ij.dtd{color:var(--ball)}
 .lr .sd{margin-left:auto;font:500 12px/1 var(--num);color:var(--dim);flex:none;padding-left:6px}
 .lr .vl{font:600 14px/1 var(--num);flex:none;min-width:44px;text-align:right}
-.cd.lr .lr2{display:block;margin-top:3px;padding-left:24px}
+.cd.lr .lr2{display:block;margin-top:3px;padding-left:57px}
 .lr .lr2 span{display:inline-flex;align-items:baseline;gap:2px;white-space:nowrap}
 .lr .lb3{display:flex;gap:12px}
 .lr .lb3 b{font:700 18px/1.15 var(--name);color:var(--ink)}
@@ -1429,13 +1432,15 @@ function pjCard(o){
 S.dense=store.get("dense",true);
 function ijTag(id){const i=ijOf(id);if(!i)return"";const out=ijOut(i),sh=d=>fmtDate(d).replace(/^\w+, /,"");
   return`<span class="ij${out?"":" dtd"}">${out?"OUT"+(i[1]?" ~"+sh(i[1]):""):"DTD"}</span>`}
+// Small headshot for list rows (ESPN's CDN, cropped to the face; a blank circle if missing).
+const hs=id=>`<span class="hs">${/^\d+$/.test(id)?`<img src="https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${id}.png&w=48&h=48&scale=crop" alt="" loading="lazy" decoding="async" width="24" height="24" onerror="this.classList.add('bad')">`:""}</span>`;
 function lrow(o){
   const l=o.l,m=k=>o.mk&&o.mk[k]?" mk":"",off=k=>S.punt.has(k)?" off":"";
   const val=k=>k==="fg"?pctT(l.fgm,l.fga):k==="ft"?pctT(l.ftm,l.fta):f1(l[k]);
   const c=`<div class="lb3">${BIG.map(k=>`<span class="${off(k).trim()}"><b class="${m(k).trim()}">${val(k)}</b><i>${CL[k]}</i></span>`).join("")}</div>`
     +`<div class="ls6">${SMALL.map(k=>`<span class="${off(k).trim()}"><b class="${m(k).trim()}">${val(k)}</b><i>${CL[k]}</i></span>`).join("")}</div>`;
   return`<article class="cd lr" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(o.q.n)}: open details">
-    <div class="lr1"><span class="rk">${o.rank}</span><b class="nm">${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)} · ${Math.round(o.min)}m</span>${ijTag(o.id)}<span class="sd">${o.sdl||""}</span><span class="vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</span></div>
+    <div class="lr1"><span class="rk">${o.rank}</span>${hs(o.id)}<b class="nm">${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)} · ${Math.round(o.min)}m</span>${ijTag(o.id)}<span class="sd">${o.sdl||""}</span><span class="vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</span></div>
     <div class="lr2">${c}</div></article>`;
 }
 const listOn=()=>S.dense&&(document.body.dataset.view==="pj"||document.body.dataset.view==="rk");
