@@ -125,7 +125,7 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .tc .th b{font:700 16px/1 var(--name)}
 .tc .th span{font:500 12.5px/1 var(--name);color:var(--dim)}
 .tc .th .dd{display:flex;gap:2px}
-.tc .th .dd i{font:600 9.5px/16px var(--name);font-style:normal;width:15px;text-align:center;border-radius:3px;background:var(--cell);color:var(--ink)}
+.tc .th .dd i{font:600 9.5px/16px var(--name);font-style:normal;min-width:15px;padding:0 2px;text-align:center;border-radius:3px;background:var(--cell);color:var(--ink)}
 .tc .th .rl{margin-left:auto;font:600 9.5px/1 var(--name);letter-spacing:.08em;text-transform:uppercase}
 .tc .psec{font:600 9.5px/1 var(--name);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:9px 0 3px}
 .tc .prow{display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer;flex-wrap:wrap}
@@ -1441,6 +1441,14 @@ const PK=["pts","reb","ast","tpm","stl","blk","to"];
 const PJGAP={pts:2,reb:1,ast:1,tpm:.5,stl:.3,blk:.3,to:.5};
 function xpLine(q){const f=G.xpf,o={};f.forEach((k,i)=>o[k]=q.xp[i]);return o}
 const zx=q=>Object.fromEntries(G.cats.map((c,i)=>[c,q.x[2+i]]));
+// Value against zero, for totals over several games (week, rest of season, games played): the
+// per-game z-scores are centered on the pool average, so games x z would make a below-average
+// player worse the more he plays. Adding back mean/sd per category measures each game from an
+// empty roster spot instead: counting stats always add, turnovers always cost, and FG%/FT%
+// (impact, already zero at the league average) stay as they are. zpool = { st: {cat: [stat,
+// mean, sd]} } for the pool the z-scores came from. Ranks within one view are unchanged.
+function val0(z,zpool){if(!zpool)return pjVal(z);const ks=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>c.k);if(!ks.length)return 0;
+  return ks.reduce((a,k)=>{const t=zpool.st[k],off=k==="fg"||k==="ft"?t[1]/t[2]:(k==="to"?-1:1)*t[1]/t[2];return a+z[k]+off},0)/ks.length}
 function pjVal(z){const ks=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>c.k);return ks.length?ks.reduce((a,k)=>a+z[k],0)/ks.length:0}
 function pjZ(l){const P=G.zp,v={...l,fgi:l.fgm-P.lgFG*l.fga,fti:l.ftm-P.lgFT*l.fta},z={};
   for(const c of G.cats){const [k,m,sd]=P.st[c];z[c]=(c==="to"?-1:1)*(v[k]-m)/sd}return z}
@@ -1525,7 +1533,7 @@ function renderGrid(ds,live,all,today){
   const left=t=>live.filter(d=>plays(t,d)).length;
   const val={};all.forEach(([id,q])=>val[id]=pjVal(zx(q)));
   const szn={};Object.entries(val).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>szn[id]=i+1);
-  const wk={};all.map(([id,q])=>[id,val[id]*live.filter(d=>plays(q.t,d)&&avail(id,d)).length]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>wk[id]=i+1);
+  const wk={};all.map(([id,q])=>[id,val0(zx(q),G.zp)*live.filter(d=>plays(q.t,d)&&avail(id,d)).length]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>wk[id]=i+1);
   teams.sort((a,b)=>left(b)-left(a)||a.localeCompare(b));
   let h=`<div class="h"></div><div class="h">G</div>`+ds.map((d,i)=>`<div class="h${light(d)?" lt":""}${d<today?" past":""}">${D[i]}<b>${n(d)||"–"}</b></div>`).join("");
   for(const t of teams){const g=left(t);
@@ -1567,7 +1575,7 @@ function teamPanel(t,gd,live,all,szn,wk,nN,wkR){
   const ps=all.filter(([,q])=>q.t===t).map(([id,q])=>({id,q,m:q.xp[0],g:live.filter(d=>plays(t,d)&&avail(id,d)).length}))
     .filter(o=>o.m>=10).sort((a,b)=>b.m-a.m);
   const outNow=o=>gd?!avail(o.id,gd):o.g===0,out=ps.filter(outNow),ok=ps.filter(o=>!outNow(o));
-  const tg=live.filter(d=>plays(t,d)).length,days=live.filter(d=>plays(t,d)).map(d=>"MTWTFSS"[(new Date(d+"T12:00:00Z").getUTCDay()+6)%7]);
+  const tg=live.filter(d=>plays(t,d)).length,days=live.filter(d=>plays(t,d)).map(d=>["M","Tu","W","Th","F","Sa","Su"][(new Date(d+"T12:00:00Z").getUTCDay()+6)%7]);
   const ls=o=>R&&R.players[o.id]&&R.players[o.id].ls,real=ok.filter(ls).slice(0,5);
   const byRk=(a,b)=>(wk[a.id]||1e4)-(wk[b.id]||1e4);
   const start=[...real,...ok.filter(o=>!real.includes(o))].slice(0,5).sort(byRk),bench=ok.filter(o=>!start.includes(o)).sort(byRk);
@@ -1616,7 +1624,7 @@ $("pjSz").hidden=S.pjView!=="season";
       return Object.keys(SC.dates).filter(d=>d>=today&&plays(t,d)&&avail(id,d)).length};
     const tot=S.pjSz==="tot"&&SC;
     rows=all.map(([id,q])=>{const g=left(id,q.t),pv=pjVal(zx(q));
-      return{id,q,l:xpLine(q),v:tot?pv*(g==="?"?0:g):pv,hi:1,foot:ijNote(id),sdl:g!=null?g+"g":"",z:zx(q),ctx:g!=null?`<b>${g}</b> g left`:"",
+      return{id,q,l:xpLine(q),v:tot?val0(zx(q),G.zp)*(g==="?"?0:g):pv,hi:1,foot:ijNote(id),sdl:g!=null?g+"g":"",z:zx(q),ctx:g!=null?`<b>${g}</b> g left`:"",
         side:g!=null?`<div class="pjside"><b>${g}</b><i>games left</i></div>`:""}}).sort((a,b)=>b.v-a.v).slice(0,250);
     stat=`${rows.length} · ${tot?"total":"per game"}`;
     cap=`Rest of season, per game: Proj's line (this season's minutes, rates blended toward a two-season baseline). ${tot?"<b>Total</b>: per-game value × games left, so time missed counts.":"<b>Per g</b>: value per game, which ranks quality."} Games left are on the right, counted from any expected return on ESPN's injury report. Proj through ${sh(G.asOf)}; tap the ⓘ on Buy/Sell for how it's built.`;
@@ -1627,7 +1635,7 @@ $("pjSz").hidden=S.pjView!=="season";
     const b2b=(t,id)=>live.filter(d=>plays(t,d)&&avail(id,d)&&plays(t,shift(d,-1))).length;
     rows=all.map(([id,q])=>{const g=live.filter(d=>plays(q.t,d)&&avail(id,d)).length,pl=xpLine(q),l={};
       for(const k in pl)l[k]=k==="min"||S.pjTot!=="tot"?pl[k]:pl[k]*g;
-      return{id,q,g,l,min:pl.min,v:g*pjVal(zx(q)),
+      return{id,q,g,l,min:pl.min,v:g*val0(zx(q),G.zp),
         side:`<div class="wk" aria-label="${g} games">${ds.map(d=>`<span class="${plays(q.t,d)&&avail(id,d)?"on":""}${d<today?" past":""}">${"MTWTFSS"[ds.indexOf(d)]}</span>`).join("")}</div>`,
         sub:` · <b>${g}</b> g`,sdl:g+"g",foot:ijNote(id),z:zx(q),bb:b2b(q.t,id)}}).filter(o=>o.g>0).sort((a,b)=>b.v-a.v).slice(0,250);
     rows.forEach((o,i)=>{const d=szn[o.id]-(i+1);o.ctx=`<b>${o.g}</b>g${o.bb?" · b2b":""} · <span class="${d>=10?"up":d<=-10?"dn":""}">${d>0?"▲"+d:d<0?"▼"+(-d):"="}</span>`});
@@ -1684,7 +1692,7 @@ function renderRK(){
   const rows=[];
   for(const[id,q]of Object.entries(R.players)){const a=q.w[w],lv=q.l&&q.l[w];if(!a||!lv)continue;
     const z=Object.fromEntries(R.cats.map((c,i)=>[c,a[2+i]])),pv=pjVal(z),l={};R.lf.forEach((k,i)=>l[k]=lv[i]);
-    rows.push({id,q,l,min:a[1],v:tot?pv*a[0]:pv,foot:ijNote(id),sdl:a[0]+"g",z,ctx:`<b>${a[0]}</b> g`,
+    rows.push({id,q,l,min:a[1],v:tot?val0(z,W.zp)*a[0]:pv,foot:ijNote(id),sdl:a[0]+"g",z,ctx:`<b>${a[0]}</b> g`,
       side:`<div class="pjside"><b>${a[0]}</b><i>${w==="g3"?"of last 3":"games"}</i></div>`})}
   rows.sort((a,b)=>b.v-a.v);const top=rows.slice(0,250);top.forEach((o,i)=>o.rank=i+1);
   const span=w==="season"?"this season":w==="g3"?"each team's last 3 games (a missed game counts as zero)":`${sh(W.from)}–${sh(W.to)}`;

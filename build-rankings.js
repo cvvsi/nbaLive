@@ -142,6 +142,10 @@ function score(P) {
   }
   return P;
 }
+// Each category's mean and spread in the scored pool, so the page can turn z-scores back into
+// "value against zero" for totals (games x value), where centering on the pool average would
+// punish below-average players for playing more games.
+const poolOut = P => ({ st: Object.fromEntries(CATS.map(c => [c, [P.st[c].k, +P.st[c].m.toFixed(4), +P.st[c].sd.toFixed(4)]])) });
 function zOf(l, { lgFG, lgFT, st }) {
   const v = { ...l, fgi: l.fgm - lgFG * l.fga, fti: l.ftm - lgFT * l.fta };
   return Object.fromEntries(CATS.map(c => [c, (c === 'to' ? -1 : 1) * (v[st[c].k] - st[c].m) / st[c].sd]));
@@ -297,7 +301,8 @@ async function main() {
     const from = days ? shift(asOf, 1 - days) : games.reduce((m, g) => g.date < m ? g.date : m, asOf);
     const inW = games.filter(g => g.date >= from);
     windows[w] = { from, to: asOf, games: inW.length };
-    for (const p of rankWindow(inW)) {
+    const scored = rankWindow(inW); windows[w].zp = poolOut(scored.pool);
+    for (const p of scored) {
       players[p.id].w[w] = [p.gp, Math.round(p.min * 10) / 10, ...CATS.map(c => r2(p.z[c]))];
       (players[p.id].l || (players[p.id].l = {}))[w] = LF.map(k => r2(p[k]));
     }
@@ -313,7 +318,8 @@ async function main() {
   }
   const g3 = games.map(g => ({ rows: g.rows.filter(r => last[r.team] && last[r.team].has(g)) }));
   windows.g3 = { games: G3, perTeamGame: true, to: asOf };
-  for (const p of rankWindow(g3, teamGames)) {
+  const s3 = rankWindow(g3, teamGames); windows.g3.zp = poolOut(s3.pool);
+  for (const p of s3) {
     players[p.id].w.g3 = [p.gp, Math.round(p.min * 10) / 10, ...CATS.map(c => r2(p.z[c]))];
     (players[p.id].l || (players[p.id].l = {})).g3 = LF.map(k => r2(p[k]));
   }
