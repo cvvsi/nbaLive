@@ -116,21 +116,30 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .sgd .past{opacity:.35}
 .sgd .tx{grid-column:1/-1;text-align:left;padding:8px 2px 10px;background:var(--panel);white-space:normal;font:500 12.5px/1.5 var(--name)}
 .sgd .op.sel{outline:2px solid var(--ink);outline-offset:-2px}
-.sgd .tx{padding:4px 0 8px}
-.tph{font:600 13px/1 var(--name);padding:8px 2px 2px}
-.tp{margin-top:6px}
-.tp .tt,.tp .tr{display:grid;grid-template-columns:1fr 32px 50px 52px;align-items:baseline;gap:4px;padding:5px 2px}
-.tp .tt{font:500 12.5px/1 var(--name);border-bottom:1px solid var(--rule)}
-.tp .tt b{font-weight:700}
-.tp .tt span{font:600 9.5px/1.15 var(--name);letter-spacing:.06em;color:var(--dim);text-align:right}
-.tp .tt .tn{font:500 12.5px/1 var(--name);letter-spacing:0;color:var(--ink);text-align:left}
-.tp .ts{font:600 10px/1 var(--name);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);padding:8px 2px 2px}
-.tp .tr{font:500 12.5px/1.2 var(--num);text-align:right;cursor:pointer;border-bottom:1px solid var(--rule)}
-.tp .tr .pn{font:600 13.5px/1.2 var(--name);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tp .tr .ij{font:600 10.5px/1 var(--name);color:var(--neg)}.tp .tr .ij.dtd{color:var(--ball)}
-.tp .tr .sl{grid-column:1/-1;margin-top:3px;text-align:left;font:600 11px/1 var(--name);letter-spacing:.05em;color:var(--pos)}
-.tp .tr .ms{font:500 11px/1 var(--name);color:var(--ball);font-style:normal}
-.tp .t1{color:var(--pos);font-weight:600}.tp .t2{color:var(--ink)}.tp .t3{color:var(--dim)}
+.sgd .tx{padding:2px 0 6px;background:transparent;border-bottom:0}
+.tph{font:700 14px/1 var(--name);padding:10px 2px 0;letter-spacing:.01em}
+/* Schedule panel: one card per team. A player is one line: rank badge (week, or that night's
+   rank; green inside 100, plain to 130, outlined beyond), name, and the categories he helps. */
+.tc{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:10px 12px 8px;margin:8px 0}
+.tc .th{display:flex;align-items:baseline;gap:8px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+.tc .th b{font:700 16px/1 var(--name)}
+.tc .th span{font:500 12.5px/1 var(--name);color:var(--dim)}
+.tc .th .dd{display:flex;gap:2px}
+.tc .th .dd i{font:600 9.5px/16px var(--name);font-style:normal;width:15px;text-align:center;border-radius:3px;background:var(--cell);color:var(--ink)}
+.tc .th .rl{margin-left:auto;font:600 9.5px/1 var(--name);letter-spacing:.08em;text-transform:uppercase}
+.tc .psec{font:600 9.5px/1 var(--name);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:9px 0 3px}
+.tc .prow{display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer;flex-wrap:wrap}
+.tc .rb{flex:none;min-width:40px;text-align:center;font:600 12px/20px var(--num);border-radius:5px}
+.tc .rb.t1{background:color-mix(in oklab,var(--pos) 18%,var(--cell));color:var(--pos)}
+.tc .rb.t2{background:var(--cell);color:var(--ink)}
+.tc .rb.t3{box-shadow:inset 0 0 0 1px var(--rule);color:var(--dim)}
+.tc .pn{font:600 14.5px/1.2 var(--name);min-width:0;flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tc .pn .dt{font:600 10.5px/1 var(--name);font-style:normal;color:var(--ball);margin-left:5px}
+.tc .pc{display:flex;gap:3px;flex:none;margin-left:auto}
+.tc .pc i{font:600 9.5px/17px var(--name);font-style:normal;letter-spacing:.04em;padding:0 5px;border-radius:4px;color:var(--pos);background:color-mix(in oklab,var(--pos) 12%,transparent)}
+.tc .po{font:500 12.5px/1.45 var(--name);color:var(--dim);padding:8px 0 2px;border-top:1px solid var(--rule);margin-top:6px}
+.tc .po b{color:var(--neg);font-weight:700;margin-right:3px}
+.tc .po span{color:var(--ink);cursor:pointer}.tc .po i{font-style:normal;color:var(--neg);font-size:11.5px}
 .sgk{font:500 12px/1.4 var(--name);color:var(--dim);padding:6px 0 2px}
 .lr .lr2 .mk{text-decoration:underline 2px var(--ball);text-underline-offset:3px}
 /* Three views share the bar and settings: the night's box score, Buy/Sell (season so far
@@ -1557,17 +1566,18 @@ function teamPanel(t,gd,live,all,szn,wk){
   const ps=all.filter(([,q])=>q.t===t).map(([id,q])=>({id,q,m:q.xp[0],g:live.filter(d=>plays(t,d)&&avail(id,d)).length}))
     .filter(o=>o.m>=10).sort((a,b)=>b.m-a.m);
   const outNow=o=>gd?!avail(o.id,gd):o.g===0,out=ps.filter(outNow),ok=ps.filter(o=>!outNow(o));
-  const tier=r=>r<=TOP?"t1":r<=ROST?"t2":"t3",tg=live.filter(d=>plays(t,d)).length;
-  const ls=o=>R&&R.players[o.id]&&R.players[o.id].ls;
-  const real=ok.filter(ls).slice(0,5);
-  const start=[...real,...ok.filter(o=>!real.includes(o))].slice(0,5),bench=ok.filter(o=>!start.includes(o));
-  const row=o=>{const i=ijOf(o.id),miss=!gd&&ijOut(i)&&o.g<tg&&o.g>0?` <i class="ms">misses ${tg-o.g}</i>`:"",
-      st=i?`<span class="ij${ijOut(i)?"":" dtd"}">${ijOut(i)?"OUT"+(i[1]?" ~"+fmtDate(i[1]).replace(/^\w+, /,""):""):"DTD"}</span>`:"";
-    const hc=outNow(o)?[]:helps(o.q),line=hc.length?`<span class="sl">${hc.join(" · ")}</span>`:"";
-    return`<div class="tr" data-id="${o.id}"><span class="pn">${esc(o.q.n)}${miss} ${st}</span><span>${Math.round(o.m)}</span><span class="${tier(szn[o.id])}">#${szn[o.id]}</span><span>${o.g&&!outNow(o)?"#"+wk[o.id]:"–"}</span>${line}</div>`};
-  const sec=(l,a)=>a.length?`<div class="ts">${l}</div>`+a.map(row).join(""):"";
-  return`<div class="tp"><div class="tt"><span class="tn"><b>${t}</b> · ${tg} game${tg===1?"":"s"}${gd?" this week":" this week"}</span><span>MIN</span><span>SEASON<br>PROJ</span><span>${gd?(gd===etToday()?"TONIGHT":["SUN","MON","TUE","WED","THU","FRI","SAT"][new Date(gd+"T12:00:00Z").getUTCDay()]):"WEEK"}</span></div>`
-    +sec("Starters",start)+sec("Rotation",bench)+sec(gd?"Out tonight":"Out this week",out)+`</div>`;
+  const tg=live.filter(d=>plays(t,d)).length,days=live.filter(d=>plays(t,d)).map(d=>"MTWTFSS"[(new Date(d+"T12:00:00Z").getUTCDay()+6)%7]);
+  const ls=o=>R&&R.players[o.id]&&R.players[o.id].ls,real=ok.filter(ls).slice(0,5);
+  const byRk=(a,b)=>(wk[a.id]||1e4)-(wk[b.id]||1e4);
+  const start=[...real,...ok.filter(o=>!real.includes(o))].slice(0,5).sort(byRk),bench=ok.filter(o=>!start.includes(o)).sort(byRk);
+  const sh=d=>fmtDate(d).replace(/^\w+, /,"");
+  const row=o=>{const i=ijOf(o.id),rk=wk[o.id],tier=!rk?"t3":rk<=TOP?"t1":rk<=ROST?"t2":"t3";
+    const flag=i&&!ijOut(i)?`<i class="dt">DTD</i>`:!gd&&ijOut(i)&&o.g<tg?`<i class="dt">misses ${tg-o.g}</i>`:"";
+    return`<div class="prow" data-id="${o.id}"><b class="rb ${tier}">${rk?"#"+rk:"–"}</b><span class="pn">${esc(o.q.n)}${flag}</span><span class="pc">${helps(o.q).map(c=>`<i>${c}</i>`).join("")}</span></div>`};
+  const sec=(l,a)=>a.length?`<div class="psec">${l}</div>`+a.map(row).join(""):"";
+  const outL=out.length?`<div class="po"><b>Out</b> ${out.map(o=>{const i=ijOf(o.id);return`<span data-id="${o.id}">${esc(o.q.n)}${i&&i[1]?` <i>~${sh(i[1])}</i>`:""}</span>`}).join(" · ")}</div>`:"";
+  return`<div class="tc"><div class="th"><b>${t}</b><span>${tg} game${tg===1?"":"s"}${gd?"":" this week"}</span><span class="dd">${days.map(x=>`<i>${x}</i>`).join("")}</span><span class="rl">${gd?(gd===etToday()?"Tonight's rank":"Rank that night"):"Week rank"}</span></div>`
+    +sec("Starters",start)+sec("Bench",bench)+outL+`</div>`;
 }
 // Week picker (Proj > Week and Schedule): this week = 0, then one week at a time to the end of
 // the schedule.
@@ -1905,7 +1915,7 @@ $("densBtn").onclick=()=>{S.dense=!S.dense;store.set("dense",S.dense);paintDens(
 $("rkWin").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.rkWin=b.dataset.k;store.set("rkWin",S.rkWin);renderRK();window.scrollTo(0,0)});
 $("rkSz").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.rkSz=b.dataset.k;store.set("rkSz",S.rkSz);renderRK()});
 $("pjTot").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjTot=b.dataset.k;renderPJ()});
-$("scList").addEventListener("click",e=>{const p=e.target.closest(".tr[data-id]");if(p){openSheet(p.dataset.id,null);return}
+$("scList").addEventListener("click",e=>{const p=e.target.closest(".prow[data-id],.po [data-id]");if(p){openSheet(p.dataset.id,null);return}
   const c=e.target.closest(".sgd [data-t]");if(!c||c.closest(".tx"))return;const k={t:c.dataset.t,d:c.dataset.d||null};
   S.sgOpen=S.sgOpen&&S.sgOpen.t===k.t&&S.sgOpen.d===k.d?null:k;renderSC()});
 $("scWk").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.scWk=Math.max(0,S.scWk+ +b.dataset.d);S.sgOpen=null;renderSC()});
