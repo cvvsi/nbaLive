@@ -128,6 +128,7 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .tp .tr{font:500 12.5px/1.2 var(--num);text-align:right;cursor:pointer;border-bottom:1px solid var(--rule)}
 .tp .tr .pn{font:600 13.5px/1.2 var(--name);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tp .tr .ij{font:600 10.5px/1 var(--name);color:var(--neg)}.tp .tr .ij.dtd{color:var(--ball)}
+.tp .tr .sl{grid-column:1/-1;margin-top:3px;text-align:left;font:600 11px/1 var(--name);letter-spacing:.05em;color:var(--pos)}
 .tp .tr .ms{font:500 11px/1 var(--name);color:var(--ball);font-style:normal}
 .tp .t1{color:var(--pos);font-weight:600}.tp .t2{color:var(--ink)}.tp .t3{color:var(--dim)}
 .sgk{font:500 12px/1.4 var(--name);color:var(--dim);padding:6px 0 2px}
@@ -1533,6 +1534,20 @@ function renderGrid(ds,live,all,today){
   $("scStatus").textContent=`${teams.length} teams`;
   $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Red underline = 2nd night of a back-to-back. Tap a team for its rotation this week (Week = week rank), or a game for both teams that night (Tonight, or the day: rank among that night's players). Starters = each team's lineup from its last game.</p><div class="sgd">${h}</div>`;
 }
+// The categories a player helps, for streaming: per-game Proj z-score of 0.25+ against everyone
+// projected for 15+ minutes (a broad, streamer-level bar; the top-130 pool would leave almost
+// every streamer with nothing). FG%/FT% by impact, as everywhere; turnovers left out (low TO is
+// mostly low usage). Strongest first, at most five; punted categories skipped.
+const HELPK=["pts","reb","ast","tpm","stl","blk","fg","ft"],HELPL={pts:"PTS",reb:"REB",ast:"AST",tpm:"3PM",stl:"STL",blk:"BLK",fg:"FG%",ft:"FT%"};
+function helpPool(){if(S.hp&&S.hp.src===G)return S.hp;
+  const ls=Object.values(G.players).filter(q=>q.xp&&q.xp[0]>=15).map(xpLine);
+  const lgFG=ls.reduce((a,l)=>a+l.fgm,0)/ls.reduce((a,l)=>a+l.fga,0),lgFT=ls.reduce((a,l)=>a+l.ftm,0)/ls.reduce((a,l)=>a+l.fta,0);
+  const v=l=>({pts:l.pts,reb:l.reb,ast:l.ast,tpm:l.tpm,stl:l.stl,blk:l.blk,fg:l.fgm-lgFG*l.fga,ft:l.ftm-lgFT*l.fta}),st={};
+  for(const k of HELPK){const a=ls.map(l=>v(l)[k]),m=a.reduce((x,y)=>x+y,0)/a.length;st[k]=[m,Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length)||1]}
+  return S.hp={src:G,v,st}}
+function helps(q){const P=helpPool(),x=P.v(xpLine(q));
+  return HELPK.filter(k=>!S.punt.has(k)).map(k=>[k,(x[k]-P.st[k][0])/P.st[k][1]]).filter(([,z])=>z>=.25)
+    .sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k])=>HELPL[k])}
 // One team's rotation for the Schedule panel: everyone projected for 10+ minutes, as starters
 // (the official starting five from the team's last game, ls in rankings.json; anyone now out is
 // replaced by the next player by projected minutes), the rest of the rotation, and who's out (for
@@ -1548,7 +1563,8 @@ function teamPanel(t,gd,live,all,szn,wk){
   const start=[...real,...ok.filter(o=>!real.includes(o))].slice(0,5),bench=ok.filter(o=>!start.includes(o));
   const row=o=>{const i=ijOf(o.id),miss=!gd&&ijOut(i)&&o.g<tg&&o.g>0?` <i class="ms">misses ${tg-o.g}</i>`:"",
       st=i?`<span class="ij${ijOut(i)?"":" dtd"}">${ijOut(i)?"OUT"+(i[1]?" ~"+fmtDate(i[1]).replace(/^\w+, /,""):""):"DTD"}</span>`:"";
-    return`<div class="tr" data-id="${o.id}"><span class="pn">${esc(o.q.n)}${miss} ${st}</span><span>${Math.round(o.m)}</span><span class="${tier(szn[o.id])}">#${szn[o.id]}</span><span>${o.g&&!outNow(o)?"#"+wk[o.id]:"–"}</span></div>`};
+    const hc=outNow(o)?[]:helps(o.q),line=hc.length?`<span class="sl">${hc.join(" · ")}</span>`:"";
+    return`<div class="tr" data-id="${o.id}"><span class="pn">${esc(o.q.n)}${miss} ${st}</span><span>${Math.round(o.m)}</span><span class="${tier(szn[o.id])}">#${szn[o.id]}</span><span>${o.g&&!outNow(o)?"#"+wk[o.id]:"–"}</span>${line}</div>`};
   const sec=(l,a)=>a.length?`<div class="ts">${l}</div>`+a.map(row).join(""):"";
   return`<div class="tp"><div class="tt"><span class="tn"><b>${t}</b> · ${tg} game${tg===1?"":"s"}${gd?" this week":" this week"}</span><span>MIN</span><span>SEASON<br>PROJ</span><span>${gd?(gd===etToday()?"TONIGHT":["SUN","MON","TUE","WED","THU","FRI","SAT"][new Date(gd+"T12:00:00Z").getUTCDay()]):"WEEK"}</span></div>`
     +sec("Starters",start)+sec("Rotation",bench)+sec(gd?"Out tonight":"Out this week",out)+`</div>`;
