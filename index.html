@@ -128,6 +128,10 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .tp .tr{font:500 12.5px/1.2 var(--num);text-align:right;cursor:pointer;border-bottom:1px solid var(--rule)}
 .tp .tr .pn{font:600 13.5px/1.2 var(--name);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tp .tr .ij{font:600 10.5px/1 var(--name);color:var(--neg)}.tp .tr .ij.dtd{color:var(--ball)}
+.tp .tr .sl{grid-column:1/-1;display:flex;justify-content:space-between;margin-top:3px;text-align:left}
+.tp .tr .sl b{font:500 11.5px/1 var(--num);color:var(--dim)}
+.tp .tr .sl i{font:500 10px/1 var(--name);font-style:normal;margin-left:1px}
+.tp .tr .sl .off{opacity:.35}
 .tp .tr .ms{font:500 11px/1 var(--name);color:var(--ball);font-style:normal}
 .tp .t1{color:var(--pos);font-weight:600}.tp .t2{color:var(--ink)}.tp .t3{color:var(--dim)}
 .sgk{font:500 12px/1.4 var(--name);color:var(--dim);padding:6px 0 2px}
@@ -1548,7 +1552,9 @@ function teamPanel(t,gd,live,all,szn,wk){
   const start=[...real,...ok.filter(o=>!real.includes(o))].slice(0,5),bench=ok.filter(o=>!start.includes(o));
   const row=o=>{const i=ijOf(o.id),miss=!gd&&ijOut(i)&&o.g<tg&&o.g>0?` <i class="ms">misses ${tg-o.g}</i>`:"",
       st=i?`<span class="ij${ijOut(i)?"":" dtd"}">${ijOut(i)?"OUT"+(i[1]?" ~"+fmtDate(i[1]).replace(/^\w+, /,""):""):"DTD"}</span>`:"";
-    return`<div class="tr" data-id="${o.id}"><span class="pn">${esc(o.q.n)}${miss} ${st}</span><span>${Math.round(o.m)}</span><span class="${tier(szn[o.id])}">#${szn[o.id]}</span><span>${o.g&&!outNow(o)?"#"+wk[o.id]:"–"}</span></div>`};
+    const l=xpLine(o.q),pc=(m,a)=>a>0?Math.round(100*m/a)+"%":"–",
+      line=outNow(o)?"":`<span class="sl">${["pts","reb","ast","tpm","stl","blk","to"].map(k=>`<b class="${S.punt.has(k)?"off":""}">${f1(l[k])}<i>${CL[k]}</i></b>`).join("")}<b class="${S.punt.has("fg")?"off":""}">${pc(l.fgm,l.fga)}<i>fg</i></b><b class="${S.punt.has("ft")?"off":""}">${pc(l.ftm,l.fta)}<i>ft</i></b></span>`;
+    return`<div class="tr" data-id="${o.id}"><span class="pn">${esc(o.q.n)}${miss} ${st}</span><span>${Math.round(o.m)}</span><span class="${tier(szn[o.id])}">#${szn[o.id]}</span><span>${o.g&&!outNow(o)?"#"+wk[o.id]:"–"}</span>${line}</div>`};
   const sec=(l,a)=>a.length?`<div class="ts">${l}</div>`+a.map(row).join(""):"";
   return`<div class="tp"><div class="tt"><span class="tn"><b>${t}</b> · ${tg} game${tg===1?"":"s"}${gd?" this week":" this week"}</span><span>MIN</span><span>SEASON<br>PROJ</span><span>${gd?(gd===etToday()?"TONIGHT":["SUN","MON","TUE","WED","THU","FRI","SAT"][new Date(gd+"T12:00:00Z").getUTCDay()]):"WEEK"}</span></div>`
     +sec("Starters",start)+sec("Rotation",bench)+sec(gd?"Out tonight":"Out this week",out)+`</div>`;
