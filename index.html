@@ -63,14 +63,11 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 body.hidebars .bar{transform:translateY(calc(-100% - env(safe-area-inset-top,0px)))}
 body.hidebars .tabbar{transform:translateY(100%)}
 body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
-/* List view (Ranks, Proj): two lines a player, the 9 cats in fixed columns under a header. */
+/* List view (Ranks, Proj): the card without the photo. Name line, big PTS/REB/AST, then the
+   other six, every number with its label beside it. */
 .dens{flex:none;width:34px;height:34px;display:grid;place-items:center;color:var(--dim);border-radius:6px}
 .dens svg{width:19px;height:19px}
 .dens[hidden]{display:none}
-.lhd,.lr .lr2{display:grid;grid-template-columns:repeat(3,1fr) repeat(4,.86fr) repeat(2,1.08fr);column-gap:2px;padding-left:24px}
-.lhd{font:600 10px/1 var(--name);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding-top:7px;padding-bottom:6px;text-align:right}
-.lhd[hidden]{display:none}
-.lhd .off{opacity:.35}
 .cd.lr{display:block;padding:7px 0 7px}
 .lr .lr1{display:flex;align-items:baseline;gap:6px;min-width:0}
 .lr .rk{font:600 11.5px/1 var(--num);color:var(--dim);width:18px;flex:none}
@@ -564,7 +561,6 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
       <div class="sorts"><div class="sort" id="pjSz" hidden><button data-k="pg">Per g</button><button data-k="tot">Total</button></div><div class="sort" id="pjWk" hidden><button data-k="this">This</button><button data-k="next">Next</button></div>
       <div class="sort" id="pjView"><button data-k="season">Season</button><button data-k="week">Week</button><button data-k="today">Today</button></div></div>
     </div>
-    <div class="lhd" id="pjLh" hidden></div>
   </div>
 </div>
 <main class="gut pjv" id="pjList"></main>
@@ -576,7 +572,6 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
       <div class="sorts"><div class="sort" id="rkSz"><button data-k="pg">Per g</button><button data-k="tot">Total</button></div>
       <div class="sort" id="rkWin"><button data-k="season">Szn</button><button data-k="d14">14D</button><button data-k="d7">7D</button><button data-k="g3">L3</button></div></div>
     </div>
-    <div class="lhd" id="rkLh" hidden></div>
   </div>
 </div>
 <main class="gut rkv" id="rkList"></main>
@@ -1428,12 +1423,10 @@ function pjCard(o){
     </div>
   </article>`;
 }
-// List view: the same rows as the cards, two lines each, with the 9 cats in fixed columns
-// under a header in the ruler (lhdHTML). Market numbers keep their underline; an injury shows
-// as a short tag on the name line. Cards / List is remembered per phone (S.dense).
+// List view: the card's content without the photo, every number labeled. Market numbers keep
+// their underline; an injury shows as a short tag on the name line. Cards / List is remembered
+// per phone (S.dense), List by default.
 S.dense=store.get("dense",true);
-const LCOLS=["pts","reb","ast","tpm","stl","blk","to","fg","ft"];
-const lhdHTML=()=>LCOLS.map(k=>`<span class="${S.punt.has(k)?"off":""}">${CL[k]}</span>`).join("");
 function ijTag(id){const i=ijOf(id);if(!i)return"";const out=ijOut(i),sh=d=>fmtDate(d).replace(/^\w+, /,"");
   return`<span class="ij${out?"":" dtd"}">${out?"OUT"+(i[1]?" ~"+sh(i[1]):""):"DTD"}</span>`}
 function lrow(o){
@@ -1449,8 +1442,7 @@ const listOn=()=>S.dense&&(document.body.dataset.view==="pj"||document.body.data
 function paintDens(){const v=document.body.dataset.view,on=v==="pj"||v==="rk";$("densBtn").hidden=!on;
   $("densBtn").innerHTML=S.dense?`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="1.5"/><rect x="4" y="13" width="16" height="7" rx="1.5"/></svg>`
     :`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>`;
-  $("densBtn").setAttribute("aria-label",S.dense?"Show cards":"Show list");
-  for(const x of["pjLh","rkLh"]){$(x).hidden=true}}
+  $("densBtn").setAttribute("aria-label",S.dense?"Show cards":"Show list")}
 const card=o=>S.dense?lrow(o):pjCard(o);
 function pjMsg(m){$("pjList").innerHTML=`<div class="empty">${m}</div>`;$("pjStatus").textContent=""}
 function renderPJ(){
