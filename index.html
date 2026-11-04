@@ -27,7 +27,7 @@
   --neg:#c9372c;
   --name:"Archivo Narrow","Arial Narrow","Roboto Condensed",system-ui,sans-serif;
   --num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  --bar:48px;--tabbar:50px;
+  --bar:48px;--tabbar:46px;
   --mug:36px;          /* headshot on a card */
   --mgap:6px;
   color-scheme:light;
@@ -51,11 +51,40 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
   border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:6px}
 .mark{font:700 15px/1 var(--name);letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;gap:6px;flex:none}
 .mark i{width:10px;height:10px;border-radius:50%;background:var(--ball);display:block}
-/* bottom tab bar: one button per view, thumb-reachable, room for more views later */
-.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:var(--panel);border-top:1px solid var(--rule);
-  padding:0 max(6px,env(safe-area-inset-left,0px)) env(safe-area-inset-bottom,0px) max(6px,env(safe-area-inset-right,0px))}
-.tabbar button{flex:1;height:var(--tabbar);font:600 13.5px/1 var(--name);letter-spacing:.02em;color:var(--dim);box-shadow:inset 0 0 0 transparent}
-.tabbar button[aria-pressed="true"]{color:var(--ink);box-shadow:inset 0 3px 0 var(--ball)}
+/* bottom tab bar: a raised strip in the panel color with the active view as a filled pill, so
+   it reads as navigation, not page. Slides away while scrolling down, back on any scroll up. */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;gap:4px;align-items:center;background:var(--panel);
+  border-top:1px solid var(--rule);box-shadow:0 -4px 14px color-mix(in srgb,var(--ink) 8%,transparent);height:calc(var(--tabbar) + env(safe-area-inset-bottom,0px));
+  padding:0 max(8px,env(safe-area-inset-left,0px)) env(safe-area-inset-bottom,0px) max(8px,env(safe-area-inset-right,0px));transition:transform .22s ease}
+.tabbar button{flex:1;height:32px;border-radius:16px;font:600 13.5px/1 var(--name);letter-spacing:.02em;color:var(--dim)}
+.tabbar button[aria-pressed="true"]{color:var(--panel);background:var(--ink)}
+.bar{transition:transform .22s ease}
+.ruler{transition:top .22s ease}
+body.hidebars .bar{transform:translateY(calc(-100% - env(safe-area-inset-top,0px)))}
+body.hidebars .tabbar{transform:translateY(100%)}
+body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
+/* List view (Ranks, Proj): two lines a player, the 9 cats in fixed columns under a header. */
+.dens{flex:none;width:34px;height:34px;display:grid;place-items:center;color:var(--dim);border-radius:6px}
+.dens svg{width:19px;height:19px}
+.dens[hidden]{display:none}
+.lhd,.lr .lr2{display:grid;grid-template-columns:repeat(3,1fr) repeat(4,.86fr) repeat(2,1.08fr);column-gap:2px;padding-left:24px}
+.lhd{font:600 10px/1 var(--name);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding-top:7px;padding-bottom:6px;text-align:right}
+.lhd[hidden]{display:none}
+.lhd .off{opacity:.35}
+.cd.lr{display:block;padding:7px 0 7px}
+.lr .lr1{display:flex;align-items:baseline;gap:6px;min-width:0}
+.lr .rk{font:600 11.5px/1 var(--num);color:var(--dim);width:18px;flex:none}
+.lr .nm{font:600 15px/1.2 var(--name);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.lr .mt{font:500 12px/1 var(--name);color:var(--dim);white-space:nowrap;flex:none}
+.lr .ij{font:600 11px/1 var(--name);color:var(--neg);white-space:nowrap;flex:none}
+.lr .ij.dtd{color:var(--ball)}
+.lr .sd{margin-left:auto;font:500 12px/1 var(--num);color:var(--dim);flex:none;padding-left:6px}
+.lr .vl{font:600 14px/1 var(--num);flex:none;min-width:44px;text-align:right}
+.lr .lr2{margin-top:4px;font:500 13px/1.1 var(--num);text-align:right}
+.lr .lr2 .big{font-weight:700;color:var(--ink)}
+.lr .lr2 span{color:var(--ink)}
+.lr .lr2 .off{opacity:.3}
+.lr .lr2 .mk{text-decoration:underline 2px var(--ball);text-underline-offset:3px}
 /* Three views share the bar and settings: the night's box score, Buy/Sell (season so far
    vs. last season's rates) and Buzz (Yahoo's most added / dropped). body[data-view] shows one
    set and hides the others; no data-view yet means the box score. */
@@ -456,6 +485,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
     <label class="datelbl"><span id="dateTxt">—</span><input type="date" id="date" aria-label="Pick a date"></label>
     <button class="arrow" id="next" aria-label="Next day">›</button>
   </div>
+  <button class="dens" id="densBtn" hidden aria-label="Switch between cards and list" title="Cards / List"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
   <button class="srbtn" id="srBtn" aria-label="Search players" title="Search players (/)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button>
   <button class="gear" id="gear" aria-expanded="false" aria-controls="sheet">Punt</button>
 </div>
@@ -529,6 +559,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
       <div class="sorts"><div class="sort" id="pjSz" hidden><button data-k="pg">Per g</button><button data-k="tot">Total</button></div><div class="sort" id="pjWk" hidden><button data-k="this">This</button><button data-k="next">Next</button></div>
       <div class="sort" id="pjView"><button data-k="season">Season</button><button data-k="week">Week</button><button data-k="today">Today</button></div></div>
     </div>
+    <div class="lhd" id="pjLh" hidden></div>
   </div>
 </div>
 <main class="gut pjv" id="pjList"></main>
@@ -540,6 +571,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
       <div class="sorts"><div class="sort" id="rkSz"><button data-k="pg">Per g</button><button data-k="tot">Total</button></div>
       <div class="sort" id="rkWin"><button data-k="season">Szn</button><button data-k="d14">14D</button><button data-k="d7">7D</button><button data-k="g3">L3</button></div></div>
     </div>
+    <div class="lhd" id="rkLh" hidden></div>
   </div>
 </div>
 <main class="gut rkv" id="rkList"></main>
@@ -728,7 +760,7 @@ function renderCats(){
   $("toggles").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.k;
     S.punt.has(k)?S.punt.delete(k):S.punt.add(k);store.set("punt",[...S.punt]);
     $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
-    renderCats();rankWindows();rankBS();renderBS();renderBZ();renderPJ();renderRK();if(S.players.length){scoreValue();render()}renderSheet()});
+    renderCats();rankWindows();rankBS();renderBS();renderBZ();paintDens();renderPJ();renderRK();if(S.players.length){scoreValue();render()}renderSheet()});
   $("bsCats").innerHTML=BSC.map(c=>`<span class="${c.c&&S.punt.has(c.c)?"punted":""}">${c.l}</span>`).join("");
   $("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.setAttribute("aria-pressed",S.sort===b.dataset.k));
 }
@@ -1391,6 +1423,28 @@ function pjCard(o){
     </div>
   </article>`;
 }
+// List view: the same rows as the cards, two lines each, with the 9 cats in fixed columns
+// under a header in the ruler (lhdHTML). Market numbers keep their underline; an injury shows
+// as a short tag on the name line. Cards / List is remembered per phone (S.dense).
+S.dense=store.get("dense",true);
+const LCOLS=["pts","reb","ast","tpm","stl","blk","to","fg","ft"];
+const lhdHTML=()=>LCOLS.map(k=>`<span class="${S.punt.has(k)?"off":""}">${CL[k]}</span>`).join("");
+function ijTag(id){const i=ijOf(id);if(!i)return"";const out=ijOut(i),sh=d=>fmtDate(d).replace(/^\w+, /,"");
+  return`<span class="ij${out?"":" dtd"}">${out?"OUT"+(i[1]?" ~"+sh(i[1]):""):"DTD"}</span>`}
+function lrow(o){
+  const l=o.l,m=k=>o.mk&&o.mk[k]?" mk":"",off=k=>S.punt.has(k)?" off":"";
+  const c=LCOLS.map(k=>`<span class="${["pts","reb","ast"].includes(k)?"big":""}${off(k)}${m(k)}">${k==="fg"?pctT(l.fgm,l.fga).replace("%",""):k==="ft"?pctT(l.ftm,l.fta).replace("%",""):f1(l[k])}</span>`).join("");
+  return`<article class="cd lr" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(o.q.n)}: open details">
+    <div class="lr1"><span class="rk">${o.rank}</span><b class="nm">${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)} · ${Math.round(o.min)}m</span>${ijTag(o.id)}<span class="sd">${o.sdl||""}</span><span class="vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</span></div>
+    <div class="lr2">${c}</div></article>`;
+}
+const listOn=()=>S.dense&&(document.body.dataset.view==="pj"||document.body.dataset.view==="rk");
+function paintDens(){const v=document.body.dataset.view,on=v==="pj"||v==="rk";$("densBtn").hidden=!on;
+  $("densBtn").innerHTML=S.dense?`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="1.5"/><rect x="4" y="13" width="16" height="7" rx="1.5"/></svg>`
+    :`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>`;
+  $("densBtn").setAttribute("aria-label",S.dense?"Show cards":"Show list");
+  for(const x of["pjLh","rkLh"]){$(x).hidden=!S.dense;$(x).innerHTML=lhdHTML()}}
+const card=o=>S.dense?lrow(o):pjCard(o);
 function pjMsg(m){$("pjList").innerHTML=`<div class="empty">${m}</div>`;$("pjStatus").textContent=""}
 function renderPJ(){
   $("pjView").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.pjView));
@@ -1408,7 +1462,7 @@ function renderPJ(){
       return Object.keys(SC.dates).filter(d=>d>=today&&plays(t,d)&&avail(id,d)).length};
     const tot=S.pjSz==="tot"&&SC;
     rows=all.map(([id,q])=>{const g=left(id,q.t),pv=pjVal(zx(q));
-      return{id,q,l:xpLine(q),v:tot?pv*(g==="?"?0:g):pv,hi:1,foot:ijNote(id),
+      return{id,q,l:xpLine(q),v:tot?pv*(g==="?"?0:g):pv,hi:1,foot:ijNote(id),sdl:g!=null?g+"g":"",
         side:g!=null?`<div class="pjside"><b>${g}</b><i>games left</i></div>`:""}}).sort((a,b)=>b.v-a.v).slice(0,250);
     stat=`${rows.length} · ${tot?"total":"per game"}`;
     cap=`Rest of season, per game: Proj's line (this season's minutes, rates blended toward a two-season baseline). ${tot?"<b>Total</b>: per-game value × games left, so time missed counts.":"<b>Per g</b>: value per game, which ranks quality."} Games left are on the right, counted from any expected return on ESPN's injury report. Proj through ${sh(G.asOf)}; tap the ⓘ on Buy/Sell for how it's built.`;
@@ -1419,7 +1473,7 @@ function renderPJ(){
       for(const k in pl)l[k]=k==="min"?pl[k]:pl[k]*g;
       return{id,q,g,l,min:pl.min,v:g*pjVal(zx(q)),
         side:`<div class="wk" aria-label="${g} games">${ds.map(d=>`<span class="${plays(q.t,d)&&avail(id,d)?"on":""}${d<today?" past":""}">${"MTWTFSS"[ds.indexOf(d)]}</span>`).join("")}</div>`,
-        sub:` · <b>${g}</b> g`,foot:ijNote(id)}}).filter(o=>o.g>0).sort((a,b)=>b.v-a.v).slice(0,250);
+        sub:` · <b>${g}</b> g`,sdl:g+"g",foot:ijNote(id)}}).filter(o=>o.g>0).sort((a,b)=>b.v-a.v).slice(0,250);
     const a=live[0]||ds[0];stat=`${rows.length} · ${sh(a)}–${a.slice(5,7)===ds[6].slice(5,7)?+ds[6].slice(8):sh(ds[6])}`;
     cap=`${S.pjWk==="next"?"Next week":"The rest of this week"}: Proj's per-game line times games ${S.pjWk==="next"?"":"left "}(${live.length?sh(live[0]):""}–${sh(ds[6])}). Value is the week's total, so a 4-game player can beat a better 2-game one. Stats are week totals; FG%/FT% stay per shot. Orange days = games; a day is blank when the injury report has the player out.`;
   }else{
@@ -1430,7 +1484,7 @@ function renderPJ(){
     if(!teams.size)return pjMsg(SC?"No games today.":"No schedule yet: it's built with the nightly rankings.");
     const out=[],noline=[],hurt=[];
     for(const[id,q]of all){if(!teams.has(q.t))continue;
-      const pp=propsFor(P,q),t=tonightLine(q,pp),o={id,q,l:t.l,min:t.l.min,mk:t.mk,hi:1,v:pjVal(pjZ(t.l)),side:`<div class="pjside"><i>${esc(opp(q.t,today))}</i></div>`};
+      const pp=propsFor(P,q),t=tonightLine(q,pp),o={id,q,l:t.l,min:t.l.min,mk:t.mk,hi:1,v:pjVal(pjZ(t.l)),sdl:esc(opp(q.t,today)),side:`<div class="pjside"><i>${esc(opp(q.t,today))}</i></div>`};
       const d=PK.filter(k=>t.mk[k]).map(k=>{const gap=t.l[k]-t.base[k],c=Math.abs(gap)>=PJGAP[k]?(gap>0?"up":"dn"):"";
         return`<span class="${c}">${CL[k].toUpperCase()} <b class="${c}">${t.l[k].toFixed(1)}</b> (${t.base[k].toFixed(1)})</span>`});
       if(pp)o.foot=`<div class="pjm">Market (Proj): ${d.join(" · ")}</div>`;
@@ -1444,14 +1498,14 @@ function renderPJ(){
     cap=`Tonight (${sh(today)}): Proj's per-game line, with the sportsbooks' implied averages swapped in where there are props (<span class="mk"><b>underlined</b></span>; Proj in brackets, green or red when the market sees a different role). Shot volume follows the market's points.${PR&&PR.date===today?` Props pulled ${new Date(PR.built).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}.`:" Props for tonight aren't in yet: they're pulled around 4 and 6pm ET."}`;
     rows.forEach((o,i)=>o.rank=i+1);
     $("pjStatus").textContent=stat;
-    $("pjList").innerHTML=`<p class="bzcap">${cap}</p>`+out.map(pjCard).join("")
-      +(noline.length?`<div class="pjh">No line posted, not on the injury report (${noline.length})</div>`+noline.map(o=>{o.rank="–";return pjCard(o)}).join(""):"")
-      +(hurt.length?`<div class="pjh">Out tonight (${hurt.length})</div>`+hurt.map(o=>{o.rank="–";return pjCard(o)}).join(""):"");
+    $("pjList").innerHTML=`<p class="bzcap">${cap}</p>`+out.map(card).join("")
+      +(noline.length?`<div class="pjh">No line posted, not on the injury report (${noline.length})</div>`+noline.map(o=>{o.rank="–";return card(o)}).join(""):"")
+      +(hurt.length?`<div class="pjh">Out tonight (${hurt.length})</div>`+hurt.map(o=>{o.rank="–";return card(o)}).join(""):"");
     return;
   }
   rows.forEach((o,i)=>{o.rank=i+1;if(o.min==null)o.min=o.l.min});
   $("pjStatus").textContent=stat;
-  $("pjList").innerHTML=rows.length?`<p class="bzcap">${cap}</p>`+rows.map(pjCard).join(""):`<div class="empty">Nobody projected here.</div>`;
+  $("pjList").innerHTML=rows.length?`<p class="bzcap">${cap}</p>`+rows.map(card).join(""):`<div class="empty">Nobody projected here.</div>`;
 }
 Promise.all(["data/schedule.json","data/props.json","data/injuries.json"].map(u=>fetch(u,{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null)))
   .then(([sc,pr,ij])=>{SC=sc;PR=pr;IJ=ij;S.tdays=null;S.prIx=undefined;renderPJ();renderRK()});
@@ -1473,19 +1527,19 @@ function renderRK(){
   const rows=[];
   for(const[id,q]of Object.entries(R.players)){const a=q.w[w],lv=q.l&&q.l[w];if(!a||!lv)continue;
     const z=Object.fromEntries(R.cats.map((c,i)=>[c,a[2+i]])),pv=pjVal(z),l={};R.lf.forEach((k,i)=>l[k]=lv[i]);
-    rows.push({id,q,l,min:a[1],v:tot?pv*a[0]:pv,foot:ijNote(id),
+    rows.push({id,q,l,min:a[1],v:tot?pv*a[0]:pv,foot:ijNote(id),sdl:a[0]+"g",
       side:`<div class="pjside"><b>${a[0]}</b><i>${w==="g3"?"of last 3":"games"}</i></div>`})}
   rows.sort((a,b)=>b.v-a.v);const top=rows.slice(0,250);top.forEach((o,i)=>o.rank=i+1);
   const span=w==="season"?"this season":w==="g3"?"each team's last 3 games (a missed game counts as zero)":`${sh(W.from)}–${sh(W.to)}`;
   $("rkStatus").textContent=`${rows.length} · ${tot?"total":"per game"}`;
   $("rkList").innerHTML=`<p class="bzcap">Actual 9-cat value, ${span}. ${w==="g3"?"Per team game, so it already counts missed games."
     :tot?"<b>Total</b>: per-game value × games played, so time missed counts.":"<b>Per g</b>: value per game played, which ranks how well a player has played."} Stats are per game. Same pool and punts as the rank ladder; Proj is the forward-looking version.</p>`
-    +top.map(pjCard).join("");
+    +top.map(card).join("");
 }
 
 function bsMsg(m){$("bsList").innerHTML=`<div class="empty">${esc(m)}</div>`;$("bsStatus").textContent=""}
 function setView(v){
-  document.body.dataset.view=v;
+  document.body.dataset.view=v;document.body.classList.remove("hidebars");if(typeof paintDens==="function")paintDens();
   $("tabs").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v));
   try{history.replaceState(null,"",v==="bs"?"#buysell":v==="bz"?"#buzz":v==="pj"?"#proj":v==="rk"?"#ranks":location.pathname+location.search)}catch(e){}
   window.scrollTo(0,0);
@@ -1701,6 +1755,11 @@ $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>setView(b.dataset.
 $("bsInfo").onclick=()=>toggleHelp($("bsHelp").hidden);
 $("pjView").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjView=b.dataset.k;store.set("pjView",S.pjView);renderPJ();window.scrollTo(0,0)});
 $("pjWk").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjWk=b.dataset.k;renderPJ()});
+$("densBtn").onclick=()=>{S.dense=!S.dense;store.set("dense",S.dense);paintDens();renderPJ();renderRK()};
+// Bars slide away while scrolling down and come back on any scroll up (or near the top).
+{let lastY=scrollY;addEventListener("scroll",()=>{const y=scrollY,d=y-lastY;
+  if(y<80||d<-6)document.body.classList.remove("hidebars");else if(d>6)document.body.classList.add("hidebars");
+  if(Math.abs(d)>6)lastY=y},{passive:true})}
 $("rkWin").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.rkWin=b.dataset.k;store.set("rkWin",S.rkWin);renderRK();window.scrollTo(0,0)});
 $("rkSz").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.rkSz=b.dataset.k;store.set("rkSz",S.rkSz);renderRK()});
 $("pjSz").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjSz=b.dataset.k;store.set("pjSz",S.pjSz);renderPJ()});
