@@ -776,6 +776,9 @@ function zc(z,k){if(S.punt.has(k))return" off";return z>=1?" good":z<=-1?" bad":
 // Red is for the line that hurt: 4+ turnovers, FG% 35 or under on 12+ shots, FT% under 60 on 4+.
 // o has the counts (per game for a season line) plus fgm/fga/ftm/fta.
 const HI={pts:25,reb:8,ast:8,tpm:4,stl:3,blk:3};
+// Only the night's box score gets these colors (Box cards and the Tonight block of the player
+// page); elsewhere a line only dims punted cats (nh), so green never means "projected big".
+const nh=k=>S.punt.has(k)?" off":"";
 function hl(k,o){
   if(S.punt.has(k))return" off";
   if(k==="to")return o.to>=4?" bad":"";
@@ -1359,7 +1362,7 @@ function tonightLine(q,pp){
   return{l,base,mk};
 }
 function pjCard(o){
-  const l=o.l,hi=k=>o.hi?hl(k,l):S.punt.has(k)?" off":"",m=k=>o.mk&&o.mk[k]?" mk":"";
+  const l=o.l,hi=nh,m=k=>o.mk&&o.mk[k]?" mk":"";
   const big=BIG.map(k=>`<span class="bg${hi(k)}${m(k)}"><b>${f1(l[k])}</b><i>${CL[k]}</i></span>`).join("");
   const sm=SMALL.map(k=>`<span class="sm${hi(k)}${m(k)}"><b>${k==="fg"?pctT(l.fgm,l.fga):k==="ft"?pctT(l.ftm,l.fta):f1(l[k])}</b><i>${CL[k]}</i></span>`).join("");
   return`<article class="cd" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(o.q.n)}: open details">
@@ -1542,11 +1545,11 @@ function renderSheet(){
     const so={pts:pg("pts"),reb:pg("reb"),ast:pg("ast"),tpm:pg("tpm"),stl:pg("stl"),blk:pg("blk"),to:pg("to"),
       fga:sfga,fgm:sfga*r("fg")/100,fta:sfta,ftm:sfta*(r("ft")||0)/100};
     const val=sz?SCATS.filter(c=>!S.punt.has(c.k)).reduce((s,c)=>s+zi(c.k),0)/Math.max(1,SCATS.filter(c=>!S.punt.has(c.k)).length):null;
-    h.push(`<section class="blk"><h3>Season <span>per game · ${q.now[0]} games</span></h3><div class="bign">${BIG.map(k=>`<span class="bg${hl(k,so)}"><b>${f1(pg(k))}</b><i>${CL[k]}</i></span>`).join("")}
+    h.push(`<section class="blk"><h3>Season <span>per game · ${q.now[0]} games</span></h3><div class="bign">${BIG.map(k=>`<span class="bg${nh(k)}"><b>${f1(pg(k))}</b><i>${CL[k]}</i></span>`).join("")}
       ${val!=null?`<span class="vlb"><i>VALUE</i><b class="vl ${vcls(val)}">${sgn(val)}</b></span>`:""}</div>
       <div class="sg">${SMALL.map(k=>{const v=k==="fg"?d1(r("fg"))+"%":k==="ft"?d1(r("ft"))+"%":f1(pg(k));
         const att=k==="fg"?` <em>${f1(q.att[0]/q.now[0])} att</em>`:k==="ft"?` <em>${f1(q.att[2]/q.now[0])} att</em>`:"";
-        return`<div class="${hl(k,so).trim()}"><b>${v}</b><i>${CL[k].toUpperCase()}${att}</i></div>`}).join("")}
+        return`<div class="${nh(k).trim()}"><b>${v}</b><i>${CL[k].toUpperCase()}${att}</i></div>`}).join("")}
         <div class="role"><b>${f1(r("mpg"))}</b><i>MIN</i></div><div class="role"><b>${Math.round(r("usg"))}%</b><i>USAGE</i></div></div></section>`);
   }
   // Ranks
@@ -1598,10 +1601,10 @@ async function loadLog(id){
     const act=SCATS.filter(c=>!S.punt.has(c.k));
     box().innerHTML=gs.map(g=>{
       const v=act.length?act.reduce((a,c)=>a+g.z[c.k],0)/act.length:0;
-      const cats=["tpm","stl","blk","to"].map(k=>`<span class="sm${hl(k,g)}"><b>${g[k]}</b><i>${CL[k]}</i></span>`).join("")
-        +`<span class="sm${hl("fg",g)}"><b>${g.fgm}/${g.fga}</b><i>fg</i></span><span class="sm${hl("ft",g)}"><b>${g.ftm}/${g.fta}</b><i>ft</i></span>`;
+      const cats=["tpm","stl","blk","to"].map(k=>`<span class="sm${nh(k)}"><b>${g[k]}</b><i>${CL[k]}</i></span>`).join("")
+        +`<span class="sm${nh("fg")}"><b>${g.fgm}/${g.fga}</b><i>fg</i></span><span class="sm${nh("ft")}"><b>${g.ftm}/${g.fta}</b><i>ft</i></span>`;
       return`<div class="glr"><div class="gd"><b>${md(g.date)}</b><i>${g.at==="@"?"@":"vs"} ${esc(g.opp)}</i><i>${Math.round(g.min)} min</i></div>
-        <div class="gs"><div class="c2" style="margin:0"><div class="bigs">${BIG.map(k=>`<span class="bg${hl(k,g)}"><b>${g[k]}</b><i>${CL[k]}</i></span>`).join("")}</div><span class="vl ${vcls(v)}" style="margin-left:auto">${sgn(v)}</span></div><div class="c3">${cats}</div></div></div>`}).join("")
+        <div class="gs"><div class="c2" style="margin:0"><div class="bigs">${BIG.map(k=>`<span class="bg${nh(k)}"><b>${g[k]}</b><i>${CL[k]}</i></span>`).join("")}</div><span class="vl ${vcls(v)}" style="margin-left:auto">${sgn(v)}</span></div><div class="c3">${cats}</div></div></div>`}).join("")
       +`<p class="lgk">Value per game is on a fixed league scale, punts applied. <a href="${$("psLink").href}" style="color:var(--ball)">Full game log ›</a></p>`;
   }catch(e){if(S.ps&&S.ps.id===id)box().innerHTML=`<p class="lgk">Couldn't load the game log from ESPN.</p>`}
 }
