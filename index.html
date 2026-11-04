@@ -55,8 +55,8 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 /* Three views share the bar and settings: the night's box score, Buy/Sell (season so far
    vs. last season's rates) and Buzz (Yahoo's most added / dropped). body[data-view] shows one
    set and hides the others; no data-view yet means the box score. */
-body:not([data-view="bs"]) .bsv,body:not([data-view="bz"]) .bzv,
-body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
+body:not([data-view="bs"]) .bsv,body:not([data-view="bz"]) .bzv,body:not([data-view="pj"]) .pjv,
+body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv{display:none!important}
 .asof{flex:1;text-align:center;font:500 12px/1 var(--num);color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .datenav{flex:1;display:flex;justify-content:center;align-items:center;gap:2px;min-width:0}
 .arrow{width:30px;height:36px;display:grid;place-items:center;font-size:20px;color:var(--dim);border-radius:6px}
@@ -414,6 +414,20 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
 .bzl .n{font:600 12px/1.35 var(--num);color:var(--ink)}
 .bzl .why{color:var(--ink)}
 .bzl .dn{color:var(--neg);font-weight:700;margin-left:4px}
+/* Proj tab: the same cards; a market number is underlined in the accent */
+.pjside{margin-left:auto;text-align:right;flex:none}
+.pjside b{font:600 17px/1 var(--num)}
+.pjside i{display:block;font:500 10.5px/1.2 var(--name);color:var(--dim);font-style:normal;margin-top:2px}
+.wk{margin-left:auto;display:flex;gap:2px;flex:none}
+.wk span{width:15px;height:19px;border-radius:3px;display:grid;place-items:center;font:600 9.5px/1 var(--name);color:var(--dim);background:var(--cell)}
+.wk span.on{background:var(--ball);color:var(--panel)}
+.wk span.past{opacity:.35}
+.mk b{text-decoration:underline 2px var(--ball);text-underline-offset:3px}
+.pjm{font:500 12.5px/1.4 var(--name);color:var(--dim);margin-top:5px}
+.pjm b{font-weight:600;color:var(--ink)}
+.pjm .up{color:var(--pos)}.pjm .dn{color:var(--neg)}
+.pjm .ij{font-weight:600;color:var(--neg)}.pjm .ij.dtd{color:var(--ball)}
+.pjh{grid-column:1/-1;font:600 11px/1 var(--name);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);padding:16px 0 4px}
 .bzcap{font:500 12.5px/1.4 var(--name);color:var(--dim);padding:8px 0 2px;max-width:62ch}
 .vd.dim{color:var(--dim)}
 .empty.err{color:var(--neg)}
@@ -428,9 +442,10 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
 </head>
 <body>
 <div class="bar gut">
-  <div class="mark"><i></i><div class="seg tabs" id="tabs"><button data-v="box">Box</button><button data-v="bs">Buy/Sell</button><button data-v="bz">Buzz</button></div></div>
+  <div class="mark"><i></i><div class="seg tabs" id="tabs"><button data-v="box">Box</button><button data-v="bs">Buy/Sell</button><button data-v="bz">Buzz</button><button data-v="pj">Proj</button></div></div>
   <div class="asof bsv" id="bsAsOf"></div>
   <div class="asof bzv" id="bzAsOf"></div>
+  <div class="asof pjv" id="pjAsOf"></div>
   <div class="datenav boxv">
     <button class="arrow" id="prev" aria-label="Previous day">‹</button>
     <label class="datelbl"><span id="dateTxt">—</span><input type="date" id="date" aria-label="Pick a date"></label>
@@ -501,6 +516,17 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
   </div>
 </div>
 <main class="gut bzv" id="bzList"></main>
+
+<div class="ruler gut pjv">
+  <div>
+    <div class="meta">
+      <span id="pjStatus" class="num">Loading</span>
+      <div class="sorts"><div class="sort" id="pjSz" hidden><button data-k="pg">Per g</button><button data-k="tot">Total</button></div><div class="sort" id="pjWk" hidden><button data-k="this">This</button><button data-k="next">Next</button></div>
+      <div class="sort" id="pjView"><button data-k="season">Season</button><button data-k="week">Week</button><button data-k="today">Today</button></div></div>
+    </div>
+  </div>
+</div>
+<main class="gut pjv" id="pjList"></main>
 
 <div class="sr" id="sr" hidden role="dialog" aria-label="Search players">
   <div class="srbar gut"><input id="srIn" type="search" placeholder="Find a player or team" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" aria-controls="srList"><button id="srX">Cancel</button></div>
@@ -685,7 +711,7 @@ function renderCats(){
   $("toggles").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.k;
     S.punt.has(k)?S.punt.delete(k):S.punt.add(k);store.set("punt",[...S.punt]);
     $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
-    renderCats();rankWindows();rankBS();renderBS();renderBZ();if(S.players.length){scoreValue();render()}renderSheet()});
+    renderCats();rankWindows();rankBS();renderBS();renderBZ();renderPJ();if(S.players.length){scoreValue();render()}renderSheet()});
   $("bsCats").innerHTML=BSC.map(c=>`<span class="${c.c&&S.punt.has(c.c)?"punted":""}">${c.l}</span>`).join("");
   $("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.setAttribute("aria-pressed",S.sort===b.dataset.k));
 }
@@ -1282,16 +1308,144 @@ fetch("data/buzz.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
   .then(j=>{if(!j){$("bzList").innerHTML=`<div class="empty">No Yahoo buzz yet: it's pulled every 3 hours.</div>`;$("bzStatus").textContent="";return}
     BZ=j;renderBZ()})
   .catch(()=>{$("bzList").innerHTML=`<div class="empty err">Couldn't load the Yahoo buzz.</div>`;$("bzStatus").textContent=""});
+// ---- Proj tab: rest of season, this or next week, and tonight. Season and Week are Proj (the
+// projected per-game line in regression.json, xp, and its z-scores, x) times the schedule
+// (data/schedule.json). Today starts from the same line, swaps in the market's implied
+// averages from player props (data/props.json) where there are any, and rescores the line
+// against Proj's own pool (zp), so every view ranks on one scale.
+let SC=null,PR=null,IJ=null;
+S.pjView=store.get("pjView","season");S.pjWk="this";S.pjSz=store.get("pjSz","pg");
+const PK=["pts","reb","ast","tpm","stl","blk","to"];
+// Market vs Proj gap worth pointing out (per game), by stat.
+const PJGAP={pts:2,reb:1,ast:1,tpm:.5,stl:.3,blk:.3,to:.5};
+function xpLine(q){const f=G.xpf,o={};f.forEach((k,i)=>o[k]=q.xp[i]);return o}
+const zx=q=>Object.fromEntries(G.cats.map((c,i)=>[c,q.x[2+i]]));
+function pjVal(z){const ks=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>c.k);return ks.length?ks.reduce((a,k)=>a+z[k],0)/ks.length:0}
+function pjZ(l){const P=G.zp,v={...l,fgi:l.fgm-P.lgFG*l.fga,fti:l.ftm-P.lgFT*l.fta},z={};
+  for(const c of G.cats){const [k,m,sd]=P.st[c];z[c]=(c==="to"?-1:1)*(v[k]-m)/sd}return z}
+function teamDays(){if(S.tdays)return S.tdays;const m={};if(SC)for(const[d,g]of Object.entries(SC.dates))m[d]=new Set(g.flat());return S.tdays=m}
+const plays=(t,d)=>{const x=teamDays()[d];return !!(x&&x.has(t))};
+function weekDates(next){const t=etToday(),dow=new Date(t+"T12:00:00Z").getUTCDay(),mon=shift(t,-((dow+6)%7));
+  const st=next?shift(mon,7):mon;return[...Array(7)].map((_,i)=>shift(st,i))}
+function opp(t,d){for(const[a,h]of(SC&&SC.dates[d])||[]){if(a===t)return"@ "+h;if(h===t)return"vs "+a}return""}
+// ESPN's injury report (data/injuries.json): [status, return date, note, name, team] by id.
+// Out with a return date: misses games before it. Out with none: unknown, so Week counts
+// no games and Season shows "?". Anything else (day-to-day, questionable) plays, flagged.
+const ijOf=id=>IJ&&IJ.players[id];
+const ijOut=i=>!!i&&/out|suspen/i.test(i[0]);
+const avail=(id,d)=>{const i=ijOf(id);return !ijOut(i)||(!!i[1]&&d>=i[1])};
+function ijNote(id){const i=ijOf(id);if(!i)return"";const out=ijOut(i),sh=d=>fmtDate(d).replace(/^\w+, /,"");
+  return`<div class="pjm"><span class="ij${out?"":" dtd"}">${esc(i[0])}${out?i[1]?` · back ~${sh(i[1])}`:" · no return date":""}</span>${i[2]?` · ${esc(i[2].length>110?i[2].slice(0,i[2].lastIndexOf(" ",106))+"…":i[2])}`:""}</div>`}
+const pctT=(m,a)=>a>0?(100*m/a).toFixed(1)+"%":"–";
+// Props names are the books' ("Herb Jones"), ours are ESPN's ("Herbert Jones"): exact match
+// first, then the same team, last name and first initial.
+const nmKey=(t,n)=>{const w=String(n).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z ]/g,"").replace(/\b(jr|sr|ii|iii|iv|v)\b/g,"").trim().split(/\s+/);return`${t}|${w[w.length-1]}|${w[0][0]}`};
+function prIx(){if(S.prIx!==undefined)return S.prIx;
+  if(!PR||PR.date!==etToday())return S.prIx=null;
+  const o={},f={},gm=Object.fromEntries(PR.games.map(g=>[g.id,g]));
+  for(const[n,v]of Object.entries(PR.players)){o[normN(n)]=v;const g=gm[v.g];if(g)for(const t of[g.a,g.h])f[nmKey(t,n)]=v}
+  return S.prIx={o,f}}
+const propsFor=(P,q)=>P&&(P.o[normN(q.n)]||P.f[nmKey(q.t,q.n)]);
+// Tonight's line: the market's mean for each stat it priced, Proj for the rest. Shot volume
+// (and turnovers, if not priced) scales with the market's points, so FG%/FT% stay Proj's but
+// their weight follows the role the market expects. A PRA-only line is split by Proj's ratios.
+function tonightLine(q,pp){
+  const base=xpLine(q),l={...base},mk={};if(!pp)return{l,base,mk};
+  for(const k of PK)if(pp[k]){l[k]=pp[k][0];mk[k]=pp[k]}
+  if(pp.pra){const rest=Math.max(0,pp.pra[0]-l.pts),sum=(mk.reb?0:base.reb)+(mk.ast?0:base.ast);
+    if(sum>0&&!(mk.reb&&mk.ast)){const left=rest-(mk.reb?l.reb:0)-(mk.ast?l.ast:0);
+      if(!mk.reb){l.reb=Math.max(0,left*base.reb/sum);mk.reb=pp.pra}if(!mk.ast){l.ast=Math.max(0,left*base.ast/sum);mk.ast=pp.pra}}}
+  if(mk.pts&&base.pts>0){const f=Math.min(2,Math.max(.5,l.pts/base.pts));for(const k of["fgm","fga","ftm","fta"])l[k]=base[k]*f;if(!mk.to)l.to=base.to*f}
+  return{l,base,mk};
+}
+function pjCard(o){
+  const l=o.l,hi=k=>o.hi?hl(k,l):S.punt.has(k)?" off":"",m=k=>o.mk&&o.mk[k]?" mk":"";
+  const big=BIG.map(k=>`<span class="bg${hi(k)}${m(k)}"><b>${f1(l[k])}</b><i>${CL[k]}</i></span>`).join("");
+  const sm=SMALL.map(k=>`<span class="sm${hi(k)}${m(k)}"><b>${k==="fg"?pctT(l.fgm,l.fga):k==="ft"?pctT(l.ftm,l.fta):f1(l[k])}</b><i>${CL[k]}</i></span>`).join("");
+  return`<article class="cd" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(o.q.n)}: open details">
+    ${mug({eid:o.id})}
+    <div class="body">
+      <div class="c1"><span class="rk">${o.rank}</span><b class="nm">${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)} · ${Math.round(o.min)}m${o.sub||""}</span><span class="vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</span></div>
+      <div class="c2"><div class="bigs">${big}</div>${o.side||""}</div>
+      <div class="c3">${sm}</div>${o.foot||""}
+    </div>
+  </article>`;
+}
+function pjMsg(m){$("pjList").innerHTML=`<div class="empty">${m}</div>`;$("pjStatus").textContent=""}
+function renderPJ(){
+  $("pjView").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.pjView));
+  $("pjWk").hidden=S.pjView!=="week";$("pjSz").hidden=S.pjView!=="season";
+  $("pjSz").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.pjSz));
+  $("pjWk").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.pjWk));
+  if(!G)return;
+  if(!G.zp||!G.xpf)return pjMsg("Projected lines arrive with the next rankings build.");
+  const today=etToday(),all=Object.entries(G.players).filter(([,q])=>q.xp&&q.xp[0]>=8);
+  const sh=d=>fmtDate(d).replace(/^\w+, /,"");
+  $("pjAsOf").textContent="";
+  let rows=[],cap="",stat="";
+  if(S.pjView==="season"){
+    const left=(id,t)=>{if(!SC)return null;const i=ijOf(id);if(ijOut(i)&&!i[1])return"?";
+      return Object.keys(SC.dates).filter(d=>d>=today&&plays(t,d)&&avail(id,d)).length};
+    const tot=S.pjSz==="tot"&&SC;
+    rows=all.map(([id,q])=>{const g=left(id,q.t),pv=pjVal(zx(q));
+      return{id,q,l:xpLine(q),v:tot?pv*(g==="?"?0:g):pv,hi:1,foot:ijNote(id),
+        side:g!=null?`<div class="pjside"><b>${g}</b><i>games left</i></div>`:""}}).sort((a,b)=>b.v-a.v).slice(0,250);
+    stat=`${rows.length} · ${tot?"total":"per game"}`;
+    cap=`Rest of season, per game: Proj's line (this season's minutes, rates blended toward a two-season baseline). ${tot?"<b>Total</b>: per-game value × games left, so time missed counts.":"<b>Per g</b>: value per game, which ranks quality."} Games left are on the right, counted from any expected return on ESPN's injury report. Proj through ${sh(G.asOf)}; tap the ⓘ on Buy/Sell for how it's built.`;
+  }else if(S.pjView==="week"){
+    if(!SC)return pjMsg("No schedule yet: it's built with the nightly rankings.");
+    const ds=weekDates(S.pjWk==="next"),live=ds.filter(d=>d>=today);
+    rows=all.map(([id,q])=>{const g=live.filter(d=>plays(q.t,d)&&avail(id,d)).length,pl=xpLine(q),l={};
+      for(const k in pl)l[k]=k==="min"?pl[k]:pl[k]*g;
+      return{id,q,g,l,min:pl.min,v:g*pjVal(zx(q)),
+        side:`<div class="wk" aria-label="${g} games">${ds.map(d=>`<span class="${plays(q.t,d)&&avail(id,d)?"on":""}${d<today?" past":""}">${"MTWTFSS"[ds.indexOf(d)]}</span>`).join("")}</div>`,
+        sub:` · <b>${g}</b> g`,foot:ijNote(id)}}).filter(o=>o.g>0).sort((a,b)=>b.v-a.v).slice(0,250);
+    const a=live[0]||ds[0];stat=`${rows.length} · ${sh(a)}–${a.slice(5,7)===ds[6].slice(5,7)?+ds[6].slice(8):sh(ds[6])}`;
+    cap=`${S.pjWk==="next"?"Next week":"The rest of this week"}: Proj's per-game line times games ${S.pjWk==="next"?"":"left "}(${live.length?sh(live[0]):""}–${sh(ds[6])}). Value is the week's total, so a 4-game player can beat a better 2-game one. Stats are week totals; FG%/FT% stay per shot. Orange days = games; a day is blank when the injury report has the player out.`;
+  }else{
+    const teams=new Set(((SC&&SC.dates[today])||[]).flat());
+    const P=prIx(),priced=new Set();
+    if(PR&&PR.date===today)for(const g of PR.games)if(g.n>0){priced.add(g.a);priced.add(g.h)}
+    if(PR&&PR.date===today)for(const g of PR.games){teams.add(g.a);teams.add(g.h)}
+    if(!teams.size)return pjMsg(SC?"No games today.":"No schedule yet: it's built with the nightly rankings.");
+    const out=[],noline=[],hurt=[];
+    for(const[id,q]of all){if(!teams.has(q.t))continue;
+      const pp=propsFor(P,q),t=tonightLine(q,pp),o={id,q,l:t.l,min:t.l.min,mk:t.mk,hi:1,v:pjVal(pjZ(t.l)),side:`<div class="pjside"><i>${esc(opp(q.t,today))}</i></div>`};
+      const d=PK.filter(k=>t.mk[k]).map(k=>{const gap=t.l[k]-t.base[k],c=Math.abs(gap)>=PJGAP[k]?(gap>0?"up":"dn"):"";
+        return`<span class="${c}">${CL[k].toUpperCase()} <b class="${c}">${t.l[k].toFixed(1)}</b> (${t.base[k].toFixed(1)})</span>`});
+      if(pp)o.foot=`<div class="pjm">Market (Proj): ${d.join(" · ")}</div>`;
+      const ij=ijOf(id);if(ij)o.foot=(o.foot||"")+ijNote(id);
+      if(ijOut(ij)&&!avail(id,today)&&!pp){hurt.push(o);continue}
+      if(!pp&&priced.has(q.t)&&t.base.min>=18){o.foot=`<div class="pjm">No line posted while teammates have one: often out or questionable. Check the news.</div>`;noline.push(o)}
+      else out.push(o)}
+    out.sort((a,b)=>b.v-a.v);noline.sort((a,b)=>b.v-a.v);hurt.sort((a,b)=>b.v-a.v);rows=out;
+    const ng=teams.size/2,np=priced.size/2;
+    stat=`${out.length} · ${ng} game${ng===1?"":"s"} · props ${np}/${ng}`;
+    cap=`Tonight (${sh(today)}): Proj's per-game line, with the sportsbooks' implied averages swapped in where there are props (<span class="mk"><b>underlined</b></span>; Proj in brackets, green or red when the market sees a different role). Shot volume follows the market's points.${PR&&PR.date===today?` Props pulled ${new Date(PR.built).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}.`:" Props for tonight aren't in yet: they're pulled around 4 and 6pm ET."}`;
+    rows.forEach((o,i)=>o.rank=i+1);
+    $("pjStatus").textContent=stat;
+    $("pjList").innerHTML=`<p class="bzcap">${cap}</p>`+out.map(pjCard).join("")
+      +(noline.length?`<div class="pjh">No line posted, not on the injury report (${noline.length})</div>`+noline.map(o=>{o.rank="–";return pjCard(o)}).join(""):"")
+      +(hurt.length?`<div class="pjh">Out tonight (${hurt.length})</div>`+hurt.map(o=>{o.rank="–";return pjCard(o)}).join(""):"");
+    return;
+  }
+  rows.forEach((o,i)=>{o.rank=i+1;if(o.min==null)o.min=o.l.min});
+  $("pjStatus").textContent=stat;
+  $("pjList").innerHTML=rows.length?`<p class="bzcap">${cap}</p>`+rows.map(pjCard).join(""):`<div class="empty">Nobody projected here.</div>`;
+}
+Promise.all(["data/schedule.json","data/props.json","data/injuries.json"].map(u=>fetch(u,{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null)))
+  .then(([sc,pr,ij])=>{SC=sc;PR=pr;IJ=ij;S.tdays=null;S.prIx=undefined;renderPJ()});
+
 function bsMsg(m){$("bsList").innerHTML=`<div class="empty">${esc(m)}</div>`;$("bsStatus").textContent=""}
 function setView(v){
   document.body.dataset.view=v;
   $("tabs").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v));
-  try{history.replaceState(null,"",v==="bs"?"#buysell":v==="bz"?"#buzz":location.pathname+location.search)}catch(e){}
+  try{history.replaceState(null,"",v==="bs"?"#buysell":v==="bz"?"#buzz":v==="pj"?"#proj":location.pathname+location.search)}catch(e){}
   window.scrollTo(0,0);
 }
 fetch("data/regression.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
   .then(j=>{if(!j)return bsMsg("No Buy/Sell data yet: it's built each morning with the rankings.");
-    G=j;rankBS();renderBS();if(S.players.length)render();if(BZ)renderBZ()})
+    G=j;rankBS();renderBS();renderPJ();if(S.players.length)render();if(BZ)renderBZ()})
   .catch(()=>bsMsg("Couldn't load the Buy/Sell data."));
 
 // ---- Player sheet: everything about one player, opened from any card. tn = that night's
@@ -1478,7 +1632,7 @@ function cardOpen(e,list){
 }
 
 // ---- controls
-for(const l of ["list","bsList","bzList"]){
+for(const l of ["list","bsList","bzList","pjList"]){
   $(l).onclick=e=>cardOpen(e,l);
   $(l).onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();cardOpen(e,l)}};
 }
@@ -1498,9 +1652,12 @@ $("bsSort").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsSort=b.data
 $("bsUnit").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsUnit=b.dataset.u;store.set("bsUnit",S.bsUnit);renderBS();renderSheet()});
 $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>setView(b.dataset.v));
 $("bsInfo").onclick=()=>toggleHelp($("bsHelp").hidden);
+$("pjView").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjView=b.dataset.k;store.set("pjView",S.pjView);renderPJ();window.scrollTo(0,0)});
+$("pjWk").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjWk=b.dataset.k;renderPJ()});
+$("pjSz").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjSz=b.dataset.k;store.set("pjSz",S.pjSz);renderPJ()});
 $("bzDay").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bzDay=b.dataset.k;S.bzOpen.clear();renderBZ()});
 $("bzSort").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bzSort=b.dataset.k;store.set("bzSort",S.bzSort);S.bzOpen.clear();renderBZ()});
-setView(location.hash==="#buysell"?"bs":location.hash==="#buzz"?"bz":"box");
+setView(location.hash==="#buysell"?"bs":location.hash==="#buzz"?"bz":location.hash==="#proj"?"pj":"box");
 $("prev").onclick=()=>loadDate(shift(S.date,-1));
 $("next").onclick=()=>loadDate(shift(S.date,1));
 $("date").onchange=e=>e.target.value&&loadDate(e.target.value);
