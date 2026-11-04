@@ -39,6 +39,11 @@ jobs:
 
       - run: node build-rankings.js
 
+      # Remaining regular-season schedule for the Proj tab (games left, games this week).
+      - name: Schedule
+        continue-on-error: true
+        run: node build-schedule.js
+
       # My Yahoo league: rosters, free agents, league moves, most added/dropped.
       # Skips itself when the secrets aren't set, and a Yahoo failure never blocks the rankings.
       - name: Yahoo league
@@ -55,7 +60,7 @@ jobs:
       - name: Commit if changed
         run: |
           git add data/rankings.json data/regression.json
-          for f in data/yahoo.json data/yahoo-owned.json data/yahoo-token.enc; do [ -f "$f" ] && git add "$f"; done; true
+          for f in data/schedule.json data/yahoo.json data/yahoo-owned.json data/yahoo-token.enc; do [ -f "$f" ] && git add "$f"; done; true
           if git diff --cached --quiet; then echo "No change"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"

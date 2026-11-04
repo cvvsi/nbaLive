@@ -163,6 +163,7 @@ const PREV_W = 0.5;          // otherwise the season before counts at half weigh
 const UP_MIN = 30, UP_BELOW = 26;   // role upside: the same rates at 30 min, for anyone under 26 now
 const BLOWOUT = 20;                  // final margin that counts as a blowout
 const PG = ['pts', 'reb', 'ast', 'stl', 'blk', 'tpm', 'to'];
+const XPF = ['min', 'pts', 'reb', 'ast', 'stl', 'blk', 'tpm', 'to', 'fgm', 'fga', 'ftm', 'fta'];
 const RATES = ['mpg', 'usg', 'fg', 'ft', 'tp', 'tpm', 'pts', 'reb', 'ast', 'stl', 'blk', 'to', 'fga', 'fta', 'tpa'];
 const r1 = v => Math.round(v * 10) / 10;
 
@@ -249,6 +250,9 @@ function buildRegression(games, asOf, rankings) {
     out[p.id] = { n: p.s.name, t: p.s.team,
       now: rankings[p.id].w.season,
       x: [p.gp, r1(p.min), ...CATS.map(c => r2(p.z[c]))],
+      // the projected line itself, per game (fields XPF), for the Proj tab's season, week and
+      // tonight views; tonight swaps in the market's numbers and rescores it against zp
+      xp: XPF.map(k => r2(p[k])),
       r: rates(p.s),
       // for the page's analyst note: exact per-game averages, and shot attempts behind each %
       pg: PG.map(k => r1(p.s[k] / p.s.gp)), att: [p.s.fga, p.s.tpa, p.s.fta], cx: cx[p.id] };
@@ -264,7 +268,11 @@ function buildRegression(games, asOf, rankings) {
   const ly = {};
   for (const [id, h] of Object.entries(H.players)) if (h.ly) ly[id] = h.ly;
   fs.writeFileSync(REG, JSON.stringify({ asOf, cats: CATS, fields: ['gp', 'mpg', ...CATS], rates: RATES, pgf: PG,
-    seasons: H.seasons, prior: PRIOR, priorGp: PRIOR_GP, baseMin: BASE_MIN, prevW: PREV_W, players: out, ly }));
+    seasons: H.seasons, prior: PRIOR, priorGp: PRIOR_GP, baseMin: BASE_MIN, prevW: PREV_W, xpf: XPF,
+    // the pool Proj is scored against: league FG%/FT% and each category's stat, mean and spread
+    zp: { lgFG: +scored.pool.lgFG.toFixed(4), lgFT: +scored.pool.lgFT.toFixed(4),
+      st: Object.fromEntries(CATS.map(c => { const t = scored.pool.st[c]; return [c, [t.k, +t.m.toFixed(4), +t.sd.toFixed(4)]]; })) },
+    players: out, ly }));
   console.log(`${REG}: ${lines.filter(l => l.b).length}/${lines.length} players with a baseline`);
 }
 

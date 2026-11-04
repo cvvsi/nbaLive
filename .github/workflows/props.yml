@@ -1,21 +1,30 @@
-# Player props from The Odds API (fetch-props.js). Manual only for now: the free plan has
-# 500 credits a month, so nothing is scheduled until the daily pull is sized.
+# Player props from The Odds API (fetch-props.js) -> data/props.json for the Proj tab's Today
+# view. Props go up during the afternoon, so two tries before tip-off: 21:13 and 23:07 UTC
+# (4:13 and 6:07pm ET in winter). The second only fetches games the first found unpriced, so
+# a slate costs credits once. Needs the ODDS_API_KEY repo secret.
 name: Props
 
 on:
+  schedule:
+    - cron: "13 21 * * *"
+    - cron: "7 23 * * *"
   workflow_dispatch:
     inputs:
       mode:
-        description: "probe = tonight's games (free) + one game's props (about 2 credits)"
-        default: probe
+        description: "run = tonight (skips games already priced) · force = refetch all · probe = one game, printed only"
+        default: run
         required: true
       markets:
-        description: "Comma-separated Odds API markets"
-        default: player_points,player_points_rebounds_assists
-        required: true
+        description: "Odds API markets (blank = all seven 9-cat markets)"
+        default: ""
+        required: false
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: props
+  cancel-in-progress: false
 
 jobs:
   props:
@@ -25,7 +34,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node fetch-props.js ${{ inputs.mode }}
+      - run: node fetch-props.js ${{ inputs.mode || 'run' }}
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
           PROPS_MARKETS: ${{ inputs.markets }}
+      - name: Commit if changed
+        run: |
+          [ -f data/props.json ] || { echo "No props file"; exit 0; }
+          git add data/props.json data/props
+          if git diff --cached --quiet; then echo "No change"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Props $(node -p "require('./data/props.json').date")"
+          for i in 1 2 3; do git pull --rebase && git push && exit 0; sleep $((i*5)); done; exit 1
