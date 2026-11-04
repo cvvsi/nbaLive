@@ -20,6 +20,8 @@ const fs = require('fs');
 const API = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba';
 const CATS = ['fg', 'ft', 'tpm', 'pts', 'reb', 'ast', 'stl', 'blk', 'to'];
 const WINDOWS = { season: 0, d30: 30, d14: 14, d7: 7 };
+// Per-game stat line per window (l[window], fields LF), for the Ranks tab's cards.
+const LF = ['pts', 'reb', 'ast', 'stl', 'blk', 'tpm', 'to', 'fgm', 'fga', 'ftm', 'fta'];
 const POOL = 130, ITER = 4, G3 = 3;
 const CACHE = '.cache/games.json', OUT = 'data/rankings.json', REG = 'data/regression.json', HIST = 'data/history.json';
 const CACHE_V = 3;   // bump when parseBox's row shape changes, so stale cached rows are refetched
@@ -153,9 +155,13 @@ function zOf(l, { lgFG, lgFT, st }) {
 // so K is how many minutes (or attempts) of this season it takes to count as much as the
 // baseline. Fast-settling rates (shot volume, boards) have a small K; steals, blocks and 3P%
 // a large one. The baseline never counts for more than it actually saw.
-const PRIOR = { fga: 150, tpa: 200, fta: 250, reb: 200, ast: 250, to: 300, stl: 600, blk: 500,  // minutes
-  fg: 250, tp: 500, ft: 200 };                                                                  // attempts
-const PRIOR_GP = 3;          // minutes: this season's mpg, nudged by 3 games of last season's
+// Fitted on three seasons (backtest.js: 2023-24 to 2025-26, first 5/8/12/20 games predicting the
+// rest of each season, fit on two seasons and scored on the third). Changed only where the best
+// K was steady across seasons and beat the old value out of sample: reb 200->450, to 300->600,
+// stl 600->1200, fta 250->450, fg 250->450. The rest already sat at the fitted value.
+const PRIOR = { fga: 150, tpa: 200, fta: 450, reb: 450, ast: 250, to: 600, stl: 1200, blk: 500,  // minutes
+  fg: 450, tp: 500, ft: 200 };                                                                  // attempts
+const PRIOR_GP = 5;          // minutes: this season's mpg, nudged by 5 games of last season's (fitted; was 3)
 const BASE_MIN = 500;        // under this many minutes last season, the season before counts in full
 const PREV_W = 0.5;          // otherwise the season before counts at half weight (Marcel-style 1 : 0.5).
                              // Checked against an analyst's projections (Nov 2026): closer on every
@@ -293,6 +299,7 @@ async function main() {
     windows[w] = { from, to: asOf, games: inW.length };
     for (const p of rankWindow(inW))
       players[p.id].w[w] = [p.gp, Math.round(p.min * 10) / 10, ...CATS.map(c => r2(p.z[c]))];
+      (players[p.id].l || (players[p.id].l = {}))[w] = LF.map(k => r2(p[k]));
   }
   // g3: each team's last 3 games, per team game. Calendar windows hold 2-4 games depending
   // on the schedule; this is the "3 straight decent games" read, with DNPs as zeros.
@@ -307,6 +314,7 @@ async function main() {
   windows.g3 = { games: G3, perTeamGame: true, to: asOf };
   for (const p of rankWindow(g3, teamGames))
     players[p.id].w.g3 = [p.gp, Math.round(p.min * 10) / 10, ...CATS.map(c => r2(p.z[c]))];
+    (players[p.id].l || (players[p.id].l = {})).g3 = LF.map(k => r2(p[k]));
   // pm: minutes per game played BEFORE those 3, the baseline for the role-change flag.
   // (Comparing against the season would dilute the jump with the very games that show it.)
   const before = {};
@@ -315,7 +323,7 @@ async function main() {
   }
   for (const [id, b] of Object.entries(before)) players[id].pm = Math.round(b.min / b.gp * 10) / 10;
   fs.mkdirSync('data', { recursive: true });
-  fs.writeFileSync(OUT, JSON.stringify({ asOf, cats: CATS, fields: ['gp', 'mpg', ...CATS], windows, players }));
+  fs.writeFileSync(OUT, JSON.stringify({ asOf, cats: CATS, fields: ['gp', 'mpg', ...CATS], lf: LF, windows, players }));
   console.log(`${OUT}: ${Object.keys(players).length} players through ${asOf}`, JSON.stringify(windows));
   buildRegression(games, asOf, players);
 }
