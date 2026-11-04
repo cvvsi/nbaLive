@@ -115,8 +115,21 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .sgd .op.b2{box-shadow:inset 0 -2px 0 var(--neg)}
 .sgd .past{opacity:.35}
 .sgd .tx{grid-column:1/-1;text-align:left;padding:8px 2px 10px;background:var(--panel);white-space:normal;font:500 12.5px/1.5 var(--name)}
-.sgd .tx b{font-weight:600}
-.sgd .tx .av{color:var(--pos);font-weight:600}
+.sgd .op.sel{outline:2px solid var(--ink);outline-offset:-2px}
+.sgd .tx{padding:4px 0 8px}
+.tph{font:600 13px/1 var(--name);padding:8px 2px 2px}
+.tp{margin-top:6px}
+.tp .tt,.tp .tr{display:grid;grid-template-columns:1fr 32px 44px 40px;align-items:baseline;gap:4px;padding:5px 2px}
+.tp .tt{font:500 12.5px/1 var(--name);border-bottom:1px solid var(--rule)}
+.tp .tt b{font-weight:700}
+.tp .tt span{font:600 9.5px/1 var(--name);letter-spacing:.06em;color:var(--dim);text-align:right}
+.tp .tt .tn{font:500 12.5px/1 var(--name);letter-spacing:0;color:var(--ink);text-align:left}
+.tp .ts{font:600 10px/1 var(--name);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);padding:8px 2px 2px}
+.tp .tr{font:500 12.5px/1.2 var(--num);text-align:right;cursor:pointer;border-bottom:1px solid var(--rule)}
+.tp .tr .pn{font:600 13.5px/1.2 var(--name);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp .tr .ij{font:600 10.5px/1 var(--name);color:var(--neg)}.tp .tr .ij.dtd{color:var(--ball)}
+.tp .tr .ms{font:500 11px/1 var(--name);color:var(--ball);font-style:normal}
+.tp .t1{color:var(--pos);font-weight:600}.tp .t2{color:var(--ink)}.tp .t3{color:var(--dim)}
 .sgk{font:500 12px/1.4 var(--name);color:var(--dim);padding:6px 0 2px}
 .lr .lr2 .mk{text-decoration:underline 2px var(--ball);text-underline-offset:3px}
 /* Three views share the bar and settings: the night's box score, Buy/Sell (season so far
@@ -1507,16 +1520,32 @@ function renderGrid(ds,live,all,today){
   for(const t of teams){const g=left(t);
     h+=`<div class="tm" data-t="${t}">${t}</div><div class="gn${g>=4?" g4":g<=2?" g2":""}">${g}</div>`
       +ds.map(d=>{const o=opp(t,d);if(!o)return`<div class="${d<today?"past":""}"></div>`;
-        const b2=plays(t,shift(d,-1));return`<div class="op${o[0]==="@"?" aw":""}${light(d)?" lt":" on"}${b2?" b2":""}${d<today?" past":""}" data-t="${t}">${o.replace("vs ","").replace("@ ","@")}</div>`}).join("");
-    if(S.sgOpen===t){
-      const ps=all.filter(([,q])=>q.t===t).map(([id,q])=>({id,q})).sort((a,b)=>szn[a.id]-szn[b.id]);
-      const mine=ps.filter(o=>szn[o.id]<=ROST).slice(0,6),fa=ps.filter(o=>szn[o.id]>ROST).slice(0,4);
-      const nm=o=>`${esc(o.q.n)} <b>#${wk[o.id]||"–"}</b>${ijOut(ijOf(o.id))?" <span style=\"color:var(--neg)\">out</span>":""}`;
-      h+=`<div class="tx">Week rank: ${mine.map(nm).join(" · ")||"–"}${fa.length?`<br><span class="av">Likely available</span> (Proj outside ${ROST}): ${fa.map(nm).join(" · ")}`:""}</div>`}
+        const b2=plays(t,shift(d,-1)),sel=S.sgOpen&&S.sgOpen.d===d&&(S.sgOpen.t===t||opp(S.sgOpen.t,d).endsWith(t));
+        return`<div class="op${o[0]==="@"?" aw":""}${light(d)?" lt":" on"}${b2?" b2":""}${d<today?" past":""}${sel?" sel":""}" data-t="${t}" data-d="${d}">${o.replace("vs ","").replace("@ ","@")}</div>`}).join("");
+    if(S.sgOpen&&S.sgOpen.t===t){const gd=S.sgOpen.d;
+      const head=gd?`<div class="tph">${esc(opp(t,gd)[0]==="@"?t+" "+opp(t,gd):opp(t,gd).replace("vs ","")+" @ "+t)} · ${fmtDate(gd).replace(/,/,"")}</div>`:"";
+      const teams2=gd?[t,opp(t,gd).replace(/^(vs|@) /,"")]:[t];
+      h+=`<div class="tx">${head}${teams2.map(x=>teamPanel(x,gd,live,all,szn,wk)).join("")}</div>`}
   }
   const lights=ds.filter(d=>d>=today&&light(d)).map(d=>D[ds.indexOf(d)]+" "+fmtDate(d).replace(/^\w+, \w+ /,""));
   $("scStatus").textContent=`${teams.length} teams`;
-  $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Red underline = 2nd night of a back-to-back. Tap a team for its players.</p><div class="sgd">${h}</div>`;
+  $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Red underline = 2nd night of a back-to-back. Tap a team for its rotation this week, or a game for both teams.</p><div class="sgd">${h}</div>`;
+}
+// One team's rotation for the Schedule panel: everyone projected for 10+ minutes, as starters
+// (the five healthy players with the most projected minutes; a stand-in until real starts come
+// from the box scores), the rest of the rotation, and who's out (for that game, or all week).
+// Each row: projected minutes, Proj rank (shaded by tier) and week rank. No availability guess.
+function teamPanel(t,gd,live,all,szn,wk){
+  const ps=all.filter(([,q])=>q.t===t).map(([id,q])=>({id,q,m:q.xp[0],g:live.filter(d=>plays(t,d)&&avail(id,d)).length}))
+    .filter(o=>o.m>=10).sort((a,b)=>b.m-a.m);
+  const outNow=o=>gd?!avail(o.id,gd):o.g===0,out=ps.filter(outNow),ok=ps.filter(o=>!outNow(o));
+  const tier=r=>r<=TOP?"t1":r<=ROST?"t2":"t3",tg=live.filter(d=>plays(t,d)).length;
+  const row=o=>{const i=ijOf(o.id),miss=!gd&&ijOut(i)&&o.g<tg&&o.g>0?` <i class="ms">misses ${tg-o.g}</i>`:"",
+      st=i?`<span class="ij${ijOut(i)?"":" dtd"}">${ijOut(i)?"OUT"+(i[1]?" ~"+fmtDate(i[1]).replace(/^\w+, /,""):""):"DTD"}</span>`:"";
+    return`<div class="tr" data-id="${o.id}"><span class="pn">${esc(o.q.n)}${miss} ${st}</span><span>${Math.round(o.m)}</span><span class="${tier(szn[o.id])}">#${szn[o.id]}</span><span>${o.g&&!outNow(o)?"#"+wk[o.id]:"–"}</span></div>`};
+  const sec=(l,a)=>a.length?`<div class="ts">${l}</div>`+a.map(row).join(""):"";
+  return`<div class="tp"><div class="tt"><span class="tn"><b>${t}</b> · ${tg} game${tg===1?"":"s"}${gd?" this week":" this week"}</span><span>MIN</span><span>PROJ</span><span>WK</span></div>`
+    +sec("Starters",ok.slice(0,5))+sec("Rotation",ok.slice(5))+sec(gd?"Out tonight":"Out this week",out)+`</div>`;
 }
 // Week picker (Proj > Week and Schedule): this week = 0, then one week at a time to the end of
 // the schedule.
@@ -1854,7 +1883,9 @@ $("densBtn").onclick=()=>{S.dense=!S.dense;store.set("dense",S.dense);paintDens(
 $("rkWin").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.rkWin=b.dataset.k;store.set("rkWin",S.rkWin);renderRK();window.scrollTo(0,0)});
 $("rkSz").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.rkSz=b.dataset.k;store.set("rkSz",S.rkSz);renderRK()});
 $("pjTot").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjTot=b.dataset.k;renderPJ()});
-$("scList").addEventListener("click",e=>{const c=e.target.closest(".sgd [data-t]");if(!c)return;S.sgOpen=S.sgOpen===c.dataset.t?null:c.dataset.t;renderSC()});
+$("scList").addEventListener("click",e=>{const p=e.target.closest(".tr[data-id]");if(p){openSheet(p.dataset.id,null);return}
+  const c=e.target.closest(".sgd [data-t]");if(!c||c.closest(".tx"))return;const k={t:c.dataset.t,d:c.dataset.d||null};
+  S.sgOpen=S.sgOpen&&S.sgOpen.t===k.t&&S.sgOpen.d===k.d?null:k;renderSC()});
 $("scWk").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.scWk=Math.max(0,S.scWk+ +b.dataset.d);S.sgOpen=null;renderSC()});
 $("pjSz").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjSz=b.dataset.k;store.set("pjSz",S.pjSz);renderPJ()});
 $("bzDay").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bzDay=b.dataset.k;S.bzOpen.clear();renderBZ()});
