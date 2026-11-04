@@ -89,13 +89,14 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .lr .ls6 b{font:500 12.5px/1.2 var(--num);color:var(--ink)}
 .lr .ls6 i{font:500 11.5px/1 var(--name);color:var(--dim);font-style:normal}
 .lr .lr2 .off{opacity:.3}
-.lr .zs{display:grid;grid-template-columns:repeat(9,1fr);gap:2px;margin-top:5px;padding-left:57px}
-.lr .zs span{font:600 9.5px/16px var(--name);letter-spacing:.04em;text-transform:uppercase;text-align:center;border-radius:3px;background:var(--cell);color:var(--dim)}
-.lr .zs span[style]{color:var(--ink)}
-.lr .zs .off{opacity:.3}
 .lr .cx{font:500 12px/1 var(--name);color:var(--dim);white-space:nowrap;flex:none;margin-left:auto;padding-left:6px}
 .lr .cx b{font:600 12px/1 var(--num);color:var(--ink)}
 .lr .cx .up{color:var(--pos)}.lr .cx .dn{color:var(--neg)}
+.wkpick{display:flex;align-items:center;gap:2px}
+.wkpick[hidden]{display:none}
+.wkpick button{width:26px;height:26px;border-radius:4px;font:600 16px/1 var(--name);color:var(--ink)}
+.wkpick button:disabled{color:var(--rule)}
+.wkpick span{font:600 12px/1 var(--name);letter-spacing:.06em;color:var(--ink);background:var(--cell);border-radius:4px;padding:6px 7px;min-width:52px;text-align:center;white-space:nowrap}
 .pjrow2{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 0 6px}
 .pjrow2[hidden]{display:none}
 /* schedule grid: teams x days, opponent in each cell; the header counts that night's games */
@@ -589,7 +590,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
   <div>
     <div class="meta">
       <span id="pjStatus" class="num">Loading</span>
-      <div class="sorts"><div class="sort" id="pjSz" hidden><button data-k="pg">Per g</button><button data-k="tot">Total</button></div><div class="sort" id="pjWk" hidden><button data-k="this">This</button><button data-k="next">Next</button></div>
+      <div class="sorts"><div class="sort" id="pjSz" hidden><button data-k="pg">Per g</button><button data-k="tot">Total</button></div><div class="wkpick" id="pjWk" hidden><button data-d="-1" aria-label="Previous week">‹</button><span id="pjWkLbl"></span><button data-d="1" aria-label="Next week">›</button></div>
       <div class="sort" id="pjView"><button data-k="season">Season</button><button data-k="week">Week</button><button data-k="today">Today</button></div></div>
     </div>
     <div class="meta pjrow2" id="pjRow2" hidden><div class="sort" id="pjMode"><button data-k="list">Players</button><button data-k="grid">Schedule</button></div>
@@ -1399,7 +1400,7 @@ fetch("data/buzz.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
 // averages from player props (data/props.json) where there are any, and rescores the line
 // against Proj's own pool (zp), so every view ranks on one scale.
 let SC=null,PR=null,IJ=null;
-S.pjView=store.get("pjView","season");S.pjWk="this";S.pjMode="list";S.pjTot="pg";S.sgOpen=null;S.pjSz=store.get("pjSz","pg");
+S.pjView=store.get("pjView","season");S.pjWk=0;S.pjMode="list";S.pjTot="pg";S.sgOpen=null;S.pjSz=store.get("pjSz","pg");
 const PK=["pts","reb","ast","tpm","stl","blk","to"];
 // Market vs Proj gap worth pointing out (per game), by stat.
 const PJGAP={pts:2,reb:1,ast:1,tpm:.5,stl:.3,blk:.3,to:.5};
@@ -1410,8 +1411,8 @@ function pjZ(l){const P=G.zp,v={...l,fgi:l.fgm-P.lgFG*l.fga,fti:l.ftm-P.lgFT*l.f
   for(const c of G.cats){const [k,m,sd]=P.st[c];z[c]=(c==="to"?-1:1)*(v[k]-m)/sd}return z}
 function teamDays(){if(S.tdays)return S.tdays;const m={};if(SC)for(const[d,g]of Object.entries(SC.dates))m[d]=new Set(g.flat());return S.tdays=m}
 const plays=(t,d)=>{const x=teamDays()[d];return !!(x&&x.has(t))};
-function weekDates(next){const t=etToday(),dow=new Date(t+"T12:00:00Z").getUTCDay(),mon=shift(t,-((dow+6)%7));
-  const st=next?shift(mon,7):mon;return[...Array(7)].map((_,i)=>shift(st,i))}
+function weekDates(off){const t=etToday(),dow=new Date(t+"T12:00:00Z").getUTCDay(),mon=shift(t,-((dow+6)%7));
+  const st=shift(mon,7*(+off||0));return[...Array(7)].map((_,i)=>shift(st,i))}
 function opp(t,d){for(const[a,h]of(SC&&SC.dates[d])||[]){if(a===t)return"@ "+h;if(h===t)return"vs "+a}return""}
 // ESPN's injury report (data/injuries.json): [status, return date, note, name, team] by id.
 // Out with a return date: misses games before it. Out with none: unknown, so Week counts
@@ -1464,7 +1465,6 @@ function ijTag(id){const i=ijOf(id);if(!i)return"";const out=ijOut(i),sh=d=>fmtD
   return`<span class="ij${out?"":" dtd"}">${out?"OUT"+(i[1]?" ~"+sh(i[1]):""):"DTD"}</span>`}
 // Small headshot for list rows (ESPN's CDN, cropped to the face; a blank circle if missing).
 const hs=id=>`<span class="hs">${/^\d+$/.test(id)?`<img src="https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/${id}.png&w=48&h=48&scale=crop" alt="" loading="lazy" decoding="async" width="24" height="24" onerror="this.classList.add('bad')">`:""}</span>`;
-const ZK=["pts","reb","ast","tpm","stl","blk","to","fg","ft"];
 function lrow(o){
   const l=o.l,m=k=>o.mk&&o.mk[k]?" mk":"",off=k=>S.punt.has(k)?" off":"";
   const val=k=>k==="fg"?pctT(l.fgm,l.fga):k==="ft"?pctT(l.ftm,l.fta):f1(l[k]);
@@ -1472,7 +1472,7 @@ function lrow(o){
     +`<div class="ls6">${SMALL.map(k=>`<span class="${off(k).trim()}"><b class="${m(k).trim()}">${val(k)}</b><i>${CL[k]}</i></span>`).join("")}</div>`;
   return`<article class="cd lr" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(o.q.n)}: open details">
     <div class="lr1"><span class="rk">${o.rank}</span>${hs(o.id)}<b class="nm">${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)}${o.ctx?"":` · ${Math.round(o.min)}m`}</span>${ijTag(o.id)}${o.ctx?`<span class="cx">${o.ctx}</span>`:`<span class="sd">${o.sdl||""}</span>`}<span class="vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</span></div>
-    <div class="lr2">${c}</div>${o.z?`<div class="zs" aria-label="category z-scores">${ZK.map(k=>`<span class="${S.punt.has(k)?"off":""}"${S.punt.has(k)?"":` style="${heat(o.z[k])}"`.replace(' style=""',"")}>${CL[k]}</span>`).join("")}</div>`:""}</article>`;
+    <div class="lr2">${c}</div></article>`;
 }
 const listOn=()=>S.dense&&(document.body.dataset.view==="pj"||document.body.dataset.view==="rk");
 function paintDens(){const v=document.body.dataset.view,on=v==="pj"||v==="rk";$("densBtn").hidden=!on;
@@ -1504,8 +1504,8 @@ function renderGrid(ds,live,all,today){
       h+=`<div class="tx">Week rank: ${mine.map(nm).join(" · ")||"–"}${fa.length?`<br><span class="av">Likely available</span> (Proj outside ${ROST}): ${fa.map(nm).join(" · ")}`:""}</div>`}
   }
   const lights=ds.filter(d=>d>=today&&light(d)).map(d=>D[ds.indexOf(d)]+" "+fmtDate(d).replace(/^\w+, \w+ /,""));
-  $("pjStatus").textContent=`${fmtDate(ds[0]).replace(/^\w+, /,"")}–${+ds[6].slice(8)}`;
-  $("pjList").innerHTML=`<p class="sgk">Games left per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Red underline = 2nd night of a back-to-back. Tap a team for its players.</p><div class="sgd">${h}</div>`;
+  $("pjStatus").textContent=`${teams.length} teams`;
+  $("pjList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Red underline = 2nd night of a back-to-back. Tap a team for its players.</p><div class="sgd">${h}</div>`;
 }
 function pjMsg(m){$("pjList").innerHTML=`<div class="empty">${m}</div>`;$("pjStatus").textContent=""}
 function renderPJ(){
@@ -1515,7 +1515,9 @@ function renderPJ(){
   $("pjTot").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.pjTot));
   $("pjTot").style.visibility=S.pjMode==="grid"?"hidden":"";$("pjSz").hidden=S.pjView!=="season";
   $("pjSz").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.pjSz));
-  $("pjWk").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.pjWk));
+  {const ds=weekDates(S.pjWk),last=SC?Object.keys(SC.dates).sort().pop():"";
+   $("pjWkLbl").textContent=S.pjWk===0?"This wk":S.pjWk===1?"Next wk":`${fmtDate(ds[0]).replace(/^\w+, /,"")}–${ds[0].slice(5,7)===ds[6].slice(5,7)?+ds[6].slice(8):fmtDate(ds[6]).replace(/^\w+, /,"")}`;
+   const[pv,nx]=$("pjWk").querySelectorAll("button");pv.disabled=S.pjWk<=0;nx.disabled=!last||shift(ds[6],1)>last}
   if(!G)return;
   if(!G.zp||!G.xpf)return pjMsg("Projected lines arrive with the next rankings build.");
   const today=etToday(),all=Object.entries(G.players).filter(([,q])=>q.xp&&q.xp[0]>=8);
@@ -1533,7 +1535,7 @@ function renderPJ(){
     cap=`Rest of season, per game: Proj's line (this season's minutes, rates blended toward a two-season baseline). ${tot?"<b>Total</b>: per-game value × games left, so time missed counts.":"<b>Per g</b>: value per game, which ranks quality."} Games left are on the right, counted from any expected return on ESPN's injury report. Proj through ${sh(G.asOf)}; tap the ⓘ on Buy/Sell for how it's built.`;
   }else if(S.pjView==="week"){
     if(!SC)return pjMsg("No schedule yet: it's built with the nightly rankings.");
-    const ds=weekDates(S.pjWk==="next"),live=ds.filter(d=>d>=today);
+    const ds=weekDates(S.pjWk),live=ds.filter(d=>d>=today);
     if(S.pjMode==="grid")return renderGrid(ds,live,all,today);
     const szn={};all.map(([id,q])=>[id,pjVal(zx(q))]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>szn[id]=i+1);
     const b2b=(t,id)=>live.filter(d=>plays(t,d)&&avail(id,d)&&plays(t,shift(d,-1))).length;
@@ -1543,8 +1545,8 @@ function renderPJ(){
         side:`<div class="wk" aria-label="${g} games">${ds.map(d=>`<span class="${plays(q.t,d)&&avail(id,d)?"on":""}${d<today?" past":""}">${"MTWTFSS"[ds.indexOf(d)]}</span>`).join("")}</div>`,
         sub:` · <b>${g}</b> g`,sdl:g+"g",foot:ijNote(id),z:zx(q),bb:b2b(q.t,id)}}).filter(o=>o.g>0).sort((a,b)=>b.v-a.v).slice(0,250);
     rows.forEach((o,i)=>{const d=szn[o.id]-(i+1);o.ctx=`<b>${o.g}</b>g${o.bb?" · b2b":""} · <span class="${d>=10?"up":d<=-10?"dn":""}">${d>0?"▲"+d:d<0?"▼"+(-d):"="}</span>`});
-    const a=live[0]||ds[0];stat=`${rows.length} · ${sh(a)}–${a.slice(5,7)===ds[6].slice(5,7)?+ds[6].slice(8):sh(ds[6])}`;
-    cap=`${S.pjWk==="next"?"Next week":"The rest of this week"}: Proj's per-game line times games ${S.pjWk==="next"?"":"left "}(${live.length?sh(live[0]):""}–${sh(ds[6])}). Value is the week's total, so a 4-game player can beat a better 2-game one. ${S.pjTot==="tot"?"Stats are week totals":"Stats are per game"}. ▲/▼ = spots gained or lost against the player's per-game season rank: the schedule's effect.`;
+    stat=`${rows.length} players`;
+    cap=`${S.pjWk?`Week of ${sh(ds[0])}`:"The rest of this week"}: Proj's per-game line times games ${S.pjWk?"":"left "}(${live.length?sh(live[0]):""}–${sh(ds[6])}). Value is the week's total, so a 4-game player can beat a better 2-game one. ${S.pjTot==="tot"?"Stats are week totals":"Stats are per game"}. ▲/▼ = spots gained or lost against the player's per-game season rank: the schedule's effect.`;
   }else{
     const teams=new Set(((SC&&SC.dates[today])||[]).flat());
     const P=prIx(),priced=new Set();
@@ -1823,7 +1825,7 @@ $("bsUnit").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsUnit=b.data
 $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>setView(b.dataset.v));
 $("bsInfo").onclick=()=>toggleHelp($("bsHelp").hidden);
 $("pjView").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjView=b.dataset.k;store.set("pjView",S.pjView);renderPJ();window.scrollTo(0,0)});
-$("pjWk").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjWk=b.dataset.k;renderPJ()});
+$("pjWk").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjWk=Math.max(0,S.pjWk+ +b.dataset.d);S.sgOpen=null;renderPJ()});
 $("densBtn").onclick=()=>{S.dense=!S.dense;store.set("dense",S.dense);paintDens();renderPJ();renderRK()};
 // Bars slide away while scrolling down and come back on any scroll up (or near the top).
 {let lastY=scrollY;addEventListener("scroll",()=>{const y=scrollY,d=y-lastY;
