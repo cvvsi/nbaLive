@@ -27,7 +27,8 @@ const KS = [0, 25, 50, 100, 150, 200, 300, 450, 600, 900, 1200, 1800, 2500, 4000
 const RATE = ['pts', 'reb', 'ast', 'stl', 'blk', 'tpm', 'to', 'fga', 'fta', 'tpa'];
 const PCT = { fg: ['fgm', 'fga'], ft: ['ftm', 'fta'], tp: ['tpm', 'tpa'] };
 const STATS = [...RATE, ...Object.keys(PCT)];
-const CUR = { fga: 150, tpa: 200, fta: 250, reb: 200, ast: 250, to: 300, stl: 600, blk: 500, fg: 250, tp: 500, ft: 200 };
+// Today's K (build-rankings.js, fitted Nov 2026).
+const CUR = { fga: 150, tpa: 200, fta: 450, reb: 450, ast: 250, to: 600, stl: 1200, blk: 500, fg: 450, tp: 500, ft: 200 };
 const ROLE = ['fga', 'fta', 'ast', 'to', 'pts'];   // usage-driven (3PA left out: it hurt last time)
 const KU = 150;                                     // minutes of baseline usage in the usage blend
 const F = ['min', 'pts', 'reb', 'ast', 'stl', 'blk', 'tpm', 'to', 'fgm', 'fga', 'ftm', 'fta', 'tpa', 'use', 'tpos'];
@@ -68,7 +69,7 @@ const kTxt = K => K >= 1e9 ? 'base' : K === 0 ? 'cur' : String(K);
       for (const N of NS) {
         if (rs.length < N + REST_MIN) continue;
         const e = rs.slice(0, N).reduce((a, r) => add(a, r), zero()), r = rs.slice(N).reduce((a, r) => add(a, r), zero());
-        S[y][N].push({ id, e, r, b, gp: N, restGp: rs.length - N, lmpg: b1.min / b1.gp });
+        S[y][N].push({ id, e, r, b, b1, b2: b2 || null, gp: N, restGp: rs.length - N, lmpg: b1.min / b1.gp });
       }
     }
     console.log(`${label(y)} samples: ${NS.map(N => `N=${N}:${S[y][N].length}`).join(' ')}`);
@@ -152,6 +153,27 @@ const kTxt = K => K >= 1e9 ? 'base' : K === 0 ? 'cur' : String(K);
     }
     console.log(`  N=${N}: ${row.join('  ')}`);
   }
+  // Breakout rule: when last season's usage moved T+ points from the season before, the season
+  // before counts at W instead of PREV_W (risers only, or both directions). Scored at today's K,
+  // per season, as the change in total error across all stats (minutes-weighted, per stat
+  // normalized by its baseline error so every stat counts the same).
+  console.log(`\n== Breakout rule: season-before-last weight when usage moved; % change in error vs today (negative = better)`);
+  const setB = (rule) => { let n = 0, m = 0; for (const y of tests) for (const N of NS) for (const s of S[y][N]) {
+    const d = s.b2 ? usg(s.b1) - usg(s.b2) : 0, hit = s.b2 && rule && (rule.both ? Math.abs(d) : d) >= rule.T;
+    const w = hit ? rule.W : PREV_W; s.b = add(add(zero(), s.b1), s.b2 || zero(), s.b2 ? w : 0); if (N === 8) { m++; if (hit) n++; } } return [n, m]; };
+  const errAll = y => { const o = {}; for (const N of NS) for (const k of STATS) o[N + k] = sse([y], N, k, CUR[k] ?? 1e9); return o; };
+  setB(null); const base = Object.fromEntries(tests.map(y => [y, errAll(y)]));
+  out.breakout = [];
+  for (const both of [false, true]) for (const T of [.02, .03, .04]) for (const W of [.25, 0]) {
+    const [n, m] = setB({ T, W, both }), per = tests.map(y => {
+      const e = errAll(y), ks = Object.keys(e).filter(k => e[k].wt > 0 && base[y][k].se > 0);
+      return ks.reduce((a, k) => a + e[k].se / base[y][k].se, 0) / ks.length * 100 - 100; });
+    const byStat = {};
+    for (const k of STATS) { let a = 0, b = 0; for (const y of tests) { const e = sse([y], 8, k, CUR[k] ?? 1e9); a += e.se; b += base[y]['8' + k].se; } byStat[k] = +((Math.sqrt(a / b) - 1) * 100).toFixed(1); }
+    out.breakout.push({ both, T, W, players: `${n}/${m}`, perSeason: per.map(v => +v.toFixed(2)), atN8: byStat });
+    console.log(`  ${both ? 'risers+fallers' : 'risers only   '} usage ${both ? '±' : '+'}${T * 100} pts -> w2 ${W}: ${n}/${m} players at N=8 | per season ${per.map(v => (v >= 0 ? '+' : '') + v.toFixed(2) + '%').join(' / ')} | N=8 by stat: ${Object.entries(byStat).map(([k, v]) => k + ' ' + (v >= 0 ? '+' : '') + v).join(' ')}`);
+  }
+  setB(null);
   fs.writeFileSync('data/backtest.json', JSON.stringify(out, null, 1));
   console.log('\ndata/backtest.json written');
 })().catch(e => { console.error(e); process.exit(1); });
