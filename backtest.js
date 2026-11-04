@@ -77,7 +77,8 @@ const sumRows = rows => rows.reduce((a, r) => add(a, r), zero());
       const b = baseOf(s, w2), e = s.early, r = s.rest;
       if (PCT[k]) {
         const [m, a] = PCT[k]; if (!r[a] || !b[a]) continue;
-        const w = Math.min(K, b[a]), pred = (e[m] + b[m] / b[a] * w) / (e[a] + w), truth = r[m] / r[a];
+        const w = Math.min(K, b[a]); if (e[a] + w <= 0) continue;   // no attempts yet and no prior: skip
+        const pred = (e[m] + b[m] / b[a] * w) / (e[a] + w), truth = r[m] / r[a];
         se += r[a] * (pred - truth) ** 2; wt += r[a];
       } else {
         if (!r.min || !b.min) continue;
@@ -93,7 +94,7 @@ const sumRows = rows => rows.reduce((a, r) => add(a, r), zero());
     const scale = PCT[k] ? 100 : 36;
     return Math.sqrt(se / wt) * scale;
   }
-  const fit = (N, k, opt) => { let best = null; for (const K of KS) { const e = err(N, k, K, opt); if (!best || e < best.e) best = { K, e }; } return best; };
+  const fit = (N, k, opt) => { let best = null; for (const K of KS) { const e = err(N, k, K, opt); if (Number.isFinite(e) && (!best || e < best.e)) best = { K, e }; } return best; };
   const kTxt = K => K >= 1e9 ? 'base only' : K === 0 ? 'cur only' : String(K);
 
   const out = { target: LYL, ns: NS, stats: {}, minutes: {}, w2: {}, role: {} };
