@@ -264,7 +264,7 @@ function buildRegression(games, asOf, rankings) {
   const ly = {};
   for (const [id, h] of Object.entries(H.players)) if (h.ly) ly[id] = h.ly;
   fs.writeFileSync(REG, JSON.stringify({ asOf, cats: CATS, fields: ['gp', 'mpg', ...CATS], rates: RATES, pgf: PG,
-    seasons: H.seasons, prior: PRIOR, priorGp: PRIOR_GP, baseMin: BASE_MIN, players: out, ly }));
+    seasons: H.seasons, prior: PRIOR, priorGp: PRIOR_GP, baseMin: BASE_MIN, prevW: PREV_W, players: out, ly }));
   console.log(`${REG}: ${lines.filter(l => l.b).length}/${lines.length} players with a baseline`);
 }
 

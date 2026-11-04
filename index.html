@@ -257,6 +257,8 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
 .help p{color:var(--ink);margin:0 0 8px;font-size:14px;line-height:1.45}
 .help .f{font:500 12.5px/1.5 var(--num);background:var(--cell);border-radius:4px;padding:8px 10px}
 .help .dim{color:var(--dim);font-size:12.5px}
+.help ol{margin:0 0 10px;padding-left:20px;font-size:14px;line-height:1.45}
+.help li{margin-bottom:5px}
 .help table{border-collapse:collapse;font:500 12.5px/1.3 var(--num);margin:2px 0 10px;width:100%;max-width:420px}
 .help th{font:600 10px/1 var(--name);text-transform:uppercase;letter-spacing:.08em;color:var(--dim);text-align:left;padding:4px 10px 6px 0}
 .help td{padding:5px 10px 5px 0;border-top:1px solid var(--rule)}
@@ -962,8 +964,14 @@ function renderHelp(){
   if(!G)return;
   const P=G.prior,pg=G.priorGp||3,bm=G.baseMin||500,pct=Math.round((1-MOVE)*100),cut=ROST;
   const rows=(ks,u)=>ks.filter(k=>P[k]!=null).sort((a,b)=>P[a]-P[b])
-    .map(k=>`<tr><td>${PRIOR_L[k]||k}</td><td>${P[k]}</td><td>${u}</td></tr>`).join("");
-  const ex=(15+.38*P.tp)/(50+P.tp)*100;
+    .map(k=>`<tr><td>${PRIOR_L[k]||k}</td><td>${P[k]} ${u}</td><td>${wt(k)}</td></tr>`).join("");
+  const ex=(15+.38*P.tp)/(50+P.tp)*100,pw=G.prevW??.5,half=pw===.5?"half":`${pw}×`;
+  // "Weight today": this season's share of each blended rate for the median player with 3+
+  // games and a baseline (this season's minutes or attempts ÷ (that + K)). It grows nightly.
+  const F=G.rates,ix=k=>F.indexOf(k),med=a=>{a=a.filter(x=>x>0).sort((x,y)=>x-y);return a.length?a[a.length>>1]:0};
+  const Q=Object.values(G.players).filter(q=>q.b&&q.now[0]>=3),mins=Q.map(q=>q.r[0]*q.now[0]);
+  const vol={min:med(mins),fg:med(Q.map((q,i)=>q.r[ix("fga")]*mins[i]/36)),ft:med(Q.map((q,i)=>q.r[ix("fta")]*mins[i]/36)),tp:med(Q.map((q,i)=>q.r[ix("tpa")]*mins[i]/36))};
+  const wt=k=>{const n=vol[k in vol?k:"min"];return n?Math.round(100*n/(n+P[k]))+"%":"–"};
   $("bsHelpBody").innerHTML=`
 <h3>What this tab answers</h3>
 <p>Is a player's start real? Over a handful of games, hot or cold shooting, blowouts and foul trouble can move a 9-cat rank 100 spots. This tab compares this season's per-minute numbers with last season's (${G.seasons[0]}), to separate what tends to stick from what usually doesn't.</p>
@@ -974,15 +982,26 @@ function renderHelp(){
 <b>LY</b>: last season's final per-game rank (20+ games).<br>
 All three use your punts and the same top-130 pool.</p>
 
+<h3>Proj in five steps</h3>
+<ol>
+<li><b>Minutes</b> = (this season's minutes + ${pg} × last season's mpg) ÷ (games + ${pg}). This season's role, barely nudged.</li>
+<li><b>Baseline</b> = last season + the season before at ${half} weight (season totals, so it's minutes-weighted).</li>
+<li><b>Rates</b>: every per-minute stat and shooting % = (this season's total + baseline rate × K) ÷ (this season's minutes or attempts + K). K per stat is in the table below.</li>
+<li><b>Line</b> = minutes × rates, with points rebuilt as 2 × FGM + 3PM + FTM.</li>
+<li><b>Rank</b>: the line is z-scored against the top ${cut} with your punts, like every other rank.</li>
+</ol>
+<p class="dim">No age curve, injuries, news or depth charts: it's box scores only. Checked against an analyst's projections in Nov 2026: rankings agree closely (115 of his top 130 are in ours); the big disagreements are minutes calls, which he makes by hand.</p>
+
 <h3>How Proj is built</h3>
 <p><b>Role is kept.</b> Minutes per game stay at this season's, nudged by just ${pg} games' worth of last season's. Role changes usually stick.</p>
 <p><b>Rates are blended.</b> Each per-minute rate and shooting % is mixed with the baseline's:</p>
 <p class="f">blended = (this season's total + baseline rate × K) ÷ (this season's minutes or attempts + K)</p>
 <p>K is how much of this season it takes to count as much as the baseline. Small K: the stat settles fast, so this season is trusted sooner. Large K: noisy, so the baseline carries more weight for longer.</p>
-<table><tr><th>Stat</th><th>K</th><th></th></tr>${rows(["fga","reb","ast","fta","tpa","to","blk","stl"],"min")}${rows(["fg","ft","tp"],"attempts")}</table>
+<p class="dim">Weight today = how much this season counts in that blend right now, for a typical player (${Math.round(vol.min)} minutes so far). It grows every night.</p>
+<table><tr><th>Stat</th><th>K</th><th>Weight today</th></tr>${rows(["fga","reb","ast","fta","tpa","to","blk","stl"],"min")}${rows(["fg","ft","tp"],"attempts")}</table>
 <p><b>Example.</b> A player shooting 30% from three on 50 attempts, whose baseline is 38%: (15 + 0.38 × ${P.tp}) ÷ (50 + ${P.tp}) = <b>${ex.toFixed(1)}%</b>. Fifty attempts barely move it.</p>
 <p><b>Points follow shooting.</b> Points and 3PM are rebuilt from the blended makes (2 × FGM + 3PM + FTM), so a slump gets corrected in every category it touches, not just FG%.</p>
-<p><b>Baseline.</b> Last season, plus the season before at half weight (${G.seasons.join(" + ")}): two seasons steady the rates, shooting most of all. Under ${bm} minutes last season, the season before counts in full. The baseline never counts for more than it actually saw (40 three-point attempts can't count as ${P.tp}). Rookies have no baseline, so Proj shows –.</p>
+<p><b>Baseline.</b> Last season, plus the season before at ${half} weight (${G.seasons.join(" + ")}): two seasons steady the rates, shooting most of all. Under ${bm} minutes last season, the season before counts in full. The baseline never counts for more than it actually saw (40 three-point attempts can't count as ${P.tp}). Rookies have no baseline, so Proj shows –.</p>
 
 <h3>Buy and Sell</h3>
 <p><b>Buy</b>: Proj inside the top ${cut}, at least ${pct}% better than Now, and 20+ spots better. Example: Now 131 → Proj 32.<br>
