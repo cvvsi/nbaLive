@@ -57,7 +57,7 @@ Each row shows the player's 9-cat rank over the season, the last 14 and 7 days, 
 
 Early-season ranks are noisy. Five games of hot or cold shooting, a couple of blowouts or some foul trouble can move a rank by 100 spots. The tab asks whether a start is real by comparing this season's **per-minute** numbers with last season's. The heuristic: role (minutes, usage) tends to stick, while per-minute production and shooting over a few games mostly don't.
 
-Each row: **Now** (season rank), **Exp**, **LY** (last season's final per-game rank), then this season's MIN, USG, FG%, FT% and per-36 counting stats, each colored by how far it sits from last season. Tapping a row shows last season's number under each cell, plus the shooting volume behind the percentages.
+Each row: **Now** (season rank), **Exp**, **LY** (last season's final per-game rank), then this season's MIN, USG, FG%, FT% and counting stats, each colored by how far it sits from last season. A **Per 36 / Per game** switch above the strip (remembered per phone) sets the units for 3PM through TO; per 36 is the default because it's the rate Exp is built from, and opening a row shows the other unit in words. Tapping a row shows last season's number under each cell, plus the shooting volume behind the percentages.
 
 - **Exp** = the rank of an *expected line*: this season's minutes (nudged by 3 games of last season's mpg) × per-minute rates and shooting % blended toward last season's:
   `rate = (this season's count + baseline rate × K) / (this season's minutes or attempts + K)`.

@@ -212,6 +212,14 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
 .bscats{padding-left:calc(var(--mug) + var(--mgap));margin-top:4px}
 .bscats span{font:600 9.5px/1 var(--num);color:var(--dim);padding:6px 0 7px;text-align:center;white-space:nowrap}
 .bscats span.punted{text-decoration:line-through;opacity:.5}
+/* Per 36 / per game switch for the counting stats on the strip (MIN, USG and the
+   percentages are the same either way). Sits left of the Now / Exp / LY header. */
+.bsrow2{display:flex;align-items:flex-end;gap:8px;margin-top:2px}
+.unit{flex:none}
+.unit button{font:600 10.5px/1 var(--name);letter-spacing:.04em;padding:5px 8px}
+.pg{margin:2px 0 8px;font:500 12.5px/1.45 var(--name);color:var(--ink)}
+.pg b{font-weight:700}
+.pg span{color:var(--dim)}
 /* ⓘ beside the Buy/Sell count opens #bsHelp, the full how-it-works, built from the same
    constants and data the tab uses so it can't drift from the math. */
 .info{width:22px;height:22px;border-radius:50%;border:1px solid var(--rule);font:700 12px/1 Georgia,serif;font-style:italic;
@@ -303,7 +311,8 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
         <button data-k="buy">Buy</button><button data-k="sell">Sell</button><button data-k="x">Exp</button><button data-k="now">Now</button>
       </div>
     </div>
-    <div class="rkh r3"><span>Now</span><span>Exp</span><span>LY</span></div>
+    <div class="bsrow2"><div class="seg unit" id="bsUnit" role="group" aria-label="Counting stats per 36 minutes or per game"><button data-u="36">Per 36</button><button data-u="g">Per game</button></div>
+      <div class="rkh r3"><span>Now</span><span>Exp</span><span>LY</span></div></div>
     <div class="bscats" id="bsCats"></div>
   </div>
 </div>
@@ -633,6 +642,20 @@ const BSPP={fg:4,ft:6,tp:6},BSFLOOR={mpg:10,usg:10,tpm:.8,pts:8,reb:3,ast:2,stl:
 const BSMIN_GP=3,BSREL=200;   // no verdict before 3 games; Exp/Now sorts list anyone inside 200
 let G=null;
 S.bsSort=store.get("bsSort","buy");S.bsOpen=new Set();
+// Counting stats on the strip: "36" = per 36 minutes (the rates Exp is built from), "g" = per
+// game (the rate times that season's minutes). Shooting %, minutes and usage don't change.
+S.bsUnit=store.get("bsUnit","36");
+const PER36=new Set(["tpm","pts","reb","ast","stl","blk","to"]);
+function unitVal(a,k,F){if(!a)return null;const v=a[F.indexOf(k)];if(v==null)return null;
+  return S.bsUnit==="g"&&PER36.has(k)?v*a[F.indexOf("mpg")]/36:v}
+// The other unit, in words, for the opened row: per game when the strip shows per 36, and back.
+function otherLine(q){
+  const F=G.rates,g=S.bsUnit!=="g",ks=["pts","tpm","reb","ast","stl","blk","to"],L={pts:"pts",tpm:"3PM",reb:"reb",ast:"ast",stl:"stl",blk:"blk",to:"TO"};
+  const conv=(a,k)=>{const v=a[F.indexOf(k)];return g?v*a[F.indexOf("mpg")]/36:v};
+  const line=a=>ks.map(k=>`${f1(conv(a,k))} ${L[k]}`).join(", ");
+  return`<p class="pg"><b>${g?"Per game":"Per 36"}:</b> ${line(q.r)}${g?` in ${f1(q.r[F.indexOf("mpg")])} min`:""}`
+    +(q.b?`<br><span>${baseName(q).replace(/^./,c=>c.toUpperCase())}: ${line(q.b)}${g?` in ${f1(q.b[F.indexOf("mpg")])} min`:""}</span>`:"")+`</p>`;
+}
 function bsDelta(k,v,b){if(v==null||b==null)return 0;
   const d=BSPP[k]?(v-b)/BSPP[k]:(v-b)/Math.max(b,BSFLOOR[k])/.2;return k==="to"?-d:d}
 // Same thresholds as the movers: Buy when Exp is inside 130 and 40%+ (and 20+ spots) better
@@ -658,6 +681,7 @@ function renderBS(){
   const key={buy:id=>Math.log(B.now[id]/B.x[id]),sell:id=>Math.log(B.x[id]/B.now[id]),x:id=>-B.x[id],now:id=>-B.now[id]}[st];
   const ids=Object.keys(G.players).filter(id=>flag?B.v[id]===st:Math.min(B.now[id],B.x[id])<=BSREL).sort((a,b)=>key(b)-key(a));
   $("bsSort").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===st));
+  $("bsUnit").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.u===S.bsUnit));
   $("bsStatus").textContent=`${ids.length} · vs ${G.seasons[0]}`;
   $("bsAsOf").textContent=`Season thru ${fmtDate(G.asOf).replace(/^\w+, /,"")}`;
   $("bsList").innerHTML=ids.length?ids.map(bsRow).join("")
@@ -666,10 +690,10 @@ function renderBS(){
 function bsRow(id){
   const q=G.players[id],B=S.bs,v=B.v[id]||"",b=q.b,F=G.rates,at=(a,k)=>a?a[F.indexOf(k)]:null;
   const rk=(r,cl="")=>`<span class="${(!r?"na":r<=TOP?"hi":r<=ROST?"":"lo")+cl}">${r||"–"}</span>`;
-  const cells=BSC.map(c=>{const x=at(q.r,c.k),y=at(b,c.k),off=c.c&&S.punt.has(c.c);
+  const cells=BSC.map(c=>{const x=unitVal(q.r,c.k,F),y=unitVal(b,c.k,F),off=c.c&&S.punt.has(c.c);
     return`<div class="c${off?" off":""}" style="${off||!b?"":heat(bsDelta(c.k,x,y))}"><span class="lb">${c.l}</span>${f1(x)}<span class="z">${b?f1(y):"–"}</span></div>`}).join("");
-  const more=noteHTML(id)+detailHTML(id)
-    +(b?`<p class="cap">Small numbers under the strip: ${baseName(q)}.</p>`:"");
+  const more=otherLine(q)+noteHTML(id)+detailHTML(id)
+    +(b?`<p class="cap">Small numbers under the strip: ${baseName(q)}. 3PM through TO are ${S.bsUnit==="g"?"per game":"per 36 minutes"}.</p>`:"");
   return`<article class="p${S.bsOpen.has(id)?" open":""}" data-id="${esc(id)}">
     ${mug({eid:id})}
     <div class="body">
@@ -716,7 +740,7 @@ All three use your punts and the same top-130 pool.</p>
 Needs ${BSMIN_GP}+ games and a baseline. The percentage rule scales with rank: #10 → #18 isn't news, #130 → #40 is.</p>
 
 <h3>Reading a row</h3>
-<p>The strip is this season: MIN, USG, FG%, FT%, then per-36 3PM, PTS, REB, AST, STL, BLK, TO. <b style="color:var(--pos)">Green</b> = better for fantasy than last season, <b style="color:var(--neg)">red</b> = worse (more turnovers is red). Darker = bigger gap. Exp gets a green pill for Buy, red for Sell. Tap a row to see last season's number under each cell, plus the shot volume behind each percentage.</p>
+<p>The strip is this season: MIN, USG, FG%, FT%, then 3PM, PTS, REB, AST, STL, BLK, TO, per 36 minutes or per game (the switch above the strip). <b>Per 36</b> is what a player would average in a full starter's 36 minutes, so a bench player and a starter compare fairly; it's the rate Exp is built from, so it shows the signal best. <b>Per game</b> is that rate times his actual minutes, the numbers your league sees. Opening a row shows the other one in words. <b style="color:var(--pos)">Green</b> = better for fantasy than last season, <b style="color:var(--neg)">red</b> = worse (more turnovers is red). Darker = bigger gap. Exp gets a green pill for Buy, red for Sell. Tap a row to see last season's number under each cell, plus the shot volume behind each percentage.</p>
 <p><b>Quick read.</b> MIN and USG steady but FG% or 3P% red: probably a slump that bounces back. MIN or USG down: a role change. Exp won't flag that, and it may well be real. Shooting way up with nothing else changed: enjoy it, but it's the first thing to fade.</p>
 
 <h3>The analyst note</h3>
@@ -1006,6 +1030,7 @@ $("bsList").onclick=e=>{if(e.target.closest(".pl"))return;
   const a=e.target.closest(".p");if(!a)return;const id=a.dataset.id;
   S.bsOpen.has(id)?S.bsOpen.delete(id):S.bsOpen.add(id);a.classList.toggle("open")};
 $("bsSort").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsSort=b.dataset.k;store.set("bsSort",S.bsSort);renderBS()});
+$("bsUnit").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsUnit=b.dataset.u;store.set("bsUnit",S.bsUnit);renderBS()});
 $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>setView(b.dataset.v));
 $("bsInfo").onclick=()=>toggleHelp($("bsHelp").hidden);
 $("bzList").onclick=e=>{if(e.target.closest(".pl"))return;
