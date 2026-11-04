@@ -339,25 +339,25 @@
   },
   "ft": {
    "5": {
-    "bestK": 0,
-    "best": null,
+    "bestK": 300,
+    "best": 5.356,
     "current": 5.361,
     "baseOnly": 5.362,
-    "curOnly": null
+    "curOnly": 14.31
    },
    "8": {
-    "bestK": 0,
-    "best": null,
+    "bestK": 200,
+    "best": 5.306,
     "current": 5.306,
     "baseOnly": 5.326,
-    "curOnly": null
+    "curOnly": 11.143
    },
    "12": {
-    "bestK": 0,
-    "best": null,
+    "bestK": 150,
+    "best": 5.231,
     "current": 5.24,
     "baseOnly": 5.29,
-    "curOnly": null
+    "curOnly": 9.56
    },
    "20": {
     "bestK": 150,
@@ -369,32 +369,32 @@
   },
   "tp": {
    "5": {
-    "bestK": 0,
-    "best": null,
+    "bestK": 300,
+    "best": 4.143,
     "current": 4.145,
     "baseOnly": 4.15,
-    "curOnly": null
+    "curOnly": 11.527
    },
    "8": {
-    "bestK": 0,
-    "best": null,
+    "bestK": 600,
+    "best": 4.341,
     "current": 4.342,
     "baseOnly": 4.341,
-    "curOnly": null
+    "curOnly": 9.582
    },
    "12": {
-    "bestK": 0,
-    "best": null,
+    "bestK": 600,
+    "best": 4.613,
     "current": 4.617,
     "baseOnly": 4.613,
-    "curOnly": null
+    "curOnly": 8.388
    },
    "20": {
-    "bestK": 0,
-    "best": null,
+    "bestK": 450,
+    "best": 4.541,
     "current": 4.543,
     "baseOnly": 4.546,
-    "curOnly": null
+    "curOnly": 6.212
    }
   }
  },
@@ -437,11 +437,11 @@
   }
  },
  "w2": {
-  "0": null,
-  "1": null,
-  "0.25": null,
-  "0.5": null,
-  "0.75": null
+  "0": 1.024,
+  "1": 1.0061,
+  "0.25": 1.0032,
+  "0.5": 1,
+  "0.75": 1.0021
  },
  "role": {
   "5": {
