@@ -157,7 +157,7 @@ To test the phone layout on desktop, use Chrome DevTools → device toolbar → 
    - In the browser: loop over the dates' ESPN box scores. Simple, but slow for 30 days (~200+ requests). Cache finished games in `localStorage`.
    - With a scheduled GitHub Action: run Python + `nba_api` (or the ESPN endpoints) nightly and commit a `data/*.json` file the page reads. Fast and official, but NBA.com may throttle GitHub's servers.
 2. **My team / watchlist:** star players (saved in `localStorage`), highlight them, filter to "my guys", and show a summary of your roster's night.
-4. **Free-agent focus:** hide players you mark as rostered in your league.
+3. **Free-agent focus:** hide players you mark as rostered in your league.
 4. **Season context:** compare tonight's line to the player's season average (ESPN athlete endpoints).
 5. **Injury / DNP list** per game: ESPN's `didNotPlay` and `reason` fields are already in the box score data.
 6. **Web app manifest + icon** so the home-screen app gets a proper icon and opens without browser chrome.
