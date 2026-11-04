@@ -297,9 +297,10 @@ async function main() {
     const from = days ? shift(asOf, 1 - days) : games.reduce((m, g) => g.date < m ? g.date : m, asOf);
     const inW = games.filter(g => g.date >= from);
     windows[w] = { from, to: asOf, games: inW.length };
-    for (const p of rankWindow(inW))
+    for (const p of rankWindow(inW)) {
       players[p.id].w[w] = [p.gp, Math.round(p.min * 10) / 10, ...CATS.map(c => r2(p.z[c]))];
       (players[p.id].l || (players[p.id].l = {}))[w] = LF.map(k => r2(p[k]));
+    }
   }
   // g3: each team's last 3 games, per team game. Calendar windows hold 2-4 games depending
   // on the schedule; this is the "3 straight decent games" read, with DNPs as zeros.
@@ -312,9 +313,10 @@ async function main() {
   }
   const g3 = games.map(g => ({ rows: g.rows.filter(r => last[r.team] && last[r.team].has(g)) }));
   windows.g3 = { games: G3, perTeamGame: true, to: asOf };
-  for (const p of rankWindow(g3, teamGames))
+  for (const p of rankWindow(g3, teamGames)) {
     players[p.id].w.g3 = [p.gp, Math.round(p.min * 10) / 10, ...CATS.map(c => r2(p.z[c]))];
     (players[p.id].l || (players[p.id].l = {})).g3 = LF.map(k => r2(p[k]));
+  }
   // pm: minutes per game played BEFORE those 3, the baseline for the role-change flag.
   // (Comparing against the season would dilute the jump with the very games that show it.)
   const before = {};
