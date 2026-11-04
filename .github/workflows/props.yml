@@ -1,7 +1,8 @@
 # Player props from The Odds API (fetch-props.js) -> data/props.json for the Proj tab's Today
 # view. Props go up during the afternoon, so two tries before tip-off: 21:13 and 23:07 UTC
 # (4:13 and 6:07pm ET in winter). The second only fetches games the first found unpriced, so
-# a slate costs credits once. Needs the ODDS_API_KEY repo secret.
+# a slate costs credits once. Each run also refreshes ESPN's injury report and the schedule.
+# Needs the ODDS_API_KEY repo secret.
 name: Props
 
 on:
@@ -34,6 +35,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      # Same cache as the Rankings job, so the schedule refresh only fetches the next 10 days.
+      - uses: actions/cache@v4
+        with:
+          path: .cache
+          key: games-${{ github.run_id }}
+          restore-keys: games-
+      # Fresh injury report (and schedule) right before tonight's props.
+      - name: Injuries and schedule
+        continue-on-error: true
+        run: node build-schedule.js
       - run: node fetch-props.js ${{ inputs.mode || 'run' }}
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
@@ -41,6 +52,7 @@ jobs:
       - name: Commit if changed
         run: |
           [ -f data/props.json ] || { echo "No props file"; exit 0; }
+          for f in data/schedule.json data/injuries.json; do [ -f "$f" ] && git add "$f"; done
           git add data/props.json data/props
           if git diff --cached --quiet; then echo "No change"; exit 0; fi
           git config user.name "github-actions[bot]"
