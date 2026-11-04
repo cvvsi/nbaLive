@@ -134,6 +134,7 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .tc .rb.t2{background:var(--cell);color:var(--ink)}
 .tc .rb.t3{box-shadow:inset 0 0 0 1px var(--rule);color:var(--dim)}
 .tc .pn{font:600 14.5px/1.2 var(--name);min-width:0;flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tc .pn .wr{font:500 11px/1 var(--num);font-style:normal;color:var(--dim);margin-left:6px}
 .tc .pn .dt{font:600 10.5px/1 var(--name);font-style:normal;color:var(--ball);margin-left:5px}
 .tc .pc{display:flex;gap:3px;flex:none;margin-left:auto}
 .tc .pc i{font:600 9.5px/17px var(--name);font-style:normal;letter-spacing:.04em;padding:0 5px;border-radius:4px;color:var(--ink);background:var(--cell)}
@@ -1537,7 +1538,7 @@ function renderGrid(ds,live,all,today){
       const teams2=gd?[t,opp(t,gd).replace(/^(vs|@) /,"")]:[t];
       // NIGHT: per-game Proj ranked among everyone playing (and not out) that night.
       let night=null;if(gd){night={};all.filter(([id,q])=>plays(q.t,gd)&&avail(id,gd)).map(([id])=>[id,val[id]]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>night[id]=i+1)}
-      h+=`<div class="tx">${head}${teams2.map(x=>teamPanel(x,gd,live,all,szn,gd?night:wk,gd?Object.keys(night).length:0)).join("")}</div>`}
+      h+=`<div class="tx">${head}${teams2.map(x=>teamPanel(x,gd,live,all,szn,gd?night:wk,gd?Object.keys(night).length:0,wk)).join("")}</div>`}
   }
   const lights=ds.filter(d=>d>=today&&light(d)).map(d=>D[ds.indexOf(d)]+" "+fmtDate(d).replace(/^\w+, \w+ /,""));
   $("scStatus").textContent=`${teams.length} teams`;
@@ -1562,7 +1563,7 @@ function helps(q){const P=helpPool(),x=P.v(xpLine(q));
 // replaced by the next player by projected minutes), the rest of the rotation, and who's out (for
 // that game, or all week). Each row: projected minutes, season Proj rank (shaded by tier), and
 // the last column: rank among that night's players for a game, week rank for a team.
-function teamPanel(t,gd,live,all,szn,wk,nN){
+function teamPanel(t,gd,live,all,szn,wk,nN,wkR){
   const ps=all.filter(([,q])=>q.t===t).map(([id,q])=>({id,q,m:q.xp[0],g:live.filter(d=>plays(t,d)&&avail(id,d)).length}))
     .filter(o=>o.m>=10).sort((a,b)=>b.m-a.m);
   const outNow=o=>gd?!avail(o.id,gd):o.g===0,out=ps.filter(outNow),ok=ps.filter(o=>!outNow(o));
@@ -1576,10 +1577,11 @@ function teamPanel(t,gd,live,all,szn,wk,nN){
   // player's season per-game quality, since on a light night nearly everyone ranks inside 100.
   const row=o=>{const i=ijOf(o.id),rk=wk[o.id],tier=tr(gd?szn[o.id]:rk);
     const flag=i&&!ijOut(i)?`<i class="dt">DTD</i>`:!gd&&ijOut(i)&&o.g<tg?`<i class="dt">misses ${tg-o.g}</i>`:"";
-    return`<div class="prow" data-id="${o.id}"><b class="rb ${tier}">${rk?"#"+rk:"–"}</b><span class="pn">${esc(o.q.n)}${flag}</span><span class="pc">${helps(o.q).map(c=>`<i>${c}</i>`).join("")}</span></div>`};
+    const wkT=gd&&wkR?`<i class="wr">wk ${wkR[o.id]&&o.g?"#"+wkR[o.id]:"–"}</i>`:"";
+    return`<div class="prow" data-id="${o.id}"><b class="rb ${tier}">${rk?"#"+rk:"–"}</b><span class="pn">${esc(o.q.n)}${flag}${wkT}</span><span class="pc">${helps(o.q).map(c=>`<i>${c}</i>`).join("")}</span></div>`};
   const sec=(l,a)=>a.length?`<div class="psec">${l}</div>`+a.map(row).join(""):"";
   const outL=out.length?`<div class="po"><b>Out</b> ${out.map(o=>{const i=ijOf(o.id);return`<span data-id="${o.id}">${esc(o.q.n)}${i&&i[1]?` <i>~${sh(i[1])}</i>`:""}</span>`}).join(" · ")}</div>`:"";
-  return`<div class="tc"><div class="th"><b>${t}</b><span>${tg} game${tg===1?"":"s"}${gd?"":" this week"}</span><span class="dd">${days.map(x=>`<i>${x}</i>`).join("")}</span><span class="rl">${gd?`${gd===etToday()?"Tonight":"That night"} · of ${nN}`:"Week rank"}</span></div>`
+  return`<div class="tc"><div class="th"><b>${t}</b><span>${tg} game${tg===1?"":"s"}${gd?"":" this week"}</span><span class="dd">${days.map(x=>`<i>${x}</i>`).join("")}</span><span class="rl">${gd?`${gd===etToday()?"Tonight":"That night"} · of ${nN} · wk = week`:"Week rank"}</span></div>`
     +sec("Starters",start)+sec("Bench",bench)+outL+`</div>`;
 }
 // Week picker (Proj > Week and Schedule): this week = 0, then one week at a time to the end of
