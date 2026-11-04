@@ -80,9 +80,14 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .lr .ij.dtd{color:var(--ball)}
 .lr .sd{margin-left:auto;font:500 12px/1 var(--num);color:var(--dim);flex:none;padding-left:6px}
 .lr .vl{font:600 14px/1 var(--num);flex:none;min-width:44px;text-align:right}
-.lr .lr2{margin-top:4px;font:500 13px/1.1 var(--num);text-align:right}
-.lr .lr2 .big{font-weight:700;color:var(--ink)}
-.lr .lr2 span{color:var(--ink)}
+.cd.lr .lr2{display:block;margin-top:3px;padding-left:24px}
+.lr .lr2 span{display:inline-flex;align-items:baseline;gap:2px;white-space:nowrap}
+.lr .lb3{display:flex;gap:12px}
+.lr .lb3 b{font:700 18px/1.15 var(--name);color:var(--ink)}
+.lr .lb3 i{font:500 12px/1 var(--name);color:var(--dim);font-style:normal}
+.lr .ls6{display:flex;flex-wrap:wrap;gap:2px 10px;margin-top:2px}
+.lr .ls6 b{font:500 12.5px/1.2 var(--num);color:var(--ink)}
+.lr .ls6 i{font:500 11.5px/1 var(--name);color:var(--dim);font-style:normal}
 .lr .lr2 .off{opacity:.3}
 .lr .lr2 .mk{text-decoration:underline 2px var(--ball);text-underline-offset:3px}
 /* Three views share the bar and settings: the night's box score, Buy/Sell (season so far
@@ -1433,7 +1438,9 @@ function ijTag(id){const i=ijOf(id);if(!i)return"";const out=ijOut(i),sh=d=>fmtD
   return`<span class="ij${out?"":" dtd"}">${out?"OUT"+(i[1]?" ~"+sh(i[1]):""):"DTD"}</span>`}
 function lrow(o){
   const l=o.l,m=k=>o.mk&&o.mk[k]?" mk":"",off=k=>S.punt.has(k)?" off":"";
-  const c=LCOLS.map(k=>`<span class="${["pts","reb","ast"].includes(k)?"big":""}${off(k)}${m(k)}">${k==="fg"?pctT(l.fgm,l.fga).replace("%",""):k==="ft"?pctT(l.ftm,l.fta).replace("%",""):f1(l[k])}</span>`).join("");
+  const val=k=>k==="fg"?pctT(l.fgm,l.fga):k==="ft"?pctT(l.ftm,l.fta):f1(l[k]);
+  const c=`<div class="lb3">${BIG.map(k=>`<span class="${off(k).trim()}"><b class="${m(k).trim()}">${val(k)}</b><i>${CL[k]}</i></span>`).join("")}</div>`
+    +`<div class="ls6">${SMALL.map(k=>`<span class="${off(k).trim()}"><b class="${m(k).trim()}">${val(k)}</b><i>${CL[k]}</i></span>`).join("")}</div>`;
   return`<article class="cd lr" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(o.q.n)}: open details">
     <div class="lr1"><span class="rk">${o.rank}</span><b class="nm">${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)} · ${Math.round(o.min)}m</span>${ijTag(o.id)}<span class="sd">${o.sdl||""}</span><span class="vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</span></div>
     <div class="lr2">${c}</div></article>`;
@@ -1443,7 +1450,7 @@ function paintDens(){const v=document.body.dataset.view,on=v==="pj"||v==="rk";$(
   $("densBtn").innerHTML=S.dense?`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="1.5"/><rect x="4" y="13" width="16" height="7" rx="1.5"/></svg>`
     :`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>`;
   $("densBtn").setAttribute("aria-label",S.dense?"Show cards":"Show list");
-  for(const x of["pjLh","rkLh"]){$(x).hidden=!S.dense;$(x).innerHTML=lhdHTML()}}
+  for(const x of["pjLh","rkLh"]){$(x).hidden=true}}
 const card=o=>S.dense?lrow(o):pjCard(o);
 function pjMsg(m){$("pjList").innerHTML=`<div class="empty">${m}</div>`;$("pjStatus").textContent=""}
 function renderPJ(){
