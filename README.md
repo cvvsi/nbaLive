@@ -30,7 +30,7 @@ For one date (or one game, when filtered), relative to the **pool** = players at
    - Then z-score the impact like a counting stat.
    - So 10/12 FG is worth far more than 2/2.
 3. **Value** = average of the z-scores for the categories that aren't punted.
-3. **Rank** = order by Value across all players that day.
+4. **Rank** = order by Value across all players that day.
 
 **Usage %** (standard formula, from team totals summed from the box score):
 `USG = 100 × (FGA + 0.44·FTA + TOV) × (TeamMin / 5) / (Min × (TeamFGA + 0.44·TeamFTA + TeamTOV))`
