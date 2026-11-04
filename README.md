@@ -13,6 +13,7 @@ A phone-first NBA box score viewer for **9-category fantasy basketball**. It ran
 - **Buy/Sell tab:** is a hot or cold start real? This season's per-minute numbers against last season's, with an expected rank (see below).
 - **Cards, one per player.** Fixed stat order everywhere: PTS · REB · AST as big numbers, then 3PM · STL · BLK · TO · FG · FT, then the role (MIN, USG). Every number carries its label. Green marks a big line by plain fantasy thresholds (25+ pts, 8+ reb or ast, 4+ threes, 3+ stl or blk, FG% 60+ on 10+ shots, FT% 90+ on 4+); red marks what hurt (4+ TO, FG% ≤35 on 12+ shots, FT% under 60 on 4+); Value is colored only at ±1. Each Box card also has the rank ladder (Szn / 14D / 7D / L3; white numbers, shaded green or red only for risers and fallers) and hashtag flags (#MinutesUp, #Riser, #Faller, #BuyLow, #PickUp, #SellHigh). On wide screens the cards flow into a grid.
 - **Player page:** tap any card on any tab. Tonight's line with z-scores, the season line, rank tiles (Season / 14 / 7 / Last 3, Now / Expected / Last season), the last 5 games as compact lines (from ESPN's game log, with each game's Value, punts applied), the written read split into labeled parts, the 30-minute upside, and this season vs. last. Full screen on a phone, a side panel on desktop; back closes it.
+- **Player search:** the magnifier in the top bar (or `/` on a keyboard) finds anyone in the season ranks or tonight's box score, by any part of the name (accents and Jr./III ignored) or by team (`bos`). Results show team, season rank and tonight's line; tap one for the player page, and back returns to the results.
 - **Live:** in-progress games refresh every 60 s, and again whenever the page comes back into view.
 - On first load, if no game has tipped off today, it shows the previous night.
 - **Punt** any categories (Value is recomputed without them). Choose the comparison pool (everyone / 10+ / 15+ / 20+ minutes).
@@ -29,7 +30,7 @@ For one date (or one game, when filtered), relative to the **pool** = players at
    - Then z-score the impact like a counting stat.
    - So 10/12 FG is worth far more than 2/2.
 3. **Value** = average of the z-scores for the categories that aren't punted.
-4. **Rank** = order by Value across all players that day.
+3. **Rank** = order by Value across all players that day.
 
 **Usage %** (standard formula, from team totals summed from the box score):
 `USG = 100 × (FGA + 0.44·FTA + TOV) × (TeamMin / 5) / (Min × (TeamFGA + 0.44·TeamFTA + TeamTOV))`
@@ -156,9 +157,8 @@ To test the phone layout on desktop, use Chrome DevTools → device toolbar → 
    - In the browser: loop over the dates' ESPN box scores. Simple, but slow for 30 days (~200+ requests). Cache finished games in `localStorage`.
    - With a scheduled GitHub Action: run Python + `nba_api` (or the ESPN endpoints) nightly and commit a `data/*.json` file the page reads. Fast and official, but NBA.com may throttle GitHub's servers.
 2. **My team / watchlist:** star players (saved in `localStorage`), highlight them, filter to "my guys", and show a summary of your roster's night.
-3. **Player search** box.
 4. **Free-agent focus:** hide players you mark as rostered in your league.
-5. **Season context:** compare tonight's line to the player's season average (ESPN athlete endpoints).
-6. **Injury / DNP list** per game: ESPN's `didNotPlay` and `reason` fields are already in the box score data.
-7. **Web app manifest + icon** so the home-screen app gets a proper icon and opens without browser chrome.
-8. **Pull-to-refresh** and an "updated X min ago" indicator.
+4. **Season context:** compare tonight's line to the player's season average (ESPN athlete endpoints).
+5. **Injury / DNP list** per game: ESPN's `didNotPlay` and `reason` fields are already in the box score data.
+6. **Web app manifest + icon** so the home-screen app gets a proper icon and opens without browser chrome.
+7. **Pull-to-refresh** and an "updated X min ago" indicator.

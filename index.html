@@ -64,6 +64,30 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
 .datelbl{position:relative;font:600 16px/1 var(--name);padding:8px 6px;white-space:nowrap}
 .datelbl input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
 .gear{flex:none;font:600 13px/1 var(--name);text-transform:uppercase;letter-spacing:.06em;padding:8px 10px;border:1px solid var(--rule);border-radius:6px}
+.srbtn{flex:none;width:34px;height:34px;display:grid;place-items:center;color:var(--dim);border-radius:6px}
+.srbtn svg{width:19px;height:19px}
+.srbtn:active{background:var(--cell)}
+/* player search: full screen over the tabs, under the player page (.ps, z 50), so back from a
+   player returns to the results */
+.sr{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column}
+.sr[hidden]{display:none}
+.srbar{flex:none;display:flex;gap:8px;align-items:center;background:var(--panel);border-bottom:1px solid var(--rule);
+  padding-top:calc(env(safe-area-inset-top,0px) + 7px);padding-bottom:7px}
+.srbar input{flex:1;min-width:0;font:500 16px/1.2 var(--name);color:var(--ink);background:var(--cell);border:1px solid var(--rule);
+  border-radius:8px;padding:9px 11px;-webkit-appearance:none;appearance:none}
+.srbar input::placeholder{color:var(--dim)}
+.srbar button{font:600 14px/1 var(--name);color:var(--ball);padding:8px 2px}
+.srl{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 16px)}
+.srr{display:grid;grid-template-columns:var(--mug) 1fr auto;gap:10px;align-items:center;width:100%;text-align:left;
+  padding:8px 0;border-bottom:1px solid var(--rule)}
+.srr .mug{padding:0}.srr .mug .pos{display:none}
+.srr b{font:600 16px/1.2 var(--name);display:block}
+.srr span{font:500 12.5px/1.3 var(--name);color:var(--dim)}
+.srr .num{font-size:13px;color:var(--dim);text-align:right;white-space:nowrap}
+.srr .num b{font:600 14px/1.2 var(--num);color:var(--ink)}
+.srr .num .top{color:var(--pos)}
+.srr .tn{display:block;color:var(--ink)}
+.srh{font:500 12.5px/1.4 var(--name);color:var(--dim);padding:14px 0 4px}
 .gear[aria-expanded="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 
 /* settings */
@@ -410,6 +434,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
     <label class="datelbl"><span id="dateTxt">—</span><input type="date" id="date" aria-label="Pick a date"></label>
     <button class="arrow" id="next" aria-label="Next day">›</button>
   </div>
+  <button class="srbtn" id="srBtn" aria-label="Search players" title="Search players (/)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button>
   <button class="gear" id="gear" aria-expanded="false" aria-controls="sheet">Punt</button>
 </div>
 
@@ -475,6 +500,10 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
 </div>
 <main class="gut bzv" id="bzList"></main>
 
+<div class="sr" id="sr" hidden role="dialog" aria-label="Search players">
+  <div class="srbar gut"><input id="srIn" type="search" placeholder="Find a player or team" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" aria-controls="srList"><button id="srX">Cancel</button></div>
+  <div class="srl gut" id="srList"></div>
+</div>
 <div class="ps" id="ps" hidden>
   <div class="psb" id="psBack"></div>
   <aside class="psp" id="psPanel" role="dialog" aria-modal="true" aria-labelledby="psTitle">
@@ -1264,10 +1293,50 @@ function openSheet(id,tn){
   loadLog(id);
 }
 function closeSheet(fromPop){
-  if(!S.ps)return;S.ps=null;$("ps").hidden=true;document.body.style.overflow="";
-  if(!fromPop)try{history.back()}catch(e){}
+  if(!S.ps)return;S.ps=null;$("ps").hidden=true;if(!S.sr)document.body.style.overflow="";
+  if(!fromPop){S.skipPop=1;try{history.back()}catch(e){S.skipPop=0}}
 }
-window.addEventListener("popstate",()=>{if(S.ps)closeSheet(true)});
+// Back closes the top layer only: the player page, then the search under it. skipPop eats the
+// popstate that our own history.back() fires.
+window.addEventListener("popstate",()=>{if(S.skipPop){S.skipPop=0;return}if(S.ps)closeSheet(true);else if(S.sr)closeSearch(true)});
+
+// ---- Player search: everyone in the season ranks plus anyone in tonight's box score. Matches
+// any word start of the name (accents and Jr./III ignored), or the team abbreviation; ranked
+// players first, by season rank. Tap a row for the player page.
+function srPool(){
+  const m=new Map();
+  if(R)for(const id in R.players){const q=R.players[id];m.set(id,{id,n:q.n,t:q.t,pos:""})}
+  for(const p of S.players){const id=p.eid||p.id,o=m.get(id)||{id,n:p.name,t:p.team,pos:""};o.pos=p.pos;o.tn=p;m.set(id,o)}
+  return[...m.values()];
+}
+const srKey=s=>String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z ]/g,"");
+function renderSearch(){
+  const qs=srKey($("srIn").value).trim(),L=$("srList");
+  if(!qs){L.innerHTML=`<p class="srh">Type a name (\u201cjok\u201d, \u201cshai\u201d) or a team (\u201cbos\u201d).${R?"":" Ranks are still loading."}</p>`;return}
+  const words=qs.split(/\s+/),rk=id=>S.rk&&S.rk.season[id]||9999;
+  const hits=srPool().map(o=>{
+    const nk=srKey(o.n),nw=nk.split(/\s+/);
+    const team=words.length===1&&o.t&&o.t.toLowerCase()===words[0];
+    const ok=team||words.every(w=>nw.some(x=>x.startsWith(w))||(w.length>2&&nk.includes(w)));
+    return ok?{o,s:(team?2:0)+(nk.startsWith(qs)?0:1),r:rk(o.id)}:null;
+  }).filter(Boolean).sort((a,b)=>a.s-b.s||a.r-b.r||a.o.n.localeCompare(b.o.n)).slice(0,40);
+  if(!hits.length){L.innerHTML=`<p class="srh">No player matches \u201c${esc($("srIn").value.trim())}\u201d.</p>`;return}
+  L.innerHTML=hits.map(({o,r})=>{
+    const p=o.tn,line=p?`<span class="tn">${fmtDate(S.date).replace(/^\w+, /,"")}: ${p.pts}p ${p.reb}r ${p.ast}a · ${p.min}m</span>`:"";
+    return`<button class="srr" data-id="${esc(o.id)}">${mug({eid:/^\d+$/.test(o.id)?o.id:""})}
+      <div><b>${esc(o.n)}</b><span>${esc(o.t||"")}${o.pos?" · "+esc(o.pos):""}</span>${line}</div>
+      <div class="num">${r<9999?`Szn <b class="${r<=TOP?"top":""}">#${r}</b>`:"–"}</div></button>`;
+  }).join("");
+}
+function openSearch(){
+  if(S.sr)return;S.sr=1;$("sr").hidden=false;document.body.style.overflow="hidden";
+  try{history.pushState({sr:1},"")}catch(e){}
+  $("srIn").focus();$("srIn").select();renderSearch();
+}
+function closeSearch(fromPop){
+  if(!S.sr)return;S.sr=0;$("sr").hidden=true;if(!S.ps)document.body.style.overflow="";
+  if(!fromPop){S.skipPop=1;try{history.back()}catch(e){S.skipPop=0}}
+}
 function tile(l,r,sub,cl=""){return`<div class="tl ${r?"":"na"} ${cl}"><i>${l}</i><b>${r?"#"+r:"–"}</b>${sub?`<small>${sub}</small>`:""}</div>`}
 function renderSheet(){
   if(!S.ps)return;
@@ -1395,6 +1464,15 @@ for(const l of ["list","bsList","bzList"]){
   $(l).onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();cardOpen(e,l)}};
 }
 $("psClose").onclick=()=>closeSheet();
+$("srBtn").onclick=openSearch;
+$("srX").onclick=()=>closeSearch();
+$("srIn").oninput=renderSearch;
+$("srIn").onkeydown=e=>{if(e.key==="Escape")closeSearch();
+  // preventDefault: otherwise this Enter goes on to "click" the player page's close button
+  if(e.key==="Enter"){e.preventDefault();const b=$("srList").querySelector(".srr");if(b){$("srIn").blur();b.click()}}};
+$("srList").onclick=e=>{const b=e.target.closest(".srr");if(!b)return;
+  const id=b.dataset.id,p=S.players.find(x=>(x.eid||x.id)===id);$("srIn").blur();openSheet(id,p||null)};
+document.addEventListener("keydown",e=>{if(e.key==="/"&&!S.sr&&!S.ps&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();openSearch()}});
 $("psBack").onclick=()=>closeSheet();
 $("ps").onkeydown=e=>{if(e.key==="Escape")closeSheet()};
 $("bsSort").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsSort=b.dataset.k;store.set("bsSort",S.bsSort);renderBS()});
