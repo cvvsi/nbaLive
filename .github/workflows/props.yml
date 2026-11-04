@@ -1,0 +1,31 @@
+# Player props from The Odds API (fetch-props.js). Manual only for now: the free plan has
+# 500 credits a month, so nothing is scheduled until the daily pull is sized.
+name: Props
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "probe = tonight's games (free) + one game's props (about 2 credits)"
+        default: probe
+        required: true
+      markets:
+        description: "Comma-separated Odds API markets"
+        default: player_points,player_points_rebounds_assists
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  props:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node fetch-props.js ${{ inputs.mode }}
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          PROPS_MARKETS: ${{ inputs.markets }}
