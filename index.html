@@ -119,16 +119,15 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .sgd .tx{padding:4px 0 8px}
 .tph{font:600 13px/1 var(--name);padding:8px 2px 2px}
 .tp{margin-top:6px}
-.tp .tt,.tp .tr{display:grid;grid-template-columns:1fr 32px 44px 40px;align-items:baseline;gap:4px;padding:5px 2px}
+.tp .tt,.tp .tr{display:grid;grid-template-columns:1fr 32px 50px 52px;align-items:baseline;gap:4px;padding:5px 2px}
 .tp .tt{font:500 12.5px/1 var(--name);border-bottom:1px solid var(--rule)}
 .tp .tt b{font-weight:700}
-.tp .tt span{font:600 9.5px/1 var(--name);letter-spacing:.06em;color:var(--dim);text-align:right}
+.tp .tt span{font:600 9.5px/1.15 var(--name);letter-spacing:.06em;color:var(--dim);text-align:right}
 .tp .tt .tn{font:500 12.5px/1 var(--name);letter-spacing:0;color:var(--ink);text-align:left}
 .tp .ts{font:600 10px/1 var(--name);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);padding:8px 2px 2px}
 .tp .tr{font:500 12.5px/1.2 var(--num);text-align:right;cursor:pointer;border-bottom:1px solid var(--rule)}
 .tp .tr .pn{font:600 13.5px/1.2 var(--name);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tp .tr .ij{font:600 10.5px/1 var(--name);color:var(--neg)}.tp .tr .ij.dtd{color:var(--ball)}
-.tp .tr .gs{font:500 10.5px/1 var(--num);color:var(--dim);font-style:normal}
 .tp .tr .ms{font:500 11px/1 var(--name);color:var(--ball);font-style:normal}
 .tp .t1{color:var(--pos);font-weight:600}.tp .t2{color:var(--ink)}.tp .t3{color:var(--dim)}
 .sgk{font:500 12px/1.4 var(--name);color:var(--dim);padding:6px 0 2px}
@@ -1532,27 +1531,26 @@ function renderGrid(ds,live,all,today){
   }
   const lights=ds.filter(d=>d>=today&&light(d)).map(d=>D[ds.indexOf(d)]+" "+fmtDate(d).replace(/^\w+, \w+ /,""));
   $("scStatus").textContent=`${teams.length} teams`;
-  $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Red underline = 2nd night of a back-to-back. Tap a team for its rotation this week (WK = week rank), or a game for both teams that night (NIGHT = rank among that night's players). GS = starts in the team's last 5 games.</p><div class="sgd">${h}</div>`;
+  $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Red underline = 2nd night of a back-to-back. Tap a team for its rotation this week (Week = week rank), or a game for both teams that night (Tonight, or the day: rank among that night's players). Starters = each team's lineup from its last game.</p><div class="sgd">${h}</div>`;
 }
 // One team's rotation for the Schedule panel: everyone projected for 10+ minutes, as starters
-// (healthy players who started 3+ of the team's last 5 games, from the box scores, topped up by
-// projected minutes if fewer than five did), the rest of the rotation, and who's out (for that
-// game, or all week). Each row: projected minutes, Proj rank (shaded by tier), and the last
-// column: NIGHT (rank among that night's players) for a game, WK (week rank) for a team.
+// (the official starting five from the team's last game, ls in rankings.json; anyone now out is
+// replaced by the next player by projected minutes), the rest of the rotation, and who's out (for
+// that game, or all week). Each row: projected minutes, season Proj rank (shaded by tier), and
+// the last column: rank among that night's players for a game, week rank for a team.
 function teamPanel(t,gd,live,all,szn,wk){
   const ps=all.filter(([,q])=>q.t===t).map(([id,q])=>({id,q,m:q.xp[0],g:live.filter(d=>plays(t,d)&&avail(id,d)).length}))
     .filter(o=>o.m>=10).sort((a,b)=>b.m-a.m);
   const outNow=o=>gd?!avail(o.id,gd):o.g===0,out=ps.filter(outNow),ok=ps.filter(o=>!outNow(o));
   const tier=r=>r<=TOP?"t1":r<=ROST?"t2":"t3",tg=live.filter(d=>plays(t,d)).length;
-  const gs=o=>(R&&R.players[o.id]&&R.players[o.id].gs)||[0,0];
-  const real=ok.filter(o=>gs(o)[0]>=3).sort((a,b)=>gs(b)[0]-gs(a)[0]||b.m-a.m).slice(0,5);
+  const ls=o=>R&&R.players[o.id]&&R.players[o.id].ls;
+  const real=ok.filter(ls).slice(0,5);
   const start=[...real,...ok.filter(o=>!real.includes(o))].slice(0,5),bench=ok.filter(o=>!start.includes(o));
   const row=o=>{const i=ijOf(o.id),miss=!gd&&ijOut(i)&&o.g<tg&&o.g>0?` <i class="ms">misses ${tg-o.g}</i>`:"",
-      gsT=gs(o)[1]&&(gs(o)[0]>0||start.includes(o))?` <i class="gs">${gs(o)[0]}/${gs(o)[1]} GS</i>`:"",
       st=i?`<span class="ij${ijOut(i)?"":" dtd"}">${ijOut(i)?"OUT"+(i[1]?" ~"+fmtDate(i[1]).replace(/^\w+, /,""):""):"DTD"}</span>`:"";
-    return`<div class="tr" data-id="${o.id}"><span class="pn">${esc(o.q.n)}${miss} ${st}${gsT}</span><span>${Math.round(o.m)}</span><span class="${tier(szn[o.id])}">#${szn[o.id]}</span><span>${o.g&&!outNow(o)?"#"+wk[o.id]:"–"}</span></div>`};
+    return`<div class="tr" data-id="${o.id}"><span class="pn">${esc(o.q.n)}${miss} ${st}</span><span>${Math.round(o.m)}</span><span class="${tier(szn[o.id])}">#${szn[o.id]}</span><span>${o.g&&!outNow(o)?"#"+wk[o.id]:"–"}</span></div>`};
   const sec=(l,a)=>a.length?`<div class="ts">${l}</div>`+a.map(row).join(""):"";
-  return`<div class="tp"><div class="tt"><span class="tn"><b>${t}</b> · ${tg} game${tg===1?"":"s"}${gd?" this week":" this week"}</span><span>MIN</span><span>PROJ</span><span>${gd?"NIGHT":"WK"}</span></div>`
+  return`<div class="tp"><div class="tt"><span class="tn"><b>${t}</b> · ${tg} game${tg===1?"":"s"}${gd?" this week":" this week"}</span><span>MIN</span><span>SEASON<br>PROJ</span><span>${gd?(gd===etToday()?"TONIGHT":["SUN","MON","TUE","WED","THU","FRI","SAT"][new Date(gd+"T12:00:00Z").getUTCDay()]):"WEEK"}</span></div>`
     +sec("Starters",start)+sec("Rotation",bench)+sec(gd?"Out tonight":"Out this week",out)+`</div>`;
 }
 // Week picker (Proj > Week and Schedule): this week = 0, then one week at a time to the end of

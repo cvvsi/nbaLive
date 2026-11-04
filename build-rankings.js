@@ -22,7 +22,7 @@ const CATS = ['fg', 'ft', 'tpm', 'pts', 'reb', 'ast', 'stl', 'blk', 'to'];
 const WINDOWS = { season: 0, d30: 30, d14: 14, d7: 7 };
 // Per-game stat line per window (l[window], fields LF), for the Ranks tab's cards.
 const LF = ['pts', 'reb', 'ast', 'stl', 'blk', 'tpm', 'to', 'fgm', 'fga', 'ftm', 'fta'];
-const POOL = 130, ITER = 4, G3 = 3, GS = 5;
+const POOL = 130, ITER = 4, G3 = 3;
 const CACHE = '.cache/games.json', OUT = 'data/rankings.json', REG = 'data/regression.json', HIST = 'data/history.json';
 const CACHE_V = 4;   // bump when parseBox's row shape changes, so stale cached rows are refetched (4: starter flag)
 
@@ -324,11 +324,10 @@ async function main() {
     const b = before[r.id] || (before[r.id] = { gp: 0, min: 0 }); b.gp++; b.min += r.min;
   }
   for (const [id, b] of Object.entries(before)) players[id].pm = Math.round(b.min / b.gp * 10) / 10;
-  // gs: [games started, games played] in the team's last GS games, for the Schedule tab's
-  // starters (who actually started lately, not a depth chart).
-  for (const [t, gs] of Object.entries(byTeam)) for (const g of gs.slice(-GS)) for (const r of g.rows) if (r.team === t) {
-    const p = players[r.id]; if (!p) continue; const a = p.gs || (p.gs = [0, 0]); a[1]++; if (r.st) a[0]++;
-  }
+  // ls = 1: started the team's most recent game (the box score's official starting five), for
+  // the Schedule tab's starters.
+  for (const [t, gs] of Object.entries(byTeam)) for (const r of gs[gs.length - 1].rows)
+    if (r.team === t && r.st && players[r.id]) players[r.id].ls = 1;
   fs.mkdirSync('data', { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify({ asOf, cats: CATS, fields: ['gp', 'mpg', ...CATS], lf: LF, windows, players }));
   console.log(`${OUT}: ${Object.keys(players).length} players through ${asOf}`, JSON.stringify(windows));
