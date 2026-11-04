@@ -101,6 +101,8 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
   border-bottom:1px solid var(--rule);padding-block:6px 0}
 .meta{display:flex;justify-content:space-between;align-items:center;gap:8px;font:500 11px/1 var(--num);color:var(--dim);text-transform:uppercase;letter-spacing:.04em}
 .meta .sort{display:flex;gap:2px}
+.meta .sorts{display:flex;gap:10px}
+.meta .sort[hidden]{display:none}
 .meta .sort button{font:600 12px/1 var(--name);letter-spacing:.06em;padding:6px 7px;border-radius:4px;color:var(--dim)}
 .meta .sort button[aria-pressed="true"]{color:var(--ink);background:var(--cell)}
 #teamBtn{margin-left:4px;border:1px solid var(--rule)}
@@ -465,7 +467,8 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv{display:none!important}
   <div>
     <div class="meta">
       <span id="bzStatus" class="num">Loading</span>
-      <div class="sort" id="bzSort"><button data-k="adds">Adds</button><button data-k="drops">Drops</button></div>
+      <div class="sorts"><div class="sort" id="bzDay" hidden><button data-k="t">Today</button><button data-k="y">Yday</button></div>
+      <div class="sort" id="bzSort"><button data-k="adds">Adds</button><button data-k="drops">Drops</button></div></div>
     </div>
     <div class="rkh r3"><span>Szn</span><span>3G</span><span>Exp</span></div>
   </div>
@@ -1157,10 +1160,12 @@ function noteHTML(id,tn){
   return`<p class="note">${a.tag?`<b class="tag ${a.cls}">${a.tag}</b>`:""}${a.text}</p>`;
 }
 // ---- Buzz: data/buzz.json, Yahoo's public Buzz Index (most added / dropped across Yahoo
-// leagues) for yesterday, pulled nightly by fetch-buzz.js. Names are matched to the ESPN ids in
+// leagues): yesterday (final) and today so far, pulled every 3 hours by fetch-buzz.js. Names are matched to the ESPN ids in
 // rankings.json, then judged with the same ranks, movers and Exp as the other tabs.
 let BZ=null;
-S.bzSort=store.get("bzSort","adds");S.bzOpen=new Set();
+S.bzSort=store.get("bzSort","adds");S.bzOpen=new Set();S.bzDay="t";
+// The day on screen: today so far when there is one, else yesterday.
+const bzDay=()=>BZ.today&&S.bzDay==="t"?BZ.today:BZ;
 const normN=s=>String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()
   .replace(/\b(jr|sr|ii|iii|iv|v)\b\.?/g,"").replace(/[^a-z]/g,"");
 function bzId(row){
@@ -1215,15 +1220,18 @@ function bzRow(r){
 }
 function renderBZ(){
   if(!BZ)return;
-  const drop=S.bzSort==="drops",rows=drop?BZ.dropped:BZ.added;
+  const D=bzDay(),part=D===BZ.today,drop=S.bzSort==="drops",rows=drop?D.dropped:D.added;
+  $("bzDay").hidden=!BZ.today;
+  $("bzDay").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.k==="t")===part));
   $("bzSort").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.bzSort));
   $("bzStatus").textContent=`${rows.length} · Yahoo ${drop?"drops":"adds"}`;
-  $("bzAsOf").textContent=fmtDate(BZ.date).replace(/^\w+, /,"");
-  const cap=`<p class="bzcap">Across all Yahoo leagues on ${fmtDate(BZ.date)}. ${drop?"<b>Panic</b> = my numbers still like him; <b>Agree</b> = the role shrank.":"<b>Follow</b> = minutes or Exp back it up; <b>Fade</b> = it doesn't."} Ranks${R?` thru ${fmtDate(R.asOf).replace(/^\w+, /,"")}`:" loading"}. Tap a player for the full page.</p>`;
+  $("bzAsOf").textContent=fmtDate(D.date).replace(/^\w+, /,"")+(part?" so far":"");
+  const upd=BZ.built?` Updated ${new Date(BZ.built).toLocaleString(undefined,{weekday:"short",hour:"numeric",minute:"2-digit"})}.`:"";
+  const cap=`<p class="bzcap">Across all Yahoo leagues on ${fmtDate(D.date)}${part?", so far today":""}.${upd} ${drop?"<b>Panic</b> = my numbers still like him; <b>Agree</b> = the role shrank.":"<b>Follow</b> = minutes or Exp back it up; <b>Fade</b> = it doesn't."} Ranks${R?` thru ${fmtDate(R.asOf).replace(/^\w+, /,"")}`:" loading"}. Tap a player for the full page.</p>`;
   $("bzList").innerHTML=rows.length?cap+rows.map(bzRow).join(""):`<div class="empty">No Yahoo buzz for this day.</div>`;
 }
 fetch("data/buzz.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
-  .then(j=>{if(!j){$("bzList").innerHTML=`<div class="empty">No Yahoo buzz yet: it's pulled each morning with the rankings.</div>`;$("bzStatus").textContent="";return}
+  .then(j=>{if(!j){$("bzList").innerHTML=`<div class="empty">No Yahoo buzz yet: it's pulled every 3 hours.</div>`;$("bzStatus").textContent="";return}
     BZ=j;renderBZ()})
   .catch(()=>{$("bzList").innerHTML=`<div class="empty err">Couldn't load the Yahoo buzz.</div>`;$("bzStatus").textContent=""});
 function bsMsg(m){$("bsList").innerHTML=`<div class="empty">${esc(m)}</div>`;$("bsStatus").textContent=""}
@@ -1393,6 +1401,7 @@ $("bsSort").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsSort=b.data
 $("bsUnit").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsUnit=b.dataset.u;store.set("bsUnit",S.bsUnit);renderBS();renderSheet()});
 $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>setView(b.dataset.v));
 $("bsInfo").onclick=()=>toggleHelp($("bsHelp").hidden);
+$("bzDay").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bzDay=b.dataset.k;S.bzOpen.clear();renderBZ()});
 $("bzSort").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bzSort=b.dataset.k;store.set("bzSort",S.bzSort);S.bzOpen.clear();renderBZ()});
 setView(location.hash==="#buysell"?"bs":location.hash==="#buzz"?"bz":"box");
 $("prev").onclick=()=>loadDate(shift(S.date,-1));

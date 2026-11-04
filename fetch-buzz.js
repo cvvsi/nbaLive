@@ -1,9 +1,13 @@
 /* Yahoo's public Buzz Index (no login): most added and most dropped players for a day.
  * https://basketball.fantasysports.yahoo.com/nba/buzzindex
  *
- * Usage:  node fetch-buzz.js              yesterday (US Eastern), the morning report's day
- *         node fetch-buzz.js 2026-11-02   one day
- * Writes: data/buzz.json  { date, pageDate, added: [...], dropped: [...] }
+ * Usage:  node fetch-buzz.js              yesterday (US Eastern, final) plus today so far
+ *         node fetch-buzz.js 2026-11-02   one day only
+ * Writes: data/buzz.json  { date, pageDate, built, added: [...], dropped: [...],
+ *                           today: { date, added, dropped } | null }
+ * The top level stays yesterday (the morning report reads it); `today` is a partial day and
+ * is null when Yahoo has nothing for it yet or just serves yesterday's page again.
+ * Run every 3 hours by .github/workflows/buzz.yml.
  * Each row: name, team, pos, ros (% rostered), start (% started), drops, adds, trades, total.
  */
 const fs = require('fs');
@@ -11,7 +15,8 @@ const fs = require('fs');
 const BASE = 'https://basketball.fantasysports.yahoo.com/nba/buzzindex';
 const etToday = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
 const shift = (d, n) => { const t = new Date(d + 'T12:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
-const DATE = process.argv[2] || shift(etToday(), -1);
+const ONE = process.argv[2];
+const DATE = ONE || shift(etToday(), -1), TODAY = etToday();
 
 const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', '#39': "'" };
 const text = h => h.replace(/<[^>]+>/g, ' ')
@@ -43,8 +48,8 @@ function parse(html) {
   return rows;
 }
 
-async function page(sort) {
-  const u = `${BASE}?date=${DATE}&pos=ALL&src=combined&bimtab=ALL&trendtab=O&sort=${sort}&sdir=1`;
+async function page(sort, date) {
+  const u = `${BASE}?date=${date}&pos=ALL&src=combined&bimtab=ALL&trendtab=O&sort=${sort}&sdir=1`;
   const r = await fetch(u, { headers: { 'User-Agent': 'Mozilla/5.0 (9-Cat Box nightly; personal use)', 'Accept-Language': 'en-US' } });
   if (!r.ok) throw new Error(r.status + ' ' + u);
   const html = await r.text();
@@ -54,17 +59,32 @@ async function page(sort) {
   return { rows: parse(html), shown, bytes: html.length };
 }
 
+async function day(date) {
+  const a = await page('BI_A', date), d = await page('BI_D', date);
+  const added = a.rows.sort((x, y) => y.adds - x.adds).slice(0, 40);
+  const dropped = d.rows.sort((x, y) => y.drops - x.drops).slice(0, 40);
+  console.log(`buzz ${date}: page shows ${a.shown || '?'}; ${added.length} added rows, ${dropped.length} dropped rows (${a.bytes} bytes)`);
+  console.log('  top adds:', added.slice(0, 5).map(p => `${p.name} ${p.team} +${p.adds}`).join(' | '));
+  console.log('  top drops:', dropped.slice(0, 5).map(p => `${p.name} ${p.team} -${p.drops}`).join(' | '));
+  return { date, pageDate: a.shown, added, dropped };
+}
+const sig = r => r.added.slice(0, 10).map(p => p.name + p.adds).join();
+
 (async () => {
-  const a = await page('BI_A'), d = await page('BI_D');
-  const added = a.rows.sort((x, y) => y.adds - x.adds);
-  const dropped = d.rows.sort((x, y) => y.drops - x.drops);
-  console.log(`buzz ${DATE}: page shows ${a.shown || '?'}; ${added.length} added rows, ${dropped.length} dropped rows (${a.bytes} bytes)`);
-  console.log('top adds:', added.slice(0, 5).map(p => `${p.name} ${p.team} +${p.adds}`).join(' | '));
-  console.log('top drops:', dropped.slice(0, 5).map(p => `${p.name} ${p.team} -${p.drops}`).join(' | '));
-  if (!added.length) throw new Error('No rows parsed; the page layout may have changed');
+  const y = await day(DATE);
+  if (!y.added.length) throw new Error('No rows parsed; the page layout may have changed');
+  let today = null;
+  if (!ONE) {
+    try {
+      const t = await day(TODAY);
+      if (!t.added.length) console.log('  today: no rows yet');
+      else if ((t.pageDate && t.pageDate !== TODAY) || sig(t) === sig(y)) console.log("  today: Yahoo served another day's page, skipped");
+      else today = { date: TODAY, added: t.added, dropped: t.dropped };
+    } catch (e) { console.log('  today failed:', e.message); }
+  }
   fs.writeFileSync('data/buzz.json', JSON.stringify({
-    date: DATE, pageDate: a.shown, built: new Date().toISOString(),
-    note: "Yahoo Buzz Index: adds/drops/trades across Yahoo leagues that day. ros/start = % rostered / % started.",
-    added: added.slice(0, 40), dropped: dropped.slice(0, 40),
+    date: DATE, pageDate: y.pageDate, built: new Date().toISOString(),
+    note: "Yahoo Buzz Index: adds/drops/trades across Yahoo leagues that day. ros/start = % rostered / % started. today = partial day so far.",
+    added: y.added, dropped: y.dropped, today,
   }, null, 1));
 })().catch(e => { console.error(e.message); process.exit(1); });

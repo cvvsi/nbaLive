@@ -50,15 +50,12 @@ jobs:
           YAHOO_LEAGUE_ID: ${{ secrets.YAHOO_LEAGUE_ID }}
         run: node fetch-yahoo.js
 
-      # Yahoo's public Buzz Index: yesterday's most added / dropped. No login needed.
-      - name: Yahoo buzz
-        continue-on-error: true
-        run: node fetch-buzz.js
+      # Yahoo's Buzz Index has its own workflow (buzz.yml, every 3 hours).
 
       - name: Commit if changed
         run: |
           git add data/rankings.json data/regression.json
-          for f in data/buzz.json data/yahoo.json data/yahoo-owned.json data/yahoo-token.enc; do [ -f "$f" ] && git add "$f"; done; true
+          for f in data/yahoo.json data/yahoo-owned.json data/yahoo-token.enc; do [ -f "$f" ] && git add "$f"; done; true
           if git diff --cached --quiet; then echo "No change"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"

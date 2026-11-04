@@ -1,0 +1,40 @@
+# Yahoo's public Buzz Index (most added / dropped across Yahoo leagues), every 3 hours.
+# Runs on its own so it doesn't wait on the nightly rankings, and it runs on days with no games,
+# when adds and drops still move (injury returns, news). Each run pulls yesterday (final) and
+# today so far, and commits data/buzz.json only if it changed. The push redeploys Pages.
+name: Buzz
+
+on:
+  # Odd minutes: GitHub delays top-of-the-hour schedules badly. With eight slots a day a late
+  # or skipped run only costs a few hours.
+  schedule:
+    - cron: "37 */3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: buzz
+  cancel-in-progress: false
+
+jobs:
+  buzz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: node fetch-buzz.js
+
+      - name: Commit if changed
+        run: |
+          git add data/buzz.json
+          if git diff --cached --quiet; then echo "No change"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Buzz $(node -p "const j=require('./data/buzz.json');j.date+(j.today?' + '+j.today.date+' so far':'')")"
+          for i in 1 2 3; do git pull --rebase && git push && exit 0; sleep $((i*5)); done; exit 1
