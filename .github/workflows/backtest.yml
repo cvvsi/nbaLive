@@ -1,5 +1,5 @@
-# One-off: fit Proj's blend constants on last season (backtest.js). Manual only. The first run
-# fetches two seasons of box scores (~2,500, several minutes); they're cached for later runs.
+# Fits Proj's blend constants over the last 3 seasons (backtest.js). Manual only. The first run
+# fetches five seasons of box scores (~6,000, 15-25 minutes); they're cached for later runs.
 name: Backtest
 
 on:
