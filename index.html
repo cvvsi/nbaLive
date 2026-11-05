@@ -1463,6 +1463,56 @@ function opp(t,d){for(const[a,h]of(SC&&SC.dates[d])||[]){if(a===t)return"@ "+h;i
 const ijOf=id=>IJ&&IJ.players[id];
 const ijOut=i=>!!i&&/out|suspen/i.test(i[0]);
 const avail=(id,d)=>{const i=ijOf(id);return !ijOut(i)||(!!i[1]&&d>=i[1])};
+// ---- Next man up: Proj minutes by date. regression.json's nm gives, for every regular, each
+// teammate's minutes change [dWith, dOut] against his Proj minutes: with the regular playing,
+// and while he's out (his minutes in the games already missed, blended with half the
+// regular's minutes to his position group). On a date the injury report has the regular out,
+// teammates take dOut; once he's back from 5+ missed games, the first 6 games ramp (measured
+// by backtest-return.js): he plays NMRET of his minutes, teammates keep NMKEEP of their gain.
+// Several regulars out at once: the biggest gain and the biggest cut (not the sum), since each
+// one's dOut already reflects games where the others were missing too.
+const NMRET=[.80,.84,.92,.90,.94,.92],NMKEEP=[.48,.44,.36,.34,.35,.26];
+function nmC(){if(S.nm&&S.nm.g===G&&S.nm.ij===IJ&&S.nm.sc===SC)return S.nm;
+  const td={},byT={};
+  if(SC)for(const d of Object.keys(SC.dates).sort())for(const t of new Set(SC.dates[d].flat()))(td[t]||(td[t]=[])).push(d);
+  for(const[R,e]of Object.entries((G&&G.nm)||{}))(byT[e.t]||(byT[e.t]=[])).push([R,e]);
+  return S.nm={g:G,ij:IJ,sc:SC,td,byT,ph:{}}}
+// Phase of regular R's team on each upcoming team date: -1 he's out, k = his k-th game back
+// from a 5+ game absence (1-6), 0 normal.
+function nmPh(R,e){const C=nmC();if(C.ph[R])return C.ph[R];
+  const ph={},len=G.nmLen||5;let streak=e.n||0,k=e.n?null:(e.bk??null);
+  for(const d of C.td[e.t]||[]){if(d<=G.asOf)continue;
+    if(!avail(R,d)){ph[d]=-1;streak++;k=null;continue}
+    if(streak>=len)k=0;streak=0;
+    if(k!=null){k++;ph[d]=k<=NMRET.length?k:0;if(k>NMRET.length)k=null}else ph[d]=0}
+  return C.ph[R]=ph}
+// Minutes for player id (Proj line q) on date d, assuming he plays.
+function minAt(id,q,d){const C=nmC(),base=q.xp[0];let up=0,dn=0,own=1;
+  for(const[R,e]of C.byT[q.t]||[]){const p=nmPh(R,e)[d]||0;
+    if(R===id){if(p>0)own=NMRET[p-1];continue}
+    const x=e.m[id];if(!x)continue;
+    const v=p<0?x[1]:p>0?x[0]+(x[1]-x[0])*NMKEEP[p-1]:x[0];
+    if(v>up)up=v;if(v<dn)dn=v}
+  return Math.max(0,Math.min(42,(base+up+dn)*own))}
+// Proj's line at other minutes: per-minute rates and shooting % stay, counts scale.
+function lineAt(q,m){const b=xpLine(q);if(!(b.min>0)||Math.abs(m-b.min)<.05)return b;const f=m/b.min,o={};for(const k in b)o[k]=k==="min"?m:b[k]*f;return o}
+const zAt=(q,m)=>Math.abs(m-q.xp[0])<.05?zx(q):pjZ(lineAt(q,m));
+// Average minutes over the dates he plays (z-scores are linear in minutes, so the line at the
+// average minutes is the average game).
+const sznDs=(id,q)=>{if(!SC)return[];const t=etToday();return Object.keys(SC.dates).filter(d=>d>=t&&plays(q.t,d)&&avail(id,d))};
+function sznVals(all){const o={};for(const[id,q]of all){const ds=sznDs(id,q),m=avgMin(id,q,ds),z=zAt(q,m);o[id]={ds,m,z,v:pjVal(z)}}return o}
+const avgMin=(id,q,ds)=>ds.length?ds.reduce((a,d)=>a+minAt(id,q,d),0)/ds.length:q.xp[0];
+// Who moved a player's minutes on these dates, for the card's note.
+function nmNote(id,q,ds,m){if(Math.abs(m-q.xp[0])<1.5)return"";const C=nmC(),who=[];
+  let own=false;
+  for(const[R,e]of C.byT[q.t]||[]){const ph=nmPh(R,e);
+    if(R===id){if(ds.some(d=>ph[d]>0))own=true;continue}
+    if(!e.m[id])continue;const outD=ds.filter(d=>ph[d]<0),back=ds.find(d=>ph[d]>0),nm=G.players[R]?G.players[R].n.replace(/^(\S)\S*\s/,"$1. "):"a teammate";
+    const bk=back?` ~${fmtDate(back).replace(/^\w+, /,"")}`:"";
+    if(outD.length)who.push(outD.length===ds.length?`${nm} out`:m<q.xp[0]&&back?`${nm} back${bk}`:`${nm} out${back?` until${bk}`:" some games"}`);
+    else if(back)who.push(`${nm} back`);else if(e.m[id][0]<=-1.5)who.push(`${nm} playing`)}
+  const why=own?"easing back after his absence":who.join(", ");
+  return why?`<div class="pjm">Minutes ${Math.round(m)} (Proj ${Math.round(q.xp[0])}): ${why}</div>`:""}
 function ijNote(id){const i=ijOf(id);if(!i)return"";const out=ijOut(i),sh=d=>fmtDate(d).replace(/^\w+, /,"");
   return`<div class="pjm"><span class="ij${out?"":" dtd"}">${esc(i[0])}${out?i[1]?` · back ~${sh(i[1])}`:" · no return date":""}</span>${i[2]?` · ${esc(i[2].length>110?i[2].slice(0,i[2].lastIndexOf(" ",106))+"…":i[2])}`:""}</div>`}
 const pctT=(m,a)=>a>0?(100*m/a).toFixed(1)+"%":"–";
@@ -1478,8 +1528,8 @@ const propsFor=(P,q)=>P&&(P.o[normN(q.n)]||P.f[nmKey(q.t,q.n)]);
 // Tonight's line: the market's mean for each stat it priced, Proj for the rest. Shot volume
 // (and turnovers, if not priced) scales with the market's points, so FG%/FT% stay Proj's but
 // their weight follows the role the market expects. A PRA-only line is split by Proj's ratios.
-function tonightLine(q,pp){
-  const base=xpLine(q),l={...base},mk={};if(!pp)return{l,base,mk};
+function tonightLine(q,pp,m){
+  const base=m==null?xpLine(q):lineAt(q,m),l={...base},mk={};if(!pp)return{l,base,mk};
   for(const k of PK)if(pp[k]){l[k]=pp[k][0];mk[k]=pp[k]}
   if(pp.pra){const rest=Math.max(0,pp.pra[0]-l.pts),sum=(mk.reb?0:base.reb)+(mk.ast?0:base.ast);
     if(sum>0&&!(mk.reb&&mk.ast)){const left=rest-(mk.reb?l.reb:0)-(mk.ast?l.ast:0);
@@ -1531,9 +1581,10 @@ function renderGrid(ds,live,all,today){
   const D="MTWTFSS",n=d=>((SC.dates[d])||[]).length,light=d=>n(d)>0&&n(d)<=5;
   const teams=[...new Set(Object.values(SC.dates).flat(2))].filter(t=>ds.some(d=>plays(t,d)));
   const left=t=>live.filter(d=>plays(t,d)).length;
-  const val={};all.forEach(([id,q])=>val[id]=pjVal(zx(q)));
-  const szn={};Object.entries(val).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>szn[id]=i+1);
-  const wk={};all.map(([id,q])=>[id,val0(zx(q),G.zp)*live.filter(d=>plays(q.t,d)&&avail(id,d)).length]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>wk[id]=i+1);
+  const SV=sznVals(all),szn={};all.map(([id])=>[id,SV[id].v]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>szn[id]=i+1);
+  // week minutes (next man up) per player, for the week rank and the team panel
+  const WM={};for(const[id,q]of all){const wd=live.filter(d=>plays(q.t,d)&&avail(id,d));WM[id]={g:wd.length,m:avgMin(id,q,wd)}}
+  const wk={};all.map(([id,q])=>[id,val0(zAt(q,WM[id].m),G.zp)*WM[id].g]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>wk[id]=i+1);
   teams.sort((a,b)=>left(b)-left(a)||a.localeCompare(b));
   let h=`<div class="h"></div><div class="h">G</div>`+ds.map((d,i)=>`<div class="h${light(d)?" lt":""}${d<today?" past":""}">${D[i]}<b>${n(d)||"–"}</b></div>`).join("");
   for(const t of teams){const g=left(t);
@@ -1545,12 +1596,12 @@ function renderGrid(ds,live,all,today){
       const head=gd?`<div class="tph">${esc(opp(t,gd)[0]==="@"?t+" "+opp(t,gd):opp(t,gd).replace("vs ","")+" @ "+t)} · ${fmtDate(gd).replace(/,/,"")}</div>`:"";
       const teams2=gd?[t,opp(t,gd).replace(/^(vs|@) /,"")]:[t];
       // NIGHT: per-game Proj ranked among everyone playing (and not out) that night.
-      let night=null;if(gd){night={};all.filter(([id,q])=>plays(q.t,gd)&&avail(id,gd)).map(([id])=>[id,val[id]]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>night[id]=i+1)}
-      h+=`<div class="tx">${head}${teams2.map(x=>teamPanel(x,gd,live,all,szn,gd?night:wk,gd?Object.keys(night).length:0,wk)).join("")}</div>`}
+      let night=null;if(gd){night={};all.filter(([id,q])=>plays(q.t,gd)&&avail(id,gd)).map(([id,q])=>[id,pjVal(zAt(q,minAt(id,q,gd)))]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>night[id]=i+1)}
+      h+=`<div class="tx">${head}${teams2.map(x=>teamPanel(x,gd,live,all,szn,gd?night:wk,gd?Object.keys(night).length:0,wk,WM)).join("")}</div>`}
   }
   const lights=ds.filter(d=>d>=today&&light(d)).map(d=>D[ds.indexOf(d)]+" "+fmtDate(d).replace(/^\w+, \w+ /,""));
   $("scStatus").textContent=`${teams.length} teams`;
-  $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Red underline = 2nd night of a back-to-back. Tap a team for its rotation this week (Week = week rank), or a game for both teams that night (Tonight, or the day: rank among that night's players). Starters = each team's lineup from its last game.</p><div class="sgd">${h}</div>`;
+  $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Red underline = 2nd night of a back-to-back. Tap a team for its rotation this week (Week = week rank), or a game for both teams that night (Tonight, or the day: rank among that night's players). Starters = each team's lineup from its last game, with a regular coming back from injury taking his spot back.</p><div class="sgd">${h}</div>`;
 }
 // The categories a player helps, for streaming: per-game Proj z-score of 0.25+ against everyone
 // projected for 15+ minutes (a broad, streamer-level bar; the top-130 pool would leave almost
@@ -1571,12 +1622,17 @@ function helps(q){const P=helpPool(),x=P.v(xpLine(q));
 // replaced by the next player by projected minutes), the rest of the rotation, and who's out (for
 // that game, or all week). Each row: projected minutes, season Proj rank (shaded by tier), and
 // the last column: rank among that night's players for a game, week rank for a team.
-function teamPanel(t,gd,live,all,szn,wk,nN,wkR){
-  const ps=all.filter(([,q])=>q.t===t).map(([id,q])=>({id,q,m:q.xp[0],g:live.filter(d=>plays(t,d)&&avail(id,d)).length}))
+function teamPanel(t,gd,live,all,szn,wk,nN,wkR,WM){
+  const ps=all.filter(([,q])=>q.t===t).map(([id,q])=>({id,q,m:gd?(avail(id,gd)?minAt(id,q,gd):q.xp[0]):WM&&WM[id]&&WM[id].g?WM[id].m:q.xp[0],g:live.filter(d=>plays(t,d)&&avail(id,d)).length}))
     .filter(o=>o.m>=10).sort((a,b)=>b.m-a.m);
   const outNow=o=>gd?!avail(o.id,gd):o.g===0,out=ps.filter(outNow),ok=ps.filter(o=>!outNow(o));
   const tg=live.filter(d=>plays(t,d)).length,days=live.filter(d=>plays(t,d)).map(d=>["M","Tu","W","Th","F","Sa","Su"][(new Date(d+"T12:00:00Z").getUTCDay()+6)%7]);
   const ls=o=>R&&R.players[o.id]&&R.players[o.id].ls,real=ok.filter(ls).slice(0,5);
+  // A regular back from an absence (missed the team's last games, plays here) takes his spot
+  // back from the starter who gained the most minutes while he was out.
+  for(const[Rid,e]of nmC().byT[t]||[]){if(!e.n)continue;const r=ok.find(o=>o.id===Rid);if(!r||real.includes(r))continue;
+    const sub=real.filter(o=>e.m[o.id]&&e.m[o.id][1]>=2).sort((a,b)=>e.m[b.id][1]-e.m[a.id][1])[0];
+    if(sub)real.splice(real.indexOf(sub),1,r)}
   const byRk=(a,b)=>(wk[a.id]||1e4)-(wk[b.id]||1e4);
   const start=[...real,...ok.filter(o=>!real.includes(o))].slice(0,5).sort(byRk),bench=ok.filter(o=>!start.includes(o)).sort(byRk);
   const sh=d=>fmtDate(d).replace(/^\w+, /,"");
@@ -1620,24 +1676,23 @@ $("pjSz").hidden=S.pjView!=="season";
   $("pjAsOf").textContent=`Proj thru ${sh(G.asOf)}`;
   let rows=[],cap="",stat="";
   if(S.pjView==="season"){
-    const left=(id,t)=>{if(!SC)return null;const i=ijOf(id);if(ijOut(i)&&!i[1])return"?";
-      return Object.keys(SC.dates).filter(d=>d>=today&&plays(t,d)&&avail(id,d)).length};
+    const SV=sznVals(all),left=id=>{if(!SC)return null;const i=ijOf(id);if(ijOut(i)&&!i[1])return"?";return SV[id].ds.length};
     const tot=S.pjSz==="tot"&&SC;
-    rows=all.map(([id,q])=>{const g=left(id,q.t),pv=pjVal(zx(q));
-      return{id,q,l:xpLine(q),v:tot?val0(zx(q),G.zp)*(g==="?"?0:g):pv,hi:1,foot:ijNote(id),sdl:g!=null?g+"g":"",z:zx(q),ctx:g!=null?`<b>${g}</b> g left`:"",
+    rows=all.map(([id,q])=>{const g=left(id),sv=SV[id];
+      return{id,q,l:lineAt(q,sv.m),min:sv.m,v:tot?val0(sv.z,G.zp)*(g==="?"?0:g):sv.v,hi:1,foot:nmNote(id,q,sv.ds,sv.m)+ijNote(id),sdl:g!=null?g+"g":"",z:sv.z,ctx:g!=null?`<b>${g}</b> g left`:"",
         side:g!=null?`<div class="pjside"><b>${g}</b><i>games left</i></div>`:""}}).sort((a,b)=>b.v-a.v).slice(0,250);
     stat=`${rows.length} · ${tot?"total":"per game"}`;
-    cap=`Rest of season, per game: Proj's line (this season's minutes, rates blended toward a two-season baseline). ${tot?"<b>Total</b>: per-game value × games left, so time missed counts.":"<b>Per g</b>: value per game, which ranks quality."} Games left are on the right, counted from any expected return on ESPN's injury report. Proj through ${sh(G.asOf)}; tap the ⓘ on Buy/Sell for how it's built.`;
+    cap=`Rest of season, per game: Proj's line (this season's minutes, rates blended toward a two-season baseline), with minutes shifted while a teammate is out and eased back when he returns. ${tot?"<b>Total</b>: per-game value × games left, so time missed counts.":"<b>Per g</b>: value per game, which ranks quality."} Games left are on the right, counted from any expected return on ESPN's injury report. Proj through ${sh(G.asOf)}; tap the ⓘ on Buy/Sell for how it's built.`;
   }else if(S.pjView==="week"){
     if(!SC)return pjMsg("No schedule yet: it's built with the nightly rankings.");
     const ds=weekDates(S.pjWk),live=ds.filter(d=>d>=today);
-    const szn={};all.map(([id,q])=>[id,pjVal(zx(q))]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>szn[id]=i+1);
+    const SV=sznVals(all),szn={};all.map(([id])=>[id,SV[id].v]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>szn[id]=i+1);
     const b2b=(t,id)=>live.filter(d=>plays(t,d)&&avail(id,d)&&plays(t,shift(d,-1))).length;
-    rows=all.map(([id,q])=>{const g=live.filter(d=>plays(q.t,d)&&avail(id,d)).length,pl=xpLine(q),l={};
+    rows=all.map(([id,q])=>{const wd=live.filter(d=>plays(q.t,d)&&avail(id,d)),g=wd.length,m=avgMin(id,q,wd),z=zAt(q,m),pl=lineAt(q,m),l={};
       for(const k in pl)l[k]=k==="min"||S.pjTot!=="tot"?pl[k]:pl[k]*g;
-      return{id,q,g,l,min:pl.min,v:g*val0(zx(q),G.zp),
+      return{id,q,g,l,min:pl.min,v:g*val0(z,G.zp),
         side:`<div class="wk" aria-label="${g} games">${ds.map(d=>`<span class="${plays(q.t,d)&&avail(id,d)?"on":""}${d<today?" past":""}">${"MTWTFSS"[ds.indexOf(d)]}</span>`).join("")}</div>`,
-        sub:` · <b>${g}</b> g`,sdl:g+"g",foot:ijNote(id),z:zx(q),bb:b2b(q.t,id)}}).filter(o=>o.g>0).sort((a,b)=>b.v-a.v).slice(0,250);
+        sub:` · <b>${g}</b> g`,sdl:g+"g",foot:nmNote(id,q,wd,m)+ijNote(id),z,bb:b2b(q.t,id)}}).filter(o=>o.g>0).sort((a,b)=>b.v-a.v).slice(0,250);
     rows.forEach((o,i)=>{const d=szn[o.id]-(i+1);o.ctx=`<b>${o.g}</b>g${o.bb?" · b2b":""} · <span class="${d>=10?"up":d<=-10?"dn":""}">${d>0?"▲"+d:d<0?"▼"+(-d):"="}</span>`});
     stat=`${rows.length} players`;
     cap=`${S.pjWk?`Week of ${sh(ds[0])}`:"The rest of this week"}: Proj's per-game line times games ${S.pjWk?"":"left "}(${live.length?sh(live[0]):""}–${sh(ds[6])}). Value is the week's total, so a 4-game player can beat a better 2-game one. ${S.pjTot==="tot"?"Stats are week totals":"Stats are per game"}. ▲/▼ = spots gained or lost against the player's per-game season rank: the schedule's effect.`;
@@ -1649,10 +1704,11 @@ $("pjSz").hidden=S.pjView!=="season";
     if(!teams.size)return pjMsg(SC?"No games today.":"No schedule yet: it's built with the nightly rankings.");
     const out=[],noline=[],hurt=[];
     for(const[id,q]of all){if(!teams.has(q.t))continue;
-      const pp=propsFor(P,q),t=tonightLine(q,pp),o={id,q,l:t.l,min:t.l.min,mk:t.mk,hi:1,v:pjVal(pjZ(t.l)),sdl:esc(opp(q.t,today)),z:pjZ(t.l),ctx:esc(opp(q.t,today)),side:`<div class="pjside"><i>${esc(opp(q.t,today))}</i></div>`};
+      const tm=minAt(id,q,today),pp=propsFor(P,q),t=tonightLine(q,pp,tm),o={id,q,l:t.l,min:t.l.min,mk:t.mk,hi:1,v:pjVal(pjZ(t.l)),sdl:esc(opp(q.t,today)),z:pjZ(t.l),ctx:esc(opp(q.t,today)),side:`<div class="pjside"><i>${esc(opp(q.t,today))}</i></div>`};
       const d=PK.filter(k=>t.mk[k]).map(k=>{const gap=t.l[k]-t.base[k],c=Math.abs(gap)>=PJGAP[k]?(gap>0?"up":"dn"):"";
         return`<span class="${c}">${CL[k].toUpperCase()} <b class="${c}">${t.l[k].toFixed(1)}</b> (${t.base[k].toFixed(1)})</span>`});
       if(pp)o.foot=`<div class="pjm">Market (Proj): ${d.join(" · ")}</div>`;
+      const nn=nmNote(id,q,[today],tm);if(nn)o.foot=(o.foot||"")+nn;
       const ij=ijOf(id);if(ij)o.foot=(o.foot||"")+ijNote(id);
       if(ijOut(ij)&&!avail(id,today)&&!pp){hurt.push(o);continue}
       if(!pp&&priced.has(q.t)&&t.base.min>=18){o.foot=`<div class="pjm">No line posted while teammates have one: often out or questionable. Check the news.</div>`;noline.push(o)}
