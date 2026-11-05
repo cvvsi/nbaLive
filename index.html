@@ -1248,7 +1248,7 @@ function analyst(id,tn){
   const B=S.bs,now=B.now[id],x=B.x[id],ly=B.ly[id],v=B.v[id],mv=S.mv&&S.mv[id],rq=R&&R.players[id];
   const act=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>c.k),zi=k=>2+G.cats.indexOf(k);
   const lyT=baseName(q),lyIn=/^d/.test(lyT)?"in "+lyT:lyT;   // "in 2024-25" reads better in comparisons
-  const sure=b&&gp>=BSMIN_GP,mpg=at(r,"mpg"),bm=b?at(b,"mpg"):0,dm=mpg-bm,cx=q.cx||[0,0,0,0,0];
+  const sure=(b||q.rk)&&gp>=BSMIN_GP,mpg=at(r,"mpg"),bm=b?at(b,"mpg"):0,dm=mpg-bm,cx=q.cx||[0,0,0,0,0];
 
   // The season line, leading with the categories this player actually helps in.
   const pg=k=>q.pg[G.pgf.indexOf(k)],fg=at(r,"fg");
