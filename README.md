@@ -202,7 +202,7 @@ When a regular is out, his teammates' minutes rise until he's back, then ease ba
 
   Fill-ins are those who were regulars before the absence, on nights the returner plays. Out of sample the curve beat both "back to old minutes at once" (17% less error for the returner, 32% in game 1) and "fill-in keeps the role". The returner also sits about 1 game in 5 over those 6; that's left to the injury report.
 - Cards say why: "Minutes 27 (Proj 22): J. Duren out", or "back ~Nov 9" when the rest of the season pulls them down. In the Schedule panel, a regular back from injury takes his starting spot back from the player who gained the most.
-- Backtests behind it: `backtest-injury.js` (fixed rules don't work), `backtest-absence.js` (the team's own pattern cuts error 26%), `backtest-return.js` (the ramp). Buy/Sell's Proj rank is unchanged: it asks whether a start is real, not who's healthy.
+- Backtests behind it: `backtest-injury.js` (fixed rules don't work), `backtest-absence.js` (the team's own pattern cuts error 26%), `backtest-return.js` (the ramp). Every "Proj" rank (Proj tab, Buy/Sell, the Box card's rank ladder, the player page and Buzz) is this same season number, so a fill-in whose role ends when the starter returns shows up as a Sell.
 
 ## Roadmap ideas
 

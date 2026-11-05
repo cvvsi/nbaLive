@@ -1028,9 +1028,15 @@ function rankBS(){
   const val=a=>ix.length?ix.reduce((s,i)=>s+a[i],0)/ix.length:0;
   const rank=src=>{const o={};Object.entries(src).map(([id,a])=>[id,val(a)]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>o[id]=i+1);return o};
   const pick=k=>Object.fromEntries(Object.entries(G.players).map(([id,q])=>[id,q[k]]));
+  // Proj = the Proj tab's season line: z-scores at the average minutes over the games left, so
+  // next-man-up minutes count here too (once the schedule and injury report are in).
+  const xz={};
+  if(SC){const all=Object.entries(G.players).filter(([,q])=>q.xp&&q.x),SV=sznVals(all);
+    for(const[id,q]of all){const z=SV[id].z;xz[id]=[q.x[0],SV[id].m,...G.cats.map(c=>z[c])]}}
+  const px=Object.fromEntries(Object.entries(G.players).map(([id,q])=>[id,xz[id]||q.x]));
   // val and xs (Proj values, best first) let the note rank a hypothetical line, like the 30-minute one.
-  S.bs={now:rank(pick("now")),x:rank(pick("x")),ly:rank(G.ly),v:{},val,
-    xs:Object.values(G.players).map(q=>val(q.x)).sort((a,b)=>b-a)};
+  S.bs={now:rank(pick("now")),x:rank(px),ly:rank(G.ly),v:{},val,
+    xs:Object.values(px).map(val).sort((a,b)=>b-a)};
   for(const id in G.players){const q=G.players[id],n=S.bs.now[id],x=S.bs.x[id];
     if(!q.b||q.now[0]<BSMIN_GP)continue;
     const v=x<=ROST&&x<=n*MOVE&&n-x>=20?"buy":n<=ROST&&n<=x*MOVE&&x-n>=20?"sell":"";
@@ -1729,7 +1735,8 @@ $("pjSz").hidden=S.pjView!=="season";
   $("pjList").innerHTML=rows.length?`<p class="bzcap">${cap}</p>`+rows.map(card).join(""):`<div class="empty">Nobody projected here.</div>`;
 }
 Promise.all(["data/schedule.json","data/props.json","data/injuries.json"].map(u=>fetch(u,{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null)))
-  .then(([sc,pr,ij])=>{SC=sc;PR=pr;IJ=ij;S.tdays=null;S.prIx=undefined;renderPJ();renderRK();renderSC()});
+  .then(([sc,pr,ij])=>{SC=sc;PR=pr;IJ=ij;S.tdays=null;S.prIx=undefined;
+    if(G){rankBS();renderBS();if(S.players.length)render();if(BZ)renderBZ()}renderPJ();renderRK();renderSC()});
 
 // ---- Ranks tab: what actually happened, per window (rankings.json: z-scores w[window] and
 // the per-game line l[window]). Per g ranks how well a player played; Total = per-game value x
