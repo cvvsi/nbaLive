@@ -1,0 +1,52 @@
+{
+ "seasons": [
+  "2023-24",
+  "2024-25",
+  "2025-26"
+ ],
+ "rules": {
+  "A": {
+   "name": "none",
+   "all": 7.622,
+   "same": 8.358,
+   "cuff": 8.472
+  },
+  "B": {
+   "name": "same group",
+   "all": 8.148,
+   "same": 9.442,
+   "cuff": 10.424
+  },
+  "C": {
+   "name": "whole team",
+   "all": 7.666,
+   "same": 8.001,
+   "cuff": 7.688
+  },
+  "E50": {
+   "name": "same group, 50% moves",
+   "all": 7.503,
+   "same": 8.124,
+   "cuff": 7.843
+  },
+  "E75": {
+   "name": "same group, 75% moves",
+   "all": 7.81,
+   "same": 8.766,
+   "cuff": 9.17
+  },
+  "D": {
+   "name": "handcuff 50%",
+   "all": 8.569,
+   "same": 10.22,
+   "cuff": 13.785
+  },
+  "D70": {
+   "name": "handcuff 70%",
+   "all": 8.813,
+   "same": 10.674,
+   "cuff": 15.734
+  }
+ },
+ "events": 2105
+}
