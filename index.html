@@ -1339,6 +1339,29 @@ function analyst(id,tn){
   // on Yahoo), otherwise "Pass".
   const ref=sure?x:now,cheap=!ly||ly>ROST,ros=yahooRos(q.n),rostered=(ly&&ly<=ROST)||(ros!=null&&ros>=40);
   const price=Math.round(Math.sqrt(now*x));
+  // The gray zone between Streamer and Drop: outside the top 130 but worth holding while the
+  // situation develops, so a rocky start or a role in flux isn't a panic drop. Any one of:
+  // a projection just past the cutoff (131-150) for someone rostered last season; a role in flux
+  // (started the last game, or minutes up 3+ over the last 3) with per-minute numbers that play
+  // at 30 minutes; or a teammate out on the injury report giving him 3+ extra minutes. Without
+  // any of these, a rostered player outside the top 130 is a Drop, with the reason when the data
+  // shows one (minutes falling, a teammate back).
+  let hold="",dropWhy="",opener=null,back=null;
+  const g3m=rq&&rq.w.g3?rq.w.g3[1]:null,dm3=g3m!=null&&rq.pm!=null?g3m-rq.pm:0;
+  if(G.nm&&SC){const C=nmC(),today=etToday();
+    for(const[Rid,e]of C.byT[q.t]||[]){const d=e.m[id];if(!d||Rid===id)continue;const rn=G.players[Rid]?surname(G.players[Rid].n):"a teammate";
+      if(!avail(Rid,today)&&d[1]>=3&&(!opener||d[1]>opener.d))opener={n:rn,d:d[1],i:ijOf(Rid)};
+      if(avail(Rid,today)&&(e.bk!=null||e.n>0)&&d[0]<=-2)back={n:rn,d:d[0]}}}
+  const openTxt=opener?`with ${opener.n} out${opener.i&&opener.i[1]?` until ~${fmtDate(opener.i[1]).replace(/^\w+, /,"")}`:""}, he picks up about ${Math.round(opener.d)} more minutes a game`:"";
+  const lostStart=rq&&!rq.ls&&(rq.ps||0)>=3;
+  if(ref>ROST){
+    if(ref<=ROST+20&&ly&&ly<=ROST&&!lostStart)hold=`he was #${ly} ${lyT} and a stretch like this usually isn't the whole story`;
+    else if(opener)hold=openTxt;
+    else if(ref<=200&&upR&&upR<=ROST&&((rq&&rq.ls&&dm3>-2)||dm3>=3))hold=`the role is moving${rq&&rq.ls?" (he started the last game)":` (${Math.round(dm3)} more minutes a game over the last 3)`} and the per-minute numbers play at #${upR} with 30 minutes`;
+    if(lostStart)dropWhy=`he just lost his starting spot (${rq.ps} starts in the 4 games before)`;
+    else if(dm3<=-4)dropWhy=`his minutes are falling (${Math.round(g3m)} a game over the last 3, from ${Math.round(rq.pm)})`;
+    else if(back)dropWhy=`${back.n} is back and takes about ${Math.round(-back.d)} minutes a game from him`;
+  }
   let tag,cls="",lead,after="";
   if(v==="buy"&&now>ROST&&!rostered){tag="Pick up";cls="good";
     lead=`Pick up: ${nm} profiles as ${tierText(x)} (#${x} projected), and the #${now} rank is hiding it.`}
@@ -1352,11 +1375,13 @@ function analyst(id,tn){
     lead=`Sell high: the #${now} rank is ahead of what the numbers support (#${x} projected).`;
     after=`Aim for ${priceText(price)} or better in return${hot.length?", and move before the shooting cools":""}.`}
   else if(ref<=TOP){tag="Hold";lead=`Hold: ${nm} profiles as ${tierText(ref)}.`}
-  else if(ref<=ROST){tag="Streamer";lead=`Streamer: ${nm} profiles around #${ref}, a bench hold or high-end streamer in 10-team leagues.`}
+  else if(ref<=ROST){tag="Streamer";lead=`Streamer: ${nm} profiles around #${ref}, a bench hold or high-end streamer in 10-team leagues${openTxt?`; ${openTxt}, so he stays on the menu`:""}.`}
+  else if(hold&&rostered){tag="Hold";
+    lead=`Hold for now: ${nm} profiles around #${ref}, ${ref<=ROST+20?"just outside":"outside"} 10-team value, but ${hold}. Give it a few more games before dropping.`}
   else if(mv&&(mv.hot||mv.mup)||upR&&upR<=TOP){tag="Watch";
     lead=`Watch: not a 10-team hold yet${deepText(ref)}, but ${mv&&mv.mup?"the minutes are climbing":mv&&mv.hot?"the last 3 games are trending up":"the per-minute numbers would play with more minutes"}.`}
   else if(rostered){tag="Drop";cls="bad";
-    lead=`Drop in 10-team leagues: ${nm} profiles as #${ref}${ly&&ly<=ROST?`, well off ${lyT}'s #${ly}`:""}${deepText(ref)}.`}
+    lead=`Drop in 10-team leagues: ${nm} profiles as #${ref}${ly&&ly<=ROST?`, well off ${lyT}'s #${ly}`:""}${deepText(ref)}${dropWhy?`, and ${dropWhy}`:""}.`}
   else{tag="Pass";cls="dim";lead=`Pass in 10-team leagues: ${nm} profiles as #${ref}${deepText(ref)}.`}
   if(!sure)lead=lead.replace(/\.$/,"; early, so this can change fast.");
 

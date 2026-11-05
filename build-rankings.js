@@ -433,6 +433,10 @@ async function main() {
   // the Schedule tab's starters.
   for (const [t, gs] of Object.entries(byTeam)) for (const r of gs[gs.length - 1].rows)
     if (r.team === t && r.st && players[r.id]) players[r.id].ls = 1;
+  // ps = starts in the team's 4 games before that one, so the page can tell a player who just
+  // lost his starting spot (ps 3+, no ls) from one who never had it.
+  for (const [t, gs] of Object.entries(byTeam)) for (const g of gs.slice(-5, -1)) for (const r of g.rows)
+    if (r.team === t && r.st && players[r.id]) players[r.id].ps = (players[r.id].ps || 0) + 1;
   fs.mkdirSync('data', { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify({ asOf, cats: CATS, fields: ['gp', 'mpg', ...CATS], lf: LF, windows, players }));
   console.log(`${OUT}: ${Object.keys(players).length} players through ${asOf}`, JSON.stringify(windows));
