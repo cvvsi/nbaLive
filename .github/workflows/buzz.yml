@@ -1,15 +1,15 @@
-# Yahoo's public Buzz Index (most added / dropped across Yahoo leagues), every 3 hours.
+# Yahoo's public Buzz Index (most added / dropped across Yahoo leagues).
 # Runs on its own so it doesn't wait on the nightly rankings, and it runs on days with no games,
 # when adds and drops still move (injury returns, news). Each run pulls yesterday (final) and
 # today so far, and commits data/buzz.json only if it changed. The push redeploys Pages.
 name: Buzz
 
 on:
-  # Hourly, on an odd minute: GitHub delays and silently drops scheduled runs (only 2 of 8
-  # three-hourly runs happened on Nov 4-5), so more slots keep the gaps short. The Rankings and
-  # Props jobs pull the buzz too, so a day never depends on this schedule alone.
+  # The real trigger is cron-job.org (see README, "Scheduling"): 4:37, 5:37 and 6:37am ET,
+  # after Yahoo's ~3am waivers, then 12:37 and 3:37pm. The same times stay here as a backup
+  # (UTC = ET in winter). The Rankings and Props jobs pull the buzz too.
   schedule:
-    - cron: "37 * * * *"
+    - cron: "37 9,10,11,17,20 * * *"
   workflow_dispatch:
 
 permissions:

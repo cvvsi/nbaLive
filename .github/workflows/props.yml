@@ -1,6 +1,6 @@
 # Player props from The Odds API (fetch-props.js) -> data/props.json for the Proj tab's Today
-# view. Props go up during the afternoon, so two tries before tip-off: 21:13 and 23:07 UTC
-# (4:13 and 6:07pm ET in winter). The second only fetches games the first found unpriced, so
+# view. Props go up during the afternoon, so two tries before tip-off: 4:13 and 6:13pm ET,
+# triggered by cron-job.org (see README, "Scheduling"), with the same UTC times below as a backup. The second only fetches games the first found unpriced, so
 # a slate costs credits once. Each run also refreshes ESPN's injury report and the schedule.
 # Needs the ODDS_API_KEY repo secret.
 name: Props
@@ -8,7 +8,7 @@ name: Props
 on:
   schedule:
     - cron: "13 21 * * *"
-    - cron: "7 23 * * *"
+    - cron: "13 23 * * *"
   workflow_dispatch:
     inputs:
       mode:

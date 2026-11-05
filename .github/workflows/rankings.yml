@@ -3,14 +3,13 @@
 name: Rankings
 
 on:
-  # GitHub delays scheduled runs badly at the top of the hour (this one ran 6-10 h late at
-  # "0 10"), so use odd minutes and three tries. Each run only commits if something changed,
-  # and unfinished games are skipped and picked up by the next try. Times are ET in winter
-  # (an hour later during daylight time): 1:23, 2:41 and 3:53am, all before the 4:39am report.
+  # The real trigger is cron-job.org (see README, "Scheduling"): 2:23 and 4:23am ET, calling
+  # workflow_dispatch, because GitHub ran these schedules hours late or not at all. The same
+  # times stay here as a backup (UTC, so ET in winter; an hour later during daylight time).
+  # Each run only commits if something changed, and unfinished games wait for the next try.
   schedule:
-    - cron: "23 6 * * *"
-    - cron: "41 7 * * *"
-    - cron: "53 8 * * *"
+    - cron: "23 7 * * *"
+    - cron: "23 9 * * *"
   workflow_dispatch:
 
 permissions:

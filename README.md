@@ -9,7 +9,7 @@ A phone-first NBA box score viewer for **9-category fantasy basketball**. It ran
 ## What it does
 
 - Loads every game for a date (US Eastern) and ranks all players who played by **Value**.
-- **Buzz tab:** Yahoo's most added and dropped players, today so far and yesterday (Today / Yday switch), refreshed hourly, next to your Szn / 3G / Proj ranks and minutes trend, with a Follow / Fade (adds) or Panic / Agree (drops) read built from those numbers. Linkable at `#buzz`.
+- **Buzz tab:** Yahoo's most added and dropped players, today so far and yesterday (Today / Yday switch), refreshed after the ~3am waivers and through the afternoon, next to your Szn / 3G / Proj ranks and minutes trend, with a Follow / Fade (adds) or Panic / Agree (drops) read built from those numbers. Linkable at `#buzz`.
 - **Tabs** sit in a bottom bar (Box · Ranks · Proj · Schedule · Buy/Sell · Buzz), a raised strip with the active view as a filled pill; the top bar keeps the date, search and Punt. Both bars slide away while scrolling down and come back on any scroll up.
 - **List / Cards** (button beside search, on Ranks and Proj; remembered per phone, List by default): List is the card without the photo, so about 9 players fit a screen instead of 7, every number still labeled.
 - **Ranks tab** (`#ranks`): what actually happened, ranked. Windows: Season / 14D / 7D / L3 (each team's last 3 games, a missed game counting as zero). **Per g** ranks how well a player has played; **Total** = per-game value × games played, so missed games count (L3 has no Total: it already counts them). Cards show the window's per-game line (`l[window]` in `rankings.json`, fields `lf`), games played and any injury note. Same pool and punts as the rank ladder.
@@ -55,7 +55,7 @@ Each row shows the player's 9-cat rank over the season, the last 14 and 7 days, 
 - **▲n** after minutes: n more minutes a game over the last 3 than in the games before them (`pm` in the JSON), at least +6 and landing at 24+. It's the earliest sign of a role change.
 - The **Movers** sort shows only flagged players, with the biggest jumps first.
 
-- **Built nightly** by `build-rankings.js`, run by `.github/workflows/rankings.yml` at 06:23, 07:41 and 08:53 UTC (three tries on odd minutes, because GitHub runs top-of-the-hour schedules hours late). The script commits `data/rankings.json`, and that push redeploys Pages. Run it by hand from the Actions tab (*Rankings → Run workflow*) or locally with `node build-rankings.js`.
+- **Built nightly** by `build-rankings.js`, run by `.github/workflows/rankings.yml` at 2:23 and 4:23am ET (see *Scheduling* below). The script commits `data/rankings.json`, and that push redeploys Pages. Run it by hand from the Actions tab (*Rankings → Run workflow*) or locally with `node build-rankings.js`.
 - **Math:** per-game averages over the window, z-scored against a top-130 pool (10 teams × 13). The pool is iterated so it settles on rosterable players, and only players with at least half the window's max games are eligible for it. FG%/FT% use the same impact formula as the box score. Regular season only.
 - The JSON stores per-window z-scores, not ranks, so the page re-ranks with your punts applied.
 - Finished box scores are cached in `.cache/games.json` (git-ignored; the Action keeps it with `actions/cache`), so each run only fetches new games.
@@ -83,14 +83,30 @@ Each row: **Now** (season rank), **Proj**, **LY** (last season's final per-game 
 - **Proj line** (`xp` in `regression.json`, fields `xpf`): the per-game line behind the Proj rank, plus `zp`, the pool it's scored against (league FG%/FT%, each category's mean and spread), so the page can score any line on the same scale.
 - **Schedule** (`build-schedule.js` → `data/schedule.json`): every team's remaining regular-season dates from ESPN's scoreboard, cached in `.cache/schedule.json` (dates over 10 days out are refetched weekly). Runs in the nightly Rankings job and before each props pull.
 - **Injuries** (same script → `data/injuries.json`): ESPN's league-wide injury report, `[status, estimated return, note, name, team]` by player id. Out with a return date: the player misses games before it. Out with none: Week counts no games and Season shows "?". Day-to-day still plays, flagged.
-- **Props** (`fetch-props.js` → `data/props.json`, plus a dated copy in `data/props/` to score later): player props from [The Odds API](https://the-odds-api.com), in the `.github/workflows/props.yml` job at 21:13 and 23:07 UTC (about 4 and 6pm ET); the second run only fetches games the first found unpriced. Needs the `ODDS_API_KEY` repo secret (never commit the key: the repo is public). Credits: listing games is free, and each game costs 1 credit per market that comes back (about 6 a game for points, rebounds, assists, threes, steals and blocks; turnovers aren't offered). The free plan's 500 a month covers about a week of full slates.
+- **Props** (`fetch-props.js` → `data/props.json`, plus a dated copy in `data/props/` to score later): player props from [The Odds API](https://the-odds-api.com), in the `.github/workflows/props.yml` job at 4:13 and 6:13pm ET; the second run only fetches games the first found unpriced. Needs the `ODDS_API_KEY` repo secret (never commit the key: the repo is public). Credits: listing games is free, and each game costs 1 credit per market that comes back (about 6 a game for points, rebounds, assists, threes, steals and blocks; turnovers aren't offered). The free plan's 500 a month covers about a week of full slates.
   - **Odds → average:** per book, the over/under's vig is removed (each side's implied probability ÷ their sum), then the mean is solved so P(stat > line) equals the fair over probability. Points, rebounds and assists use a normal curve with variance PHI × mean (2.2, 1.3, 1.4); threes, steals, blocks and turnovers a Poisson. The median across books is kept. Only these implied averages are stored, not raw odds.
   - **Tonight's line:** the market's average for each stat it priced and Proj for the rest. Shot attempts (and turnovers, if not priced) scale with the market's points, so FG%/FT% stay Proj's but carry the role the market expects. Market names are matched to ESPN's exactly, then by team + last name + first initial ("Herb" Jones).
   - **No line:** a regular (18+ projected minutes) whose teammates have props but who has none is often out; if ESPN's report doesn't list him, he goes under "No line posted".
 
 ## Yahoo Buzz Index
 
-`fetch-buzz.js` runs hourly in its own Action (`.github/workflows/buzz.yml`, minute 37, games or not), and also inside the nightly Rankings job (its 08:53 UTC try lands just after Yahoo's ~3am ET waivers) and the afternoon Props job, because GitHub drops many scheduled runs and writes `data/buzz.json`: yesterday's (final) and today's (so far, under `today`) most added and most dropped players across all Yahoo leagues, from the public [Buzz Index](https://basketball.fantasysports.yahoo.com/nba/buzzindex) page (no login). Each row has adds, drops, trades and % rostered / started. The page is parsed from HTML, so if Yahoo changes its layout the run fails with "No rows parsed" and the rankings are unaffected. Run it by hand from *Actions → Buzz → Run workflow*. The morning report judges each move as Follow or Fade.
+`fetch-buzz.js` runs in its own Action (`.github/workflows/buzz.yml`) at 4:37, 5:37 and 6:37am ET (after Yahoo's ~3am waivers), 12:37 and 3:37pm, games or not, and also inside the Rankings and Props jobs. It writes `data/buzz.json`: yesterday's (final) and today's (so far, under `today`) most added and most dropped players across all Yahoo leagues, from the public [Buzz Index](https://basketball.fantasysports.yahoo.com/nba/buzzindex) page (no login). Each row has adds, drops, trades and % rostered / started. The page is parsed from HTML, so if Yahoo changes its layout the run fails with "No rows parsed" and the rankings are unaffected. Run it by hand from *Actions → Buzz → Run workflow*. The morning report judges each move as Follow or Fade.
+
+## Scheduling (cron-job.org)
+
+GitHub's own scheduled runs proved unreliable here (Rankings 8+ hours late, or skipped; hourly Buzz ran 3 times in two days), and a paid plan doesn't change that. Manual *Run workflow* starts within seconds, so a free [cron-job.org](https://cron-job.org) account calls that API on time. Account timezone: America/New_York.
+
+| Job | Crontab (ET) | URL (POST) | Body |
+|---|---|---|---|
+| Rankings | `23 2,4 * * *` | `https://api.github.com/repos/cvvsi/nbaLive/actions/workflows/rankings.yml/dispatches` | `{"ref":"main"}` |
+| Buzz | `37 4,5,6,12,15 * * *` | `.../workflows/buzz.yml/dispatches` | `{"ref":"main"}` |
+| Props | `13 16,18 * * *` | `.../workflows/props.yml/dispatches` | `{"ref":"main","inputs":{"mode":"run"}}` |
+
+Headers on each: `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`, `Content-Type: application/json`. Success is `204 No Content`; failures email the account.
+
+- **Token:** a fine-grained GitHub token limited to this repo with *Actions: Read and write* only, stored only in cron-job.org. **It expires 2027-04-01**, before the regular season ends: regenerate it in late March and paste `Bearer <new token>` into all three jobs.
+- **401** = bad or missing token (the value must start with `Bearer `), **403** = token lacks Actions write, **404** = wrong URL or repo.
+- The same times stay in the workflow files as a backup (UTC). A double run is harmless: each job commits only if something changed. If a schedule changes, change it in both places.
 
 ## Yahoo league data
 
