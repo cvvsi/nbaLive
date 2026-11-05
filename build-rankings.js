@@ -257,7 +257,7 @@ function context(games) {
 // The page applies them by date from ESPN's injury report, with the ramp-up after a 5+ game
 // absence from backtest-return.js. n = games missed in a row at the end of the data; bk =
 // games played since coming back from a 5+ game absence (while still under 6).
-const NM_REG = 24, NM_GP = 5, NM_LEN = 5, NM_RAMP = 6;
+const NM_REG = 24, NM_GP = 5, NM_LEN = 5, NM_RAMP = 6, NM_SEEN = 3;
 const grp = p => /C/.test(p) ? 'C' : /F/.test(p) ? 'F' : /G/.test(p) ? 'G' : '?';
 function nextMan(games, scored, rankings) {
   const X = Object.fromEntries(scored.map(p => [p.id, p]));
@@ -294,8 +294,10 @@ function nextMan(games, scored, rankings) {
         // per game HE played, like Proj's minutes: his own absences (injury, out of the
         // rotation) say nothing about the regular's
         const avg = ix => { const g = ix.filter(i => rows[i][id]); return (g.reduce((a, i) => a + rows[i][id].min, 0) + ly * NM_GP) / (g.length + NM_GP); };
-        const all = avg(idx), w = idx.filter(played);
-        base[id] = { all, with: missed ? avg(w) : all, s };
+        // his own pattern needs 3+ games he played while the regular sat; fewer (out of the
+        // rotation, hurt himself) and only the fixed rule applies
+        const all = avg(idx), w = idx.filter(played), seen = idx.filter(i => !played(i) && rows[i][id]).length >= NM_SEEN;
+        base[id] = { all, with: missed && seen ? avg(w) : all, s, seen };
       }
       // fixed rule: half his minutes to his position group, shared by minutes with him
       const G = grp(pos[R] || ''), same = Object.keys(base).filter(id => grp(pos[id] || '') === G && base[id].with >= 10);
@@ -303,7 +305,7 @@ function nextMan(games, scored, rankings) {
       for (const [id, B] of Object.entries(base)) {
         const E = B.with + (same.includes(id) ? X[R].min * .5 * B.with / tot : 0);
         let o = E;
-        if (last) {
+        if (last && B.seen) {
           const ix = [...Array(last[1] - last[0])].map((_, k) => last[0] + k).filter(i => i >= B.s && rows[i][id]);
           if (ix.length) o = (ix.reduce((a, i) => a + (rows[i][id] ? rows[i][id].min : 0), 0) + E) / (ix.length + 1);
         }
