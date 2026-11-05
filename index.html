@@ -78,6 +78,7 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .lr .mt{font:500 12px/1 var(--name);color:var(--dim);white-space:nowrap;flex:none}
 .lr .ij{font:600 11px/1 var(--name);color:var(--neg);white-space:nowrap;flex:none}
 .lr .ij.dtd{color:var(--ball)}
+.rkt{font:600 10.5px/1 var(--name);font-style:normal;color:var(--dim);border:1px solid var(--rule);border-radius:4px;padding:2px 4px;white-space:nowrap;flex:none;margin-left:4px}
 .lr .sd{margin-left:auto;font:500 12px/1 var(--num);color:var(--dim);flex:none;padding-left:6px}
 .lr .vl{font:600 14px/1 var(--num);flex:none;min-width:44px;text-align:right}
 .cd.lr .lr2{display:block;margin-top:3px;padding-left:57px}
@@ -135,7 +136,7 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .tc .rb.t3{box-shadow:inset 0 0 0 1px var(--rule);color:var(--dim)}
 .tc .pn{font:600 14.5px/1.2 var(--name);min-width:0;flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tc .pn .wr{font:500 11px/1 var(--num);font-style:normal;color:var(--dim);margin-left:6px}
-.tc .pn .dt{font:600 10.5px/1 var(--name);font-style:normal;color:var(--ball);margin-left:5px}
+.tc .pn .dt{font:600 10.5px/1 var(--name);font-style:normal;color:var(--ball);margin-left:5px}.tc .pn .dt.rk{color:var(--dim)}
 .tc .pc{display:flex;gap:3px;flex:none;margin-left:auto}
 .tc .pc i{font:600 9.5px/17px var(--name);font-style:normal;letter-spacing:.04em;padding:0 5px;border-radius:4px;color:var(--ink);background:var(--cell)}
 .tc .po{font:500 12.5px/1.45 var(--name);color:var(--dim);padding:8px 0 2px;border-top:1px solid var(--rule);margin-top:6px}
@@ -948,7 +949,7 @@ function detailHTML(id,tn,lite){
     ranks.push(chip(w.n,`${rkTxt(S.rk[w.k][id])}<i>${w.k==="g3"?rq.w.g3[0]+"/3":rq.w[w.k][0]}g</i>`));
   if(q&&B){
     if(!tn)ranks.push(chip("Now",rkTxt(B.now[id])));
-    ranks.push(chip("Proj",q.b?rkTxt(B.x[id]):"–",v==="buy"?"good":v==="sell"?"bad":""),chip("LY",rkTxt(B.ly[id])));
+    ranks.push(chip(q.rk&&!q.b?"Proj·R":"Proj",hasPj(q)?rkTxt(B.x[id]):"–",v==="buy"?"good":v==="sell"?"bad":""),chip("LY",rkTxt(B.ly[id])));
     const c=q.cx,gp=q.now[0];
     if(c&&c[0])flags.push(chip("Blowouts",`${c[0]} of ${gp}<i>${d1(c[1])} min${c[2]?` vs ${d1(c[3])}`:""}</i>`,"flag"));
     if(c&&c[4])flags.push(chip("5+ fouls",`${c[4]} of ${gp}`,"flag"));
@@ -1038,7 +1039,7 @@ function rankBS(){
   S.bs={now:rank(pick("now")),x:rank(px),ly:rank(G.ly),v:{},val,
     xs:Object.values(px).map(val).sort((a,b)=>b-a)};
   for(const id in G.players){const q=G.players[id],n=S.bs.now[id],x=S.bs.x[id];
-    if(!q.b||q.now[0]<BSMIN_GP)continue;
+    if(!hasPj(q)||q.now[0]<BSMIN_GP)continue;
     const v=x<=ROST&&x<=n*MOVE&&n-x>=20?"buy":n<=ROST&&n<=x*MOVE&&x-n>=20?"sell":"";
     if(v)S.bs.v[id]=v}
 }
@@ -1063,10 +1064,16 @@ const WHYS={mpg:"Min",usg:"Usage",fg:"FG%",ft:"FT%",tp:"3P%",pts:"Pts",tpm:"3PM"
 // with only the key numbers colored (green = expect it to help from here, red = expect it to
 // hurt). Role (minutes, usage) tends to stick; shooting and per-minute rates drift back.
 // Buys lead with the cold stretch, sells and ride-its with the hot one.
+// Proj exists with a baseline (last seasons) or, for rookies, the rookie prior (rk = position).
+// Rookie Proj is tagged "Rookie est." everywhere: it leans on the average rookie at his position
+// until his own games add up (backtest-rookie.js), and it's newer and less tested.
+const hasPj=q=>!!(q&&(q.b||q.rk));
+const rkTagQ=q=>q&&q.rk&&!q.b?`<i class="rkt">Rookie est.</i>`:"";
 const PH={mpg:v=>`${v} minutes`,usg:v=>`${v} usage`,fg:v=>`${v} from the field`,ft:v=>`${v} at the line`,tp:v=>`${v} from three`,
   pts:v=>`${v} points`,tpm:v=>`${v} threes`,reb:v=>`${v} rebounds`,ast:v=>`${v} assists`,stl:v=>`${v} steals`,blk:v=>`${v} blocks`};
 function bsBlurb(q,v){
-  if(!q.b)return`<p class="bsn">No baseline from last season (a rookie or little playing time), so there's nothing to regress toward yet.</p>`;
+  if(!q.b)return q.rk?`<p class="bsn"><b>Rookie estimate.</b> No NBA baseline yet, so Proj blends his games so far with the average rookie ${{G:"guard",F:"forward",C:"center"}[q.rk]||"at his position"}: mostly the average early (shooting most of all), mostly his own as games add up. Newer and less tested than the veteran model, so treat it as a rough guide.</p>`
+    :`<p class="bsn">No baseline from last season (a rookie or little playing time), so there's nothing to regress toward yet.</p>`;
   const F=G.rates,role=[],cold=[],hot=[],last=q.bs&&q.bs.includes("+")?"the last two seasons":"last season";
   for(const k of ["mpg","usg","fg","ft","tp","pts","tpm","reb","ast","stl","blk"]){
     const c=unitVal(q.r,k,F),y=unitVal(q.b,k,F);if(c==null||y==null)continue;
@@ -1103,8 +1110,8 @@ function bsRow(id){
   return`<article class="cd" data-id="${esc(id)}" tabindex="0" aria-label="${esc(q.n)}: open details">
     ${mug({eid:id})}
     <div class="body">
-      <div class="c1"><b class="nm">${esc(q.n)}</b><span class="mt">${q.t} · ${q.now[0]}g</span><span class="vt ${a.cls||"ok"}">${a.tag||""}</span></div>
-      <div class="mv"><span class="r now"><b>#${now}</b><i>now</i></span><span class="ar" aria-hidden="true">→</span><span class="r x ${vc}"><b>${q.b?"#"+x:"–"}</b><i>projected</i></span><span class="r ly"><b>${ly?"#"+ly:"–"}</b><i>last season</i></span></div>
+      <div class="c1"><b class="nm">${esc(q.n)}</b><span class="mt">${q.t} · ${q.now[0]}g</span>${rkTagQ(q)}<span class="vt ${a.cls||"ok"}">${a.tag||""}</span></div>
+      <div class="mv"><span class="r now"><b>#${now}</b><i>now</i></span><span class="ar" aria-hidden="true">→</span><span class="r x ${vc}"><b>${hasPj(q)?"#"+x:"–"}</b><i>${q.b?"projected":q.rk?"rookie est.":"projected"}</i></span><span class="r ly"><b>${ly?"#"+ly:"–"}</b><i>last season</i></span></div>
       ${why}
     </div>
   </article>`;
@@ -1241,7 +1248,7 @@ function analyst(id,tn){
   const B=S.bs,now=B.now[id],x=B.x[id],ly=B.ly[id],v=B.v[id],mv=S.mv&&S.mv[id],rq=R&&R.players[id];
   const act=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>c.k),zi=k=>2+G.cats.indexOf(k);
   const lyT=baseName(q),lyIn=/^d/.test(lyT)?"in "+lyT:lyT;   // "in 2024-25" reads better in comparisons
-  const sure=b&&gp>=BSMIN_GP,mpg=at(r,"mpg"),bm=b?at(b,"mpg"):0,dm=mpg-bm,cx=q.cx||[0,0,0,0,0];
+  const sure=(b||q.rk)&&gp>=BSMIN_GP,mpg=at(r,"mpg"),bm=b?at(b,"mpg"):0,dm=mpg-bm,cx=q.cx||[0,0,0,0,0];
 
   // The season line, leading with the categories this player actually helps in.
   const pg=k=>q.pg[G.pgf.indexOf(k)],fg=at(r,"fg");
@@ -1382,7 +1389,7 @@ function bzId(row){
 function bzRead(id,drop){
   const rq=R&&R.players[id];if(!rq||!S.rk)return{t:"",c:"dim",why:"not in my ranks yet"};
   const g=rq.w.g3,rs=S.rk.season[id],r3=g?S.rk.g3[id]:0,q=G&&G.players[id],B=S.bs;
-  const x=q&&q.b&&B?B.x[id]:0,v=B&&B.v[id],miss=g?3-g[0]:3,mu=g&&rq.pm!=null?g[1]-rq.pm:0;
+  const x=hasPj(q)&&B?B.x[id]:0,v=B&&B.v[id],miss=g?3-g[0]:3,mu=g&&rq.pm!=null?g[1]-rq.pm:0;
   const outs=rs>ROST&&(!x||x>ROST);
   if(miss>=2)return{t:"Check",c:"dim",why:`missed ${miss} of last 3: check news`};
   if(!drop){
@@ -1408,7 +1415,7 @@ function bzRow(r){
   const mu=g&&rq.pm!=null?Math.round(g[1]-rq.pm):0;
   const tc={buy:"good",sell:"bad",dim:"dim"}[rd.c]||"ok";
   const mins=g?`<span class="bg ${mu>=3?"up":mu<=-3?"dn":""}"><b>${mu>=3?"▲"+mu:mu<=-3?"▼"+(-mu):Math.round(g[1])}</b><i>${mu>=3||mu<=-3?"min":"min"}</i></span>`:"";
-  const ctx=id&&S.rk?`<div class="bzx">Szn <b>#${S.rk.season[id]||"–"}</b> · last 3 <b>#${g?S.rk.g3[id]:"–"}</b>${q&&q.b&&B?` · proj <b>#${B.x[id]}</b>`:""}</div>`:"";
+  const ctx=id&&S.rk?`<div class="bzx">Szn <b>#${S.rk.season[id]||"–"}</b> · last 3 <b>#${g?S.rk.g3[id]:"–"}</b>${hasPj(q)&&B?` · proj <b>#${B.x[id]}</b>${q.b?"":" (rookie est.)"}`:""}</div>`:"";
   return`<article class="cd" ${id?`data-id="${esc(id)}" tabindex="0"`:""} aria-label="${esc(r.name)}">
     ${mug({eid:id})}
     <div class="body">
@@ -1550,7 +1557,7 @@ function pjCard(o){
   return`<article class="cd" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(o.q.n)}: open details">
     ${mug({eid:o.id})}
     <div class="body">
-      <div class="c1"><span class="rk">${o.rank}</span><b class="nm">${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)} · ${Math.round(o.min)}m${o.sub||""}</span><span class="vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</span></div>
+      <div class="c1"><span class="rk">${o.rank}</span><b class="nm">${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)} · ${Math.round(o.min)}m${o.sub||""}</span>${rkTagQ(o.q)}<span class="vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</span></div>
       <div class="c2"><div class="bigs">${big}</div>${o.side||""}</div>
       <div class="c3">${sm}</div>${o.foot||""}
     </div>
@@ -1570,7 +1577,7 @@ function lrow(o){
   const c=`<div class="lb3">${BIG.map(k=>`<span class="${off(k).trim()}"><b class="${m(k).trim()}">${val(k)}</b><i>${CL[k]}</i></span>`).join("")}</div>`
     +`<div class="ls6">${SMALL.map(k=>`<span class="${off(k).trim()}"><b class="${m(k).trim()}">${val(k)}</b><i>${CL[k]}</i></span>`).join("")}</div>`;
   return`<article class="cd lr" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(o.q.n)}: open details">
-    <div class="lr1"><span class="rk">${o.rank}</span>${hs(o.id)}<b class="nm">${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)}${o.ctx?"":` · ${Math.round(o.min)}m`}</span>${ijTag(o.id)}${o.ctx?`<span class="cx">${o.ctx}</span>`:`<span class="sd">${o.sdl||""}</span>`}<span class="vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</span></div>
+    <div class="lr1"><span class="rk">${o.rank}</span>${hs(o.id)}<b class="nm">${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)}${o.ctx?"":` · ${Math.round(o.min)}m`}</span>${ijTag(o.id)}${rkTagQ(o.q)}${o.ctx?`<span class="cx">${o.ctx}</span>`:`<span class="sd">${o.sdl||""}</span>`}<span class="vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</span></div>
     <div class="lr2">${c}</div></article>`;
 }
 const listOn=()=>S.dense&&(document.body.dataset.view==="pj"||document.body.dataset.view==="rk");
@@ -1648,7 +1655,7 @@ function teamPanel(t,gd,live,all,szn,wk,nN,wkR,WM){
   const row=o=>{const i=ijOf(o.id),rk=wk[o.id],tier=tr(gd?szn[o.id]:rk);
     const flag=i&&!ijOut(i)?`<i class="dt">DTD</i>`:!gd&&ijOut(i)&&o.g<tg?`<i class="dt">misses ${tg-o.g}</i>`:"";
     const wkT=gd&&wkR?`<i class="wr">wk ${wkR[o.id]&&o.g?"#"+wkR[o.id]:"–"}</i>`:"";
-    return`<div class="prow" data-id="${o.id}"><b class="rb ${tier}">${rk?"#"+rk:"–"}</b><span class="pn">${esc(o.q.n)}${flag}${wkT}</span><span class="pc">${helps(o.q).map(c=>`<i>${c}</i>`).join("")}</span></div>`};
+    return`<div class="prow" data-id="${o.id}"><b class="rb ${tier}">${rk?"#"+rk:"–"}</b><span class="pn">${esc(o.q.n)}${flag}${o.q.rk&&!o.q.b?`<i class="dt rk">R</i>`:""}${wkT}</span><span class="pc">${helps(o.q).map(c=>`<i>${c}</i>`).join("")}</span></div>`};
   const sec=(l,a)=>a.length?`<div class="psec">${l}</div>`+a.map(row).join(""):"";
   const outL=out.length?`<div class="po"><b>Out</b> ${out.map(o=>{const i=ijOf(o.id);return`<span data-id="${o.id}">${esc(o.q.n)}${i&&i[1]?` <i>~${sh(i[1])}</i>`:""}</span>`}).join(" · ")}</div>`:"";
   return`<div class="tc"><div class="th"><b>${t}</b><span>${tg} game${tg===1?"":"s"}${gd?"":" this week"}</span><span class="dd">${days.map(x=>`<i>${x}</i>`).join("")}</span><span class="rl">${gd?`${gd===etToday()?"Tonight":"That night"} · of ${nN} · wk = week`:"Week rank"}</span></div>`
@@ -1883,14 +1890,14 @@ function renderSheet(){
     const m=S.mv[id];
     h.push(`<section class="blk"><h3>9-cat rank <span>top ${TOP} start · top ${ROST} rostered</span></h3><div class="tiles">${WINS.map(w=>{const a=rq.w[w.k];
       return tile({season:"Season",d14:"14 days",d7:"7 days",g3:"Last 3"}[w.k],a?S.rk[w.k][id]:0,a?(w.k==="g3"?a[0]+"/3 played":a[0]+"g · "+Math.round(a[1])+"m"):"",w.k==="g3"&&m?(m.hot?"up":m.cold?"dn":""):"")}).join("")}</div>
-      ${q&&B?`<div class="tiles t3">${tile("Now",B.now[id],"this season")}${tile("Projected",q.b?B.x[id]:0,q.b?"if luck evens out":"no baseline",B.v[id]==="buy"?"up":B.v[id]==="sell"?"dn":"")}${tile("Last season",B.ly[id],"final rank")}</div>`:""}</section>`);
+      ${q&&B?`<div class="tiles t3">${tile("Now",B.now[id],"this season")}${tile("Projected",hasPj(q)?B.x[id]:0,q.b?"if luck evens out":q.rk?"rookie estimate":"no baseline",B.v[id]==="buy"?"up":B.v[id]==="sell"?"dn":"")}${tile("Last season",B.ly[id],"final rank")}</div>`:""}</section>`);
   }
   // Game log chart (filled in async)
   h.push(`<section class="blk"><h3>Last 5 games <span>newest first</span></h3><div class="gl" id="psLog"><p class="lgk">Loading game log…</p></div></section>`);
   // The read
   if(a.text)h.push(`<section class="blk"><h3>The read <span>from the numbers, 10-team league</span></h3>${readHTML(a)}</section>`);
   if(q&&q.up&&B){const uv=B.val(q.up),ur=1+B.xs.filter(t=>t>uv).length;
-    if(ur<=ROST&&ur<(q.b?B.x[id]:B.now[id])-25)h.push(`<div class="ups"><b>#${ur}</b><p>If the minutes reach <b>${q.up[1]} a game</b>, these per-minute numbers rank around #${ur}. That's the upside.</p></div>`)}
+    if(ur<=ROST&&ur<(hasPj(q)?B.x[id]:B.now[id])-25)h.push(`<div class="ups"><b>#${ur}</b><p>If the minutes reach <b>${q.up[1]} a game</b>, these per-minute numbers rank around #${ur}. That's the upside.</p></div>`)}
   // This season vs last
   if(q){h.push(`<section class="blk"><h3>This season vs ${q.b?baseName(q):"last season"} <span>${S.bsUnit==="g"?"per game":"per 36"} · switch on Buy/Sell</span></h3>${detailHTML(id,tn,true)}${cmpCounts(q)}</section>`)}
   $("psBody").innerHTML=h.join("");
