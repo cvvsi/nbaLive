@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       script:
-        description: "backtest.js (Proj blend constants), backtest-injury.js (minutes when a regular is out) or backtest-absence.js (long absences)"
+        description: "backtest.js (Proj blend constants), backtest-injury.js (minutes when a regular is out) or backtest-absence.js (long absences) or backtest-return.js (ramp-up after a return)"
         default: backtest.js
         required: true
 
