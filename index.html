@@ -1508,7 +1508,8 @@ function nmNote(id,q,ds,m){if(Math.abs(m-q.xp[0])<1.5)return"";const C=nmC(),who
   for(const[R,e]of C.byT[q.t]||[]){const ph=nmPh(R,e);
     if(R===id){if(ds.some(d=>ph[d]>0))own=true;continue}
     if(!e.m[id])continue;const outD=ds.filter(d=>ph[d]<0),back=ds.find(d=>ph[d]>0),nm=G.players[R]?G.players[R].n.replace(/^(\S)\S*\s/,"$1. "):"a teammate";
-    if(outD.length)who.push(outD.length===ds.length?`${nm} out`:`${nm} out${back?` until ~${fmtDate(back).replace(/^\w+, /,"")}`:" some games"}`);
+    const bk=back?` ~${fmtDate(back).replace(/^\w+, /,"")}`:"";
+    if(outD.length)who.push(outD.length===ds.length?`${nm} out`:m<q.xp[0]&&back?`${nm} back${bk}`:`${nm} out${back?` until${bk}`:" some games"}`);
     else if(back)who.push(`${nm} back`);else if(e.m[id][0]<=-1.5)who.push(`${nm} playing`)}
   const why=own?"easing back after his absence":who.join(", ");
   return why?`<div class="pjm">Minutes ${Math.round(m)} (Proj ${Math.round(q.xp[0])}): ${why}</div>`:""}
@@ -1600,7 +1601,7 @@ function renderGrid(ds,live,all,today){
   }
   const lights=ds.filter(d=>d>=today&&light(d)).map(d=>D[ds.indexOf(d)]+" "+fmtDate(d).replace(/^\w+, \w+ /,""));
   $("scStatus").textContent=`${teams.length} teams`;
-  $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Red underline = 2nd night of a back-to-back. Tap a team for its rotation this week (Week = week rank), or a game for both teams that night (Tonight, or the day: rank among that night's players). Starters = each team's lineup from its last game.</p><div class="sgd">${h}</div>`;
+  $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Red underline = 2nd night of a back-to-back. Tap a team for its rotation this week (Week = week rank), or a game for both teams that night (Tonight, or the day: rank among that night's players). Starters = each team's lineup from its last game, with a regular coming back from injury taking his spot back.</p><div class="sgd">${h}</div>`;
 }
 // The categories a player helps, for streaming: per-game Proj z-score of 0.25+ against everyone
 // projected for 15+ minutes (a broad, streamer-level bar; the top-130 pool would leave almost
@@ -1627,6 +1628,11 @@ function teamPanel(t,gd,live,all,szn,wk,nN,wkR,WM){
   const outNow=o=>gd?!avail(o.id,gd):o.g===0,out=ps.filter(outNow),ok=ps.filter(o=>!outNow(o));
   const tg=live.filter(d=>plays(t,d)).length,days=live.filter(d=>plays(t,d)).map(d=>["M","Tu","W","Th","F","Sa","Su"][(new Date(d+"T12:00:00Z").getUTCDay()+6)%7]);
   const ls=o=>R&&R.players[o.id]&&R.players[o.id].ls,real=ok.filter(ls).slice(0,5);
+  // A regular back from an absence (missed the team's last games, plays here) takes his spot
+  // back from the starter who gained the most minutes while he was out.
+  for(const[Rid,e]of nmC().byT[t]||[]){if(!e.n)continue;const r=ok.find(o=>o.id===Rid);if(!r||real.includes(r))continue;
+    const sub=real.filter(o=>e.m[o.id]&&e.m[o.id][1]>=2).sort((a,b)=>e.m[b.id][1]-e.m[a.id][1])[0];
+    if(sub)real.splice(real.indexOf(sub),1,r)}
   const byRk=(a,b)=>(wk[a.id]||1e4)-(wk[b.id]||1e4);
   const start=[...real,...ok.filter(o=>!real.includes(o))].slice(0,5).sort(byRk),bench=ok.filter(o=>!start.includes(o)).sort(byRk);
   const sh=d=>fmtDate(d).replace(/^\w+, /,"");
