@@ -245,6 +245,74 @@ function context(games) {
   return by;
 }
 
+// ---- next man up: where a regular's minutes go while he's out, and back when he returns.
+// For every regular (Proj 24+ min), each teammate's minutes as a change from his Proj minutes:
+//   dWith  in the games the regular played (Proj mixes in the games he missed, so a fill-in's
+//          Proj minutes run high once the regular is back). Per team game, nudged by 5 games of
+//          last season's mpg like Proj; 0 when the regular hasn't missed a game.
+//   dOut   while he's out: half his minutes shared by his position group (G/F/C) by minutes
+//          (the fixed rule), blended with the minutes in the games already missed, the fixed
+//          rule counting as 1 extra game (backtest-absence.js: 26% less error than no change).
+// The page applies them by date from ESPN's injury report, with the ramp-up after a 5+ game
+// absence from backtest-return.js. n = games missed in a row at the end of the data; bk =
+// games played since coming back from a 5+ game absence (while still under 6).
+const NM_REG = 24, NM_GP = 5, NM_LEN = 5, NM_RAMP = 6;
+const grp = p => /C/.test(p) ? 'C' : /F/.test(p) ? 'F' : /G/.test(p) ? 'G' : '?';
+function nextMan(games, scored, rankings) {
+  const X = Object.fromEntries(scored.map(p => [p.id, p]));
+  const team = id => rankings[id] && rankings[id].t;
+  const byTeam = {}, pos = {};
+  for (const g of [...games].sort((a, b) => a.date < b.date ? -1 : 1)) {
+    for (const t of new Set(g.rows.map(r => r.team))) (byTeam[t] || (byTeam[t] = [])).push(g);
+    for (const r of g.rows) if (r.pos) pos[r.id] = r.pos;
+  }
+  const out = {};
+  for (const [t, gs] of Object.entries(byTeam)) {
+    const rows = gs.map(g => Object.fromEntries(g.rows.filter(r => r.team === t).map(r => [r.id, r])));
+    const first = {};
+    rows.forEach((rs, i) => { for (const id in rs) if (!(id in first)) first[id] = i; });
+    const mates = Object.keys(first).filter(id => team(id) === t && X[id]);
+    for (const R of mates) {
+      if (X[R].min < NM_REG) continue;
+      const f = first[R], played = i => !!rows[i][R];
+      let n = 0; while (n < rows.length - f && !played(rows.length - 1 - n)) n++;
+      // the last 5+ game absence that has ended, and the games since it
+      let bk = null, last = null;
+      if (n === 0) {
+        let i = rows.length - 1, since = 0;
+        while (i >= f && played(i)) { since++; i--; }
+        let j = i; while (j >= f && !played(j)) j--;
+        if (i - j >= NM_LEN && since < NM_RAMP) { bk = since; last = [j + 1, i + 1]; }
+      } else last = [rows.length - n, rows.length];
+      const missed = rows.slice(f).filter(rs => !rs[R]).length;
+      const base = {}, m = {};
+      for (const id of mates) if (id !== R) {
+        const s = Math.max(f, first[id]), idx = [...Array(rows.length - s)].map((_, k) => s + k);
+        if (!idx.length) continue;
+        const b = X[id].b, ly = b ? b.t.mpg : X[id].s.min / X[id].s.gp;
+        const avg = ix => (ix.reduce((a, i) => a + (rows[i][id] ? rows[i][id].min : 0), 0) + ly * NM_GP) / (ix.length + NM_GP);
+        const all = avg(idx), w = idx.filter(played);
+        base[id] = { all, with: missed ? avg(w) : all, s };
+      }
+      // fixed rule: half his minutes to his position group, shared by minutes with him
+      const G = grp(pos[R] || ''), same = Object.keys(base).filter(id => grp(pos[id] || '') === G && base[id].with >= 10);
+      const tot = same.reduce((a, id) => a + base[id].with, 0) || 1;
+      for (const [id, B] of Object.entries(base)) {
+        const E = B.with + (same.includes(id) ? X[R].min * .5 * B.with / tot : 0);
+        let o = E;
+        if (last) {
+          const ix = [...Array(last[1] - last[0])].map((_, k) => last[0] + k).filter(i => i >= B.s);
+          if (ix.length) o = (ix.reduce((a, i) => a + (rows[i][id] ? rows[i][id].min : 0), 0) + E) / (ix.length + 1);
+        }
+        const dW = B.with - B.all, dO = o - B.all;
+        if (Math.abs(dW) >= .3 || Math.abs(dO) >= .3) m[id] = [r1(dW), r1(dO)];
+      }
+      out[R] = { t, n, ...(bk != null ? { bk } : {}), m };
+    }
+  }
+  return out;
+}
+
 function buildRegression(games, asOf, rankings) {
   let H = null;
   try { H = JSON.parse(fs.readFileSync(HIST, 'utf8')); }
@@ -283,7 +351,9 @@ function buildRegression(games, asOf, rankings) {
     // the pool Proj is scored against: league FG%/FT% and each category's stat, mean and spread
     zp: { lgFG: +scored.pool.lgFG.toFixed(4), lgFT: +scored.pool.lgFT.toFixed(4),
       st: Object.fromEntries(CATS.map(c => { const t = scored.pool.st[c]; return [c, [t.k, +t.m.toFixed(4), +t.sd.toFixed(4)]]; })) },
-    players: out, ly }));
+    players: out, ly,
+    // next man up (see nextMan): per regular, teammates' [dWith, dOut] minutes vs their Proj
+    nm: nextMan(games, scored, rankings), nmRamp: NM_RAMP, nmLen: NM_LEN }));
   console.log(`${REG}: ${lines.filter(l => l.b).length}/${lines.length} players with a baseline`);
 }
 
@@ -341,5 +411,5 @@ async function main() {
   buildRegression(games, asOf, players);
 }
 
-module.exports = { loadGames, totals, rankWindow, STATS, CATS, r2 };
+module.exports = { loadGames, totals, rankWindow, nextMan, STATS, CATS, r2 };
 if (require.main === module) main();
