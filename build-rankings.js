@@ -248,11 +248,12 @@ function context(games) {
 // ---- next man up: where a regular's minutes go while he's out, and back when he returns.
 // For every regular (Proj 24+ min), each teammate's minutes as a change from his Proj minutes:
 //   dWith  in the games the regular played (Proj mixes in the games he missed, so a fill-in's
-//          Proj minutes run high once the regular is back). Per team game, nudged by 5 games of
-//          last season's mpg like Proj; 0 when the regular hasn't missed a game.
+//          Proj minutes run high once the regular is back). Per game the teammate played,
+//          nudged by 5 games of last season's mpg like Proj; 0 when the regular hasn't missed one.
 //   dOut   while he's out: half his minutes shared by his position group (G/F/C) by minutes
 //          (the fixed rule), blended with the minutes in the games already missed, the fixed
-//          rule counting as 1 extra game (backtest-absence.js: 26% less error than no change).
+//          rule counting as 1 extra game (backtest-absence.js: 26% less error than no change);
+//          the fixed rule alone if the teammate hasn't played one of those games.
 // The page applies them by date from ESPN's injury report, with the ramp-up after a 5+ game
 // absence from backtest-return.js. n = games missed in a row at the end of the data; bk =
 // games played since coming back from a 5+ game absence (while still under 6).
@@ -290,7 +291,9 @@ function nextMan(games, scored, rankings) {
         const s = Math.max(f, first[id]), idx = [...Array(rows.length - s)].map((_, k) => s + k);
         if (!idx.length) continue;
         const b = X[id].b, ly = b ? b.t.mpg : X[id].s.min / X[id].s.gp;
-        const avg = ix => (ix.reduce((a, i) => a + (rows[i][id] ? rows[i][id].min : 0), 0) + ly * NM_GP) / (ix.length + NM_GP);
+        // per game HE played, like Proj's minutes: his own absences (injury, out of the
+        // rotation) say nothing about the regular's
+        const avg = ix => { const g = ix.filter(i => rows[i][id]); return (g.reduce((a, i) => a + rows[i][id].min, 0) + ly * NM_GP) / (g.length + NM_GP); };
         const all = avg(idx), w = idx.filter(played);
         base[id] = { all, with: missed ? avg(w) : all, s };
       }
@@ -301,7 +304,7 @@ function nextMan(games, scored, rankings) {
         const E = B.with + (same.includes(id) ? X[R].min * .5 * B.with / tot : 0);
         let o = E;
         if (last) {
-          const ix = [...Array(last[1] - last[0])].map((_, k) => last[0] + k).filter(i => i >= B.s);
+          const ix = [...Array(last[1] - last[0])].map((_, k) => last[0] + k).filter(i => i >= B.s && rows[i][id]);
           if (ix.length) o = (ix.reduce((a, i) => a + (rows[i][id] ? rows[i][id].min : 0), 0) + E) / (ix.length + 1);
         }
         const dW = B.with - B.all, dO = o - B.all;
