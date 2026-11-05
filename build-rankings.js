@@ -213,8 +213,28 @@ function baseline(h) {
 // mpgAt replaces the minutes, for the role-upside line. With no baseline, b is all zeros
 // and every rate is just this season's.
 const NOBASE = { gp: 1, ...Object.fromEntries(STATS.map(k => [k, 0])) };
-function expectedLine(s, b, mpgAt) {
-  const w = (k, n) => Math.min(PRIOR[k], n);
+// No baseline (rookies, under 200 minutes over the two seasons before): the average rookie at his
+// position (G/F/C) from the last three rookie classes stands in, with K fitted for rookies
+// (backtest-rookie.js, priors.POS and pooledK in data/backtest-rookie.json: out of sample it beat
+// the raw line on every stat but blocks after 20 games, by 20-63% after 8 games). Minutes stay his
+// own (no nudge). Marked rk on the player so the page can say it's a rookie estimate.
+const ROOKIE_K = { fga: 50, tpa: 50, fta: 150, reb: 100, ast: 50, to: 150, stl: 600, blk: 100, fg: 150, tp: 200, ft: 50 };
+const ROOKIE = 'data/backtest-rookie.json';
+function rookiePriors() {
+  try {
+    const P = JSON.parse(fs.readFileSync(ROOKIE, 'utf8')).priors.POS, out = {}, M = 1e6;   // "minutes" seen: never the limit
+    for (const [g, p] of Object.entries(P)) {
+      const t = { gp: 1, min: M };
+      for (const k of ['reb', 'ast', 'stl', 'blk', 'to', 'fga', 'fta', 'tpa']) t[k] = p[k] / 36 * M;
+      t.fgm = t.fga * p.fg / 100; t.tpm = t.tpa * p.tp / 100; t.ftm = t.fta * p.ft / 100;
+      t.pts = 2 * t.fgm + t.tpm + t.ftm;
+      out[g] = t;
+    }
+    return out;
+  } catch (e) { console.log(`${ROOKIE} missing: rookies keep their raw line.`); return null; }
+}
+function expectedLine(s, b, mpgAt, K = PRIOR) {
+  const w = (k, n) => Math.min(K[k], n);
   const rate = (k, cur, curN, base, baseN) => baseN ? (cur + base / baseN * w(k, baseN)) / (curN + w(k, baseN)) : cur / Math.max(1, curN);
   const mpg = mpgAt || (s.min + (b.mpg ?? b.min / b.gp) * PRIOR_GP) / (s.gp + PRIOR_GP);
   const per = k => rate(k, s[k], s.min, b[k], b.min) * mpg;
@@ -322,12 +342,14 @@ function buildRegression(games, asOf, rankings) {
   let H = null;
   try { H = JSON.parse(fs.readFileSync(HIST, 'utf8')); }
   catch (e) { console.log(`${HIST} missing: run node build-history.js once. Skipping ${REG}.`); return; }
-  const tot = totals(games), lines = [];
+  const tot = totals(games), lines = [], RP = rookiePriors(), pos = {};
+  for (const g of games) for (const r of g.rows) if (r.pos) pos[r.id] = r.pos;
   for (const s of Object.values(tot)) {
     const h = H.players[s.id], b = baseline(h && { seasons: H.seasons, s: h.s });
-    // No baseline (rookies, long absences): the expected line is just the actual one.
-    const x = b ? expectedLine(s, b.t) : expectedLine(s, NOBASE, s.min / s.gp);
-    lines.push({ id: s.id, gp: s.gp, ...x, s, b });
+    // No baseline: the rookie prior for his position (see ROOKIE_K), or the raw line without one.
+    const rk = !b && RP ? RP[grp(pos[s.id] || '')] || RP.F : null;
+    const x = b ? expectedLine(s, b.t) : rk ? expectedLine(s, rk, s.min / s.gp, ROOKIE_K) : expectedLine(s, NOBASE, s.min / s.gp);
+    lines.push({ id: s.id, gp: s.gp, ...x, s, b, rk, rkPos: rk ? (RP[grp(pos[s.id] || '')] ? grp(pos[s.id] || '') : 'F') : null });
   }
   const out = {}, cx = context(games), scored = score(lines);
   for (const p of scored) {
@@ -342,10 +364,11 @@ function buildRegression(games, asOf, rankings) {
       pg: PG.map(k => r1(p.s[k] / p.s.gp)), att: [p.s.fga, p.s.tpa, p.s.fta], cx: cx[p.id] };
     // Role upside: what the same (blended) per-minute numbers are worth at 30 minutes.
     if (p.s.min / p.s.gp < UP_BELOW && p.gp >= 3) {
-      const z = zOf(expectedLine(p.s, p.b ? p.b.t : NOBASE, UP_MIN), scored.pool);
+      const z = zOf(p.b ? expectedLine(p.s, p.b.t, UP_MIN) : p.rk ? expectedLine(p.s, p.rk, UP_MIN, ROOKIE_K) : expectedLine(p.s, NOBASE, UP_MIN), scored.pool);
       out[p.id].up = [p.gp, UP_MIN, ...CATS.map(c => r2(z[c]))];
     }
     if (p.b) Object.assign(out[p.id], { b: rates(p.b.show), bs: p.b.src, bgp: p.b.show.gp });
+    else if (p.rk) out[p.id].rk = p.rkPos;   // Proj leans on the rookie prior for this position
   }
   // Last season's z-scores for everyone who qualified, not just this season's players, so
   // the page's LY rank is the real final rank (retired players still hold their spots).
@@ -416,5 +439,5 @@ async function main() {
   buildRegression(games, asOf, players);
 }
 
-module.exports = { loadGames, totals, rankWindow, nextMan, STATS, CATS, r2 };
+module.exports = { loadGames, totals, rankWindow, nextMan, expectedLine, rookiePriors, ROOKIE_K, STATS, CATS, r2 };
 if (require.main === module) main();
