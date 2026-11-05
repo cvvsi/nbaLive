@@ -45,6 +45,9 @@ jobs:
       - name: Injuries and schedule
         continue-on-error: true
         run: node build-schedule.js
+      - name: Yahoo buzz
+        continue-on-error: true
+        run: node fetch-buzz.js
       - run: node fetch-props.js ${{ inputs.mode || 'run' }}
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
@@ -52,7 +55,7 @@ jobs:
       - name: Commit if changed
         run: |
           [ -f data/props.json ] || { echo "No props file"; exit 0; }
-          for f in data/schedule.json data/injuries.json; do [ -f "$f" ] && git add "$f"; done
+          for f in data/buzz.json data/schedule.json data/injuries.json; do [ -f "$f" ] && git add "$f"; done
           git add data/props.json data/props
           if git diff --cached --quiet; then echo "No change"; exit 0; fi
           git config user.name "github-actions[bot]"

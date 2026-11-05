@@ -1426,7 +1426,7 @@ function renderBZ(){
   $("bzList").innerHTML=rows.length?cap+rows.map(bzRow).join(""):`<div class="empty">No Yahoo buzz for this day.</div>`;
 }
 fetch("data/buzz.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
-  .then(j=>{if(!j){$("bzList").innerHTML=`<div class="empty">No Yahoo buzz yet: it's pulled every 3 hours.</div>`;$("bzStatus").textContent="";return}
+  .then(j=>{if(!j){$("bzList").innerHTML=`<div class="empty">No Yahoo buzz yet: it's pulled hourly.</div>`;$("bzStatus").textContent="";return}
     BZ=j;renderBZ()})
   .catch(()=>{$("bzList").innerHTML=`<div class="empty err">Couldn't load the Yahoo buzz.</div>`;$("bzStatus").textContent=""});
 // ---- Proj tab: rest of season, this or next week, and tonight. Season and Week are Proj (the

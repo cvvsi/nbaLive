@@ -9,7 +9,7 @@ A phone-first NBA box score viewer for **9-category fantasy basketball**. It ran
 ## What it does
 
 - Loads every game for a date (US Eastern) and ranks all players who played by **Value**.
-- **Buzz tab:** Yahoo's most added and dropped players, today so far and yesterday (Today / Yday switch), refreshed every 3 hours, next to your Szn / 3G / Proj ranks and minutes trend, with a Follow / Fade (adds) or Panic / Agree (drops) read built from those numbers. Linkable at `#buzz`.
+- **Buzz tab:** Yahoo's most added and dropped players, today so far and yesterday (Today / Yday switch), refreshed hourly, next to your Szn / 3G / Proj ranks and minutes trend, with a Follow / Fade (adds) or Panic / Agree (drops) read built from those numbers. Linkable at `#buzz`.
 - **Tabs** sit in a bottom bar (Box · Ranks · Proj · Schedule · Buy/Sell · Buzz), a raised strip with the active view as a filled pill; the top bar keeps the date, search and Punt. Both bars slide away while scrolling down and come back on any scroll up.
 - **List / Cards** (button beside search, on Ranks and Proj; remembered per phone, List by default): List is the card without the photo, so about 9 players fit a screen instead of 7, every number still labeled.
 - **Ranks tab** (`#ranks`): what actually happened, ranked. Windows: Season / 14D / 7D / L3 (each team's last 3 games, a missed game counting as zero). **Per g** ranks how well a player has played; **Total** = per-game value × games played, so missed games count (L3 has no Total: it already counts them). Cards show the window's per-game line (`l[window]` in `rankings.json`, fields `lf`), games played and any injury note. Same pool and punts as the rank ladder.
@@ -90,7 +90,7 @@ Each row: **Now** (season rank), **Proj**, **LY** (last season's final per-game 
 
 ## Yahoo Buzz Index
 
-`fetch-buzz.js` runs every 3 hours in its own Action (`.github/workflows/buzz.yml`, minute 37, games or not) and writes `data/buzz.json`: yesterday's (final) and today's (so far, under `today`) most added and most dropped players across all Yahoo leagues, from the public [Buzz Index](https://basketball.fantasysports.yahoo.com/nba/buzzindex) page (no login). Each row has adds, drops, trades and % rostered / started. The page is parsed from HTML, so if Yahoo changes its layout the run fails with "No rows parsed" and the rankings are unaffected. Run it by hand from *Actions → Buzz → Run workflow*. The morning report judges each move as Follow or Fade.
+`fetch-buzz.js` runs hourly in its own Action (`.github/workflows/buzz.yml`, minute 37, games or not), and also inside the nightly Rankings job (its 08:53 UTC try lands just after Yahoo's ~3am ET waivers) and the afternoon Props job, because GitHub drops many scheduled runs and writes `data/buzz.json`: yesterday's (final) and today's (so far, under `today`) most added and most dropped players across all Yahoo leagues, from the public [Buzz Index](https://basketball.fantasysports.yahoo.com/nba/buzzindex) page (no login). Each row has adds, drops, trades and % rostered / started. The page is parsed from HTML, so if Yahoo changes its layout the run fails with "No rows parsed" and the rankings are unaffected. Run it by hand from *Actions → Buzz → Run workflow*. The morning report judges each move as Follow or Fade.
 
 ## Yahoo league data
 

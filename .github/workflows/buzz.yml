@@ -5,10 +5,11 @@
 name: Buzz
 
 on:
-  # Odd minutes: GitHub delays top-of-the-hour schedules badly. With eight slots a day a late
-  # or skipped run only costs a few hours.
+  # Hourly, on an odd minute: GitHub delays and silently drops scheduled runs (only 2 of 8
+  # three-hourly runs happened on Nov 4-5), so more slots keep the gaps short. The Rankings and
+  # Props jobs pull the buzz too, so a day never depends on this schedule alone.
   schedule:
-    - cron: "37 */3 * * *"
+    - cron: "37 * * * *"
   workflow_dispatch:
 
 permissions:
