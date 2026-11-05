@@ -24,7 +24,7 @@ const WINDOWS = { season: 0, d30: 30, d14: 14, d7: 7 };
 const LF = ['pts', 'reb', 'ast', 'stl', 'blk', 'tpm', 'to', 'fgm', 'fga', 'ftm', 'fta'];
 const POOL = 130, ITER = 4, G3 = 3;
 const CACHE = '.cache/games.json', OUT = 'data/rankings.json', REG = 'data/regression.json', HIST = 'data/history.json';
-const CACHE_V = 4;   // bump when parseBox's row shape changes, so stale cached rows are refetched (4: starter flag)
+const CACHE_V = 5;   // bump when parseBox's row shape changes, so stale cached rows are refetched (4: starter flag, 5: position)
 
 const J = async u => {
   for (let i = 0; ; i++) {
@@ -58,6 +58,7 @@ function parseBox(j) {
         id: String(a.athlete.id), name: a.athlete.displayName, team: t.team.abbreviation, min,
         pts: +s[I.pts] || 0, reb: +s[I.reb] || 0, ast: +s[I.ast] || 0, stl: +s[I.stl] || 0,
         blk: +s[I.blk] || 0, to: +s[I.to] || 0, pf: +s[I.pf] || 0, fgm, fga, tpm, tpa, ftm, fta, st: a.starter ? 1 : 0,
+        pos: (a.athlete.position && a.athlete.position.abbreviation) || '',
       });
     }
   }
