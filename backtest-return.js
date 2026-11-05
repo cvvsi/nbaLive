@@ -61,9 +61,10 @@ const clip = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
             for (const id of ids) if (id !== R) {
               const A = perTeamGame(id, i - LOOK, i), D = perTeamGame(id, i, j), g = D - A;
               if (g < GAIN) continue;
+              const steady = pre.filter(rs => rs[id]).length >= 8;   // was in the rotation before, not hurt himself
               for (let n = 0; n < nRet; n++) {
                 const rs = rows[j + n];
-                recs.push({ y, b, n: n + 1, kind: 'gain', pre: A, g, truth: rs[id] ? rs[id].min : 0 });
+                recs.push({ y, b, n: n + 1, kind: 'gain', pre: A, g, truth: rs[id] ? rs[id].min : 0, steady, rPlayed: !!rs[R] });
               }
             }
           }
@@ -98,6 +99,19 @@ const clip = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
       console.log(label(y).padEnd(9) + out.bySeason[key][label(y)].map(v => ' ' + fmt(v)).join(''));
     }
   }
+  // Splits: returner's games he actually played; gainers who were steady before, on nights the
+  // returner played vs sat again.
+  const split = (name, rs, kind) => {
+    out[name] = [...Array(NR)].map((_, n) => { const c = curve(rs, kind, 'all', n + 1); return { mean: +c.mean.toFixed(3), med: +c.med.toFixed(3), n: c.n }; });
+    console.log(name.padEnd(26) + out[name].map(c => ' ' + fmt(c.mean)).join('') + `   n ${out[name][0].n}`);
+  };
+  console.log('\nSplits (mean, return games 1-6):');
+  split('returner, games he played', recs.filter(r => r.kind === 'ret' && r.played), 'ret');
+  const G = recs.filter(r => r.kind === 'gain');
+  split('gainers, all', G, 'gain');
+  split('gainers, steady before', G.filter(r => r.steady), 'gain');
+  split('steady, returner played', G.filter(r => r.steady && r.rPlayed), 'gain');
+  split('steady, returner sat', G.filter(r => r.steady && !r.rPlayed), 'gain');
   const ret = recs.filter(r => r.kind === 'ret');
   out.returnerMissedAgain = [...Array(NR)].map((_, n) => +(1 - mean(ret.filter(r => r.n === n + 1).map(r => r.played ? 1 : 0))).toFixed(3));
   console.log('\nReturner misses the game again: ' + out.returnerMissedAgain.map((v, n) => `g${n + 1} ${(v * 100).toFixed(0)}%`).join(', '));
