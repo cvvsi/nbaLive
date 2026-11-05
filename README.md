@@ -168,6 +168,18 @@ To test the phone layout on desktop, use Chrome DevTools → device toolbar → 
 - **Read ESPN stats by key name, not array index.**
 - Anything stored in `localStorage` is wrapped in try/catch (private browsing can throw).
 
+## Next up: injury minutes ("next man up") — agreed plan, not built yet
+
+When a regular is out, his teammates' minutes should rise until he's back, and the projections (Week, Schedule, Today, Season Total, and Season per-game as a weighted mix of the remaining games) should show it. Backtests on 2023-24 to 2025-26 (`backtest-injury.js`, `backtest-absence.js`; *Actions → Backtest*, pick the script; summaries in `data/backtest-injury.json`, `data/backtest-absence.json`):
+- **Fixed rules don't work.** Over 2,105 team-games with a regular out, giving his minutes to the same position overshoots (+7% error), a "handcuff gets 50–70%" rule is worst (+12–16%, +63–86% for the handcuff), and the best fixed rule (half the minutes, same position) gains only ~2%.
+- **The team's own pattern works.** Over 510 absences of 3+ games, predicting each teammate from the minutes he played in the games already missed (lightly blended with the fixed rule, as if it were 1 extra game) cuts error 26% overall, 36% for the promoted starter and ~48% for the biggest gainer; 17% after just one missed game.
+
+Plan:
+1. **Trigger = ESPN's injury report** (`data/injuries.json`): a regular (24+ min) listed out, with a return date.
+2. **Before any missed game:** the fixed rule (half his minutes to his position group G/F/C, by current minutes). **After 1+ missed games:** each teammate's minutes in those games, blended with the fixed rule as 1 game. Positions are in the box-score rows (`pos`, cache v5).
+3. **Ramp-up after the return date:** the returning player eased back over a few games, beneficiaries tapering. Measure the real curve first (backtest: minutes in the first N games back from 5+ game absences vs before) rather than guessing.
+4. Shift **minutes only**; per-minute rates stay (usage redistribution failed its backtest). Build-side: nightly `build-rankings.js` computes current absences and per-teammate minutes; page-side: Proj lines take minutes by date.
+
 ## Roadmap ideas
 
 1. **Last 7 / 14 / 30 days view.** Average Value, minutes and usage per player across a range, which is what you'd want for waiver decisions. Two ways to get the data:
