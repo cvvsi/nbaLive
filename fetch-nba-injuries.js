@@ -35,17 +35,18 @@ function flip(n) { const i = n.indexOf(','); if (i < 0) return n.trim(); const l
   const m = last.match(/^(.*?)\s+(Jr\.|Sr\.|II|III|IV|V)$/); return m ? `${first} ${m[1]} ${m[2]}` : `${first} ${last}`; }
 
 function parse(text) {
-  const rows = []; let date = null, game = null, team = null, stamp = null;
+  const rows = []; let date = null, game = null, team = null, stamp = null, time = null;
   for (const line of text.split('\n')) {
     const st = line.match(/Injury Report:\s*(\S+\s+\S+\s*[AP]M)/); if (st) { stamp = st[1]; continue; }
     const d = line.match(/(\d{2})\/(\d{2})\/(\d{4})/); if (d) date = `${d[3]}-${d[1]}-${d[2]}`;
+    const tm = line.match(/(\d{2}):(\d{2}) \(ET\)/); if (tm) time = `${+tm[1]}:${tm[2]}`;
     const g = line.match(/\b([A-Z]{2,3})@([A-Z]{2,3})\b/); if (g) game = g[0];
     for (const [full, ab] of Object.entries(TEAMS)) if (line.includes(full)) team = ab;
-    if (/NOT YET SUBMITTED/i.test(line)) { rows.push({ date, game, team, name: null, status: 'Not yet submitted' }); continue; }
+    if (/NOT YET SUBMITTED/i.test(line)) { rows.push({ date, time, game, team, name: null, status: 'Not yet submitted' }); continue; }
     const s = line.match(STATUS); if (!s || !team) continue;
     const before = line.slice(0, s.index).split(/\s{2,}/).filter(Boolean), raw = before[before.length - 1] || '';
     if (!raw.includes(',')) continue;
-    rows.push({ date, game, team, name: flip(raw), status: s[1], reason: (s[2] || '').trim() });
+    rows.push({ date, time, game, team, name: flip(raw), status: s[1], reason: (s[2] || '').trim() });
   }
   return { stamp, rows };
 }
@@ -92,6 +93,15 @@ async function latest() {
   }
   inj.nba = { stamp, src: String(src).replace(/^.*\//, ''), merged: changed };
   fs.writeFileSync(INJ, JSON.stringify(inj));
-  fs.writeFileSync(OUT, JSON.stringify({ stamp, src: String(src).replace(/^.*\//, ''), rows }));
+  // The day's history, for Schedule > Tonight's "changed since this morning": each player's status in
+  // every report today, in order (only when it changes), and the first report's time.
+  let prev = null; try { prev = JSON.parse(fs.readFileSync(OUT, 'utf8')); } catch (e) {}
+  const day = prev && prev.day && prev.day.date === today ? prev.day : { date: today, first: stamp, hist: {} };
+  for (const r of rows) if (r.name && r.date === today && !/^G League/i.test(r.reason || '')) {
+    const k = `${r.team}|${r.name}`, h = day.hist[k] || (day.hist[k] = []);
+    if (!h.length || h[h.length - 1][1] !== r.status) h.push([stamp, r.status]);
+  }
+  day.last = stamp;
+  fs.writeFileSync(OUT, JSON.stringify({ stamp, src: String(src).replace(/^.*\//, ''), rows, day }));
   console.log(`NBA report ${stamp}: ${rows.length} rows, ${changed} merged into ${INJ}; unmatched: ${unmatched.length ? unmatched.join(', ') : 'none'}`);
 })().catch(e => { console.error(e.message); process.exit(1); });

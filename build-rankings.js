@@ -473,7 +473,7 @@ async function main() {
   const players = {}, windows = {};
   // Latest game wins for name/team, so traded players show their current team.
   for (const g of [...games].sort((a, b) => a.date < b.date ? -1 : 1))
-    for (const r of g.rows) players[r.id] = { n: r.name, t: r.team, w: {} };
+    for (const r of g.rows) players[r.id] = { n: r.name, t: r.team, ...(r.pos ? { p: r.pos } : {}), w: {} };   // p: position (box score, latest)
   for (const [w, days] of Object.entries(WINDOWS)) {
     const from = days ? shift(asOf, 1 - days) : games.reduce((m, g) => g.date < m ? g.date : m, asOf);
     const inW = games.filter(g => g.date >= from);
