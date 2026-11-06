@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       script:
-        description: "backtest.js (Proj blend constants), backtest-injury.js (minutes when a regular is out) or backtest-absence.js (long absences) or backtest-return.js (ramp-up after a return) or backtest-rookie.js (players with no baseline) or study-breakout.js (breakout case study)"
+        description: "backtest.js (Proj blend constants), backtest-injury.js (minutes when a regular is out) or backtest-absence.js (long absences) or backtest-return.js (ramp-up after a return) or backtest-rookie.js (players with no baseline) or study-breakout.js (breakout case study) or study-signs.js (every breakout and each sign's hit rate)"
         default: backtest.js
         required: true
 
