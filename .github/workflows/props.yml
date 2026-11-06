@@ -45,6 +45,13 @@ jobs:
       - name: Injuries and schedule
         continue-on-error: true
         run: node build-schedule.js
+      # The NBA's official injury report (every 15 min on game days) merged over ESPN's: game-day
+      # status (Out / Questionable / Probable / Available). Needs pdftotext.
+      - name: NBA injury report
+        continue-on-error: true
+        run: |
+          command -v pdftotext || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
+          node fetch-nba-injuries.js
       - name: Yahoo buzz
         continue-on-error: true
         run: node fetch-buzz.js
@@ -55,7 +62,7 @@ jobs:
       - name: Commit if changed
         run: |
           [ -f data/props.json ] || { echo "No props file"; exit 0; }
-          for f in data/buzz.json data/schedule.json data/injuries.json; do [ -f "$f" ] && git add "$f"; done
+          for f in data/buzz.json data/schedule.json data/injuries.json data/nba-injuries.json; do [ -f "$f" ] && git add "$f"; done
           git add data/props.json data/props
           if git diff --cached --quiet; then echo "No change"; exit 0; fi
           git config user.name "github-actions[bot]"

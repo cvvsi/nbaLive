@@ -1,0 +1,48 @@
+# Injury report refresh before tip-off: ESPN's report (and the schedule) via build-schedule.js,
+# then the NBA's official report merged over it (fetch-nba-injuries.js). Commits injuries.json,
+# so Proj Today, next man up, the Schedule panel and Rise pick up late scratches.
+# The real trigger is cron-job.org (see README, "Scheduling"); the times below are a backup (UTC).
+name: Injuries
+
+on:
+  schedule:
+    - cron: "31 17,22,23 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: injuries
+  cancel-in-progress: false
+
+jobs:
+  injuries:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # the schedule cache, so build-schedule only refetches the next 10 days
+      - uses: actions/cache@v4
+        with:
+          path: .cache
+          key: games-${{ github.run_id }}
+          restore-keys: games-
+      - name: ESPN injuries and schedule
+        continue-on-error: true
+        run: node build-schedule.js
+      - name: NBA injury report
+        continue-on-error: true
+        run: |
+          command -v pdftotext || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
+          node fetch-nba-injuries.js
+      - name: Commit if changed
+        run: |
+          for f in data/injuries.json data/nba-injuries.json data/schedule.json; do [ -f "$f" ] && git add "$f"; done; true
+          if git diff --cached --quiet; then echo "No change"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Injuries $(node -p "(require('./data/injuries.json').nba||{}).stamp||'ESPN only'")"
+          for i in 1 2 3; do git pull --rebase && git push && exit 0; sleep $((i*5)); done; exit 1

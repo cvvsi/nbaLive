@@ -42,6 +42,13 @@ jobs:
       - name: Schedule
         continue-on-error: true
         run: node build-schedule.js
+      # The NBA's official injury report (every 15 min on game days) merged over ESPN's: game-day
+      # status (Out / Questionable / Probable / Available). Needs pdftotext.
+      - name: NBA injury report
+        continue-on-error: true
+        run: |
+          command -v pdftotext || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
+          node fetch-nba-injuries.js
 
       # Yahoo's Buzz Index too: the 08:53 UTC try lands just after Yahoo's ~3am ET waivers.
       - name: Yahoo buzz
@@ -63,7 +70,7 @@ jobs:
         run: |
           git add data/rankings.json data/regression.json
           for f in data/breakouts.json data/breakouts-hist.json; do [ -f "$f" ] && git add "$f"; done; true
-          for f in data/buzz.json data/schedule.json data/injuries.json data/yahoo.json data/yahoo-owned.json data/yahoo-token.enc; do [ -f "$f" ] && git add "$f"; done; true
+          for f in data/buzz.json data/schedule.json data/injuries.json data/nba-injuries.json data/yahoo.json data/yahoo-owned.json data/yahoo-token.enc; do [ -f "$f" ] && git add "$f"; done; true
           if git diff --cached --quiet; then echo "No change"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
