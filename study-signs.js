@@ -20,7 +20,8 @@
  * Signs: up30 / up30top (his line at 30 minutes ranks inside 100 / 60), lowmin (under 24 mpg),
  * minup (season pairs: minutes up 4+ after the All-Star break), startup (season pairs: started 5+
  * of the last 10 after under half before), lowusg (usage under 19% with league-average FG% or
- * better), hiusgev (an earlier season at 23%+ usage), stl / blk / tpm (1.6 / 1.5 / 2.8 per 36),
+ * better), hiusgev (an earlier season at 23%+ usage), c_pts ... c_to (each of the 9 cats: his line
+ * at 30 minutes is 1+ spread above the season's top-130 pool in it; FG%/FT% by impact, TO reversed),
  * coldfg (FG% 4+ points under his other seasons, or 42% or less as a first-year player), newteam,
  * opening (in season: a regular teammate, 24+ min, missed 2 of the last 3 games), bigjump (in
  * season: 10+ more minutes), started (in season: the trigger was moving into the starting five),
@@ -34,8 +35,8 @@ const API = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba';
 const ROST = 130, MOVE = .6, MIN_JUMP = 20;
 const label = y => `${y - 1}-${String(y).slice(2)}`;
 const ALLSTAR = new Set(['STARS', 'WORLD', 'USA', 'STRIPES', 'EAST', 'WEST', 'LEBRON', 'GIANNIS', 'DURANT', 'CANDACE', 'CHUCK', 'KENNY', 'SHAQ']);
-const S_SEASON = ['up30', 'up30top', 'lowmin', 'minup', 'startup', 'lowusg', 'hiusgev', 'stl', 'blk', 'tpm', 'coldfg', 'newteam', 'yr1-2', 'yr3-4'];
-const S_TRIG = ['up30', 'up30top', 'lowmin', 'lowusg', 'hiusgev', 'stl', 'blk', 'tpm', 'coldfg', 'newteam', 'opening', 'bigjump', 'started', 'yr1-2', 'yr3-4'];
+const S_SEASON = ['up30', 'up30top', 'lowmin', 'minup', 'startup', 'lowusg', 'hiusgev', 'c_pts', 'c_reb', 'c_ast', 'c_stl', 'c_blk', 'c_tpm', 'c_fg', 'c_ft', 'c_to', 'coldfg', 'newteam', 'yr1-2', 'yr3-4'];
+const S_TRIG = ['up30', 'up30top', 'lowmin', 'lowusg', 'hiusgev', 'c_pts', 'c_reb', 'c_ast', 'c_stl', 'c_blk', 'c_tpm', 'c_fg', 'c_ft', 'c_to', 'coldfg', 'newteam', 'opening', 'bigjump', 'started', 'yr1-2', 'yr3-4'];
 const CHECK = ['Josh Hart', 'Cameron Johnson', 'Jalen Williams', 'Ivica Zubac', 'John Collins', 'Jordan Poole', 'Franz Wagner', 'Christian Braun',
   'Dennis Schroder', 'Scotty Pippen Jr.', 'Kevin Porter Jr.', 'Jalen Johnson', 'Ryan Rollins', 'Dyson Daniels', 'Nickeil Alexander-Walker',
   'Austin Reaves', 'Mikal Bridges', 'Jalen Duren', 'Alex Sarr', 'Norman Powell', 'Kyshawn George', 'Ty Jerome'];
@@ -81,13 +82,18 @@ const pct = v => (100 * v).toFixed(1) + '%';
   // common per-player signs from a set of his rows in season y (season so far or a whole season)
   function baseSigns(id, y, rs, excludeYears) {
     const t = sumRows(rs), mpg = t.min / t.gp, usg = t.tpos ? t.use / t.tpos : 0, fg = t.fga ? t.fgm / t.fga : 0;
-    const p36 = k => t[k] / t.min * 36, up = rankOn(y, valOf(at30(t), SV[y].pool));
+    const up = rankOn(y, valOf(at30(t), SV[y].pool));
+    // each of the 9 cats: his line at 30 minutes, z-scored on the season's top-130 pool (same
+    // math as the rank; FG%/FT% by impact, turnovers reversed). Strong = z of 1 or more.
+    const P = SV[y].pool, l = at30(t), v = { ...l, fgi: l.fgm - P.lgFG * l.fga, fti: l.ftm - P.lgFT * l.fta };
+    const cz = c => (c === 'to' ? -1 : 1) * (v[P.st[c].k] - P.st[c].m) / P.st[c].sd;
     let om = 0, oa = 0; for (const yy of years) if (!excludeYears.includes(yy)) { const o = TOT[yy][id]; if (o) { om += o.fgm; oa += o.fga; } }
     const seasons = y - firstSeen[id] + 1, known = firstSeen[id] > years[0];
     let hiUsgEv = false; for (const yy of years) if (yy < y) { const o = TOT[yy][id]; if (o && o.gp >= 15 && o.tpos && o.use / o.tpos >= .23) hiUsgEv = true; }
     return { t, mpg, usg, up, s: {
       up30: up <= 100, up30top: up <= 60, lowmin: mpg < 24, lowusg: usg < .19 && fg >= lgFG(y), hiusgev: hiUsgEv,
-      stl: p36('stl') >= 1.6, blk: p36('blk') >= 1.5, tpm: p36('tpm') >= 2.8,
+      c_pts: cz('pts') >= 1, c_reb: cz('reb') >= 1, c_ast: cz('ast') >= 1, c_stl: cz('stl') >= 1, c_blk: cz('blk') >= 1,
+      c_tpm: cz('tpm') >= 1, c_fg: cz('fg') >= 1, c_ft: cz('ft') >= 1, c_to: cz('to') >= 1,
       coldfg: oa >= 150 ? fg * 100 <= 100 * om / oa - 4 : seasons === 1 && fg <= .42,
       'yr1-2': known && seasons <= 2, 'yr3-4': known && seasons >= 3 && seasons <= 4 } };
   }
