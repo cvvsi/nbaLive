@@ -1,0 +1,4505 @@
+{
+ "definition": "after rank <= 130, <= 0.6 x before, and 20+ spots",
+ "kinds": {
+  "season": {
+   "cases": 1335,
+   "breakouts": 130,
+   "baseRate": 0.09737827715355805,
+   "signs": [
+    {
+     "sign": "startup",
+     "have": 162,
+     "breakouts": 24,
+     "rate": 0.14814814814814814,
+     "lift": 1.5213675213675213,
+     "shareOfBreakouts": 0.18461538461538463
+    },
+    {
+     "sign": "blk",
+     "have": 164,
+     "breakouts": 21,
+     "rate": 0.12804878048780488,
+     "lift": 1.3149624765478425,
+     "shareOfBreakouts": 0.16153846153846155
+    },
+    {
+     "sign": "yr3-4",
+     "have": 40,
+     "breakouts": 5,
+     "rate": 0.125,
+     "lift": 1.283653846153846,
+     "shareOfBreakouts": 0.038461538461538464
+    },
+    {
+     "sign": "coldfg",
+     "have": 212,
+     "breakouts": 26,
+     "rate": 0.12264150943396226,
+     "lift": 1.2594339622641508,
+     "shareOfBreakouts": 0.2
+    },
+    {
+     "sign": "hiusgev",
+     "have": 254,
+     "breakouts": 31,
+     "rate": 0.1220472440944882,
+     "lift": 1.2533313143549365,
+     "shareOfBreakouts": 0.23846153846153847
+    },
+    {
+     "sign": "yr1-2",
+     "have": 213,
+     "breakouts": 25,
+     "rate": 0.11737089201877934,
+     "lift": 1.205308775731311,
+     "shareOfBreakouts": 0.19230769230769232
+    },
+    {
+     "sign": "up30",
+     "have": 586,
+     "breakouts": 67,
+     "rate": 0.11433447098976109,
+     "lift": 1.1741270674717772,
+     "shareOfBreakouts": 0.5153846153846153
+    },
+    {
+     "sign": "stl",
+     "have": 175,
+     "breakouts": 20,
+     "rate": 0.11428571428571428,
+     "lift": 1.1736263736263737,
+     "shareOfBreakouts": 0.15384615384615385
+    },
+    {
+     "sign": "lowusg",
+     "have": 318,
+     "breakouts": 34,
+     "rate": 0.1069182389937107,
+     "lift": 1.0979680696661829,
+     "shareOfBreakouts": 0.26153846153846155
+    },
+    {
+     "sign": "tpm",
+     "have": 258,
+     "breakouts": 26,
+     "rate": 0.10077519379844961,
+     "lift": 1.0348837209302326,
+     "shareOfBreakouts": 0.2
+    },
+    {
+     "sign": "minup",
+     "have": 264,
+     "breakouts": 24,
+     "rate": 0.09090909090909091,
+     "lift": 0.9335664335664335,
+     "shareOfBreakouts": 0.18461538461538463
+    },
+    {
+     "sign": "up30top",
+     "have": 278,
+     "breakouts": 24,
+     "rate": 0.08633093525179857,
+     "lift": 0.8865522966242391,
+     "shareOfBreakouts": 0.18461538461538463
+    },
+    {
+     "sign": "newteam",
+     "have": 576,
+     "breakouts": 40,
+     "rate": 0.06944444444444445,
+     "lift": 0.7131410256410257,
+     "shareOfBreakouts": 0.3076923076923077
+    },
+    {
+     "sign": "lowmin",
+     "have": 643,
+     "breakouts": 42,
+     "rate": 0.06531881804043546,
+     "lift": 0.6707740160306257,
+     "shareOfBreakouts": 0.3230769230769231
+    },
+    {
+     "sign": "yr5+",
+     "have": 0,
+     "breakouts": 0,
+     "rate": 0,
+     "lift": 0,
+     "shareOfBreakouts": 0
+    }
+   ],
+   "topPairs": [
+    {
+     "signs": "up30 + yr1-2",
+     "have": 49,
+     "breakouts": 15,
+     "rate": 0.30612244897959184,
+     "lift": 3.143642072213501
+    },
+    {
+     "signs": "up30 + startup",
+     "have": 61,
+     "breakouts": 17,
+     "rate": 0.2786885245901639,
+     "lift": 2.861916771752837
+    },
+    {
+     "signs": "stl + yr1-2",
+     "have": 29,
+     "breakouts": 8,
+     "rate": 0.27586206896551724,
+     "lift": 2.83289124668435
+    },
+    {
+     "signs": "up30top + coldfg",
+     "have": 28,
+     "breakouts": 7,
+     "rate": 0.25,
+     "lift": 2.567307692307692
+    },
+    {
+     "signs": "up30top + minup",
+     "have": 37,
+     "breakouts": 9,
+     "rate": 0.24324324324324326,
+     "lift": 2.497920997920998
+    },
+    {
+     "signs": "startup + lowusg",
+     "have": 37,
+     "breakouts": 9,
+     "rate": 0.24324324324324326,
+     "lift": 2.497920997920998
+    },
+    {
+     "signs": "blk + yr1-2",
+     "have": 26,
+     "breakouts": 6,
+     "rate": 0.23076923076923078,
+     "lift": 2.369822485207101
+    },
+    {
+     "signs": "minup + stl",
+     "have": 32,
+     "breakouts": 7,
+     "rate": 0.21875,
+     "lift": 2.246394230769231
+    },
+    {
+     "signs": "up30 + coldfg",
+     "have": 53,
+     "breakouts": 11,
+     "rate": 0.20754716981132076,
+     "lift": 2.1313497822931784
+    },
+    {
+     "signs": "lowusg + yr1-2",
+     "have": 44,
+     "breakouts": 9,
+     "rate": 0.20454545454545456,
+     "lift": 2.1005244755244754
+    },
+    {
+     "signs": "startup + tpm",
+     "have": 30,
+     "breakouts": 6,
+     "rate": 0.2,
+     "lift": 2.053846153846154
+    },
+    {
+     "signs": "blk + coldfg",
+     "have": 28,
+     "breakouts": 5,
+     "rate": 0.17857142857142858,
+     "lift": 1.8337912087912087
+    }
+   ],
+   "bySignCount": [
+    {
+     "signs": 0,
+     "have": 49,
+     "breakouts": 5,
+     "rate": 0.10204081632653061
+    },
+    {
+     "signs": 1,
+     "have": 205,
+     "breakouts": 25,
+     "rate": 0.12195121951219512
+    },
+    {
+     "signs": 2,
+     "have": 319,
+     "breakouts": 34,
+     "rate": 0.10658307210031348
+    },
+    {
+     "signs": 3,
+     "have": 334,
+     "breakouts": 24,
+     "rate": 0.0718562874251497
+    },
+    {
+     "signs": 4,
+     "have": 217,
+     "breakouts": 17,
+     "rate": 0.07834101382488479
+    },
+    {
+     "signs": "5+",
+     "have": 211,
+     "breakouts": 25,
+     "rate": 0.11848341232227488
+    }
+   ]
+  },
+  "inseason": {
+   "cases": 1647,
+   "breakouts": 165,
+   "baseRate": 0.10018214936247723,
+   "signs": [
+    {
+     "sign": "blk",
+     "have": 211,
+     "breakouts": 28,
+     "rate": 0.13270142180094788,
+     "lift": 1.3246014648858253,
+     "shareOfBreakouts": 0.1696969696969697
+    },
+    {
+     "sign": "lowusg",
+     "have": 406,
+     "breakouts": 46,
+     "rate": 0.11330049261083744,
+     "lift": 1.1309449171518138,
+     "shareOfBreakouts": 0.2787878787878788
+    },
+    {
+     "sign": "coldfg",
+     "have": 471,
+     "breakouts": 53,
+     "rate": 0.11252653927813164,
+     "lift": 1.1232194557035322,
+     "shareOfBreakouts": 0.3212121212121212
+    },
+    {
+     "sign": "up30",
+     "have": 766,
+     "breakouts": 72,
+     "rate": 0.09399477806788512,
+     "lift": 0.9382387847139806,
+     "shareOfBreakouts": 0.43636363636363634
+    },
+    {
+     "sign": "yr3-4",
+     "have": 110,
+     "breakouts": 10,
+     "rate": 0.09090909090909091,
+     "lift": 0.9074380165289256,
+     "shareOfBreakouts": 0.06060606060606061
+    },
+    {
+     "sign": "stl",
+     "have": 320,
+     "breakouts": 26,
+     "rate": 0.08125,
+     "lift": 0.8110227272727273,
+     "shareOfBreakouts": 0.15757575757575756
+    },
+    {
+     "sign": "yr1-2",
+     "have": 256,
+     "breakouts": 19,
+     "rate": 0.07421875,
+     "lift": 0.7408380681818182,
+     "shareOfBreakouts": 0.11515151515151516
+    },
+    {
+     "sign": "startup",
+     "have": 105,
+     "breakouts": 7,
+     "rate": 0.06666666666666667,
+     "lift": 0.6654545454545455,
+     "shareOfBreakouts": 0.04242424242424243
+    },
+    {
+     "sign": "tpm",
+     "have": 307,
+     "breakouts": 19,
+     "rate": 0.06188925081433225,
+     "lift": 0.6177672490376074,
+     "shareOfBreakouts": 0.11515151515151516
+    },
+    {
+     "sign": "lowmin",
+     "have": 848,
+     "breakouts": 48,
+     "rate": 0.05660377358490566,
+     "lift": 0.5650085763293311,
+     "shareOfBreakouts": 0.2909090909090909
+    },
+    {
+     "sign": "up30top",
+     "have": 364,
+     "breakouts": 20,
+     "rate": 0.054945054945054944,
+     "lift": 0.5484515484515484,
+     "shareOfBreakouts": 0.12121212121212122
+    },
+    {
+     "sign": "newteam",
+     "have": 229,
+     "breakouts": 11,
+     "rate": 0.048034934497816595,
+     "lift": 0.47947598253275114,
+     "shareOfBreakouts": 0.06666666666666667
+    },
+    {
+     "sign": "minup",
+     "have": 43,
+     "breakouts": 2,
+     "rate": 0.046511627906976744,
+     "lift": 0.4642706131078224,
+     "shareOfBreakouts": 0.012121212121212121
+    },
+    {
+     "sign": "hiusgev",
+     "have": 0,
+     "breakouts": 0,
+     "rate": 0,
+     "lift": 0,
+     "shareOfBreakouts": 0
+    },
+    {
+     "sign": "yr5+",
+     "have": 0,
+     "breakouts": 0,
+     "rate": 0,
+     "lift": 0,
+     "shareOfBreakouts": 0
+    }
+   ],
+   "topPairs": [
+    {
+     "signs": "up30 + coldfg",
+     "have": 123,
+     "breakouts": 23,
+     "rate": 0.18699186991869918,
+     "lift": 1.8665188470066518
+    },
+    {
+     "signs": "blk + coldfg",
+     "have": 65,
+     "breakouts": 11,
+     "rate": 0.16923076923076924,
+     "lift": 1.6892307692307693
+    },
+    {
+     "signs": "up30top + coldfg",
+     "have": 45,
+     "breakouts": 7,
+     "rate": 0.15555555555555556,
+     "lift": 1.5527272727272727
+    },
+    {
+     "signs": "stl + yr3-4",
+     "have": 33,
+     "breakouts": 5,
+     "rate": 0.15151515151515152,
+     "lift": 1.512396694214876
+    },
+    {
+     "signs": "lowusg + blk",
+     "have": 121,
+     "breakouts": 17,
+     "rate": 0.14049586776859505,
+     "lift": 1.402404207362885
+    },
+    {
+     "signs": "up30 + blk",
+     "have": 166,
+     "breakouts": 23,
+     "rate": 0.13855421686746988,
+     "lift": 1.3830230010952904
+    },
+    {
+     "signs": "lowusg + yr3-4",
+     "have": 30,
+     "breakouts": 4,
+     "rate": 0.13333333333333333,
+     "lift": 1.330909090909091
+    },
+    {
+     "signs": "tpm + coldfg",
+     "have": 58,
+     "breakouts": 7,
+     "rate": 0.1206896551724138,
+     "lift": 1.2047021943573668
+    },
+    {
+     "signs": "lowusg + coldfg",
+     "have": 50,
+     "breakouts": 6,
+     "rate": 0.12,
+     "lift": 1.197818181818182
+    },
+    {
+     "signs": "up30top + blk",
+     "have": 111,
+     "breakouts": 13,
+     "rate": 0.11711711711711711,
+     "lift": 1.1690417690417692
+    },
+    {
+     "signs": "lowusg + stl",
+     "have": 69,
+     "breakouts": 8,
+     "rate": 0.11594202898550725,
+     "lift": 1.1573122529644269
+    },
+    {
+     "signs": "up30 + yr3-4",
+     "have": 44,
+     "breakouts": 5,
+     "rate": 0.11363636363636363,
+     "lift": 1.134297520661157
+    }
+   ],
+   "bySignCount": [
+    {
+     "signs": 0,
+     "have": 116,
+     "breakouts": 23,
+     "rate": 0.19827586206896552
+    },
+    {
+     "signs": 1,
+     "have": 305,
+     "breakouts": 46,
+     "rate": 0.15081967213114755
+    },
+    {
+     "signs": 2,
+     "have": 484,
+     "breakouts": 45,
+     "rate": 0.09297520661157024
+    },
+    {
+     "signs": 3,
+     "have": 382,
+     "breakouts": 23,
+     "rate": 0.060209424083769635
+    },
+    {
+     "signs": 4,
+     "have": 208,
+     "breakouts": 16,
+     "rate": 0.07692307692307693
+    },
+    {
+     "signs": "5+",
+     "have": 152,
+     "breakouts": 12,
+     "rate": 0.07894736842105263
+    }
+   ]
+  }
+ },
+ "breakouts": {
+  "season": [
+   {
+    "n": "Trey Murphy III",
+    "y": "2021-22",
+    "before": 335,
+    "after": 41,
+    "mpg": 14,
+    "usg": 15.6,
+    "up30": 117,
+    "signs": [
+     "lowmin",
+     "tpm",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Reed Sheppard",
+    "y": "2024-25",
+    "before": 351,
+    "after": 64,
+    "mpg": 12.6,
+    "usg": 17.9,
+    "up30": 116,
+    "signs": [
+     "lowmin",
+     "minup",
+     "stl",
+     "coldfg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Neemias Queta",
+    "y": "2024-25",
+    "before": 313,
+    "after": 55,
+    "mpg": 14.4,
+    "usg": 13.9,
+    "up30": 85,
+    "signs": [
+     "up30",
+     "lowmin",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Cam Spencer",
+    "y": "2024-25",
+    "before": 359,
+    "after": 113,
+    "mpg": 10,
+    "usg": 15.5,
+    "up30": 74,
+    "signs": [
+     "up30",
+     "lowmin",
+     "coldfg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Ryan Rollins",
+    "y": "2024-25",
+    "before": 281,
+    "after": 46,
+    "mpg": 14.9,
+    "usg": 18.6,
+    "up30": 75,
+    "signs": [
+     "up30",
+     "lowmin",
+     "minup",
+     "startup",
+     "lowusg",
+     "stl",
+     "yr3-4"
+    ]
+   },
+   {
+    "n": "Ajay Mitchell",
+    "y": "2024-25",
+    "before": 325,
+    "after": 91,
+    "mpg": 16.6,
+    "usg": 16.5,
+    "up30": 137,
+    "signs": [
+     "lowmin",
+     "lowusg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Christian Braun",
+    "y": "2023-24",
+    "before": 277,
+    "after": 54,
+    "mpg": 20.2,
+    "usg": 15.8,
+    "up30": 169,
+    "signs": [
+     "lowmin",
+     "coldfg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Kevin Porter Jr.",
+    "y": "2024-25",
+    "before": 235,
+    "after": 13,
+    "mpg": 19.8,
+    "usg": 25.7,
+    "up30": 110,
+    "signs": [
+     "lowmin",
+     "hiusgev",
+     "stl",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Jalen Johnson",
+    "y": "2022-23",
+    "before": 257,
+    "after": 42,
+    "mpg": 15.1,
+    "usg": 16.1,
+    "up30": 74,
+    "signs": [
+     "up30",
+     "lowmin",
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Tre Jones",
+    "y": "2021-22",
+    "before": 298,
+    "after": 87,
+    "mpg": 16.7,
+    "usg": 15.6,
+    "up30": 117,
+    "signs": [
+     "lowmin",
+     "minup",
+     "startup",
+     "lowusg",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Cam Thomas",
+    "y": "2022-23",
+    "before": 331,
+    "after": 120,
+    "mpg": 16.6,
+    "usg": 27.7,
+    "up30": 180,
+    "signs": [
+     "lowmin"
+    ]
+   },
+   {
+    "n": "Nickeil Alexander-Walker",
+    "y": "2024-25",
+    "before": 221,
+    "after": 24,
+    "mpg": 25.3,
+    "usg": 16.1,
+    "up30": 164,
+    "signs": [
+     "hiusgev",
+     "newteam"
+    ]
+   },
+   {
+    "n": "John Konchar",
+    "y": "2024-25",
+    "before": 320,
+    "after": 128,
+    "mpg": 12.4,
+    "usg": 7.9,
+    "up30": 59,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "stl",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Sandro Mamukelashvili",
+    "y": "2024-25",
+    "before": 321,
+    "after": 129,
+    "mpg": 11.3,
+    "usg": 21,
+    "up30": 39,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "minup",
+     "tpm",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Jay Huff",
+    "y": "2024-25",
+    "before": 272,
+    "after": 94,
+    "mpg": 11.7,
+    "usg": 19.7,
+    "up30": 15,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "blk",
+     "tpm",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Collin Gillespie",
+    "y": "2024-25",
+    "before": 258,
+    "after": 83,
+    "mpg": 14.4,
+    "usg": 17.8,
+    "up30": 46,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "minup",
+     "startup",
+     "stl",
+     "tpm",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Moussa Diabate",
+    "y": "2024-25",
+    "before": 282,
+    "after": 107,
+    "mpg": 17.7,
+    "usg": 13.5,
+    "up30": 118,
+    "signs": [
+     "lowmin",
+     "lowusg",
+     "yr3-4"
+    ]
+   },
+   {
+    "n": "Matas Buzelis",
+    "y": "2024-25",
+    "before": 241,
+    "after": 66,
+    "mpg": 18.9,
+    "usg": 18.8,
+    "up30": 99,
+    "signs": [
+     "up30",
+     "lowmin",
+     "minup",
+     "startup",
+     "blk",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Nic Claxton",
+    "y": "2021-22",
+    "before": 187,
+    "after": 21,
+    "mpg": 20.7,
+    "usg": 15.3,
+    "up30": 68,
+    "signs": [
+     "up30",
+     "lowmin",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Keyonte George",
+    "y": "2024-25",
+    "before": 202,
+    "after": 36,
+    "mpg": 31.1,
+    "usg": 24.5,
+    "up30": 213,
+    "signs": [
+     "tpm",
+     "newteam",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Dyson Daniels",
+    "y": "2023-24",
+    "before": 155,
+    "after": 12,
+    "mpg": 22.3,
+    "usg": 12.5,
+    "up30": 76,
+    "signs": [
+     "up30",
+     "lowmin",
+     "stl",
+     "coldfg",
+     "newteam",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Delon Wright",
+    "y": "2021-22",
+    "before": 190,
+    "after": 52,
+    "mpg": 18.9,
+    "usg": 10.4,
+    "up30": 55,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "stl",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Alperen Sengun",
+    "y": "2021-22",
+    "before": 215,
+    "after": 77,
+    "mpg": 20.7,
+    "usg": 22.1,
+    "up30": 93,
+    "signs": [
+     "up30",
+     "lowmin",
+     "minup",
+     "startup",
+     "blk",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Tre Jones",
+    "y": "2024-25",
+    "before": 199,
+    "after": 68,
+    "mpg": 19.7,
+    "usg": 14.3,
+    "up30": 77,
+    "signs": [
+     "up30",
+     "lowmin",
+     "minup",
+     "startup",
+     "lowusg",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Donovan Clingan",
+    "y": "2024-25",
+    "before": 162,
+    "after": 31,
+    "mpg": 19.8,
+    "usg": 14.1,
+    "up30": 52,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "minup",
+     "startup",
+     "lowusg",
+     "blk",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Collin Sexton",
+    "y": "2022-23",
+    "before": 227,
+    "after": 98,
+    "mpg": 23.9,
+    "usg": 23.7,
+    "up30": 163,
+    "signs": [
+     "lowmin",
+     "startup"
+    ]
+   },
+   {
+    "n": "Toumani Camara",
+    "y": "2023-24",
+    "before": 212,
+    "after": 87,
+    "mpg": 24.9,
+    "usg": 13.9,
+    "up30": 155,
+    "signs": [
+     "minup",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Mason Plumlee",
+    "y": "2021-22",
+    "before": 252,
+    "after": 130,
+    "mpg": 24.5,
+    "usg": 11.8,
+    "up30": 191,
+    "signs": [
+     "lowusg",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Keon Ellis",
+    "y": "2023-24",
+    "before": 209,
+    "after": 91,
+    "mpg": 17.1,
+    "usg": 12.6,
+    "up30": 54,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "minup",
+     "startup",
+     "stl",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Jusuf Nurkic",
+    "y": "2024-25",
+    "before": 226,
+    "after": 111,
+    "mpg": 20.8,
+    "usg": 20.9,
+    "up30": 113,
+    "signs": [
+     "lowmin",
+     "hiusgev",
+     "coldfg",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Alex Sarr",
+    "y": "2024-25",
+    "before": 159,
+    "after": 45,
+    "mpg": 27.1,
+    "usg": 23.7,
+    "up30": 130,
+    "signs": [
+     "blk",
+     "coldfg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Payton Pritchard",
+    "y": "2023-24",
+    "before": 189,
+    "after": 77,
+    "mpg": 22.2,
+    "usg": 17.3,
+    "up30": 104,
+    "signs": [
+     "lowmin",
+     "minup",
+     "tpm"
+    ]
+   },
+   {
+    "n": "Anthony Black",
+    "y": "2024-25",
+    "before": 232,
+    "after": 120,
+    "mpg": 24.1,
+    "usg": 19.8,
+    "up30": 159,
+    "signs": [
+     "stl",
+     "coldfg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Jaden McDaniels",
+    "y": "2023-24",
+    "before": 186,
+    "after": 75,
+    "mpg": 29.2,
+    "usg": 15.9,
+    "up30": 181,
+    "signs": [
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Andrew Wiggins",
+    "y": "2023-24",
+    "before": 208,
+    "after": 98,
+    "mpg": 27.1,
+    "usg": 21,
+    "up30": 179,
+    "signs": [
+     "hiusgev",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Isaiah Hartenstein",
+    "y": "2022-23",
+    "before": 178,
+    "after": 71,
+    "mpg": 19.9,
+    "usg": 11.2,
+    "up30": 69,
+    "signs": [
+     "up30",
+     "lowmin",
+     "lowusg",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Coby White",
+    "y": "2022-23",
+    "before": 199,
+    "after": 92,
+    "mpg": 23.4,
+    "usg": 18,
+    "up30": 124,
+    "signs": [
+     "lowmin",
+     "minup"
+    ]
+   },
+   {
+    "n": "Kevon Looney",
+    "y": "2021-22",
+    "before": 212,
+    "after": 111,
+    "mpg": 21.1,
+    "usg": 12.4,
+    "up30": 95,
+    "signs": [
+     "up30",
+     "lowmin",
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Kelly Olynyk",
+    "y": "2021-22",
+    "before": 202,
+    "after": 104,
+    "mpg": 19.1,
+    "usg": 21.6,
+    "up30": 58,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "coldfg",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Matisse Thybulle",
+    "y": "2022-23",
+    "before": 200,
+    "after": 103,
+    "mpg": 17.4,
+    "usg": 10.6,
+    "up30": 44,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "minup",
+     "startup",
+     "stl",
+     "coldfg",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Daniel Gafford",
+    "y": "2022-23",
+    "before": 136,
+    "after": 39,
+    "mpg": 20.6,
+    "usg": 15.3,
+    "up30": 41,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "minup",
+     "lowusg",
+     "blk",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Josh Hart",
+    "y": "2023-24",
+    "before": 122,
+    "after": 25,
+    "mpg": 33.4,
+    "usg": 13.7,
+    "up30": 152,
+    "signs": [
+     "minup",
+     "startup",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Kyshawn George",
+    "y": "2024-25",
+    "before": 194,
+    "after": 97,
+    "mpg": 26.5,
+    "usg": 16,
+    "up30": 150,
+    "signs": [
+     "startup",
+     "coldfg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Immanuel Quickley",
+    "y": "2021-22",
+    "before": 194,
+    "after": 98,
+    "mpg": 23.1,
+    "usg": 22.5,
+    "up30": 109,
+    "signs": [
+     "lowmin",
+     "minup",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Ayo Dosunmu",
+    "y": "2022-23",
+    "before": 219,
+    "after": 124,
+    "mpg": 26.2,
+    "usg": 14.9,
+    "up30": 178,
+    "signs": [
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Donte DiVincenzo",
+    "y": "2021-22",
+    "before": 193,
+    "after": 99,
+    "mpg": 24,
+    "usg": 19.2,
+    "up30": 122,
+    "signs": [
+     "minup",
+     "stl",
+     "coldfg",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Jalen Suggs",
+    "y": "2022-23",
+    "before": 183,
+    "after": 89,
+    "mpg": 23.5,
+    "usg": 20.4,
+    "up30": 120,
+    "signs": [
+     "lowmin",
+     "hiusgev",
+     "stl"
+    ]
+   },
+   {
+    "n": "Kyle Anderson",
+    "y": "2021-22",
+    "before": 166,
+    "after": 74,
+    "mpg": 21.5,
+    "usg": 16.4,
+    "up30": 65,
+    "signs": [
+     "up30",
+     "lowmin",
+     "stl",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Cason Wallace",
+    "y": "2023-24",
+    "before": 181,
+    "after": 90,
+    "mpg": 20.7,
+    "usg": 13,
+    "up30": 76,
+    "signs": [
+     "up30",
+     "lowmin",
+     "lowusg",
+     "stl",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Max Strus",
+    "y": "2022-23",
+    "before": 202,
+    "after": 112,
+    "mpg": 28.4,
+    "usg": 17.7,
+    "up30": 178,
+    "signs": [
+     "startup",
+     "tpm",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Peyton Watson",
+    "y": "2024-25",
+    "before": 197,
+    "after": 108,
+    "mpg": 24.4,
+    "usg": 14.1,
+    "up30": 128,
+    "signs": [
+     "lowusg",
+     "blk",
+     "yr3-4"
+    ]
+   },
+   {
+    "n": "Norman Powell",
+    "y": "2023-24",
+    "before": 162,
+    "after": 74,
+    "mpg": 26.2,
+    "usg": 20.3,
+    "up30": 125,
+    "signs": [
+     "hiusgev",
+     "tpm"
+    ]
+   },
+   {
+    "n": "Wendell Carter Jr.",
+    "y": "2024-25",
+    "before": 193,
+    "after": 105,
+    "mpg": 25.9,
+    "usg": 16.2,
+    "up30": 141,
+    "signs": [
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Grayson Allen",
+    "y": "2024-25",
+    "before": 163,
+    "after": 77,
+    "mpg": 24.1,
+    "usg": 17.7,
+    "up30": 103,
+    "signs": [
+     "tpm"
+    ]
+   },
+   {
+    "n": "Kevin Porter Jr.",
+    "y": "2021-22",
+    "before": 162,
+    "after": 80,
+    "mpg": 31.2,
+    "usg": 24.3,
+    "up30": 178,
+    "signs": [
+     "tpm",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Grayson Allen",
+    "y": "2022-23",
+    "before": 137,
+    "after": 55,
+    "mpg": 27.4,
+    "usg": 14.7,
+    "up30": 118,
+    "signs": [
+     "newteam"
+    ]
+   },
+   {
+    "n": "Lauri Markkanen",
+    "y": "2024-25",
+    "before": 90,
+    "after": 8,
+    "mpg": 31.4,
+    "usg": 24.1,
+    "up30": 103,
+    "signs": [
+     "hiusgev",
+     "tpm",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Amen Thompson",
+    "y": "2023-24",
+    "before": 134,
+    "after": 53,
+    "mpg": 22.4,
+    "usg": 18.3,
+    "up30": 54,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "minup",
+     "startup",
+     "lowusg",
+     "stl",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Josh Giddey",
+    "y": "2023-24",
+    "before": 140,
+    "after": 60,
+    "mpg": 25.1,
+    "usg": 23.3,
+    "up30": 88,
+    "signs": [
+     "up30",
+     "hiusgev",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Aaron Nesmith",
+    "y": "2022-23",
+    "before": 179,
+    "after": 101,
+    "mpg": 24.9,
+    "usg": 16.9,
+    "up30": 127,
+    "signs": []
+   },
+   {
+    "n": "Kel'el Ware",
+    "y": "2024-25",
+    "before": 127,
+    "after": 49,
+    "mpg": 22.2,
+    "usg": 17.4,
+    "up30": 50,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "minup",
+     "startup",
+     "lowusg",
+     "blk",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Spencer Dinwiddie",
+    "y": "2021-22",
+    "before": 165,
+    "after": 89,
+    "mpg": 29.5,
+    "usg": 21.7,
+    "up30": 161,
+    "signs": [
+     "newteam"
+    ]
+   },
+   {
+    "n": "Giannis Antetokounmpo",
+    "y": "2022-23",
+    "before": 108,
+    "after": 32,
+    "mpg": 32.2,
+    "usg": 38.7,
+    "up30": 124,
+    "signs": [
+     "hiusgev"
+    ]
+   },
+   {
+    "n": "Cameron Johnson",
+    "y": "2023-24",
+    "before": 121,
+    "after": 47,
+    "mpg": 27.6,
+    "usg": 19.6,
+    "up30": 95,
+    "signs": [
+     "up30",
+     "tpm"
+    ]
+   },
+   {
+    "n": "Alex Caruso",
+    "y": "2022-23",
+    "before": 118,
+    "after": 45,
+    "mpg": 23.5,
+    "usg": 11.1,
+    "up30": 50,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "startup",
+     "stl"
+    ]
+   },
+   {
+    "n": "Ivica Zubac",
+    "y": "2023-24",
+    "before": 107,
+    "after": 37,
+    "mpg": 26.4,
+    "usg": 16.6,
+    "up30": 73,
+    "signs": [
+     "up30",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Jabari Smith Jr.",
+    "y": "2022-23",
+    "before": 148,
+    "after": 81,
+    "mpg": 31,
+    "usg": 18.5,
+    "up30": 156,
+    "signs": [
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Jabari Smith Jr.",
+    "y": "2024-25",
+    "before": 149,
+    "after": 82,
+    "mpg": 30.1,
+    "usg": 16.5,
+    "up30": 150,
+    "signs": [
+     "yr3-4"
+    ]
+   },
+   {
+    "n": "Tyus Jones",
+    "y": "2022-23",
+    "before": 127,
+    "after": 61,
+    "mpg": 24.2,
+    "usg": 17.9,
+    "up30": 72,
+    "signs": [
+     "up30",
+     "startup",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Bogdan Bogdanovic",
+    "y": "2022-23",
+    "before": 121,
+    "after": 57,
+    "mpg": 27.9,
+    "usg": 20,
+    "up30": 101,
+    "signs": [
+     "tpm"
+    ]
+   },
+   {
+    "n": "Kevin Huerter",
+    "y": "2021-22",
+    "before": 141,
+    "after": 78,
+    "mpg": 29.6,
+    "usg": 17.5,
+    "up30": 137,
+    "signs": [
+     "newteam"
+    ]
+   },
+   {
+    "n": "Scottie Barnes",
+    "y": "2022-23",
+    "before": 84,
+    "after": 21,
+    "mpg": 34.8,
+    "usg": 20.4,
+    "up30": 123,
+    "signs": []
+   },
+   {
+    "n": "Andrew Wiggins",
+    "y": "2021-22",
+    "before": 120,
+    "after": 58,
+    "mpg": 31.7,
+    "usg": 23.2,
+    "up30": 139,
+    "signs": [
+     "newteam"
+    ]
+   },
+   {
+    "n": "Darius Garland",
+    "y": "2023-24",
+    "before": 103,
+    "after": 42,
+    "mpg": 33.3,
+    "usg": 25.9,
+    "up30": 135,
+    "signs": [
+     "hiusgev"
+    ]
+   },
+   {
+    "n": "Jordan Poole",
+    "y": "2023-24",
+    "before": 127,
+    "after": 67,
+    "mpg": 30.1,
+    "usg": 26.6,
+    "up30": 131,
+    "signs": [
+     "hiusgev",
+     "tpm"
+    ]
+   },
+   {
+    "n": "Derrick White",
+    "y": "2022-23",
+    "before": 86,
+    "after": 27,
+    "mpg": 28.3,
+    "usg": 17.8,
+    "up30": 70,
+    "signs": [
+     "up30"
+    ]
+   },
+   {
+    "n": "Lauri Markkanen",
+    "y": "2021-22",
+    "before": 77,
+    "after": 19,
+    "mpg": 30.8,
+    "usg": 19.6,
+    "up30": 83,
+    "signs": [
+     "up30",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Onyeka Okongwu",
+    "y": "2021-22",
+    "before": 127,
+    "after": 69,
+    "mpg": 20.6,
+    "usg": 14.2,
+    "up30": 35,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Austin Reaves",
+    "y": "2022-23",
+    "before": 140,
+    "after": 82,
+    "mpg": 28.8,
+    "usg": 16.3,
+    "up30": 136,
+    "signs": [
+     "startup",
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Julius Randle",
+    "y": "2021-22",
+    "before": 128,
+    "after": 72,
+    "mpg": 35.3,
+    "usg": 28.8,
+    "up30": 178,
+    "signs": [
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Jalen Duren",
+    "y": "2022-23",
+    "before": 132,
+    "after": 76,
+    "mpg": 25,
+    "usg": 14.3,
+    "up30": 87,
+    "signs": [
+     "up30",
+     "lowusg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Keegan Murray",
+    "y": "2022-23",
+    "before": 110,
+    "after": 54,
+    "mpg": 29.8,
+    "usg": 15.9,
+    "up30": 109,
+    "signs": [
+     "tpm",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Tyler Herro",
+    "y": "2023-24",
+    "before": 87,
+    "after": 32,
+    "mpg": 33.5,
+    "usg": 27.8,
+    "up30": 123,
+    "signs": [
+     "hiusgev",
+     "tpm"
+    ]
+   },
+   {
+    "n": "Immanuel Quickley",
+    "y": "2024-25",
+    "before": 103,
+    "after": 48,
+    "mpg": 27.7,
+    "usg": 26,
+    "up30": 83,
+    "signs": [
+     "up30",
+     "hiusgev",
+     "tpm"
+    ]
+   },
+   {
+    "n": "Jalen Duren",
+    "y": "2024-25",
+    "before": 82,
+    "after": 27,
+    "mpg": 26.1,
+    "usg": 16.5,
+    "up30": 49,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowusg",
+     "blk",
+     "yr3-4"
+    ]
+   },
+   {
+    "n": "CJ McCollum",
+    "y": "2022-23",
+    "before": 88,
+    "after": 35,
+    "mpg": 35.4,
+    "usg": 26.6,
+    "up30": 128,
+    "signs": [
+     "hiusgev",
+     "tpm"
+    ]
+   },
+   {
+    "n": "Tyrese Maxey",
+    "y": "2022-23",
+    "before": 73,
+    "after": 20,
+    "mpg": 33.6,
+    "usg": 24.4,
+    "up30": 106,
+    "signs": [
+     "tpm"
+    ]
+   },
+   {
+    "n": "Buddy Hield",
+    "y": "2021-22",
+    "before": 97,
+    "after": 45,
+    "mpg": 30.8,
+    "usg": 22.3,
+    "up30": 109,
+    "signs": [
+     "minup",
+     "startup",
+     "tpm",
+     "newteam"
+    ]
+   },
+   {
+    "n": "De'Aaron Fox",
+    "y": "2021-22",
+    "before": 94,
+    "after": 42,
+    "mpg": 35.3,
+    "usg": 29.2,
+    "up30": 148,
+    "signs": [
+     "minup"
+    ]
+   },
+   {
+    "n": "Julius Randle",
+    "y": "2024-25",
+    "before": 119,
+    "after": 67,
+    "mpg": 32.3,
+    "usg": 25.3,
+    "up30": 139,
+    "signs": [
+     "hiusgev"
+    ]
+   },
+   {
+    "n": "Alperen Sengun",
+    "y": "2024-25",
+    "before": 93,
+    "after": 41,
+    "mpg": 31.2,
+    "usg": 26.4,
+    "up30": 105,
+    "signs": [
+     "hiusgev",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Cade Cunningham",
+    "y": "2023-24",
+    "before": 80,
+    "after": 29,
+    "mpg": 33.5,
+    "usg": 30.8,
+    "up30": 113,
+    "signs": [
+     "hiusgev"
+    ]
+   },
+   {
+    "n": "Jalen Brunson",
+    "y": "2021-22",
+    "before": 93,
+    "after": 43,
+    "mpg": 31.9,
+    "usg": 22.1,
+    "up30": 116,
+    "signs": [
+     "newteam"
+    ]
+   },
+   {
+    "n": "Scottie Barnes",
+    "y": "2024-25",
+    "before": 62,
+    "after": 12,
+    "mpg": 32.9,
+    "usg": 27.4,
+    "up30": 81,
+    "signs": [
+     "up30",
+     "hiusgev"
+    ]
+   },
+   {
+    "n": "Jakob Poeltl",
+    "y": "2023-24",
+    "before": 91,
+    "after": 43,
+    "mpg": 26.4,
+    "usg": 16.2,
+    "up30": 66,
+    "signs": [
+     "up30",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Michael Porter Jr.",
+    "y": "2024-25",
+    "before": 73,
+    "after": 26,
+    "mpg": 33.7,
+    "usg": 20.3,
+    "up30": 99,
+    "signs": [
+     "up30",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Terry Rozier",
+    "y": "2022-23",
+    "before": 97,
+    "after": 51,
+    "mpg": 35.3,
+    "usg": 27,
+    "up30": 136,
+    "signs": [
+     "hiusgev",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Donte DiVincenzo",
+    "y": "2022-23",
+    "before": 102,
+    "after": 56,
+    "mpg": 26.3,
+    "usg": 15.1,
+    "up30": 69,
+    "signs": [
+     "up30",
+     "startup",
+     "stl",
+     "tpm",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Onyeka Okongwu",
+    "y": "2023-24",
+    "before": 109,
+    "after": 63,
+    "mpg": 25.5,
+    "usg": 13.6,
+    "up30": 68,
+    "signs": [
+     "up30",
+     "startup",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Jalen Suggs",
+    "y": "2024-25",
+    "before": 86,
+    "after": 40,
+    "mpg": 28.7,
+    "usg": 27.4,
+    "up30": 77,
+    "signs": [
+     "up30",
+     "hiusgev",
+     "stl"
+    ]
+   },
+   {
+    "n": "Austin Reaves",
+    "y": "2023-24",
+    "before": 84,
+    "after": 39,
+    "mpg": 32,
+    "usg": 20.5,
+    "up30": 107,
+    "signs": []
+   },
+   {
+    "n": "Andrew Wiggins",
+    "y": "2024-25",
+    "before": 99,
+    "after": 54,
+    "mpg": 30.7,
+    "usg": 24.7,
+    "up30": 110,
+    "signs": [
+     "hiusgev",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Mikal Bridges",
+    "y": "2024-25",
+    "before": 79,
+    "after": 37,
+    "mpg": 37.5,
+    "usg": 19.8,
+    "up30": 139,
+    "signs": [
+     "hiusgev"
+    ]
+   },
+   {
+    "n": "Damian Lillard",
+    "y": "2021-22",
+    "before": 48,
+    "after": 7,
+    "mpg": 36.4,
+    "usg": 29.7,
+    "up30": 92,
+    "signs": [
+     "up30",
+     "tpm"
+    ]
+   },
+   {
+    "n": "Cameron Johnson",
+    "y": "2021-22",
+    "before": 89,
+    "after": 49,
+    "mpg": 26.2,
+    "usg": 17.6,
+    "up30": 56,
+    "signs": [
+     "up30",
+     "up30top",
+     "startup",
+     "tpm",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Jaylen Brown",
+    "y": "2024-25",
+    "before": 98,
+    "after": 58,
+    "mpg": 33.4,
+    "usg": 28.7,
+    "up30": 127,
+    "signs": [
+     "hiusgev",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Mitchell Robinson",
+    "y": "2021-22",
+    "before": 87,
+    "after": 48,
+    "mpg": 25.7,
+    "usg": 11.5,
+    "up30": 53,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Karl-Anthony Towns",
+    "y": "2023-24",
+    "before": 45,
+    "after": 7,
+    "mpg": 32.7,
+    "usg": 27.6,
+    "up30": 66,
+    "signs": [
+     "up30",
+     "hiusgev",
+     "newteam"
+    ]
+   },
+   {
+    "n": "OG Anunoby",
+    "y": "2023-24",
+    "before": 70,
+    "after": 33,
+    "mpg": 34.1,
+    "usg": 17.8,
+    "up30": 105,
+    "signs": [
+     "lowusg",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Trey Murphy III",
+    "y": "2023-24",
+    "before": 63,
+    "after": 26,
+    "mpg": 29.7,
+    "usg": 18.8,
+    "up30": 61,
+    "signs": [
+     "up30",
+     "minup",
+     "startup",
+     "tpm"
+    ]
+   },
+   {
+    "n": "John Collins",
+    "y": "2023-24",
+    "before": 79,
+    "after": 44,
+    "mpg": 27.9,
+    "usg": 20.5,
+    "up30": 67,
+    "signs": [
+     "up30"
+    ]
+   },
+   {
+    "n": "Walker Kessler",
+    "y": "2023-24",
+    "before": 85,
+    "after": 50,
+    "mpg": 23.3,
+    "usg": 12.9,
+    "up30": 35,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "lowusg",
+     "blk",
+     "coldfg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Donovan Mitchell",
+    "y": "2024-25",
+    "before": 40,
+    "after": 7,
+    "mpg": 30.8,
+    "usg": 31.1,
+    "up30": 44,
+    "signs": [
+     "up30",
+     "up30top",
+     "hiusgev",
+     "tpm",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Nikola Vucevic",
+    "y": "2023-24",
+    "before": 50,
+    "after": 18,
+    "mpg": 34.4,
+    "usg": 23.5,
+    "up30": 77,
+    "signs": [
+     "up30",
+     "hiusgev"
+    ]
+   },
+   {
+    "n": "Franz Wagner",
+    "y": "2023-24",
+    "before": 67,
+    "after": 36,
+    "mpg": 32.5,
+    "usg": 25.8,
+    "up30": 82,
+    "signs": [
+     "up30",
+     "hiusgev"
+    ]
+   },
+   {
+    "n": "Shai Gilgeous-Alexander",
+    "y": "2021-22",
+    "before": 33,
+    "after": 3,
+    "mpg": 34.7,
+    "usg": 30.8,
+    "up30": 57,
+    "signs": [
+     "up30",
+     "up30top",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Onyeka Okongwu",
+    "y": "2024-25",
+    "before": 63,
+    "after": 33,
+    "mpg": 27.8,
+    "usg": 17.4,
+    "up30": 42,
+    "signs": [
+     "up30",
+     "up30top",
+     "minup",
+     "startup",
+     "lowusg",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Chet Holmgren",
+    "y": "2024-25",
+    "before": 49,
+    "after": 19,
+    "mpg": 27.4,
+    "usg": 22.1,
+    "up30": 27,
+    "signs": [
+     "up30",
+     "up30top",
+     "blk",
+     "coldfg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Clint Capela",
+    "y": "2021-22",
+    "before": 67,
+    "after": 38,
+    "mpg": 27.6,
+    "usg": 15.5,
+    "up30": 53,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Jamal Murray",
+    "y": "2022-23",
+    "before": 60,
+    "after": 31,
+    "mpg": 32.8,
+    "usg": 26.4,
+    "up30": 87,
+    "signs": [
+     "up30",
+     "tpm",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Jalen Williams",
+    "y": "2022-23",
+    "before": 66,
+    "after": 38,
+    "mpg": 30.4,
+    "usg": 18.5,
+    "up30": 70,
+    "signs": [
+     "up30",
+     "lowusg",
+     "stl",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Paul George",
+    "y": "2024-25",
+    "before": 58,
+    "after": 30,
+    "mpg": 32.6,
+    "usg": 23.9,
+    "up30": 77,
+    "signs": [
+     "up30",
+     "hiusgev",
+     "stl"
+    ]
+   },
+   {
+    "n": "Amen Thompson",
+    "y": "2024-25",
+    "before": 53,
+    "after": 25,
+    "mpg": 31.9,
+    "usg": 17.6,
+    "up30": 73,
+    "signs": [
+     "up30",
+     "lowusg",
+     "newteam",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Mikal Bridges",
+    "y": "2021-22",
+    "before": 54,
+    "after": 29,
+    "mpg": 34.8,
+    "usg": 15.1,
+    "up30": 87,
+    "signs": [
+     "up30",
+     "lowusg",
+     "newteam"
+    ]
+   },
+   {
+    "n": "OG Anunoby",
+    "y": "2021-22",
+    "before": 52,
+    "after": 27,
+    "mpg": 36,
+    "usg": 20.8,
+    "up30": 95,
+    "signs": [
+     "up30"
+    ]
+   },
+   {
+    "n": "Jaren Jackson Jr.",
+    "y": "2021-22",
+    "before": 39,
+    "after": 14,
+    "mpg": 27.3,
+    "usg": 25.5,
+    "up30": 27,
+    "signs": [
+     "up30",
+     "up30top",
+     "blk",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "De'Aaron Fox",
+    "y": "2022-23",
+    "before": 43,
+    "after": 19,
+    "mpg": 33.1,
+    "usg": 29.9,
+    "up30": 70,
+    "signs": [
+     "up30",
+     "hiusgev",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Jalen Johnson",
+    "y": "2023-24",
+    "before": 43,
+    "after": 19,
+    "mpg": 33.7,
+    "usg": 19.1,
+    "up30": 68,
+    "signs": [
+     "up30"
+    ]
+   },
+   {
+    "n": "Jaren Jackson Jr.",
+    "y": "2023-24",
+    "before": 51,
+    "after": 28,
+    "mpg": 32.2,
+    "usg": 30.8,
+    "up30": 67,
+    "signs": [
+     "up30",
+     "hiusgev",
+     "blk"
+    ]
+   },
+   {
+    "n": "Anthony Edwards",
+    "y": "2023-24",
+    "before": 38,
+    "after": 15,
+    "mpg": 35.1,
+    "usg": 32.5,
+    "up30": 68,
+    "signs": [
+     "up30",
+     "hiusgev"
+    ]
+   }
+  ],
+  "inseason": [
+   {
+    "n": "Xavier Tillman",
+    "y": "2022-23",
+    "before": 379,
+    "after": 129,
+    "mpg": 10.4,
+    "usg": 15.4,
+    "up30": 359,
+    "signs": [
+     "lowmin",
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Kel'el Ware",
+    "y": "2024-25",
+    "before": 311,
+    "after": 93,
+    "mpg": 6.8,
+    "usg": 19.9,
+    "up30": 62,
+    "signs": [
+     "up30",
+     "lowmin",
+     "blk",
+     "coldfg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "John Konchar",
+    "y": "2025-26",
+    "before": 258,
+    "after": 60,
+    "mpg": 12.5,
+    "usg": 8.7,
+    "up30": 52,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "stl",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Justin Champagnie",
+    "y": "2025-26",
+    "before": 284,
+    "after": 87,
+    "mpg": 11.3,
+    "usg": 12.1,
+    "up30": 73,
+    "signs": [
+     "up30",
+     "lowmin",
+     "stl",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Maxime Raynaud",
+    "y": "2025-26",
+    "before": 286,
+    "after": 92,
+    "mpg": 14.6,
+    "usg": 18.4,
+    "up30": 147,
+    "signs": [
+     "lowmin",
+     "lowusg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Vince Williams Jr.",
+    "y": "2023-24",
+    "before": 285,
+    "after": 101,
+    "mpg": 10.8,
+    "usg": 12.4,
+    "up30": 78,
+    "signs": [
+     "up30",
+     "lowmin",
+     "blk",
+     "coldfg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Collin Sexton",
+    "y": "2023-24",
+    "before": 253,
+    "after": 71,
+    "mpg": 20.2,
+    "usg": 25.8,
+    "up30": 170,
+    "signs": [
+     "lowmin",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Jonathan Kuminga",
+    "y": "2023-24",
+    "before": 297,
+    "after": 116,
+    "mpg": 20.1,
+    "usg": 25,
+    "up30": 255,
+    "signs": [
+     "lowmin"
+    ]
+   },
+   {
+    "n": "Gary Harris",
+    "y": "2021-22",
+    "before": 293,
+    "after": 114,
+    "mpg": 24.3,
+    "usg": 14.7,
+    "up30": 268,
+    "signs": [
+     "startup",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Donte DiVincenzo",
+    "y": "2022-23",
+    "before": 253,
+    "after": 74,
+    "mpg": 16.9,
+    "usg": 14.6,
+    "up30": 116,
+    "signs": [
+     "lowmin",
+     "stl"
+    ]
+   },
+   {
+    "n": "Collin Murray-Boyles",
+    "y": "2025-26",
+    "before": 265,
+    "after": 98,
+    "mpg": 18.2,
+    "usg": 16.2,
+    "up30": 166,
+    "signs": [
+     "lowmin",
+     "lowusg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Chuma Okeke",
+    "y": "2021-22",
+    "before": 223,
+    "after": 57,
+    "mpg": 21.3,
+    "usg": 16.6,
+    "up30": 159,
+    "signs": [
+     "lowmin"
+    ]
+   },
+   {
+    "n": "Ayo Dosunmu",
+    "y": "2023-24",
+    "before": 257,
+    "after": 92,
+    "mpg": 16.8,
+    "usg": 14.7,
+    "up30": 131,
+    "signs": [
+     "lowmin",
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Isaiah Roby",
+    "y": "2021-22",
+    "before": 274,
+    "after": 115,
+    "mpg": 11.9,
+    "usg": 21.2,
+    "up30": 88,
+    "signs": [
+     "up30",
+     "lowmin"
+    ]
+   },
+   {
+    "n": "Daniel Gafford",
+    "y": "2022-23",
+    "before": 261,
+    "after": 102,
+    "mpg": 12.6,
+    "usg": 15.5,
+    "up30": 58,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Donte DiVincenzo",
+    "y": "2023-24",
+    "before": 191,
+    "after": 35,
+    "mpg": 20.3,
+    "usg": 18.6,
+    "up30": 91,
+    "signs": [
+     "up30",
+     "lowmin",
+     "stl",
+     "tpm"
+    ]
+   },
+   {
+    "n": "Larry Nance Jr.",
+    "y": "2023-24",
+    "before": 277,
+    "after": 122,
+    "mpg": 14.9,
+    "usg": 11.9,
+    "up30": 155,
+    "signs": [
+     "lowmin",
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Kyle Filipowski",
+    "y": "2025-26",
+    "before": 240,
+    "after": 85,
+    "mpg": 20.7,
+    "usg": 18.2,
+    "up30": 156,
+    "signs": [
+     "lowmin",
+     "coldfg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Gary Trent Jr.",
+    "y": "2023-24",
+    "before": 250,
+    "after": 97,
+    "mpg": 26,
+    "usg": 19.7,
+    "up30": 219,
+    "signs": []
+   },
+   {
+    "n": "Isaiah Hartenstein",
+    "y": "2023-24",
+    "before": 201,
+    "after": 49,
+    "mpg": 17.1,
+    "usg": 13.5,
+    "up30": 56,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "lowusg",
+     "stl"
+    ]
+   },
+   {
+    "n": "Walker Kessler",
+    "y": "2022-23",
+    "before": 181,
+    "after": 30,
+    "mpg": 15.3,
+    "usg": 11.7,
+    "up30": 32,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "lowusg",
+     "blk",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Chris Boucher",
+    "y": "2021-22",
+    "before": 253,
+    "after": 103,
+    "mpg": 13.7,
+    "usg": 22,
+    "up30": 90,
+    "signs": [
+     "up30",
+     "lowmin",
+     "blk",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Quentin Grimes",
+    "y": "2024-25",
+    "before": 254,
+    "after": 104,
+    "mpg": 19.6,
+    "usg": 16,
+    "up30": 171,
+    "signs": [
+     "lowmin",
+     "minup",
+     "startup",
+     "lowusg",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Day'Ron Sharpe",
+    "y": "2025-26",
+    "before": 267,
+    "after": 121,
+    "mpg": 16.1,
+    "usg": 19,
+    "up30": 146,
+    "signs": [
+     "lowmin",
+     "lowusg",
+     "stl"
+    ]
+   },
+   {
+    "n": "Cameron Johnson",
+    "y": "2021-22",
+    "before": 191,
+    "after": 52,
+    "mpg": 22.4,
+    "usg": 16.7,
+    "up30": 125,
+    "signs": [
+     "lowmin",
+     "tpm",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Jalen Williams",
+    "y": "2022-23",
+    "before": 174,
+    "after": 37,
+    "mpg": 25.2,
+    "usg": 17.5,
+    "up30": 141,
+    "signs": [
+     "startup",
+     "lowusg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Kevin Porter Jr.",
+    "y": "2021-22",
+    "before": 246,
+    "after": 110,
+    "mpg": 32,
+    "usg": 24.7,
+    "up30": 259,
+    "signs": [
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Caleb Martin",
+    "y": "2021-22",
+    "before": 242,
+    "after": 107,
+    "mpg": 17.3,
+    "usg": 16,
+    "up30": 130,
+    "signs": [
+     "lowmin",
+     "stl"
+    ]
+   },
+   {
+    "n": "Quentin Grimes",
+    "y": "2022-23",
+    "before": 257,
+    "after": 126,
+    "mpg": 18.8,
+    "usg": 12.3,
+    "up30": 147,
+    "signs": [
+     "lowmin"
+    ]
+   },
+   {
+    "n": "Brandin Podziemski",
+    "y": "2024-25",
+    "before": 217,
+    "after": 88,
+    "mpg": 24.4,
+    "usg": 16.7,
+    "up30": 171,
+    "signs": [
+     "coldfg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Bobby Portis",
+    "y": "2025-26",
+    "before": 211,
+    "after": 86,
+    "mpg": 21.6,
+    "usg": 22,
+    "up30": 137,
+    "signs": [
+     "lowmin"
+    ]
+   },
+   {
+    "n": "Desmond Bane",
+    "y": "2024-25",
+    "before": 137,
+    "after": 15,
+    "mpg": 27.2,
+    "usg": 23.1,
+    "up30": 116,
+    "signs": [
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Cade Cunningham",
+    "y": "2023-24",
+    "before": 174,
+    "after": 53,
+    "mpg": 35,
+    "usg": 31.4,
+    "up30": 206,
+    "signs": []
+   },
+   {
+    "n": "Jalen Duren",
+    "y": "2024-25",
+    "before": 171,
+    "after": 53,
+    "mpg": 24.1,
+    "usg": 14.8,
+    "up30": 117,
+    "signs": [
+     "lowusg",
+     "blk",
+     "yr3-4"
+    ]
+   },
+   {
+    "n": "Josh Giddey",
+    "y": "2024-25",
+    "before": 143,
+    "after": 27,
+    "mpg": 26.8,
+    "usg": 21,
+    "up30": 116,
+    "signs": []
+   },
+   {
+    "n": "Keegan Murray",
+    "y": "2022-23",
+    "before": 201,
+    "after": 86,
+    "mpg": 28.7,
+    "usg": 17.7,
+    "up30": 187,
+    "signs": [
+     "coldfg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Josh Giddey",
+    "y": "2022-23",
+    "before": 193,
+    "after": 79,
+    "mpg": 30.6,
+    "usg": 24.5,
+    "up30": 201,
+    "signs": []
+   },
+   {
+    "n": "Julius Randle",
+    "y": "2023-24",
+    "before": 197,
+    "after": 83,
+    "mpg": 34.9,
+    "usg": 28.9,
+    "up30": 227,
+    "signs": [
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Javonte Green",
+    "y": "2021-22",
+    "before": 211,
+    "after": 100,
+    "mpg": 20.1,
+    "usg": 11.8,
+    "up30": 125,
+    "signs": [
+     "lowmin",
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Tyus Jones",
+    "y": "2022-23",
+    "before": 212,
+    "after": 101,
+    "mpg": 23.8,
+    "usg": 18.4,
+    "up30": 152,
+    "signs": [
+     "lowmin"
+    ]
+   },
+   {
+    "n": "Jalen Duren",
+    "y": "2022-23",
+    "before": 214,
+    "after": 103,
+    "mpg": 22.1,
+    "usg": 12.7,
+    "up30": 143,
+    "signs": [
+     "lowmin",
+     "lowusg",
+     "coldfg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "John Collins",
+    "y": "2025-26",
+    "before": 176,
+    "after": 67,
+    "mpg": 26.9,
+    "usg": 19.3,
+    "up30": 146,
+    "signs": [
+     "startup"
+    ]
+   },
+   {
+    "n": "Khris Middleton",
+    "y": "2023-24",
+    "before": 184,
+    "after": 76,
+    "mpg": 20.5,
+    "usg": 25.9,
+    "up30": 88,
+    "signs": [
+     "up30",
+     "lowmin"
+    ]
+   },
+   {
+    "n": "Terry Rozier",
+    "y": "2022-23",
+    "before": 173,
+    "after": 67,
+    "mpg": 37.2,
+    "usg": 27.8,
+    "up30": 232,
+    "signs": [
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Brandon Clarke",
+    "y": "2021-22",
+    "before": 184,
+    "after": 80,
+    "mpg": 16.2,
+    "usg": 16.7,
+    "up30": 37,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Herbert Jones",
+    "y": "2021-22",
+    "before": 151,
+    "after": 47,
+    "mpg": 26.1,
+    "usg": 11.7,
+    "up30": 119,
+    "signs": [
+     "lowusg",
+     "stl"
+    ]
+   },
+   {
+    "n": "Kevin Huerter",
+    "y": "2021-22",
+    "before": 207,
+    "after": 105,
+    "mpg": 25.4,
+    "usg": 16.7,
+    "up30": 175,
+    "signs": [
+     "minup",
+     "startup"
+    ]
+   },
+   {
+    "n": "Kenrich Williams",
+    "y": "2022-23",
+    "before": 224,
+    "after": 122,
+    "mpg": 20.3,
+    "usg": 12.2,
+    "up30": 132,
+    "signs": [
+     "lowmin",
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Jamal Murray",
+    "y": "2023-24",
+    "before": 123,
+    "after": 22,
+    "mpg": 29.8,
+    "usg": 25.1,
+    "up30": 121,
+    "signs": [
+     "coldfg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Paul Reed",
+    "y": "2023-24",
+    "before": 215,
+    "after": 115,
+    "mpg": 14.4,
+    "usg": 14.7,
+    "up30": 46,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Malik Monk",
+    "y": "2021-22",
+    "before": 182,
+    "after": 85,
+    "mpg": 24.3,
+    "usg": 17.6,
+    "up30": 136,
+    "signs": []
+   },
+   {
+    "n": "Mason Plumlee",
+    "y": "2022-23",
+    "before": 204,
+    "after": 107,
+    "mpg": 27,
+    "usg": 14.8,
+    "up30": 172,
+    "signs": [
+     "lowusg",
+     "coldfg",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Tre Jones",
+    "y": "2023-24",
+    "before": 192,
+    "after": 95,
+    "mpg": 23.9,
+    "usg": 16,
+    "up30": 139,
+    "signs": [
+     "lowmin",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Donte DiVincenzo",
+    "y": "2024-25",
+    "before": 182,
+    "after": 85,
+    "mpg": 25.6,
+    "usg": 18.7,
+    "up30": 148,
+    "signs": [
+     "stl",
+     "tpm",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Bogdan Bogdanovic",
+    "y": "2021-22",
+    "before": 139,
+    "after": 43,
+    "mpg": 28.1,
+    "usg": 17.3,
+    "up30": 125,
+    "signs": []
+   },
+   {
+    "n": "Jakob Poeltl",
+    "y": "2021-22",
+    "before": 144,
+    "after": 48,
+    "mpg": 28.7,
+    "usg": 17.4,
+    "up30": 136,
+    "signs": [
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Klay Thompson",
+    "y": "2023-24",
+    "before": 176,
+    "after": 80,
+    "mpg": 29.7,
+    "usg": 23.3,
+    "up30": 174,
+    "signs": [
+     "tpm"
+    ]
+   },
+   {
+    "n": "Cameron Johnson",
+    "y": "2025-26",
+    "before": 178,
+    "after": 82,
+    "mpg": 28.7,
+    "usg": 15.4,
+    "up30": 166,
+    "signs": [
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Saddiq Bey",
+    "y": "2021-22",
+    "before": 169,
+    "after": 74,
+    "mpg": 32.2,
+    "usg": 20.5,
+    "up30": 182,
+    "signs": [
+     "coldfg"
+    ]
+   },
+   {
+    "n": "T.J. McConnell",
+    "y": "2023-24",
+    "before": 219,
+    "after": 124,
+    "mpg": 14.2,
+    "usg": 19.9,
+    "up30": 46,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "stl"
+    ]
+   },
+   {
+    "n": "Christian Wood",
+    "y": "2022-23",
+    "before": 156,
+    "after": 62,
+    "mpg": 25.6,
+    "usg": 27.2,
+    "up30": 122,
+    "signs": []
+   },
+   {
+    "n": "Onyeka Okongwu",
+    "y": "2022-23",
+    "before": 146,
+    "after": 53,
+    "mpg": 20.6,
+    "usg": 13.4,
+    "up30": 59,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Bobby Portis",
+    "y": "2024-25",
+    "before": 164,
+    "after": 72,
+    "mpg": 23.7,
+    "usg": 25.2,
+    "up30": 103,
+    "signs": [
+     "lowmin"
+    ]
+   },
+   {
+    "n": "Kelly Oubre Jr.",
+    "y": "2024-25",
+    "before": 154,
+    "after": 62,
+    "mpg": 30.9,
+    "usg": 19.9,
+    "up30": 165,
+    "signs": []
+   },
+   {
+    "n": "Austin Reaves",
+    "y": "2024-25",
+    "before": 109,
+    "after": 19,
+    "mpg": 33.8,
+    "usg": 21.9,
+    "up30": 137,
+    "signs": [
+     "tpm",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Brandon Clarke",
+    "y": "2022-23",
+    "before": 200,
+    "after": 111,
+    "mpg": 19,
+    "usg": 17.8,
+    "up30": 87,
+    "signs": [
+     "up30",
+     "lowmin",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Cam Spencer",
+    "y": "2025-26",
+    "before": 170,
+    "after": 81,
+    "mpg": 20.4,
+    "usg": 18.6,
+    "up30": 63,
+    "signs": [
+     "up30",
+     "lowmin",
+     "tpm",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Jaren Jackson Jr.",
+    "y": "2025-26",
+    "before": 108,
+    "after": 20,
+    "mpg": 29.7,
+    "usg": 25,
+    "up30": 103,
+    "signs": [
+     "newteam"
+    ]
+   },
+   {
+    "n": "Brandon Ingram",
+    "y": "2021-22",
+    "before": 133,
+    "after": 46,
+    "mpg": 34.5,
+    "usg": 30,
+    "up30": 168,
+    "signs": [
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Darius Bazley",
+    "y": "2021-22",
+    "before": 206,
+    "after": 119,
+    "mpg": 28.1,
+    "usg": 18.3,
+    "up30": 193,
+    "signs": [
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Kyle Anderson",
+    "y": "2022-23",
+    "before": 144,
+    "after": 57,
+    "mpg": 21.8,
+    "usg": 13.2,
+    "up30": 66,
+    "signs": [
+     "up30",
+     "lowmin",
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Robert Covington",
+    "y": "2021-22",
+    "before": 119,
+    "after": 34,
+    "mpg": 26.4,
+    "usg": 11.4,
+    "up30": 89,
+    "signs": [
+     "up30",
+     "coldfg",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Josh Giddey",
+    "y": "2023-24",
+    "before": 203,
+    "after": 118,
+    "mpg": 26.8,
+    "usg": 25,
+    "up30": 179,
+    "signs": []
+   },
+   {
+    "n": "Jaden McDaniels",
+    "y": "2024-25",
+    "before": 139,
+    "after": 55,
+    "mpg": 30.5,
+    "usg": 15.8,
+    "up30": 148,
+    "signs": [
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Al Horford",
+    "y": "2025-26",
+    "before": 175,
+    "after": 91,
+    "mpg": 21.8,
+    "usg": 14.5,
+    "up30": 87,
+    "signs": [
+     "up30",
+     "lowmin",
+     "stl",
+     "blk",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Mitchell Robinson",
+    "y": "2025-26",
+    "before": 200,
+    "after": 116,
+    "mpg": 17.3,
+    "usg": 9.6,
+    "up30": 60,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "lowusg",
+     "blk",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Saddiq Bey",
+    "y": "2025-26",
+    "before": 136,
+    "after": 52,
+    "mpg": 28.4,
+    "usg": 18.7,
+    "up30": 113,
+    "signs": [
+     "startup"
+    ]
+   },
+   {
+    "n": "Pascal Siakam",
+    "y": "2023-24",
+    "before": 140,
+    "after": 57,
+    "mpg": 34.3,
+    "usg": 26.1,
+    "up30": 171,
+    "signs": [
+     "newteam"
+    ]
+   },
+   {
+    "n": "Anfernee Simons",
+    "y": "2024-25",
+    "before": 163,
+    "after": 81,
+    "mpg": 30.8,
+    "usg": 25.1,
+    "up30": 170,
+    "signs": [
+     "tpm",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Klay Thompson",
+    "y": "2022-23",
+    "before": 127,
+    "after": 46,
+    "mpg": 29.7,
+    "usg": 24.7,
+    "up30": 126,
+    "signs": [
+     "tpm"
+    ]
+   },
+   {
+    "n": "Monte Morris",
+    "y": "2021-22",
+    "before": 168,
+    "after": 89,
+    "mpg": 29.4,
+    "usg": 18.8,
+    "up30": 166,
+    "signs": []
+   },
+   {
+    "n": "De'Aaron Fox",
+    "y": "2021-22",
+    "before": 137,
+    "after": 58,
+    "mpg": 34.7,
+    "usg": 28.3,
+    "up30": 175,
+    "signs": [
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Jay Huff",
+    "y": "2025-26",
+    "before": 147,
+    "after": 68,
+    "mpg": 17.4,
+    "usg": 17.8,
+    "up30": 21,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "blk",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Jrue Holiday",
+    "y": "2021-22",
+    "before": 95,
+    "after": 18,
+    "mpg": 30.4,
+    "usg": 24.8,
+    "up30": 99,
+    "signs": [
+     "up30",
+     "stl"
+    ]
+   },
+   {
+    "n": "Anthony Black",
+    "y": "2025-26",
+    "before": 167,
+    "after": 90,
+    "mpg": 27.5,
+    "usg": 20.7,
+    "up30": 142,
+    "signs": [
+     "stl",
+     "yr3-4"
+    ]
+   },
+   {
+    "n": "Onyeka Okongwu",
+    "y": "2024-25",
+    "before": 116,
+    "after": 40,
+    "mpg": 23.8,
+    "usg": 17.2,
+    "up30": 65,
+    "signs": [
+     "up30",
+     "lowmin",
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Immanuel Quickley",
+    "y": "2023-24",
+    "before": 157,
+    "after": 82,
+    "mpg": 24.8,
+    "usg": 25.8,
+    "up30": 97,
+    "signs": [
+     "up30",
+     "tpm",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Shai Gilgeous-Alexander",
+    "y": "2021-22",
+    "before": 90,
+    "after": 16,
+    "mpg": 34.8,
+    "usg": 27.5,
+    "up30": 125,
+    "signs": [
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Tyus Jones",
+    "y": "2023-24",
+    "before": 121,
+    "after": 47,
+    "mpg": 26.9,
+    "usg": 16.3,
+    "up30": 93,
+    "signs": [
+     "up30",
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Ivica Zubac",
+    "y": "2023-24",
+    "before": 158,
+    "after": 84,
+    "mpg": 25.9,
+    "usg": 17.8,
+    "up30": 111,
+    "signs": [
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Ausar Thompson",
+    "y": "2025-26",
+    "before": 140,
+    "after": 66,
+    "mpg": 28.3,
+    "usg": 18.6,
+    "up30": 120,
+    "signs": [
+     "lowusg",
+     "stl",
+     "yr3-4"
+    ]
+   },
+   {
+    "n": "Bam Adebayo",
+    "y": "2021-22",
+    "before": 94,
+    "after": 21,
+    "mpg": 32.9,
+    "usg": 25.8,
+    "up30": 117,
+    "signs": []
+   },
+   {
+    "n": "Keon Ellis",
+    "y": "2024-25",
+    "before": 150,
+    "after": 77,
+    "mpg": 21.8,
+    "usg": 12.5,
+    "up30": 69,
+    "signs": [
+     "up30",
+     "lowmin",
+     "lowusg",
+     "stl",
+     "yr3-4"
+    ]
+   },
+   {
+    "n": "Mitchell Robinson",
+    "y": "2021-22",
+    "before": 132,
+    "after": 60,
+    "mpg": 25.4,
+    "usg": 8.7,
+    "up30": 93,
+    "signs": [
+     "up30",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Ayo Dosunmu",
+    "y": "2024-25",
+    "before": 159,
+    "after": 89,
+    "mpg": 29.3,
+    "usg": 17,
+    "up30": 154,
+    "signs": [
+     "startup",
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Desmond Bane",
+    "y": "2025-26",
+    "before": 94,
+    "after": 24,
+    "mpg": 32.7,
+    "usg": 24.2,
+    "up30": 122,
+    "signs": []
+   },
+   {
+    "n": "Kevin Porter Jr.",
+    "y": "2022-23",
+    "before": 122,
+    "after": 54,
+    "mpg": 34.5,
+    "usg": 26.1,
+    "up30": 152,
+    "signs": []
+   },
+   {
+    "n": "Grayson Allen",
+    "y": "2023-24",
+    "before": 116,
+    "after": 48,
+    "mpg": 32.6,
+    "usg": 14.5,
+    "up30": 145,
+    "signs": [
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Draymond Green",
+    "y": "2021-22",
+    "before": 108,
+    "after": 42,
+    "mpg": 30.1,
+    "usg": 14.4,
+    "up30": 109,
+    "signs": [
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Keldon Johnson",
+    "y": "2021-22",
+    "before": 150,
+    "after": 84,
+    "mpg": 31.3,
+    "usg": 21,
+    "up30": 164,
+    "signs": []
+   },
+   {
+    "n": "Jamal Murray",
+    "y": "2022-23",
+    "before": 109,
+    "after": 44,
+    "mpg": 29.6,
+    "usg": 27.4,
+    "up30": 105,
+    "signs": [
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Jalen Williams",
+    "y": "2023-24",
+    "before": 96,
+    "after": 31,
+    "mpg": 32.9,
+    "usg": 21.5,
+    "up30": 121,
+    "signs": [
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Immanuel Quickley",
+    "y": "2022-23",
+    "before": 148,
+    "after": 85,
+    "mpg": 22.4,
+    "usg": 19.4,
+    "up30": 80,
+    "signs": [
+     "up30",
+     "lowmin",
+     "stl"
+    ]
+   },
+   {
+    "n": "Ivica Zubac",
+    "y": "2024-25",
+    "before": 83,
+    "after": 20,
+    "mpg": 32.6,
+    "usg": 19.8,
+    "up30": 104,
+    "signs": []
+   },
+   {
+    "n": "Toumani Camara",
+    "y": "2024-25",
+    "before": 133,
+    "after": 70,
+    "mpg": 30.8,
+    "usg": 14,
+    "up30": 146,
+    "signs": [
+     "stl",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Gary Trent Jr.",
+    "y": "2022-23",
+    "before": 111,
+    "after": 49,
+    "mpg": 31.4,
+    "usg": 23.2,
+    "up30": 121,
+    "signs": [
+     "stl"
+    ]
+   },
+   {
+    "n": "Amen Thompson",
+    "y": "2025-26",
+    "before": 84,
+    "after": 22,
+    "mpg": 36.2,
+    "usg": 20.8,
+    "up30": 136,
+    "signs": [
+     "coldfg",
+     "yr3-4"
+    ]
+   },
+   {
+    "n": "Zach LaVine",
+    "y": "2022-23",
+    "before": 97,
+    "after": 36,
+    "mpg": 34.1,
+    "usg": 27.9,
+    "up30": 126,
+    "signs": [
+     "tpm",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Ayo Dosunmu",
+    "y": "2025-26",
+    "before": 134,
+    "after": 73,
+    "mpg": 26.8,
+    "usg": 20.1,
+    "up30": 94,
+    "signs": [
+     "up30",
+     "newteam"
+    ]
+   },
+   {
+    "n": "VJ Edgecombe",
+    "y": "2025-26",
+    "before": 101,
+    "after": 40,
+    "mpg": 36.4,
+    "usg": 19.4,
+    "up30": 161,
+    "signs": [
+     "coldfg",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Austin Reaves",
+    "y": "2023-24",
+    "before": 138,
+    "after": 78,
+    "mpg": 29.8,
+    "usg": 20.8,
+    "up30": 135,
+    "signs": []
+   },
+   {
+    "n": "Christian Wood",
+    "y": "2021-22",
+    "before": 113,
+    "after": 54,
+    "mpg": 32.8,
+    "usg": 22.6,
+    "up30": 133,
+    "signs": []
+   },
+   {
+    "n": "Desmond Bane",
+    "y": "2021-22",
+    "before": 87,
+    "after": 28,
+    "mpg": 29,
+    "usg": 21.9,
+    "up30": 76,
+    "signs": [
+     "up30",
+     "tpm"
+    ]
+   },
+   {
+    "n": "Matas Buzelis",
+    "y": "2025-26",
+    "before": 110,
+    "after": 51,
+    "mpg": 27.8,
+    "usg": 20.4,
+    "up30": 93,
+    "signs": [
+     "up30",
+     "blk",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "Rudy Gobert",
+    "y": "2025-26",
+    "before": 123,
+    "after": 65,
+    "mpg": 31.8,
+    "usg": 12.2,
+    "up30": 142,
+    "signs": [
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Robert Williams III",
+    "y": "2025-26",
+    "before": 141,
+    "after": 83,
+    "mpg": 14.2,
+    "usg": 12.5,
+    "up30": 7,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "lowusg",
+     "stl",
+     "blk",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Kyle Kuzma",
+    "y": "2021-22",
+    "before": 130,
+    "after": 73,
+    "mpg": 33,
+    "usg": 20.1,
+    "up30": 157,
+    "signs": []
+   },
+   {
+    "n": "Damian Lillard",
+    "y": "2022-23",
+    "before": 60,
+    "after": 3,
+    "mpg": 35.4,
+    "usg": 32.4,
+    "up30": 103,
+    "signs": [
+     "tpm"
+    ]
+   },
+   {
+    "n": "Herbert Jones",
+    "y": "2022-23",
+    "before": 138,
+    "after": 82,
+    "mpg": 28.2,
+    "usg": 16.4,
+    "up30": 124,
+    "signs": []
+   },
+   {
+    "n": "Cooper Flagg",
+    "y": "2025-26",
+    "before": 82,
+    "after": 26,
+    "mpg": 34,
+    "usg": 21.8,
+    "up30": 112,
+    "signs": [
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "LaMelo Ball",
+    "y": "2025-26",
+    "before": 88,
+    "after": 34,
+    "mpg": 29.6,
+    "usg": 32.3,
+    "up30": 87,
+    "signs": [
+     "up30",
+     "tpm"
+    ]
+   },
+   {
+    "n": "Jae Crowder",
+    "y": "2021-22",
+    "before": 122,
+    "after": 69,
+    "mpg": 27.9,
+    "usg": 14.5,
+    "up30": 104,
+    "signs": [
+     "stl",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Jamal Murray",
+    "y": "2024-25",
+    "before": 63,
+    "after": 11,
+    "mpg": 35.6,
+    "usg": 23.4,
+    "up30": 101,
+    "signs": [
+     "coldfg",
+     "yr3-4"
+    ]
+   },
+   {
+    "n": "Jaren Jackson Jr.",
+    "y": "2023-24",
+    "before": 90,
+    "after": 39,
+    "mpg": 31.5,
+    "usg": 27.6,
+    "up30": 101,
+    "signs": [
+     "blk",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Darius Garland",
+    "y": "2021-22",
+    "before": 79,
+    "after": 30,
+    "mpg": 34.5,
+    "usg": 25.9,
+    "up30": 114,
+    "signs": []
+   },
+   {
+    "n": "DeMar DeRozan",
+    "y": "2023-24",
+    "before": 66,
+    "after": 19,
+    "mpg": 35.3,
+    "usg": 26.3,
+    "up30": 110,
+    "signs": [
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Amen Thompson",
+    "y": "2024-25",
+    "before": 86,
+    "after": 39,
+    "mpg": 26.6,
+    "usg": 17.1,
+    "up30": 65,
+    "signs": [
+     "up30",
+     "lowusg",
+     "stl",
+     "yr1-2"
+    ]
+   },
+   {
+    "n": "LeBron James",
+    "y": "2024-25",
+    "before": 58,
+    "after": 12,
+    "mpg": 35.2,
+    "usg": 28.5,
+    "up30": 85,
+    "signs": [
+     "up30"
+    ]
+   },
+   {
+    "n": "Tyrese Haliburton",
+    "y": "2021-22",
+    "before": 58,
+    "after": 13,
+    "mpg": 32.9,
+    "usg": 16.7,
+    "up30": 76,
+    "signs": [
+     "up30",
+     "stl",
+     "coldfg",
+     "newteam"
+    ]
+   },
+   {
+    "n": "OG Anunoby",
+    "y": "2023-24",
+    "before": 99,
+    "after": 55,
+    "mpg": 32.3,
+    "usg": 19,
+    "up30": 120,
+    "signs": [
+     "lowusg",
+     "tpm",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Paul George",
+    "y": "2024-25",
+    "before": 89,
+    "after": 45,
+    "mpg": 28.7,
+    "usg": 28.4,
+    "up30": 78,
+    "signs": [
+     "up30",
+     "stl",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Jimmy Butler III",
+    "y": "2024-25",
+    "before": 67,
+    "after": 26,
+    "mpg": 31.8,
+    "usg": 23,
+    "up30": 77,
+    "signs": [
+     "up30",
+     "newteam"
+    ]
+   },
+   {
+    "n": "Keyonte George",
+    "y": "2025-26",
+    "before": 66,
+    "after": 25,
+    "mpg": 33.9,
+    "usg": 27.4,
+    "up30": 94,
+    "signs": [
+     "up30",
+     "yr3-4"
+    ]
+   },
+   {
+    "n": "Nickeil Alexander-Walker",
+    "y": "2025-26",
+    "before": 58,
+    "after": 18,
+    "mpg": 32.8,
+    "usg": 24.6,
+    "up30": 85,
+    "signs": [
+     "up30",
+     "tpm"
+    ]
+   },
+   {
+    "n": "Pascal Siakam",
+    "y": "2021-22",
+    "before": 70,
+    "after": 33,
+    "mpg": 32.9,
+    "usg": 24.2,
+    "up30": 93,
+    "signs": [
+     "up30",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Jarrett Allen",
+    "y": "2025-26",
+    "before": 85,
+    "after": 49,
+    "mpg": 26.1,
+    "usg": 20.6,
+    "up30": 50,
+    "signs": [
+     "up30",
+     "up30top",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Buddy Hield",
+    "y": "2022-23",
+    "before": 73,
+    "after": 38,
+    "mpg": 31.2,
+    "usg": 22.8,
+    "up30": 88,
+    "signs": [
+     "up30",
+     "tpm"
+    ]
+   },
+   {
+    "n": "Khris Middleton",
+    "y": "2021-22",
+    "before": 73,
+    "after": 39,
+    "mpg": 29.9,
+    "usg": 26.8,
+    "up30": 73,
+    "signs": [
+     "up30",
+     "stl"
+    ]
+   },
+   {
+    "n": "Joel Embiid",
+    "y": "2021-22",
+    "before": 36,
+    "after": 3,
+    "mpg": 32.1,
+    "usg": 33.3,
+    "up30": 56,
+    "signs": [
+     "up30",
+     "up30top",
+     "blk",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Devin Booker",
+    "y": "2021-22",
+    "before": 44,
+    "after": 11,
+    "mpg": 32.2,
+    "usg": 31.6,
+    "up30": 63,
+    "signs": [
+     "up30"
+    ]
+   },
+   {
+    "n": "Jayson Tatum",
+    "y": "2021-22",
+    "before": 42,
+    "after": 9,
+    "mpg": 36.7,
+    "usg": 32.2,
+    "up30": 92,
+    "signs": [
+     "up30",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Nikola Vucevic",
+    "y": "2022-23",
+    "before": 53,
+    "after": 20,
+    "mpg": 31.8,
+    "usg": 21.5,
+    "up30": 66,
+    "signs": [
+     "up30"
+    ]
+   },
+   {
+    "n": "Fred VanVleet",
+    "y": "2023-24",
+    "before": 44,
+    "after": 11,
+    "mpg": 37.6,
+    "usg": 19.7,
+    "up30": 91,
+    "signs": [
+     "up30",
+     "tpm"
+    ]
+   },
+   {
+    "n": "Cade Cunningham",
+    "y": "2024-25",
+    "before": 55,
+    "after": 22,
+    "mpg": 36.2,
+    "usg": 31.5,
+    "up30": 89,
+    "signs": [
+     "up30"
+    ]
+   },
+   {
+    "n": "Jarrett Allen",
+    "y": "2021-22",
+    "before": 59,
+    "after": 27,
+    "mpg": 33.2,
+    "usg": 17.8,
+    "up30": 81,
+    "signs": [
+     "up30",
+     "lowusg"
+    ]
+   },
+   {
+    "n": "Mitchell Robinson",
+    "y": "2022-23",
+    "before": 77,
+    "after": 45,
+    "mpg": 22.7,
+    "usg": 11.2,
+    "up30": 25,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowmin",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Immanuel Quickley",
+    "y": "2025-26",
+    "before": 71,
+    "after": 39,
+    "mpg": 32.3,
+    "usg": 20.7,
+    "up30": 92,
+    "signs": [
+     "up30"
+    ]
+   },
+   {
+    "n": "Myles Turner",
+    "y": "2024-25",
+    "before": 69,
+    "after": 38,
+    "mpg": 32.2,
+    "usg": 22.4,
+    "up30": 85,
+    "signs": [
+     "up30",
+     "blk"
+    ]
+   },
+   {
+    "n": "Luka Doncic",
+    "y": "2021-22",
+    "before": 50,
+    "after": 20,
+    "mpg": 35.1,
+    "usg": 35.9,
+    "up30": 91,
+    "signs": [
+     "up30",
+     "tpm",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Robert Williams III",
+    "y": "2021-22",
+    "before": 40,
+    "after": 10,
+    "mpg": 30.1,
+    "usg": 11,
+    "up30": 43,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Rudy Gobert",
+    "y": "2023-24",
+    "before": 75,
+    "after": 45,
+    "mpg": 32.3,
+    "usg": 16.2,
+    "up30": 94,
+    "signs": [
+     "up30",
+     "lowusg",
+     "blk",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Derrick White",
+    "y": "2023-24",
+    "before": 50,
+    "after": 20,
+    "mpg": 32.2,
+    "usg": 17.5,
+    "up30": 64,
+    "signs": [
+     "up30"
+    ]
+   },
+   {
+    "n": "Andrew Wiggins",
+    "y": "2025-26",
+    "before": 74,
+    "after": 44,
+    "mpg": 33.1,
+    "usg": 21,
+    "up30": 95,
+    "signs": [
+     "up30"
+    ]
+   },
+   {
+    "n": "Jarrett Allen",
+    "y": "2022-23",
+    "before": 56,
+    "after": 27,
+    "mpg": 32.1,
+    "usg": 17.3,
+    "up30": 68,
+    "signs": [
+     "up30",
+     "lowusg",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Jarrett Allen",
+    "y": "2023-24",
+    "before": 67,
+    "after": 38,
+    "mpg": 28.9,
+    "usg": 16.9,
+    "up30": 59,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Domantas Sabonis",
+    "y": "2023-24",
+    "before": 48,
+    "after": 21,
+    "mpg": 35.1,
+    "usg": 21.8,
+    "up30": 78,
+    "signs": [
+     "up30"
+    ]
+   },
+   {
+    "n": "Tyrese Haliburton",
+    "y": "2024-25",
+    "before": 31,
+    "after": 4,
+    "mpg": 34.9,
+    "usg": 22.3,
+    "up30": 62,
+    "signs": [
+     "up30",
+     "tpm",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Nic Claxton",
+    "y": "2022-23",
+    "before": 44,
+    "after": 18,
+    "mpg": 27.4,
+    "usg": 16.4,
+    "up30": 32,
+    "signs": [
+     "up30",
+     "up30top",
+     "lowusg",
+     "blk"
+    ]
+   },
+   {
+    "n": "Evan Mobley",
+    "y": "2025-26",
+    "before": 63,
+    "after": 37,
+    "mpg": 34.5,
+    "usg": 23.2,
+    "up30": 94,
+    "signs": [
+     "up30",
+     "blk",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Dyson Daniels",
+    "y": "2025-26",
+    "before": 62,
+    "after": 36,
+    "mpg": 33.8,
+    "usg": 15.5,
+    "up30": 93,
+    "signs": [
+     "up30",
+     "lowusg",
+     "stl",
+     "yr3-4"
+    ]
+   },
+   {
+    "n": "Bam Adebayo",
+    "y": "2025-26",
+    "before": 55,
+    "after": 30,
+    "mpg": 30.2,
+    "usg": 24.9,
+    "up30": 58,
+    "signs": [
+     "up30",
+     "up30top",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Jakob Poeltl",
+    "y": "2024-25",
+    "before": 57,
+    "after": 34,
+    "mpg": 32.3,
+    "usg": 19.8,
+    "up30": 68,
+    "signs": [
+     "up30",
+     "coldfg"
+    ]
+   },
+   {
+    "n": "Dyson Daniels",
+    "y": "2024-25",
+    "before": 30,
+    "after": 8,
+    "mpg": 33.7,
+    "usg": 18.6,
+    "up30": 55,
+    "signs": [
+     "up30",
+     "up30top",
+     "stl",
+     "coldfg",
+     "yr3-4"
+    ]
+   },
+   {
+    "n": "Kevin Durant",
+    "y": "2025-26",
+    "before": 32,
+    "after": 10,
+    "mpg": 35.7,
+    "usg": 26.4,
+    "up30": 70,
+    "signs": [
+     "up30"
+    ]
+   },
+   {
+    "n": "Chet Holmgren",
+    "y": "2025-26",
+    "before": 33,
+    "after": 13,
+    "mpg": 29.5,
+    "usg": 23.9,
+    "up30": 32,
+    "signs": [
+     "up30",
+     "up30top",
+     "blk",
+     "yr3-4"
+    ]
+   }
+  ]
+ }
+}
