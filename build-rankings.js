@@ -511,6 +511,22 @@ async function main() {
   // the Schedule tab's starters.
   for (const [t, gs] of Object.entries(byTeam)) for (const r of gs[gs.length - 1].rows)
     if (r.team === t && r.st && players[r.id]) players[r.id].ls = 1;
+  // rp = who replaced him in the starting five when he sat: for each player who started the team's
+  // last game, the non-regular starter who most often started the team's games he missed (last 30
+  // team games). Schedule-free fallback for the Injuries tab's projected lineups.
+  for (const [t, gs] of Object.entries(byTeam)) {
+    const lastG = gs[gs.length - 1], five = new Set(lastG.rows.filter(r => r.team === t && r.st).map(r => r.id));
+    for (const P of five) {
+      const cnt = {};
+      for (const g of gs.slice(-30, -1)) {
+        const rows = g.rows.filter(r => r.team === t);
+        if (rows.some(r => r.id === P)) continue;            // he played: nothing to learn
+        for (const r of rows) if (r.st && !five.has(r.id)) cnt[r.id] = (cnt[r.id] || 0) + 1;
+      }
+      const best = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
+      if (best && players[P]) players[P].rp = best[0];
+    }
+  }
   // ps = starts in the team's 4 games before that one, so the page can tell a player who just
   // lost his starting spot (ps 3+, no ls) from one who never had it.
   for (const [t, gs] of Object.entries(byTeam)) for (const g of gs.slice(-5, -1)) for (const r of g.rows)

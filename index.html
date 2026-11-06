@@ -56,7 +56,7 @@ button,select{font:inherit;color:inherit;background:none;border:0;padding:0;curs
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;gap:4px;align-items:center;background:var(--panel);
   border-top:1px solid var(--rule);box-shadow:0 -4px 14px color-mix(in srgb,var(--ink) 8%,transparent);height:calc(var(--tabbar) + env(safe-area-inset-bottom,0px));
   padding:0 max(8px,env(safe-area-inset-left,0px)) env(safe-area-inset-bottom,0px) max(8px,env(safe-area-inset-right,0px));transition:transform .22s ease}
-.tabbar button{flex:1;height:32px;border-radius:16px;font:600 13.5px/1 var(--name);letter-spacing:.02em;color:var(--dim)}
+.tabbar button{flex:1;height:32px;border-radius:16px;font:600 12.5px/1 var(--name);letter-spacing:0;color:var(--dim);padding:0 2px;min-width:0}
 .tabbar button[aria-pressed="true"]{color:var(--panel);background:var(--ink)}
 .bar{transition:transform .22s ease}
 .ruler{transition:top .22s ease}
@@ -168,8 +168,8 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 /* Three views share the bar and settings: the night's box score, Buy/Sell (season so far
    vs. last season's rates) and Buzz (Yahoo's most added / dropped). body[data-view] shows one
    set and hides the others; no data-view yet means the box score. */
-body:not([data-view="bs"]) .bsv,body:not([data-view="bz"]) .bzv,body:not([data-view="pj"]) .pjv,body:not([data-view="rk"]) .rkv,body:not([data-view="sc"]) .scv,
-body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv,body[data-view="rk"] .boxv,body[data-view="sc"] .boxv{display:none!important}
+body:not([data-view="bs"]) .bsv,body:not([data-view="bz"]) .bzv,body:not([data-view="pj"]) .pjv,body:not([data-view="rk"]) .rkv,body:not([data-view="sc"]) .scv,body:not([data-view="in"]) .inv,
+body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv,body[data-view="rk"] .boxv,body[data-view="in"] .boxv,body[data-view="sc"] .boxv{display:none!important}
 .asof{flex:1;text-align:center;font:500 12px/1 var(--num);color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .datenav{flex:1;display:flex;justify-content:center;align-items:center;gap:2px;min-width:0}
 .arrow{width:30px;height:36px;display:grid;place-items:center;font-size:20px;color:var(--dim);border-radius:6px}
@@ -650,12 +650,18 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
   <div>
     <div class="meta">
       <span id="scStatus" class="num"></span>
-      <div class="sort" id="scView"><button data-k="week">Week</button><button data-k="tonight">Tonight</button></div>
       <div class="wkpick" id="scWk"><button data-d="-1" aria-label="Previous week">‹</button><span></span><button data-d="1" aria-label="Next week">›</button></div>
     </div>
   </div>
 </div>
 <main class="gut scv" id="scList"></main>
+
+<div class="ruler gut inv">
+  <div>
+    <div class="meta"><span id="inStatus" class="num"></span></div>
+  </div>
+</div>
+<main class="gut inv" id="inList"></main>
 
 <div class="ruler gut rkv">
   <div>
@@ -680,7 +686,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
   </aside>
 </div>
 
-<nav class="tabbar" id="tabs" aria-label="Views"><button data-v="box">Box</button><button data-v="rk">Ranks</button><button data-v="pj">Proj</button><button data-v="sc">Schedule</button><button data-v="bs">Buy/Sell</button><button data-v="bz">Buzz</button></nav>
+<nav class="tabbar" id="tabs" aria-label="Views"><button data-v="box">Box</button><button data-v="rk">Ranks</button><button data-v="pj">Proj</button><button data-v="sc">Schedule</button><button data-v="in">Injuries</button><button data-v="bs">Buy/Sell</button><button data-v="bz">Buzz</button></nav>
 <script>
 // Display order. All 9 are scoring categories, so every cell is heat-colored - the
 // percentage cells carry makes/attempts alongside the z on their second line rather
@@ -1771,7 +1777,7 @@ function paintWk(el,off){const ds=weekDates(off),last=SC?Object.keys(SC.dates).s
   $(el).querySelector("span").textContent=off===0?"This wk":off===1?"Next wk":`${sh(ds[0])}–${ds[0].slice(5,7)===ds[6].slice(5,7)?+ds[6].slice(8):sh(ds[6])}`;
   const[pv,nx]=$(el).querySelectorAll("button");pv.disabled=off<=0;nx.disabled=!last||shift(ds[6],1)>last}
 // Schedule tab: the grid for the picked week.
-S.scWk=0;S.scView=store.get("scView","week");
+S.scWk=0;
 // ---- Schedule > Tonight: every game tonight on one page, both full rosters, with the official NBA
 // injury report (data/nba-injuries.json, every 15 minutes on game days, merged into injuries.json).
 // Starting 5 = each team's starters from its last game (ls); a starter out tonight is replaced by
@@ -1780,15 +1786,15 @@ S.scWk=0;S.scView=store.get("scView","week");
 // probable, doubtful. Top: lineup changes, statuses that changed since the day's first report, the
 // biggest minute jumps; bottom: the injury horizon (rotation players out, by expected return).
 let NBR=null;
-fetch("data/nba-injuries.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{NBR=j;if(S.scView==="tonight")renderSC()}).catch(()=>{});
+fetch("data/nba-injuries.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{NBR=j;if(document.body.dataset.view==="in")renderTN()}).catch(()=>{});
 const POSO={PG:0,G:1,SG:2,GF:3,SF:4,F:5,PF:6,FC:7,C:8};
 function renderTN(){
-  if(!G||!SC||!R){$("scList").innerHTML=`<div class="empty">Loading…</div>`;return}
+  if(!G||!SC||!R){$("inList").innerHTML=`<div class="empty">Loading…</div>`;return}
   const today=etToday(),games=SC.dates[today]||[],sh=d=>fmtDate(d).replace(/^\w+, /,"");
   const nm=n=>n.replace(/^(\S)\S*\s/,"$1. "),clean=s=>(s||"").replace(/^Injury\/Illness - /,"").replace(/^(Left|Right) /,"").toLowerCase();
   const stamp=NBR&&NBR.stamp?NBR.stamp.replace(/^\S+\s+/,"").replace(/^0/,""):null;
-  $("scStatus").textContent=`${games.length} game${games.length===1?"":"s"}${stamp?" · report "+stamp:""}`;
-  if(!games.length){$("scList").innerHTML=`<div class="empty">No games tonight.</div>`;return}
+  $("inStatus").textContent=`${games.length} game${games.length===1?"":"s"}${stamp?" · report "+stamp:""}`;
+  if(!games.length){$("inList").innerHTML=`<div class="empty">No games tonight.</div>`;return}
   // tonight's report rows by team|name, game times and pending teams
   const rows=(NBR&&NBR.rows||[]).filter(r=>r.date===today),RW={},time={},pend=new Set();
   for(const r of rows){if(r.time)time[r.team]=r.time;if(!r.name)pend.add(r.team);else RW[r.team+"|"+r.name.toLowerCase()]=r}
@@ -1799,7 +1805,13 @@ function renderTN(){
       const out=s==="Out"||s==="Doubtful"||(!s&&!avail(id,today));return{id,q,r,s,i,out,m:out?0:minAt(id,q,today),base:q.xp[0],ls:R.players[id]&&R.players[id].ls,pos:posOf(id)}})
       .filter(o=>!(o.r&&/^G League/i.test(o.r.reason||"")));
     const last5=ps.filter(o=>o.ls),ok=ps.filter(o=>!o.out).sort((a,b)=>b.m-a.m),gone=last5.filter(o=>o.out);
-    const subs=ok.filter(o=>!o.ls).slice(0,gone.length);subs.forEach((o,k)=>{o.newFor=gone[k];lineup.push({t,inn:o,out:gone[k]})});
+    // each injured starter's spot goes to the player the team started when he sat before (rp), else
+    // the healthy non-starter with the most minutes at his position group (G / F / C), else anyone
+    const pg=p=>/C/.test(p)?"C":/F/.test(p)?"F":/G/.test(p)?"G":"",subs=[];
+    // the team's own habit first: who started when he sat before (rp in rankings.json)
+    for(const g of gone){const pool=ok.filter(o=>!o.ls&&!subs.includes(o)),rp=R.players[g.id]&&R.players[g.id].rp;
+      const s=pool.find(o=>o.id===rp)||pool.find(o=>pg(o.pos)&&pg(o.pos)===pg(g.pos))||pool[0];
+      if(s){s.newFor=g;subs.push(s);lineup.push({t,inn:s,out:g})}}
     const five=[...last5.filter(o=>!o.out),...subs].sort((a,b)=>(POSO[a.pos]??9)-(POSO[b.pos]??9));
     const bench=ok.filter(o=>!five.includes(o)&&o.m>=8),deep=ok.filter(o=>!five.includes(o)&&o.m<8),outL=ps.filter(o=>o.out&&(o.base>=8||o.ls));
     for(const o of[...five,...bench])if(o.m-o.base>=3)bumps.push(o);
@@ -1828,7 +1840,7 @@ function renderTN(){
   const hzHTML=groups.map(([l,f])=>{const g=hz.filter(f).sort((a,b)=>(a.i[1]||"z")<(b.i[1]||"z")?-1:1);if(!g.length)return"";
     return`<div class="bh sub">${l} (${g.length})</div>`+g.map(o=>`<div class="li" data-id="${o.id}"><span class="tpos">${esc(posOf(o.id))}</span><b>${esc(nm(o.q.n))}</b><span class="ar">${o.q.t} · ${Math.round(o.q.xp[0])}m</span><span class="d">${o.i[1]?sh(o.i[1]):"no date"}</span></div>`).join("")}).join("");
   const q=rows.filter(r=>r.status==="Questionable"&&r.name).length;
-  $("scList").innerHTML=`<div class="tnt">
+  $("inList").innerHTML=`<div class="tnt">
     <div class="sumr">${chip(lineup.length,"lineup change"+(lineup.length===1?"":"s"))}${chip(q,"questionable")}${chip(pend.size,"report"+(pend.size===1?"":"s")+" pending")}</div>
     ${lineup.length?`<div class="blk"><div class="bh">Lineup changes</div>${lineup.map(c=>`<div class="li" data-id="${c.inn.id}"><b>${esc(nm(c.inn.q.n))}</b><span class="ar">starts for ${esc(nm(c.out.q.n))}</span><span class="d">${c.t} · ${Math.round(c.inn.base)} → ${Math.round(c.inn.m)}m</span></div>`).join("")}</div>`:""}
     ${changes.length?`<div class="blk"><div class="bh">Changed since the ${NBR.day.first.replace(/^\S+\s+/,"").replace(/^0/,"")} report</div>${changes.map(c=>`<div class="li"><b>${esc(nm(c.n))}</b><span class="ar">${c.t}</span><span class="d">${c.was} → <span class="${cls(c.now)}">${c.now}</span> · ${c.at}</span></div>`).join("")}</div>`:""}
@@ -1838,9 +1850,7 @@ function renderTN(){
     <p class="bzcap">Starting 5 = each team's starters from its last game; a starter out tonight is replaced by the next man up (highlighted). Official lineups come about 30 minutes before tip, so this is a projection. Minutes are tonight's Proj (with next man up). Q / P / D and Out come from the NBA's official injury report${stamp?` (${stamp})`:""}; return dates from ESPN. Tap a player for his page.</p></div>`;
 }
 function renderSC(){
-  $("scView").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.scView));
-  $("scWk").hidden=S.scView==="tonight";
-  if(S.scView==="tonight")return renderTN();
+  if(document.body.dataset.view==="in")renderTN();
   paintWk("scWk",S.scWk);
   if(!G||!SC){$("scList").innerHTML=`<div class="empty">${G?"No schedule yet: it's built with the nightly rankings.":"Loading…"}</div>`;return}
   const today=etToday(),ds=weekDates(S.scWk),live=ds.filter(d=>d>=today);
@@ -1945,10 +1955,10 @@ function renderRK(){
 }
 
 function bsMsg(m){$("bsList").innerHTML=`<div class="empty">${esc(m)}</div>`;$("bsStatus").textContent=""}
-function setView(v){
+function setView(v){if(v==="in")setTimeout(()=>{try{renderTN()}catch(e){}},0);
   document.body.dataset.view=v;document.body.classList.remove("hidebars");if(typeof paintDens==="function")paintDens();
   $("tabs").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v));
-  try{history.replaceState(null,"",v==="bs"?"#buysell":v==="bz"?"#buzz":v==="pj"?"#proj":v==="rk"?"#ranks":v==="sc"?"#schedule":location.pathname+location.search)}catch(e){}
+  try{history.replaceState(null,"",v==="bs"?"#buysell":v==="bz"?"#buzz":v==="pj"?"#proj":v==="rk"?"#ranks":v==="sc"?"#schedule":v==="in"?"#injuries":location.pathname+location.search)}catch(e){}
   window.scrollTo(0,0);
 }
 fetch("data/regression.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
@@ -2174,11 +2184,11 @@ $("scList").addEventListener("click",e=>{const p=e.target.closest(".prow[data-id
   const c=e.target.closest(".sgd [data-t]");if(!c||c.closest(".tx"))return;const k={t:c.dataset.t,d:c.dataset.d||null};
   S.sgOpen=S.sgOpen&&S.sgOpen.t===k.t&&S.sgOpen.d===k.d?null:k;renderSC()});
 $("scWk").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.scWk=Math.max(0,S.scWk+ +b.dataset.d);S.sgOpen=null;renderSC()});
-$("scView").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.scView=b.dataset.k;store.set("scView",S.scView);renderSC();window.scrollTo(0,0)});
+$("inList").addEventListener("click",e=>{const p=e.target.closest(".tnt [data-id]");if(p)openSheet(p.dataset.id,null)});
 $("pjSz").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjSz=b.dataset.k;store.set("pjSz",S.pjSz);renderPJ()});
 $("bzDay").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bzDay=b.dataset.k;S.bzOpen.clear();renderBZ()});
 $("bzSort").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bzSort=b.dataset.k;store.set("bzSort",S.bzSort);S.bzOpen.clear();renderBZ()});
-setView(location.hash==="#buysell"?"bs":location.hash==="#buzz"?"bz":location.hash==="#proj"?"pj":location.hash==="#ranks"?"rk":location.hash==="#schedule"?"sc":"box");
+setView(location.hash==="#buysell"?"bs":location.hash==="#buzz"?"bz":location.hash==="#proj"?"pj":location.hash==="#ranks"?"rk":location.hash==="#schedule"?"sc":location.hash==="#injuries"?"in":"box");
 $("prev").onclick=()=>loadDate(shift(S.date,-1));
 $("next").onclick=()=>loadDate(shift(S.date,1));
 $("date").onchange=e=>e.target.value&&loadDate(e.target.value);

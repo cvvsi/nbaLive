@@ -38,9 +38,13 @@ jobs:
         run: |
           command -v pdftotext || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
           node fetch-nba-injuries.js
+      # Today's starting lineups from NBA.com (Expected, then Confirmed ~30 min before tip).
+      - name: Starting lineups
+        continue-on-error: true
+        run: node fetch-lineups.js
       - name: Commit if changed
         run: |
-          for f in data/injuries.json data/nba-injuries.json data/schedule.json; do [ -f "$f" ] && git add "$f"; done; true
+          for f in data/injuries.json data/nba-injuries.json data/schedule.json data/lineups.json; do [ -f "$f" ] && git add "$f"; done; true
           if git diff --cached --quiet; then echo "No change"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
