@@ -78,6 +78,13 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .lr .mt{font:500 12px/1 var(--name);color:var(--dim);white-space:nowrap;flex:none}
 .lr .ij{font:600 11px/1 var(--name);color:var(--neg);white-space:nowrap;flex:none}
 .lr .ij.dtd{color:var(--ball)}
+.lr.bo .bop{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;flex:none;padding-left:6px}
+.lr.bo .bop b{font:600 15px/1 var(--num);color:var(--ink)}.lr.bo .bop i{font:500 10px/1.2 var(--name);font-style:normal;color:var(--dim)}
+.lr.bo .bot{font:600 12px/1.3 var(--name);color:var(--ball);margin:4px 0 0 26px}
+.lr.bo .bog{display:flex;flex-wrap:wrap;gap:3px;margin:5px 0 0 26px}
+.lr.bo .bog i{font:600 10px/17px var(--name);font-style:normal;letter-spacing:.02em;padding:0 5px;border-radius:4px;color:var(--dim);background:var(--cell)}
+.lr.bo .bog i.on{color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}.lr.bo .bog i.weak{opacity:.5;text-decoration:line-through}
+.lr.bo .bon{font:500 12px/1.35 var(--name);color:var(--dim);margin:4px 0 0 26px}.lr.bo .bon b{color:var(--ink)}
 .rkt{font:600 10.5px/1 var(--name);font-style:normal;color:var(--dim);border:1px solid var(--rule);border-radius:4px;padding:2px 4px;white-space:nowrap;flex:none;margin-left:4px}
 .lr .sd{margin-left:auto;font:500 12px/1 var(--num);color:var(--dim);flex:none;padding-left:6px}
 .lr .vl{font:600 14px/1 var(--num);flex:none;min-width:44px;text-align:right}
@@ -590,10 +597,10 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
     <div class="meta">
       <span class="bsmeta"><span id="bsStatus" class="num">Loading</span><button class="info" id="bsInfo" aria-expanded="false" aria-controls="bsHelp" aria-label="How Buy/Sell works">i</button></span>
       <div class="sort" id="bsSort">
-        <button data-k="buy">Buy</button><button data-k="sell">Sell</button><button data-k="x">Proj</button><button data-k="now">Now</button>
+        <button data-k="buy">Buy</button><button data-k="sell">Sell</button><button data-k="x">Proj</button><button data-k="now">Now</button><button data-k="bo">Rise</button>
       </div>
     </div>
-    <div class="bsrow2"><div class="seg unit" id="bsUnit" role="group" aria-label="Counting stats per 36 minutes or per game"><button data-u="36">Per 36</button><button data-u="g">Per game</button></div>
+    <div class="bsrow2" id="bsRow2"><div class="seg unit" id="bsUnit" role="group" aria-label="Counting stats per 36 minutes or per game"><button data-u="36">Per 36</button><button data-u="g">Per game</button></div>
       <div class="rkh r3"><span>Now</span><span>Proj</span><span>LY</span></div></div>
     <div class="bscats" id="bsCats"></div>
   </div>
@@ -1046,6 +1053,8 @@ function rankBS(){
 const f1=v=>v==null?"–":v>=10?String(Math.round(v)):v.toFixed(1);
 function renderBS(){
   if(!G)return;
+  $("bsRow2").hidden=$("bsCats").hidden=S.bsSort==="bo";
+  if(S.bsSort==="bo")return renderBO();
   const B=S.bs,st=S.bsSort,flag=st==="buy"||st==="sell";
   const key={buy:id=>Math.log(B.now[id]/B.x[id]),sell:id=>Math.log(B.x[id]/B.now[id]),x:id=>-B.x[id],now:id=>-B.now[id]}[st];
   const ids=Object.keys(G.players).filter(id=>flag?B.v[id]===st:Math.min(B.now[id],B.x[id])<=BSREL).sort((a,b)=>key(b)-key(a));
@@ -1055,6 +1064,55 @@ function renderBS(){
   $("bsAsOf").textContent=`Season thru ${fmtDate(G.asOf).replace(/^\w+, /,"")}`;
   $("bsList").innerHTML=ids.length?ids.map(bsRow).join("")
     :`<div class="empty">No ${st==="buy"?"buy-low":"sell-high"} flags with these punts. Sort by Proj to see everyone.</div>`;
+}
+// ---- Breakouts (Buy/Sell > Rise): who's showing the signs that came before real breakouts.
+// data/breakouts.json (nightly, build-rankings.js): each player's signs tonight and, if his role is
+// changing now, the trigger. data/breakout-rates.json (study-signs.js, five seasons): for players
+// starting in the same range (outside 130, 81-130, inside 80), how many had each sign or pair of
+// signs and how many broke out (40%+ better and 20+ spots, inside 130: 80 -> 40 or 150 -> 67).
+// A player's odds are his best sign or pair, shrunk toward the average for small samples:
+// (breakouts + average x 20) / (cases + 20). Role changing now = the in-season table (next 20
+// games); otherwise the season one (the next season, a slower read). Signs that broke out less
+// often than average in his range are shown faded, as cautions.
+let BO=null,BOR=null;
+Promise.all(["data/breakouts.json","data/breakout-rates.json"].map(u=>fetch(u,{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null)))
+  .then(([b,r])=>{BO=b;BOR=r;if(S.bsSort==="bo")renderBS()});
+const BOL={up30:"per-min top 100 at 30",up30top:"per-min top 60 at 30",lowmin:"under 24 min",lowusg:"efficient, low usage",hiusgev:"has carried 23%+ usage",
+  coldfg:"shooting cold",newteam:"new team",startup:"moved into the starting 5",minup:"minutes rising","yr1-2":"1st–2nd year","yr3-4":"3rd–4th year",
+  c_pts:"PTS",c_reb:"REB",c_ast:"AST",c_stl:"STL",c_blk:"BLK",c_tpm:"3PM",c_fg:"FG%",c_ft:"FT%",c_to:"low TO",opening:"teammate out",bigjump:"10+ min spike",started:"moved into the starting 5"};
+const BOK=20;
+function boScore(id,p){
+  const tier=p.r>130?"deep":p.r>80?"fringe":"top80",ctx=p.trig?"trigger":"season",T=BOR&&BOR[ctx]&&BOR[ctx][tier];if(!T)return null;
+  const base=T.hits/T.cases,lit=[...p.setup];
+  if(p.trig){if(p.trig.opening)lit.push("opening");if(p.trig.bigjump)lit.push("bigjump");if(p.trig.kind==="start")lit.push("started")}
+  const has=k=>T.signs[k],shr=([n,h])=>(h+base*BOK)/(n+BOK);
+  let best={rate:base,keys:[],n:0,h:0};
+  const L=lit.filter(has);
+  for(const k of L){const c=T.signs[k];if(c[0]>=15&&shr(c)>best.rate)best={rate:shr(c),keys:[k],n:c[0],h:c[1]}}
+  for(let i=0;i<L.length;i++)for(let j=0;j<L.length;j++){if(i===j)continue;const c=T.pairs[L[i]+"+"+L[j]];if(c&&shr(c)>best.rate)best={rate:shr(c),keys:[L[i],L[j]],n:c[0],h:c[1]}}
+  const weak=new Set(L.filter(k=>{const c=T.signs[k];return c[0]>=15&&c[1]/c[0]<base*.85}));
+  return{tier,ctx,base,best,lit,weak}}
+function boRow(o){
+  const q=G.players[o.id]||{n:o.id,t:""},p=o.p,b=o.s.best,sh=d=>fmtDate(d).replace(/^\w+, /,"");
+  const tags=o.s.lit.map(k=>`<i class="${b.keys.includes(k)?"on":o.s.weak.has(k)?"weak":""}">${esc(k==="opening"&&p.trig.opening?`${surname(p.trig.opening)} out`:BOL[k]||k)}</i>`).join("");
+  const trig=p.trig?(p.trig.kind==="start"?`Started the last 2 (${p.trig.mp} → ${p.trig.m3} min)`:`Minutes ${p.trig.mp} → ${p.trig.m3} over the last 3`)+` · since ${sh(p.since.trig)}`:"";
+  const since=b.keys.length?b.keys.map(k=>p.since[k]).filter(Boolean).sort().pop():null;
+  const odds=b.keys.length?`${b.keys.map(k=>BOL[k]||k).join(" + ")}: <b>${b.h} of ${b.n}</b> broke out in ${o.s.ctx==="trigger"?"the next 20 games":"the next season"} (avg ${Math.round(100*o.s.base)}% from this range)${since&&!p.trig?` · lit since ${sh(since)}`:""}`
+    :`Nothing here beats the average (${Math.round(100*o.s.base)}%) yet.`;
+  return`<article class="cd lr bo" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(q.n)}: open details">
+    <div class="lr1"><span class="rk">${p.r}</span>${hs(o.id)}<b class="nm">${esc(q.n)}</b><span class="mt">${esc(q.t)} · ${Math.round(p.mpg)}m · Proj #${S.bs&&S.bs.x[o.id]||"–"}</span>${rkTagQ(q)}<span class="bop"><b>${Math.round(100*b.rate)}%</b><i>odds</i></span></div>
+    ${trig?`<div class="bot">${trig}</div>`:""}<div class="bog">${tags}</div><div class="bon">${odds}</div></article>`}
+function renderBO(){
+  $("bsSort").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k==="bo"));
+  if(!BO||!BOR){$("bsList").innerHTML=`<div class="empty">${BO===null&&BOR===null?"Loading…":"Breakout signs arrive with the next rankings build."}</div>`;$("bsStatus").textContent="";return}
+  const rows=Object.entries(BO.players).map(([id,p])=>({id,p,s:boScore(id,p)})).filter(o=>o.s);
+  const now=rows.filter(o=>o.p.trig).sort((a,b)=>b.s.best.rate-a.s.best.rate);
+  const setup=rows.filter(o=>!o.p.trig&&o.s.best.keys.length&&o.s.best.rate>=o.s.base*1.5).sort((a,b)=>b.s.best.rate/b.s.base-a.s.best.rate/a.s.base).slice(0,40);
+  $("bsStatus").textContent=`${now.length} changing · ${setup.length} set up`;
+  $("bsAsOf").textContent=`Signs thru ${fmtDate(BO.asOf).replace(/^\w+, /,"")}`;
+  $("bsList").innerHTML=`<p class="bzcap">Players showing the signs that came before real breakouts (any jump of 40%+ and 20+ spots into the top ${ROST}: 80 → 40 counts as much as 150 → 67). <b>Odds</b> = how often players in his range with his best sign or pair broke out over five seasons, pulled toward the average when the sample is small. Faded tags broke out less often than average. Most role changes fade (about 4 in 5), so the odds matter more than the jump.</p>`
+    +`<div class="pjh">Role changing now (${now.length})</div>`+(now.length?now.map(boRow).join(""):`<div class="empty">No one's role jumped over his last 3 games (needs 8+ games played).</div>`)
+    +`<div class="pjh">Set up, waiting for the role (${setup.length})</div>`+setup.map(boRow).join("");
 }
 // The two biggest changes from last season, labeled with what they mean: minutes and usage
 // are the role (sticks); everything else is a rate that drifts back (hot cools, cold returns).

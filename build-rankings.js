@@ -385,6 +385,84 @@ function buildRegression(games, asOf, rankings) {
   console.log(`${REG}: ${lines.filter(l => l.b).length}/${lines.length} players with a baseline`);
 }
 
+// ---- Breakouts tracker (Buy/Sell > Breakouts): every player's breakout signs tonight, the same
+// signs study-signs.js measured over five seasons (hit rates in data/breakout-rates.json).
+//   setup   signs from the season so far: up30 / up30top (his line at 30 minutes ranks inside 100 /
+//           60), lowmin, lowusg (under 19% usage, league-average FG% or better), hiusgev (a season
+//           at 23%+ usage in history.json), c_<cat> (that category 1+ spread above the top-130 pool
+//           at 30 minutes; FG%/FT% by impact, TO reversed), coldfg, newteam, startup / minup (last
+//           10 games vs before), yr1-2 (a rookie or second-year player)
+//   trig    the role is changing now: his last 3 games average 6+ more minutes than the up-to-10
+//           before (and 22+), or he started the last 2 after starting under 30% before. Flags:
+//           opening (a 24+ min teammate missed 2 of those 3; named), bigjump (10+ more), started.
+// since = the first night each sign (and the trigger) was lit, kept in data/breakouts-hist.json.
+const BO = 'data/breakouts.json', BO_HIST = 'data/breakouts-hist.json';
+function breakouts(games, players, asOf) {
+  let H = null; try { H = JSON.parse(fs.readFileSync(HIST, 'utf8')); } catch (e) { console.log('history.json missing: no breakouts'); return; }
+  let hist = {}; try { hist = JSON.parse(fs.readFileSync(BO_HIST, 'utf8')); } catch (e) {}
+  const sorted = [...games].sort((a, b) => a.date < b.date ? -1 : 1), by = {}, teamGames = {};
+  for (const g of sorted) {
+    const T = {};
+    for (const r of g.rows) { const t = T[r.team] || (T[r.team] = { min: 0, poss: 0 }); t.min += r.min; t.poss += r.fga + .44 * r.fta + r.to; }
+    for (const r of g.rows) { const t = T[r.team]; (by[r.id] || (by[r.id] = [])).push({ ...r, date: g.date, use: r.fga + .44 * r.fta + r.to, tpos: r.min * t.poss / (t.min / 5) }); }
+    for (const t of Object.keys(T)) (teamGames[t] || (teamGames[t] = [])).push({ date: g.date, mins: Object.fromEntries(g.rows.filter(r => r.team === t).map(r => [r.id, r.min])) });
+  }
+  const P = rankWindow(games), pool = P.pool, vals = P.filter(p => p.gp >= 3).map(p => p.value).sort((a, b) => b - a);
+  const rankOf = v => 1 + vals.filter(x => x > v).length, rankNow = Object.fromEntries(P.map(p => [p.id, rankOf(p.value)]));
+  let lm = 0, la = 0; for (const p of P) { lm += p.fgm * p.gp; la += p.fga * p.gp; } const lgFG = lm / la;
+  const K = ['min', 'pts', 'reb', 'ast', 'stl', 'blk', 'tpm', 'to', 'fgm', 'fga', 'ftm', 'fta', 'use', 'tpos'];
+  const sum = rs => { const t = Object.fromEntries(K.map(k => [k, 0])); for (const r of rs) for (const k of K) t[k] += r[k]; t.gp = rs.length; return t; };
+  const out = {}, hist2 = {};
+  for (const [id, rs] of Object.entries(by)) {
+    if (rs.length < 5 || !players[id]) continue;
+    const team = rs[rs.length - 1].team, t = sum(rs), mpg = t.min / t.gp, usg = t.tpos ? t.use / t.tpos : 0, fg = t.fga ? t.fgm / t.fga : 0;
+    const l = Object.fromEntries(['pts', 'reb', 'ast', 'stl', 'blk', 'tpm', 'to', 'fgm', 'fga', 'ftm', 'fta'].map(k => [k, t[k] / t.min * 30]));
+    const v = { ...l, fgi: l.fgm - pool.lgFG * l.fga, fti: l.ftm - pool.lgFT * l.fta };
+    const cz = c => (c === 'to' ? -1 : 1) * (v[pool.st[c].k] - pool.st[c].m) / pool.st[c].sd;
+    const up = rankOf(CATS.reduce((a, c) => a + cz(c), 0) / 9);
+    const h = H.players[id], hs = h ? H.seasons.map(s => h.s[s]).filter(Boolean) : [];
+    let om = 0, oa = 0; for (const s of hs) { om += s.fgm; oa += s.fga; }
+    const last = rs.slice(-10), early = rs.slice(0, -10);
+    const s = {
+      up30: up <= 100, up30top: up <= 60, lowmin: mpg < 24, lowusg: usg < .19 && fg >= lgFG,
+      hiusgev: hs.some(x => x.gp >= 15 && x.tpos && x.use / x.tpos >= .23),
+      coldfg: oa >= 150 ? fg * 100 <= 100 * om / oa - 4 : !h && fg <= .42,
+      newteam: (h && h.t && h.t !== team) || new Set(rs.map(r => r.team)).size > 1,
+      startup: early.length >= 5 && last.filter(r => r.st).length >= 5 && early.filter(r => r.st).length < early.length / 2,
+      minup: early.length >= 5 && sum(last).min / last.length - sum(early).min / early.length >= 4,
+      'yr1-2': !h || (h.s[H.seasons[0]] && !h.s[H.seasons[1]]),
+      ...Object.fromEntries(CATS.map(c => [`c_${c === 'tpm' ? 'tpm' : c}`, cz(c) >= 1])),
+    };
+    const setup = Object.keys(s).filter(k => s[k]);
+    // the role changing now (needs 8+ games: 3 recent and 5+ before them)
+    let trig = null;
+    const tg = teamGames[team] || [], l3 = rs.slice(-3), prior = rs.slice(-13, -3);
+    const recent = tg.length >= 2 && l3.length === 3 && l3[2].date >= tg[tg.length - 2].date;
+    if (prior.length >= 5 && recent) {
+      const m3 = l3.reduce((a, r) => a + r.min, 0) / 3, mp = prior.reduce((a, r) => a + r.min, 0) / prior.length;
+      const minT = m3 >= mp + 6 && m3 >= 22, stT = l3.slice(-2).every(r => r.st) && prior.filter(r => r.st).length < .3 * prior.length;
+      if (minT || stT) {
+        const k = tg.findIndex(g => g.date === l3[0].date), pr = tg.slice(Math.max(0, k - 10), k), rec = tg.slice(k, k + 3);
+        let opening = null;
+        for (const oid of new Set(pr.flatMap(g => Object.keys(g.mins)))) { if (oid === id) continue;
+          const played = pr.filter(g => g.mins[oid]).length, m = pr.reduce((a, g) => a + (g.mins[oid] || 0), 0) / Math.max(1, pr.length);
+          if (played >= Math.min(6, pr.length - 1) && m >= 24 && rec.filter(g => !g.mins[oid]).length >= 2) { opening = players[oid] ? players[oid].n : 'a teammate'; break; } }
+        trig = { kind: stT ? 'start' : 'min', m3: r1(m3), mp: r1(mp), opening, bigjump: m3 >= mp + 10 };
+      }
+    }
+    // first night each sign was lit (and the trigger)
+    const old = hist[id] || {}, since = {};
+    for (const k of setup) since[k] = old[k] || asOf;
+    if (trig) since.trig = old.trig || asOf;
+    hist2[id] = since;
+    if (!setup.length && !trig) continue;
+    out[id] = { r: rankNow[id], gp: rs.length, mpg: r1(mpg), usg: r1(100 * usg), up, setup, ...(trig ? { trig } : {}), since };
+  }
+  fs.writeFileSync(BO, JSON.stringify({ asOf, players: out }));
+  fs.writeFileSync(BO_HIST, JSON.stringify(hist2));
+  console.log(`${BO}: ${Object.keys(out).length} players, ${Object.values(out).filter(p => p.trig).length} with the role changing now`);
+}
+
 async function main() {
   const arg = process.argv[2];
   const through = arg ? `${arg.slice(0, 4)}-${arg.slice(4, 6)}-${arg.slice(6, 8)}` : shift(etToday(), -1);
@@ -441,6 +519,7 @@ async function main() {
   fs.writeFileSync(OUT, JSON.stringify({ asOf, cats: CATS, fields: ['gp', 'mpg', ...CATS], lf: LF, windows, players }));
   console.log(`${OUT}: ${Object.keys(players).length} players through ${asOf}`, JSON.stringify(windows));
   buildRegression(games, asOf, players);
+  breakouts(games, players, asOf);
 }
 
 module.exports = { loadGames, totals, rankWindow, nextMan, expectedLine, rookiePriors, ROOKIE_K, STATS, CATS, r2 };
