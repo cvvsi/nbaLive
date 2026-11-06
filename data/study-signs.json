@@ -253,7 +253,507 @@
      "rate": 0.11940298507462686,
      "lift": 1.9808102345415777
     }
-   ]
+   ],
+   "counts": {
+    "cases": 929,
+    "hits": 56,
+    "signs": {
+     "c_ft": [
+      5,
+      1
+     ],
+     "c_ast": [
+      25,
+      3
+     ],
+     "c_stl": [
+      108,
+      12
+     ],
+     "up30": [
+      232,
+      24
+     ],
+     "up30top": [
+      89,
+      9
+     ],
+     "yr3-4": [
+      33,
+      3
+     ],
+     "yr1-2": [
+      200,
+      18
+     ],
+     "startup": [
+      145,
+      13
+     ],
+     "c_blk": [
+      104,
+      9
+     ],
+     "lowusg": [
+      237,
+      19
+     ],
+     "coldfg": [
+      196,
+      15
+     ],
+     "minup": [
+      248,
+      16
+     ],
+     "hiusgev": [
+      82,
+      5
+     ],
+     "c_fg": [
+      84,
+      5
+     ],
+     "c_reb": [
+      101,
+      6
+     ],
+     "lowmin": [
+      689,
+      35
+     ],
+     "c_to": [
+      240,
+      11
+     ],
+     "newteam": [
+      419,
+      17
+     ],
+     "c_tpm": [
+      60,
+      1
+     ],
+     "c_pts": [
+      2,
+      0
+     ]
+    },
+    "pairs": {
+     "up30top+yr1-2": [
+      10,
+      4
+     ],
+     "up30+yr1-2": [
+      28,
+      9
+     ],
+     "lowusg+yr3-4": [
+      10,
+      3
+     ],
+     "c_reb+yr1-2": [
+      11,
+      3
+     ],
+     "up30top+startup": [
+      15,
+      4
+     ],
+     "c_stl+yr1-2": [
+      19,
+      5
+     ],
+     "startup+lowusg": [
+      29,
+      6
+     ],
+     "up30+startup": [
+      39,
+      8
+     ],
+     "startup+c_stl": [
+      15,
+      3
+     ],
+     "up30top+minup": [
+      26,
+      5
+     ],
+     "minup+c_ast": [
+      11,
+      2
+     ],
+     "startup+c_blk": [
+      17,
+      3
+     ],
+     "c_blk+yr1-2": [
+      17,
+      3
+     ],
+     "hiusgev+c_stl": [
+      12,
+      2
+     ],
+     "up30+coldfg": [
+      32,
+      5
+     ],
+     "minup+c_stl": [
+      33,
+      5
+     ],
+     "c_stl+c_to": [
+      20,
+      3
+     ],
+     "lowusg+yr1-2": [
+      37,
+      5
+     ],
+     "startup+yr1-2": [
+      45,
+      6
+     ],
+     "up30+minup": [
+      69,
+      9
+     ],
+     "coldfg+yr1-2": [
+      54,
+      7
+     ],
+     "minup+c_blk": [
+      31,
+      4
+     ],
+     "lowusg+c_stl": [
+      24,
+      3
+     ],
+     "up30+lowusg": [
+      100,
+      12
+     ],
+     "up30+c_stl": [
+      67,
+      8
+     ],
+     "lowmin+c_ast": [
+      17,
+      2
+     ],
+     "c_blk+coldfg": [
+      17,
+      2
+     ],
+     "c_stl+newteam": [
+      53,
+      6
+     ],
+     "startup+c_reb": [
+      18,
+      2
+     ],
+     "c_stl+coldfg": [
+      27,
+      3
+     ],
+     "up30top+newteam": [
+      46,
+      5
+     ],
+     "lowmin+c_stl": [
+      102,
+      11
+     ],
+     "up30top+c_stl": [
+      39,
+      4
+     ],
+     "up30+up30top": [
+      89,
+      9
+     ],
+     "up30top+lowmin": [
+      89,
+      9
+     ],
+     "c_reb+c_stl": [
+      10,
+      1
+     ],
+     "c_ast+newteam": [
+      10,
+      1
+     ],
+     "up30+lowmin": [
+      221,
+      22
+     ],
+     "lowusg+c_reb": [
+      62,
+      6
+     ],
+     "up30+newteam": [
+      98,
+      9
+     ],
+     "up30+c_blk": [
+      77,
+      7
+     ],
+     "minup+lowusg": [
+      66,
+      6
+     ],
+     "minup+c_reb": [
+      22,
+      2
+     ],
+     "lowmin+startup": [
+      112,
+      10
+     ],
+     "minup+yr1-2": [
+      80,
+      7
+     ],
+     "minup+startup": [
+      103,
+      9
+     ],
+     "lowmin+yr3-4": [
+      23,
+      2
+     ],
+     "up30+c_reb": [
+      58,
+      5
+     ],
+     "up30top+c_to": [
+      24,
+      2
+     ],
+     "lowusg+c_fg": [
+      63,
+      5
+     ],
+     "lowusg+coldfg": [
+      26,
+      2
+     ],
+     "minup+coldfg": [
+      66,
+      5
+     ],
+     "lowusg+c_blk": [
+      69,
+      5
+     ],
+     "up30top+coldfg": [
+      14,
+      1
+     ],
+     "lowmin+lowusg": [
+      196,
+      14
+     ],
+     "lowmin+c_blk": [
+      98,
+      7
+     ],
+     "startup+coldfg": [
+      42,
+      3
+     ],
+     "up30+c_to": [
+      57,
+      4
+     ],
+     "c_blk+c_fg": [
+      43,
+      3
+     ],
+     "up30+c_fg": [
+      58,
+      4
+     ],
+     "lowmin+yr1-2": [
+      160,
+      11
+     ],
+     "up30top+lowusg": [
+      45,
+      3
+     ],
+     "up30top+c_blk": [
+      45,
+      3
+     ],
+     "c_to+yr1-2": [
+      45,
+      3
+     ],
+     "lowmin+minup": [
+      213,
+      14
+     ],
+     "hiusgev+newteam": [
+      46,
+      3
+     ],
+     "up30+hiusgev": [
+      16,
+      1
+     ],
+     "lowmin+coldfg": [
+      161,
+      10
+     ],
+     "c_to+coldfg": [
+      52,
+      3
+     ],
+     "up30top+c_reb": [
+      35,
+      2
+     ],
+     "lowmin+c_reb": [
+      92,
+      5
+     ],
+     "lowmin+c_fg": [
+      78,
+      4
+     ],
+     "up30+c_tpm": [
+      20,
+      1
+     ],
+     "c_reb+coldfg": [
+      20,
+      1
+     ],
+     "lowmin+hiusgev": [
+      41,
+      2
+     ],
+     "c_blk+c_to": [
+      21,
+      1
+     ],
+     "newteam+yr1-2": [
+      44,
+      2
+     ],
+     "c_blk+newteam": [
+      45,
+      2
+     ],
+     "minup+c_fg": [
+      23,
+      1
+     ],
+     "c_reb+c_fg": [
+      48,
+      2
+     ],
+     "lowusg+c_to": [
+      52,
+      2
+     ],
+     "c_to+newteam": [
+      106,
+      4
+     ],
+     "lowmin+c_to": [
+      187,
+      7
+     ],
+     "startup+c_to": [
+      27,
+      1
+     ],
+     "c_tpm+newteam": [
+      27,
+      1
+     ],
+     "coldfg+newteam": [
+      85,
+      3
+     ],
+     "up30top+c_fg": [
+      29,
+      1
+     ],
+     "startup+newteam": [
+      61,
+      2
+     ],
+     "minup+newteam": [
+      98,
+      3
+     ],
+     "lowmin+newteam": [
+      315,
+      9
+     ],
+     "c_fg+newteam": [
+      40,
+      1
+     ],
+     "lowmin+c_tpm": [
+      44,
+      1
+     ],
+     "c_reb+c_blk": [
+      45,
+      1
+     ],
+     "lowusg+newteam": [
+      100,
+      2
+     ],
+     "minup+c_to": [
+      51,
+      1
+     ],
+     "minup+hiusgev": [
+      10,
+      0
+     ],
+     "minup+c_tpm": [
+      11,
+      0
+     ],
+     "startup+c_fg": [
+      15,
+      0
+     ],
+     "c_reb+newteam": [
+      49,
+      0
+     ],
+     "c_stl+c_blk": [
+      13,
+      0
+     ],
+     "c_stl+c_fg": [
+      10,
+      0
+     ],
+     "c_tpm+c_to": [
+      35,
+      0
+     ],
+     "newteam+yr3-4": [
+      20,
+      0
+     ]
+    }
+   }
   },
   "fringe": {
    "cases": 184,
@@ -507,7 +1007,789 @@
      "rate": 0.23529411764705882,
      "lift": 1.3529411764705883
     }
-   ]
+   ],
+   "counts": {
+    "cases": 184,
+    "hits": 32,
+    "signs": {
+     "c_blk": [
+      18,
+      7
+     ],
+     "c_fg": [
+      23,
+      8
+     ],
+     "startup": [
+      24,
+      8
+     ],
+     "c_tpm": [
+      12,
+      4
+     ],
+     "c_reb": [
+      29,
+      7
+     ],
+     "lowmin": [
+      17,
+      4
+     ],
+     "up30top": [
+      30,
+      7
+     ],
+     "yr1-2": [
+      13,
+      3
+     ],
+     "coldfg": [
+      19,
+      4
+     ],
+     "c_ast": [
+      10,
+      2
+     ],
+     "yr3-4": [
+      5,
+      1
+     ],
+     "minup": [
+      21,
+      4
+     ],
+     "lowusg": [
+      45,
+      8
+     ],
+     "up30": [
+      93,
+      16
+     ],
+     "hiusgev": [
+      52,
+      8
+     ],
+     "c_to": [
+      28,
+      4
+     ],
+     "newteam": [
+      70,
+      8
+     ],
+     "c_stl": [
+      27,
+      3
+     ],
+     "c_pts": [
+      4,
+      0
+     ],
+     "c_ft": [
+      3,
+      0
+     ]
+    },
+    "pairs": {
+     "c_reb+c_blk": [
+      11,
+      6
+     ],
+     "lowusg+c_fg": [
+      16,
+      8
+     ],
+     "lowusg+c_blk": [
+      15,
+      7
+     ],
+     "c_blk+c_fg": [
+      15,
+      7
+     ],
+     "lowusg+c_reb": [
+      13,
+      6
+     ],
+     "up30+c_blk": [
+      16,
+      7
+     ],
+     "up30+c_fg": [
+      19,
+      8
+     ],
+     "up30top+c_blk": [
+      12,
+      5
+     ],
+     "up30top+c_fg": [
+      12,
+      5
+     ],
+     "c_reb+c_fg": [
+      15,
+      6
+     ],
+     "startup+newteam": [
+      11,
+      4
+     ],
+     "up30+startup": [
+      18,
+      6
+     ],
+     "up30top+lowusg": [
+      16,
+      5
+     ],
+     "up30top+c_reb": [
+      13,
+      4
+     ],
+     "lowmin+c_fg": [
+      10,
+      3
+     ],
+     "up30+lowusg": [
+      31,
+      8
+     ],
+     "up30+lowmin": [
+      17,
+      4
+     ],
+     "up30top+lowmin": [
+      17,
+      4
+     ],
+     "up30+up30top": [
+      30,
+      7
+     ],
+     "up30+c_reb": [
+      26,
+      6
+     ],
+     "minup+startup": [
+      13,
+      3
+     ],
+     "up30+c_to": [
+      17,
+      3
+     ],
+     "up30+c_stl": [
+      24,
+      3
+     ],
+     "up30+hiusgev": [
+      19,
+      2
+     ],
+     "up30top+newteam": [
+      10,
+      1
+     ],
+     "up30+newteam": [
+      31,
+      3
+     ],
+     "up30top+c_stl": [
+      11,
+      1
+     ],
+     "hiusgev+newteam": [
+      23,
+      2
+     ],
+     "lowusg+c_to": [
+      14,
+      1
+     ],
+     "up30+minup": [
+      15,
+      1
+     ],
+     "lowusg+newteam": [
+      16,
+      0
+     ]
+    }
+   }
+  },
+  "top80": {
+   "cases": 306,
+   "hits": 24,
+   "base": 0.0784313725490196,
+   "signs": [
+    {
+     "sign": "startup",
+     "have": 5,
+     "hits": 2,
+     "rate": 0.4,
+     "lift": 5.1000000000000005
+    },
+    {
+     "sign": "coldfg",
+     "have": 15,
+     "hits": 4,
+     "rate": 0.26666666666666666,
+     "lift": 3.4
+    },
+    {
+     "sign": "yr1-2",
+     "have": 16,
+     "hits": 4,
+     "rate": 0.25,
+     "lift": 3.1875
+    },
+    {
+     "sign": "c_to",
+     "have": 21,
+     "hits": 4,
+     "rate": 0.19047619047619047,
+     "lift": 2.4285714285714284
+    },
+    {
+     "sign": "minup",
+     "have": 17,
+     "hits": 2,
+     "rate": 0.11764705882352941,
+     "lift": 1.5
+    },
+    {
+     "sign": "lowusg",
+     "have": 49,
+     "hits": 5,
+     "rate": 0.10204081632653061,
+     "lift": 1.3010204081632653
+    },
+    {
+     "sign": "c_reb",
+     "have": 63,
+     "hits": 5,
+     "rate": 0.07936507936507936,
+     "lift": 1.0119047619047619
+    },
+    {
+     "sign": "up30",
+     "have": 283,
+     "hits": 22,
+     "rate": 0.07773851590106007,
+     "lift": 0.9911660777385158
+    },
+    {
+     "sign": "c_blk",
+     "have": 52,
+     "hits": 3,
+     "rate": 0.057692307692307696,
+     "lift": 0.7355769230769231
+    },
+    {
+     "sign": "c_fg",
+     "have": 55,
+     "hits": 3,
+     "rate": 0.05454545454545454,
+     "lift": 0.6954545454545454
+    },
+    {
+     "sign": "hiusgev",
+     "have": 133,
+     "hits": 7,
+     "rate": 0.05263157894736842,
+     "lift": 0.6710526315789473
+    },
+    {
+     "sign": "newteam",
+     "have": 134,
+     "hits": 6,
+     "rate": 0.04477611940298507,
+     "lift": 0.5708955223880596
+    },
+    {
+     "sign": "c_ast",
+     "have": 46,
+     "hits": 2,
+     "rate": 0.043478260869565216,
+     "lift": 0.5543478260869565
+    },
+    {
+     "sign": "up30top",
+     "have": 166,
+     "hits": 5,
+     "rate": 0.030120481927710843,
+     "lift": 0.38403614457831325
+    },
+    {
+     "sign": "c_tpm",
+     "have": 37,
+     "hits": 1,
+     "rate": 0.02702702702702703,
+     "lift": 0.3445945945945946
+    },
+    {
+     "sign": "c_ft",
+     "have": 40,
+     "hits": 1,
+     "rate": 0.025,
+     "lift": 0.31875000000000003
+    },
+    {
+     "sign": "c_stl",
+     "have": 41,
+     "hits": 1,
+     "rate": 0.024390243902439025,
+     "lift": 0.31097560975609756
+    },
+    {
+     "sign": "lowmin",
+     "have": 2,
+     "hits": 0,
+     "rate": 0,
+     "lift": 0
+    },
+    {
+     "sign": "c_pts",
+     "have": 33,
+     "hits": 0,
+     "rate": 0,
+     "lift": 0
+    },
+    {
+     "sign": "yr3-4",
+     "have": 7,
+     "hits": 0,
+     "rate": 0,
+     "lift": 0
+    }
+   ],
+   "pairs": [
+    {
+     "signs": "up30top + coldfg",
+     "have": 12,
+     "hits": 4,
+     "rate": 0.3333333333333333,
+     "lift": 4.25
+    },
+    {
+     "signs": "up30 + coldfg",
+     "have": 14,
+     "hits": 4,
+     "rate": 0.2857142857142857,
+     "lift": 3.642857142857143
+    },
+    {
+     "signs": "up30 + yr1-2",
+     "have": 15,
+     "hits": 4,
+     "rate": 0.26666666666666666,
+     "lift": 3.4
+    },
+    {
+     "signs": "up30 + c_to",
+     "have": 21,
+     "hits": 4,
+     "rate": 0.19047619047619047,
+     "lift": 2.4285714285714284
+    },
+    {
+     "signs": "lowusg + c_to",
+     "have": 13,
+     "hits": 2,
+     "rate": 0.15384615384615385,
+     "lift": 1.9615384615384617
+    },
+    {
+     "signs": "lowusg + newteam",
+     "have": 14,
+     "hits": 2,
+     "rate": 0.14285714285714285,
+     "lift": 1.8214285714285714
+    },
+    {
+     "signs": "up30 + minup",
+     "have": 16,
+     "hits": 2,
+     "rate": 0.125,
+     "lift": 1.59375
+    },
+    {
+     "signs": "lowusg + c_fg",
+     "have": 25,
+     "hits": 3,
+     "rate": 0.12,
+     "lift": 1.53
+    },
+    {
+     "signs": "up30 + lowusg",
+     "have": 47,
+     "hits": 5,
+     "rate": 0.10638297872340426,
+     "lift": 1.3563829787234043
+    },
+    {
+     "signs": "lowusg + c_reb",
+     "have": 24,
+     "hits": 2,
+     "rate": 0.08333333333333333,
+     "lift": 1.0625
+    },
+    {
+     "signs": "up30 + c_reb",
+     "have": 63,
+     "hits": 5,
+     "rate": 0.07936507936507936,
+     "lift": 1.0119047619047619
+    },
+    {
+     "signs": "up30top + lowusg",
+     "have": 26,
+     "hits": 2,
+     "rate": 0.07692307692307693,
+     "lift": 0.9807692307692308
+    },
+    {
+     "signs": "up30top + c_blk",
+     "have": 44,
+     "hits": 3,
+     "rate": 0.06818181818181818,
+     "lift": 0.8693181818181818
+    },
+    {
+     "signs": "c_reb + c_blk",
+     "have": 31,
+     "hits": 2,
+     "rate": 0.06451612903225806,
+     "lift": 0.8225806451612903
+    },
+    {
+     "signs": "up30top + c_reb",
+     "have": 48,
+     "hits": 3,
+     "rate": 0.0625,
+     "lift": 0.796875
+    }
+   ],
+   "counts": {
+    "cases": 306,
+    "hits": 24,
+    "signs": {
+     "startup": [
+      5,
+      2
+     ],
+     "coldfg": [
+      15,
+      4
+     ],
+     "yr1-2": [
+      16,
+      4
+     ],
+     "c_to": [
+      21,
+      4
+     ],
+     "minup": [
+      17,
+      2
+     ],
+     "lowusg": [
+      49,
+      5
+     ],
+     "c_reb": [
+      63,
+      5
+     ],
+     "up30": [
+      283,
+      22
+     ],
+     "c_blk": [
+      52,
+      3
+     ],
+     "c_fg": [
+      55,
+      3
+     ],
+     "hiusgev": [
+      133,
+      7
+     ],
+     "newteam": [
+      134,
+      6
+     ],
+     "c_ast": [
+      46,
+      2
+     ],
+     "up30top": [
+      166,
+      5
+     ],
+     "c_tpm": [
+      37,
+      1
+     ],
+     "c_ft": [
+      40,
+      1
+     ],
+     "c_stl": [
+      41,
+      1
+     ],
+     "lowmin": [
+      2,
+      0
+     ],
+     "c_pts": [
+      33,
+      0
+     ],
+     "yr3-4": [
+      7,
+      0
+     ]
+    },
+    "pairs": {
+     "up30top+coldfg": [
+      12,
+      4
+     ],
+     "up30+coldfg": [
+      14,
+      4
+     ],
+     "up30+yr1-2": [
+      15,
+      4
+     ],
+     "up30+c_to": [
+      21,
+      4
+     ],
+     "lowusg+c_to": [
+      13,
+      2
+     ],
+     "lowusg+newteam": [
+      14,
+      2
+     ],
+     "up30+minup": [
+      16,
+      2
+     ],
+     "lowusg+c_fg": [
+      25,
+      3
+     ],
+     "up30+lowusg": [
+      47,
+      5
+     ],
+     "up30top+minup": [
+      10,
+      1
+     ],
+     "lowusg+c_reb": [
+      24,
+      2
+     ],
+     "up30+c_reb": [
+      63,
+      5
+     ],
+     "up30top+lowusg": [
+      26,
+      2
+     ],
+     "up30top+c_blk": [
+      44,
+      3
+     ],
+     "c_reb+c_blk": [
+      31,
+      2
+     ],
+     "up30top+c_reb": [
+      48,
+      3
+     ],
+     "hiusgev+c_reb": [
+      16,
+      1
+     ],
+     "up30+c_blk": [
+      52,
+      3
+     ],
+     "up30+c_fg": [
+      55,
+      3
+     ],
+     "up30+hiusgev": [
+      120,
+      6
+     ],
+     "up30+newteam": [
+      126,
+      6
+     ],
+     "up30top+c_fg": [
+      42,
+      2
+     ],
+     "c_fg+newteam": [
+      22,
+      1
+     ],
+     "lowusg+c_blk": [
+      23,
+      1
+     ],
+     "c_reb+c_fg": [
+      47,
+      2
+     ],
+     "hiusgev+c_ast": [
+      25,
+      1
+     ],
+     "c_blk+c_fg": [
+      27,
+      1
+     ],
+     "hiusgev+newteam": [
+      63,
+      2
+     ],
+     "up30+up30top": [
+      166,
+      5
+     ],
+     "up30+c_tpm": [
+      36,
+      1
+     ],
+     "up30+c_ft": [
+      39,
+      1
+     ],
+     "up30+c_stl": [
+      41,
+      1
+     ],
+     "up30+c_ast": [
+      45,
+      1
+     ],
+     "up30+c_pts": [
+      33,
+      0
+     ],
+     "up30top+hiusgev": [
+      71,
+      0
+     ],
+     "up30top+c_pts": [
+      29,
+      0
+     ],
+     "up30top+c_ast": [
+      30,
+      0
+     ],
+     "up30top+c_stl": [
+      33,
+      0
+     ],
+     "up30top+c_tpm": [
+      23,
+      0
+     ],
+     "up30top+c_ft": [
+      28,
+      0
+     ],
+     "up30top+newteam": [
+      87,
+      0
+     ],
+     "hiusgev+c_pts": [
+      20,
+      0
+     ],
+     "hiusgev+c_stl": [
+      15,
+      0
+     ],
+     "hiusgev+c_blk": [
+      13,
+      0
+     ],
+     "hiusgev+c_tpm": [
+      20,
+      0
+     ],
+     "hiusgev+c_fg": [
+      12,
+      0
+     ],
+     "hiusgev+c_ft": [
+      25,
+      0
+     ],
+     "c_pts+c_ft": [
+      14,
+      0
+     ],
+     "c_pts+newteam": [
+      25,
+      0
+     ],
+     "c_reb+newteam": [
+      27,
+      0
+     ],
+     "c_ast+c_stl": [
+      11,
+      0
+     ],
+     "c_ast+newteam": [
+      26,
+      0
+     ],
+     "c_stl+newteam": [
+      22,
+      0
+     ],
+     "c_blk+newteam": [
+      25,
+      0
+     ],
+     "c_tpm+c_ft": [
+      10,
+      0
+     ],
+     "c_tpm+newteam": [
+      16,
+      0
+     ],
+     "c_ft+newteam": [
+      23,
+      0
+     ]
+    }
+   }
   },
   "trueBreakouts": [
    {
@@ -3094,7 +4376,715 @@
      "rate": 0.3163265306122449,
      "lift": 1.4169948681226878
     }
-   ]
+   ],
+   "counts": {
+    "cases": 1532,
+    "hits": 342,
+    "signs": {
+     "c_ft": [
+      22,
+      9
+     ],
+     "hiusgev": [
+      162,
+      57
+     ],
+     "c_reb": [
+      149,
+      47
+     ],
+     "c_fg": [
+      113,
+      32
+     ],
+     "c_blk": [
+      151,
+      42
+     ],
+     "up30top": [
+      152,
+      39
+     ],
+     "up30": [
+      397,
+      96
+     ],
+     "lowusg": [
+      419,
+      100
+     ],
+     "yr3-4": [
+      118,
+      28
+     ],
+     "c_ast": [
+      55,
+      13
+     ],
+     "c_stl": [
+      225,
+      53
+     ],
+     "newteam": [
+      313,
+      69
+     ],
+     "c_tpm": [
+      99,
+      21
+     ],
+     "started": [
+      433,
+      91
+     ],
+     "opening": [
+      832,
+      173
+     ],
+     "coldfg": [
+      379,
+      73
+     ],
+     "lowmin": [
+      1125,
+      187
+     ],
+     "yr1-2": [
+      332,
+      53
+     ],
+     "c_to": [
+      420,
+      67
+     ],
+     "bigjump": [
+      391,
+      46
+     ],
+     "c_pts": [
+      1,
+      0
+     ]
+    },
+    "pairs": {
+     "lowusg+c_ast": [
+      11,
+      5
+     ],
+     "c_fg+yr1-2": [
+      21,
+      9
+     ],
+     "c_reb+yr1-2": [
+      31,
+      13
+     ],
+     "hiusgev+c_reb": [
+      12,
+      5
+     ],
+     "hiusgev+c_ast": [
+      10,
+      4
+     ],
+     "hiusgev+coldfg": [
+      20,
+      8
+     ],
+     "c_reb+c_to": [
+      20,
+      8
+     ],
+     "c_blk+c_fg": [
+      57,
+      21
+     ],
+     "hiusgev+newteam": [
+      41,
+      15
+     ],
+     "lowusg+c_stl": [
+      55,
+      20
+     ],
+     "up30+c_reb": [
+      91,
+      33
+     ],
+     "up30top+c_fg": [
+      50,
+      18
+     ],
+     "c_ast+bigjump": [
+      14,
+      5
+     ],
+     "c_reb+c_stl": [
+      23,
+      8
+     ],
+     "c_reb+c_fg": [
+      58,
+      20
+     ],
+     "lowusg+c_reb": [
+      93,
+      32
+     ],
+     "up30top+yr1-2": [
+      21,
+      7
+     ],
+     "lowmin+c_ft": [
+      18,
+      6
+     ],
+     "c_ast+coldfg": [
+      15,
+      5
+     ],
+     "c_stl+yr3-4": [
+      27,
+      9
+     ],
+     "up30top+lowusg": [
+      79,
+      26
+     ],
+     "c_reb+c_blk": [
+      73,
+      24
+     ],
+     "c_stl+newteam": [
+      40,
+      13
+     ],
+     "up30+c_fg": [
+      74,
+      24
+     ],
+     "c_ast+opening": [
+      34,
+      11
+     ],
+     "lowusg+c_blk": [
+      98,
+      31
+     ],
+     "up30top+c_reb": [
+      57,
+      18
+     ],
+     "up30+c_ast": [
+      16,
+      5
+     ],
+     "hiusgev+yr3-4": [
+      13,
+      4
+     ],
+     "c_ft+opening": [
+      13,
+      4
+     ],
+     "lowusg+c_fg": [
+      95,
+      29
+     ],
+     "up30+hiusgev": [
+      33,
+      10
+     ],
+     "up30+c_blk": [
+      99,
+      30
+     ],
+     "up30top+c_blk": [
+      63,
+      19
+     ],
+     "c_blk+yr3-4": [
+      10,
+      3
+     ],
+     "c_fg+opening": [
+      64,
+      19
+     ],
+     "c_tpm+started": [
+      27,
+      8
+     ],
+     "c_reb+opening": [
+      78,
+      23
+     ],
+     "c_stl+c_blk": [
+      17,
+      5
+     ],
+     "lowmin+c_reb": [
+      131,
+      38
+     ],
+     "c_blk+opening": [
+      94,
+      27
+     ],
+     "up30top+coldfg": [
+      21,
+      6
+     ],
+     "hiusgev+opening": [
+      70,
+      20
+     ],
+     "newteam+yr3-4": [
+      21,
+      6
+     ],
+     "c_reb+newteam": [
+      32,
+      9
+     ],
+     "up30+lowusg": [
+      178,
+      50
+     ],
+     "up30top+newteam": [
+      29,
+      8
+     ],
+     "hiusgev+started": [
+      40,
+      11
+     ],
+     "lowusg+c_tpm": [
+      11,
+      3
+     ],
+     "c_reb+started": [
+      44,
+      12
+     ],
+     "c_blk+yr1-2": [
+      33,
+      9
+     ],
+     "up30+newteam": [
+      85,
+      23
+     ],
+     "up30top+c_to": [
+      45,
+      12
+     ],
+     "up30top+c_stl": [
+      57,
+      15
+     ],
+     "opening+yr3-4": [
+      65,
+      17
+     ],
+     "c_fg+c_to": [
+      27,
+      7
+     ],
+     "up30+up30top": [
+      152,
+      39
+     ],
+     "up30top+lowmin": [
+      152,
+      39
+     ],
+     "lowmin+c_fg": [
+      104,
+      26
+     ],
+     "c_ast+c_stl": [
+      16,
+      4
+     ],
+     "c_ast+started": [
+      12,
+      3
+     ],
+     "lowmin+c_blk": [
+      137,
+      34
+     ],
+     "up30top+opening": [
+      89,
+      22
+     ],
+     "lowusg+yr1-2": [
+      81,
+      20
+     ],
+     "c_stl+c_to": [
+      41,
+      10
+     ],
+     "lowusg+opening": [
+      215,
+      52
+     ],
+     "lowusg+yr3-4": [
+      29,
+      7
+     ],
+     "up30+coldfg": [
+      67,
+      16
+     ],
+     "lowusg+coldfg": [
+      42,
+      10
+     ],
+     "c_tpm+newteam": [
+      21,
+      5
+     ],
+     "c_stl+opening": [
+      122,
+      29
+     ],
+     "c_ast+yr1-2": [
+      17,
+      4
+     ],
+     "up30+opening": [
+      216,
+      50
+     ],
+     "c_tpm+opening": [
+      61,
+      14
+     ],
+     "up30+c_stl": [
+      136,
+      31
+     ],
+     "newteam+opening": [
+      172,
+      39
+     ],
+     "c_stl+coldfg": [
+      62,
+      14
+     ],
+     "c_blk+coldfg": [
+      40,
+      9
+     ],
+     "coldfg+newteam": [
+      80,
+      18
+     ],
+     "newteam+started": [
+      90,
+      20
+     ],
+     "up30+lowmin": [
+      378,
+      83
+     ],
+     "c_reb+coldfg": [
+      41,
+      9
+     ],
+     "up30+yr3-4": [
+      32,
+      7
+     ],
+     "c_fg+newteam": [
+      23,
+      5
+     ],
+     "up30+c_to": [
+      111,
+      24
+     ],
+     "c_blk+newteam": [
+      28,
+      6
+     ],
+     "c_fg+started": [
+      42,
+      9
+     ],
+     "c_stl+started": [
+      61,
+      13
+     ],
+     "up30+started": [
+      123,
+      26
+     ],
+     "up30top+started": [
+      43,
+      9
+     ],
+     "lowusg+started": [
+      117,
+      24
+     ],
+     "c_blk+started": [
+      44,
+      9
+     ],
+     "lowmin+c_stl": [
+      201,
+      41
+     ],
+     "lowmin+lowusg": [
+      335,
+      68
+     ],
+     "coldfg+started": [
+      109,
+      22
+     ],
+     "c_stl+c_fg": [
+      15,
+      3
+     ],
+     "opening+started": [
+      293,
+      57
+     ],
+     "lowmin+c_ast": [
+      36,
+      7
+     ],
+     "lowmin+hiusgev": [
+      83,
+      16
+     ],
+     "c_blk+c_to": [
+      26,
+      5
+     ],
+     "up30+yr1-2": [
+      73,
+      14
+     ],
+     "started+yr1-2": [
+      89,
+      17
+     ],
+     "c_tpm+coldfg": [
+      16,
+      3
+     ],
+     "up30+c_ft": [
+      11,
+      2
+     ],
+     "coldfg+yr3-4": [
+      17,
+      3
+     ],
+     "lowusg+newteam": [
+      80,
+      14
+     ],
+     "c_fg+bigjump": [
+      35,
+      6
+     ],
+     "bigjump+started": [
+      105,
+      18
+     ],
+     "coldfg+opening": [
+      216,
+      37
+     ],
+     "c_stl+yr1-2": [
+      47,
+      8
+     ],
+     "lowmin+opening": [
+      641,
+      107
+     ],
+     "hiusgev+bigjump": [
+      24,
+      4
+     ],
+     "c_ast+newteam": [
+      12,
+      2
+     ],
+     "lowmin+started": [
+      343,
+      57
+     ],
+     "lowmin+newteam": [
+      230,
+      38
+     ],
+     "c_to+opening": [
+      213,
+      34
+     ],
+     "c_tpm+c_to": [
+      44,
+      7
+     ],
+     "c_reb+bigjump": [
+      38,
+      6
+     ],
+     "started+yr3-4": [
+      32,
+      5
+     ],
+     "lowmin+coldfg": [
+      296,
+      45
+     ],
+     "up30+c_tpm": [
+      33,
+      5
+     ],
+     "newteam+bigjump": [
+      90,
+      13
+     ],
+     "up30+bigjump": [
+      112,
+      16
+     ],
+     "lowmin+yr1-2": [
+      273,
+      39
+     ],
+     "lowusg+c_to": [
+      126,
+      18
+     ],
+     "hiusgev+c_stl": [
+      21,
+      3
+     ],
+     "hiusgev+c_to": [
+      14,
+      2
+     ],
+     "newteam+yr1-2": [
+      21,
+      3
+     ],
+     "lowmin+yr3-4": [
+      86,
+      12
+     ],
+     "c_stl+bigjump": [
+      72,
+      10
+     ],
+     "c_to+newteam": [
+      95,
+      13
+     ],
+     "lowmin+c_to": [
+      329,
+      45
+     ],
+     "lowmin+c_tpm": [
+      67,
+      9
+     ],
+     "c_to+coldfg": [
+      106,
+      14
+     ],
+     "opening+yr1-2": [
+      168,
+      22
+     ],
+     "coldfg+yr1-2": [
+      88,
+      11
+     ],
+     "c_to+bigjump": [
+      121,
+      15
+     ],
+     "c_to+started": [
+      124,
+      15
+     ],
+     "bigjump+yr1-2": [
+      105,
+      12
+     ],
+     "opening+bigjump": [
+      244,
+      27
+     ],
+     "lowmin+bigjump": [
+      366,
+      40
+     ],
+     "up30top+bigjump": [
+      46,
+      5
+     ],
+     "lowusg+bigjump": [
+      103,
+      11
+     ],
+     "coldfg+bigjump": [
+      115,
+      12
+     ],
+     "up30top+hiusgev": [
+      10,
+      1
+     ],
+     "hiusgev+c_tpm": [
+      10,
+      1
+     ],
+     "c_to+yr3-4": [
+      30,
+      3
+     ],
+     "c_blk+bigjump": [
+      41,
+      4
+     ],
+     "up30top+yr3-4": [
+      12,
+      1
+     ],
+     "up30top+c_tpm": [
+      13,
+      1
+     ],
+     "c_to+yr1-2": [
+      68,
+      5
+     ],
+     "hiusgev+yr1-2": [
+      14,
+      1
+     ],
+     "bigjump+yr3-4": [
+      28,
+      2
+     ],
+     "c_tpm+bigjump": [
+      29,
+      2
+     ]
+    }
+   }
   },
   "big": {
    "cases": 1532,
@@ -3355,7 +5345,715 @@
      "rate": 0.1232876712328767,
      "lift": 1.475599315068493
     }
-   ]
+   ],
+   "counts": {
+    "cases": 1532,
+    "hits": 128,
+    "signs": {
+     "c_ft": [
+      22,
+      5
+     ],
+     "hiusgev": [
+      162,
+      24
+     ],
+     "c_reb": [
+      149,
+      18
+     ],
+     "c_blk": [
+      151,
+      15
+     ],
+     "c_fg": [
+      113,
+      11
+     ],
+     "up30": [
+      397,
+      38
+     ],
+     "yr3-4": [
+      118,
+      11
+     ],
+     "c_tpm": [
+      99,
+      9
+     ],
+     "c_stl": [
+      225,
+      20
+     ],
+     "newteam": [
+      313,
+      27
+     ],
+     "lowusg": [
+      419,
+      34
+     ],
+     "opening": [
+      832,
+      66
+     ],
+     "up30top": [
+      152,
+      11
+     ],
+     "started": [
+      433,
+      31
+     ],
+     "coldfg": [
+      379,
+      27
+     ],
+     "c_to": [
+      420,
+      25
+     ],
+     "yr1-2": [
+      332,
+      19
+     ],
+     "lowmin": [
+      1125,
+      64
+     ],
+     "c_ast": [
+      55,
+      3
+     ],
+     "bigjump": [
+      391,
+      18
+     ],
+     "c_pts": [
+      1,
+      0
+     ]
+    },
+    "pairs": {
+     "hiusgev+yr3-4": [
+      13,
+      3
+     ],
+     "c_ft+opening": [
+      13,
+      3
+     ],
+     "c_reb+yr1-2": [
+      31,
+      6
+     ],
+     "c_fg+yr1-2": [
+      21,
+      4
+     ],
+     "c_blk+newteam": [
+      28,
+      5
+     ],
+     "lowmin+c_ft": [
+      18,
+      3
+     ],
+     "lowusg+c_stl": [
+      55,
+      9
+     ],
+     "up30+hiusgev": [
+      33,
+      5
+     ],
+     "hiusgev+coldfg": [
+      20,
+      3
+     ],
+     "c_stl+newteam": [
+      40,
+      6
+     ],
+     "c_stl+yr3-4": [
+      27,
+      4
+     ],
+     "c_tpm+started": [
+      27,
+      4
+     ],
+     "hiusgev+newteam": [
+      41,
+      6
+     ],
+     "c_ast+bigjump": [
+      14,
+      2
+     ],
+     "c_blk+c_fg": [
+      57,
+      8
+     ],
+     "up30top+newteam": [
+      29,
+      4
+     ],
+     "c_reb+c_fg": [
+      58,
+      8
+     ],
+     "c_reb+opening": [
+      78,
+      10
+     ],
+     "c_reb+newteam": [
+      32,
+      4
+     ],
+     "c_blk+coldfg": [
+      40,
+      5
+     ],
+     "c_tpm+coldfg": [
+      16,
+      2
+     ],
+     "c_reb+c_blk": [
+      73,
+      9
+     ],
+     "lowusg+c_reb": [
+      93,
+      11
+     ],
+     "up30+newteam": [
+      85,
+      10
+     ],
+     "c_ast+yr1-2": [
+      17,
+      2
+     ],
+     "lowmin+c_reb": [
+      131,
+      15
+     ],
+     "hiusgev+opening": [
+      70,
+      8
+     ],
+     "c_reb+started": [
+      44,
+      5
+     ],
+     "up30+c_blk": [
+      99,
+      11
+     ],
+     "up30+c_reb": [
+      91,
+      10
+     ],
+     "up30+coldfg": [
+      67,
+      7
+     ],
+     "lowusg+yr3-4": [
+      29,
+      3
+     ],
+     "lowusg+c_blk": [
+      98,
+      10
+     ],
+     "up30top+lowusg": [
+      79,
+      8
+     ],
+     "hiusgev+c_ast": [
+      10,
+      1
+     ],
+     "hiusgev+c_tpm": [
+      10,
+      1
+     ],
+     "hiusgev+started": [
+      40,
+      4
+     ],
+     "c_reb+c_to": [
+      20,
+      2
+     ],
+     "c_blk+yr3-4": [
+      10,
+      1
+     ],
+     "lowusg+yr1-2": [
+      81,
+      8
+     ],
+     "c_tpm+opening": [
+      61,
+      6
+     ],
+     "c_reb+coldfg": [
+      41,
+      4
+     ],
+     "c_stl+c_to": [
+      41,
+      4
+     ],
+     "up30+opening": [
+      216,
+      21
+     ],
+     "c_blk+opening": [
+      94,
+      9
+     ],
+     "up30+c_stl": [
+      136,
+      13
+     ],
+     "up30top+coldfg": [
+      21,
+      2
+     ],
+     "c_tpm+newteam": [
+      21,
+      2
+     ],
+     "lowusg+c_fg": [
+      95,
+      9
+     ],
+     "c_fg+opening": [
+      64,
+      6
+     ],
+     "newteam+opening": [
+      172,
+      16
+     ],
+     "up30+c_tpm": [
+      33,
+      3
+     ],
+     "up30+c_ft": [
+      11,
+      1
+     ],
+     "lowusg+c_ast": [
+      11,
+      1
+     ],
+     "c_blk+yr1-2": [
+      33,
+      3
+     ],
+     "c_stl+opening": [
+      122,
+      11
+     ],
+     "up30+c_to": [
+      111,
+      10
+     ],
+     "up30+lowusg": [
+      178,
+      16
+     ],
+     "newteam+started": [
+      90,
+      8
+     ],
+     "c_ast+opening": [
+      34,
+      3
+     ],
+     "lowmin+c_blk": [
+      137,
+      12
+     ],
+     "up30+lowmin": [
+      378,
+      33
+     ],
+     "c_reb+c_stl": [
+      23,
+      2
+     ],
+     "c_fg+newteam": [
+      23,
+      2
+     ],
+     "lowusg+opening": [
+      215,
+      18
+     ],
+     "hiusgev+c_reb": [
+      12,
+      1
+     ],
+     "hiusgev+bigjump": [
+      24,
+      2
+     ],
+     "coldfg+started": [
+      109,
+      9
+     ],
+     "up30+c_fg": [
+      74,
+      6
+     ],
+     "up30top+c_fg": [
+      50,
+      4
+     ],
+     "c_to+opening": [
+      213,
+      17
+     ],
+     "lowmin+c_stl": [
+      201,
+      16
+     ],
+     "up30top+c_blk": [
+      63,
+      5
+     ],
+     "lowmin+c_fg": [
+      104,
+      8
+     ],
+     "opening+yr3-4": [
+      65,
+      5
+     ],
+     "opening+started": [
+      293,
+      22
+     ],
+     "coldfg+newteam": [
+      80,
+      6
+     ],
+     "c_fg+c_to": [
+      27,
+      2
+     ],
+     "coldfg+opening": [
+      216,
+      16
+     ],
+     "up30+started": [
+      123,
+      9
+     ],
+     "up30+up30top": [
+      152,
+      11
+     ],
+     "up30top+lowmin": [
+      152,
+      11
+     ],
+     "lowmin+hiusgev": [
+      83,
+      6
+     ],
+     "up30+bigjump": [
+      112,
+      8
+     ],
+     "lowusg+coldfg": [
+      42,
+      3
+     ],
+     "hiusgev+c_to": [
+      14,
+      1
+     ],
+     "c_fg+started": [
+      42,
+      3
+     ],
+     "up30top+c_reb": [
+      57,
+      4
+     ],
+     "up30top+c_stl": [
+      57,
+      4
+     ],
+     "lowmin+lowusg": [
+      335,
+      23
+     ],
+     "up30+yr1-2": [
+      73,
+      5
+     ],
+     "c_blk+started": [
+      44,
+      3
+     ],
+     "c_tpm+c_to": [
+      44,
+      3
+     ],
+     "up30top+opening": [
+      89,
+      6
+     ],
+     "up30top+c_to": [
+      45,
+      3
+     ],
+     "c_ast+coldfg": [
+      15,
+      1
+     ],
+     "newteam+bigjump": [
+      90,
+      6
+     ],
+     "c_stl+started": [
+      61,
+      4
+     ],
+     "lowmin+newteam": [
+      230,
+      15
+     ],
+     "up30+c_ast": [
+      16,
+      1
+     ],
+     "up30+yr3-4": [
+      32,
+      2
+     ],
+     "lowusg+newteam": [
+      80,
+      5
+     ],
+     "c_ast+c_stl": [
+      16,
+      1
+     ],
+     "lowmin+c_tpm": [
+      67,
+      4
+     ],
+     "lowmin+opening": [
+      641,
+      38
+     ],
+     "c_stl+c_blk": [
+      17,
+      1
+     ],
+     "coldfg+yr3-4": [
+      17,
+      1
+     ],
+     "c_fg+bigjump": [
+      35,
+      2
+     ],
+     "bigjump+started": [
+      105,
+      6
+     ],
+     "bigjump+yr1-2": [
+      105,
+      6
+     ],
+     "started+yr1-2": [
+      89,
+      5
+     ],
+     "lowmin+c_ast": [
+      36,
+      2
+     ],
+     "lowmin+coldfg": [
+      296,
+      16
+     ],
+     "opening+yr1-2": [
+      168,
+      9
+     ],
+     "opening+bigjump": [
+      244,
+      13
+     ],
+     "c_reb+bigjump": [
+      38,
+      2
+     ],
+     "lowmin+started": [
+      343,
+      18
+     ],
+     "lowusg+started": [
+      117,
+      6
+     ],
+     "c_blk+bigjump": [
+      41,
+      2
+     ],
+     "c_to+started": [
+      124,
+      6
+     ],
+     "up30top+yr1-2": [
+      21,
+      1
+     ],
+     "lowmin+yr1-2": [
+      273,
+      13
+     ],
+     "hiusgev+c_stl": [
+      21,
+      1
+     ],
+     "newteam+yr1-2": [
+      21,
+      1
+     ],
+     "newteam+yr3-4": [
+      21,
+      1
+     ],
+     "c_to+coldfg": [
+      106,
+      5
+     ],
+     "up30top+started": [
+      43,
+      2
+     ],
+     "lowmin+bigjump": [
+      366,
+      17
+     ],
+     "lowmin+c_to": [
+      329,
+      15
+     ],
+     "coldfg+yr1-2": [
+      88,
+      4
+     ],
+     "c_stl+yr1-2": [
+      47,
+      2
+     ],
+     "c_stl+bigjump": [
+      72,
+      3
+     ],
+     "c_to+bigjump": [
+      121,
+      5
+     ],
+     "lowusg+bigjump": [
+      103,
+      4
+     ],
+     "c_blk+c_to": [
+      26,
+      1
+     ],
+     "lowmin+yr3-4": [
+      86,
+      3
+     ],
+     "c_tpm+bigjump": [
+      29,
+      1
+     ],
+     "c_stl+coldfg": [
+      62,
+      2
+     ],
+     "lowusg+c_to": [
+      126,
+      4
+     ],
+     "c_to+newteam": [
+      95,
+      3
+     ],
+     "started+yr3-4": [
+      32,
+      1
+     ],
+     "coldfg+bigjump": [
+      115,
+      3
+     ],
+     "up30top+bigjump": [
+      46,
+      1
+     ],
+     "up30top+hiusgev": [
+      10,
+      0
+     ],
+     "up30top+c_tpm": [
+      13,
+      0
+     ],
+     "up30top+yr3-4": [
+      12,
+      0
+     ],
+     "lowusg+c_tpm": [
+      11,
+      0
+     ],
+     "hiusgev+yr1-2": [
+      14,
+      0
+     ],
+     "c_ast+newteam": [
+      12,
+      0
+     ],
+     "c_ast+started": [
+      12,
+      0
+     ],
+     "c_stl+c_fg": [
+      15,
+      0
+     ],
+     "c_to+yr1-2": [
+      68,
+      0
+     ],
+     "c_to+yr3-4": [
+      30,
+      0
+     ],
+     "bigjump+yr3-4": [
+      28,
+      0
+     ]
+    }
+   }
   },
   "bySignCount": [
    {
@@ -3400,9 +6098,11 @@
     "after": 1,
     "m3": 32.3,
     "mp": 26,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "coldfg",
      "yr1-2"
@@ -3418,9 +6118,11 @@
     "after": 4,
     "m3": 32.7,
     "mp": 25.1,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "hiusgev",
@@ -3438,9 +6140,11 @@
     "after": 6,
     "m3": 35,
     "mp": 27.7,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "newteam"
     ]
@@ -3455,9 +6159,11 @@
     "after": 20,
     "m3": 33.7,
     "mp": 26.8,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowusg",
      "c_reb",
@@ -3477,9 +6183,11 @@
     "after": 20,
     "m3": 32,
     "mp": 25.4,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "hiusgev"
     ]
@@ -3494,9 +6202,11 @@
     "after": 22,
     "m3": 24.7,
     "mp": 17,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "lowmin",
@@ -3515,9 +6225,11 @@
     "after": 24,
     "m3": 32.7,
     "mp": 23.7,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "lowusg",
@@ -3534,9 +6246,11 @@
     "after": 25,
     "m3": 31,
     "mp": 24.7,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "hiusgev",
      "c_reb",
@@ -3554,9 +6268,11 @@
     "after": 26,
     "m3": 39,
     "mp": 32.3,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "coldfg",
      "yr1-2"
@@ -3572,9 +6288,11 @@
     "after": 29,
     "m3": 26,
     "mp": 20.4,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "opening",
@@ -3591,9 +6309,11 @@
     "after": 29,
     "m3": 23,
     "mp": 11.6,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "lowusg",
@@ -3614,9 +6334,11 @@
     "after": 34,
     "m3": 35,
     "mp": 26,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "opening"
     ]
@@ -3631,9 +6353,11 @@
     "after": 34,
     "m3": 22,
     "mp": 15.4,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "up30top",
@@ -3653,9 +6377,11 @@
     "after": 34,
     "m3": 39.3,
     "mp": 30.4,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "hiusgev",
      "c_ft",
@@ -3673,9 +6399,11 @@
     "after": 35,
     "m3": 29.3,
     "mp": 21.3,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "hiusgev",
@@ -3694,9 +6422,11 @@
     "after": 35,
     "m3": 36.7,
     "mp": 29.7,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "c_to",
      "opening"
@@ -3712,9 +6442,11 @@
     "after": 37,
     "m3": 31.7,
     "mp": 24.8,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "lowmin",
@@ -3734,9 +6466,11 @@
     "after": 38,
     "m3": 29.7,
     "mp": 22.9,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "c_to",
@@ -3754,9 +6488,11 @@
     "after": 38,
     "m3": 24,
     "mp": 15.3,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "lowusg",
@@ -3773,9 +6509,11 @@
     "after": 38,
     "m3": 33.7,
     "mp": 26.7,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "c_to",
      "coldfg",
@@ -3792,9 +6530,11 @@
     "after": 38,
     "m3": 35.3,
     "mp": 26.3,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "newteam",
      "opening",
@@ -3811,9 +6551,11 @@
     "after": 38,
     "m3": 30.7,
     "mp": 23.4,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowusg",
      "c_reb",
@@ -3833,9 +6575,11 @@
     "after": 39,
     "m3": 25.7,
     "mp": 19.4,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "up30top",
@@ -3855,9 +6599,11 @@
     "after": 39,
     "m3": 26.7,
     "mp": 8.9,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "lowmin",
@@ -3878,9 +6624,11 @@
     "after": 39,
     "m3": 27.3,
     "mp": 23.9,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "c_tpm",
      "c_to",
@@ -3898,9 +6646,11 @@
     "after": 40,
     "m3": 23.3,
     "mp": 17.2,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "up30top",
@@ -3922,9 +6672,11 @@
     "after": 41,
     "m3": 38,
     "mp": 31.9,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "yr3-4"
     ]
@@ -3939,9 +6691,11 @@
     "after": 41,
     "m3": 22.3,
     "mp": 15.4,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "lowusg",
@@ -3958,9 +6712,11 @@
     "after": 43,
     "m3": 30,
     "mp": 24,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "c_stl",
      "yr3-4"
@@ -3976,9 +6732,11 @@
     "after": 43,
     "m3": 27.3,
     "mp": 20.9,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "lowusg",
@@ -3997,9 +6755,11 @@
     "after": 45,
     "m3": 31.3,
     "mp": 21.2,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "opening",
@@ -4017,9 +6777,11 @@
     "after": 46,
     "m3": 28,
     "mp": 27.1,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "newteam",
      "started"
@@ -4035,9 +6797,11 @@
     "after": 46,
     "m3": 29,
     "mp": 22.9,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "lowmin",
@@ -4055,9 +6819,11 @@
     "after": 48,
     "m3": 33.3,
     "mp": 26.9,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "c_tpm",
      "coldfg",
@@ -4075,9 +6841,11 @@
     "after": 48,
     "m3": 22.7,
     "mp": 13.8,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "lowmin",
@@ -4097,9 +6865,11 @@
     "after": 48,
     "m3": 32,
     "mp": 25.1,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowusg",
      "c_stl"
@@ -4115,9 +6885,11 @@
     "after": 49,
     "m3": 23.7,
     "mp": 11.7,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "c_ast",
@@ -4137,9 +6909,11 @@
     "after": 50,
     "m3": 28,
     "mp": 14,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "up30top",
@@ -4162,9 +6936,11 @@
     "after": 50,
     "m3": 23,
     "mp": 15.6,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "lowusg",
@@ -4181,9 +6957,11 @@
     "after": 51,
     "m3": 22,
     "mp": 15.9,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "up30top",
@@ -4205,9 +6983,11 @@
     "after": 51,
     "m3": 36.3,
     "mp": 30.2,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "hiusgev"
     ]
@@ -4222,9 +7002,11 @@
     "after": 52,
     "m3": 37.7,
     "mp": 29.5,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "opening"
     ]
@@ -4239,9 +7021,11 @@
     "after": 53,
     "m3": 25,
     "mp": 16.9,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "lowmin",
@@ -4260,9 +7044,11 @@
     "after": 53,
     "m3": 17.3,
     "mp": 10.5,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "lowusg",
@@ -4284,9 +7070,11 @@
     "after": 54,
     "m3": 26.3,
     "mp": 21.4,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "lowusg",
@@ -4306,9 +7094,11 @@
     "after": 54,
     "m3": 32.3,
     "mp": 25.4,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "newteam",
@@ -4325,9 +7115,11 @@
     "after": 54,
     "m3": 26,
     "mp": 29.4,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "hiusgev",
      "newteam",
@@ -4345,9 +7137,11 @@
     "after": 54,
     "m3": 35,
     "mp": 27.9,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "hiusgev"
     ]
@@ -4362,9 +7156,11 @@
     "after": 55,
     "m3": 32.3,
     "mp": 23.7,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "c_tpm",
      "opening"
@@ -4380,9 +7176,11 @@
     "after": 55,
     "m3": 24.3,
     "mp": 16.9,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "c_to",
@@ -4400,9 +7198,11 @@
     "after": 55,
     "m3": 24.3,
     "mp": 16.9,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "c_ft",
@@ -4419,9 +7219,11 @@
     "after": 55,
     "m3": 24.3,
     "mp": 17.9,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "lowusg",
@@ -4438,9 +7240,11 @@
     "after": 56,
     "m3": 29.7,
     "mp": 22.1,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "lowmin",
@@ -4457,9 +7261,11 @@
     "after": 56,
     "m3": 33,
     "mp": 26.4,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "opening",
      "yr1-2"
@@ -4475,9 +7281,11 @@
     "after": 56,
     "m3": 35,
     "mp": 27.6,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "hiusgev",
      "coldfg"
@@ -4493,9 +7301,11 @@
     "after": 56,
     "m3": 23.3,
     "mp": 13.7,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "lowmin",
@@ -4516,9 +7326,11 @@
     "after": 57,
     "m3": 37.7,
     "mp": 31.1,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "hiusgev",
      "c_to",
@@ -4535,9 +7347,11 @@
     "after": 57,
     "m3": 23.7,
     "mp": 14.3,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "up30top",
@@ -4557,9 +7371,11 @@
     "after": 58,
     "m3": 35.7,
     "mp": 27.4,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowusg",
      "opening"
@@ -4575,9 +7391,11 @@
     "after": 58,
     "m3": 38.3,
     "mp": 29.7,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": []
    },
    {
@@ -4590,9 +7408,11 @@
     "after": 58,
     "m3": 36.3,
     "mp": 29.9,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "coldfg",
      "opening"
@@ -4608,9 +7428,11 @@
     "after": 59,
     "m3": 24.3,
     "mp": 9.6,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "lowmin",
@@ -4630,9 +7452,11 @@
     "after": 59,
     "m3": 31,
     "mp": 24,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "c_stl",
      "yr3-4"
@@ -4648,9 +7472,11 @@
     "after": 61,
     "m3": 32.7,
     "mp": 23.2,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "up30top",
@@ -4672,9 +7498,11 @@
     "after": 61,
     "m3": 31.3,
     "mp": 21.9,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowusg",
      "started"
@@ -4690,9 +7518,11 @@
     "after": 62,
     "m3": 31.7,
     "mp": 23.8,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "lowmin",
@@ -4709,9 +7539,11 @@
     "after": 64,
     "m3": 27.7,
     "mp": 19.5,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "newteam"
     ]
@@ -4726,9 +7558,11 @@
     "after": 64,
     "m3": 23,
     "mp": 11.8,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "c_reb",
@@ -4747,9 +7581,11 @@
     "after": 65,
     "m3": 26,
     "mp": 18.3,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "c_tpm",
@@ -4766,9 +7602,11 @@
     "after": 65,
     "m3": 31,
     "mp": 18.3,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "lowmin",
@@ -4789,9 +7627,11 @@
     "after": 65,
     "m3": 30.7,
     "mp": 20,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "bigjump",
@@ -4808,9 +7648,11 @@
     "after": 66,
     "m3": 20.3,
     "mp": 12.8,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "lowmin",
      "coldfg",
@@ -4828,9 +7670,11 @@
     "after": 66,
     "m3": 35.7,
     "mp": 28.4,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "hiusgev",
      "opening"
@@ -4846,9 +7690,11 @@
     "after": 66,
     "m3": 23,
     "mp": 14.8,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "up30",
      "lowmin",
@@ -4867,9 +7713,11 @@
     "after": 66,
     "m3": 33.7,
     "mp": 25.8,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "c_to"
     ]
@@ -4884,9 +7732,11 @@
     "after": 66,
     "m3": 30.3,
     "mp": 22.8,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "c_to",
      "opening"
@@ -4902,9 +7752,11 @@
     "after": 66,
     "m3": 28.7,
     "mp": 18.7,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "c_stl",
      "newteam",
@@ -4922,9 +7774,11 @@
     "after": 67,
     "m3": 32.7,
     "mp": 25.8,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "yr1-2"
     ]
@@ -4939,9 +7793,11 @@
     "after": 67,
     "m3": 32,
     "mp": 23.9,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "c_to",
      "opening"
@@ -4957,9 +7813,11 @@
     "after": 67,
     "m3": 39.3,
     "mp": 31.5,
+    "tier": "deep",
     "rostered": false,
     "hit": true,
     "big": true,
+    "bo": true,
     "signs": [
      "coldfg",
      "opening"
@@ -5059,9 +7917,11 @@
      "after": 89,
      "m3": 37,
      "mp": 27.8,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": false,
+     "bo": false,
      "signs": [
       "lowusg"
      ]
@@ -5076,9 +7936,11 @@
      "after": 115,
      "m3": 38.7,
      "mp": 31.7,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": false,
+     "bo": false,
      "signs": [
       "lowusg"
      ]
@@ -5093,9 +7955,11 @@
      "after": 28,
      "m3": 35.3,
      "mp": 28.3,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "lowusg",
       "newteam",
@@ -5112,9 +7976,11 @@
      "after": 190,
      "m3": 32,
      "mp": 26,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "coldfg"
      ]
@@ -5129,9 +7995,11 @@
      "after": 67,
      "m3": 39.3,
      "mp": 31.5,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "coldfg",
       "opening"
@@ -5147,9 +8015,11 @@
      "after": 11,
      "m3": 43.3,
      "mp": 36.4,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": false,
      "signs": [
       "up30",
       "lowusg"
@@ -5165,9 +8035,11 @@
      "after": 24,
      "m3": 32.7,
      "mp": 23.7,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "up30",
       "lowusg",
@@ -5274,9 +8146,11 @@
      "after": 38,
      "m3": 29.7,
      "mp": 22.9,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "lowmin",
       "c_to",
@@ -5294,9 +8168,11 @@
      "after": 85,
      "m3": 37,
      "mp": 29,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "up30top",
@@ -5314,9 +8190,11 @@
      "after": 37,
      "m3": 29.7,
      "mp": 23.2,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "up30",
       "up30top",
@@ -5335,9 +8213,11 @@
      "after": 179,
      "m3": 32.7,
      "mp": 25.6,
+     "tier": "fringe",
      "rostered": true,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "c_to",
@@ -5354,9 +8234,11 @@
      "after": 90,
      "m3": 33.7,
      "mp": 23.7,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": false,
+     "bo": true,
      "signs": [
       "hiusgev",
       "c_to",
@@ -5375,9 +8257,11 @@
      "after": 57,
      "m3": 37.7,
      "mp": 31.1,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "hiusgev",
       "c_to",
@@ -5465,9 +8349,11 @@
      "after": 203,
      "m3": 29.3,
      "mp": 22.9,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowusg",
       "yr1-2"
@@ -5483,9 +8369,11 @@
      "after": 15,
      "m3": 37.3,
      "mp": 29.2,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": false,
      "signs": [
       "up30",
       "up30top",
@@ -5600,9 +8488,11 @@
      "after": 174,
      "m3": 30,
      "mp": 22.7,
+     "tier": "fringe",
      "rostered": true,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "lowusg",
@@ -5621,9 +8511,11 @@
      "after": 152,
      "m3": 34,
      "mp": 24.7,
+     "tier": "fringe",
      "rostered": true,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "lowusg",
@@ -5642,9 +8534,11 @@
      "after": 136,
      "m3": 35.3,
      "mp": 26.2,
+     "tier": "fringe",
      "rostered": true,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowusg",
       "c_reb",
@@ -5662,9 +8556,11 @@
      "after": 89,
      "m3": 34,
      "mp": 26.6,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": false,
+     "bo": true,
      "signs": [
       "lowusg",
       "c_reb",
@@ -5682,9 +8578,11 @@
      "after": 15,
      "m3": 35.7,
      "mp": 29.6,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "c_reb",
       "c_fg"
@@ -5700,9 +8598,11 @@
      "after": 15,
      "m3": 40.3,
      "mp": 33.6,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "up30",
       "c_reb",
@@ -5719,9 +8619,11 @@
      "after": 88,
      "m3": 37.3,
      "mp": 29.6,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "up30top",
@@ -5823,9 +8725,11 @@
      "after": 115,
      "m3": 34.7,
      "mp": 28.6,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "lowusg",
@@ -5842,9 +8746,11 @@
      "after": 39,
      "m3": 34.7,
      "mp": 28.5,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "up30",
       "c_reb",
@@ -5861,9 +8767,11 @@
      "after": 51,
      "m3": 33,
      "mp": 25.3,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": false,
      "signs": [
       "up30",
       "up30top",
@@ -5883,9 +8791,11 @@
      "after": 76,
      "m3": 25,
      "mp": 25.2,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "hiusgev",
       "newteam",
@@ -5902,9 +8812,11 @@
      "after": 62,
      "m3": 33.7,
      "mp": 25.5,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "up30",
       "hiusgev",
@@ -6006,9 +8918,11 @@
      "after": 23,
      "m3": 32,
      "mp": 25.9,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "up30",
       "c_ft"
@@ -6024,9 +8938,11 @@
      "after": 141,
      "m3": 27.7,
      "mp": 25.6,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "hiusgev",
       "started"
@@ -6042,9 +8958,11 @@
      "after": 54,
      "m3": 26,
      "mp": 29.4,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "hiusgev",
       "newteam",
@@ -6139,9 +9057,11 @@
      "after": 12,
      "m3": 36.7,
      "mp": 29.6,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": false,
      "signs": [
       "up30",
       "up30top",
@@ -6230,9 +9150,11 @@
      "after": 370,
      "m3": 23,
      "mp": 9.5,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowmin",
       "c_to",
@@ -6251,9 +9173,11 @@
      "after": 222,
      "m3": 22.7,
      "mp": 8.5,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowmin",
       "c_to",
@@ -6273,9 +9197,11 @@
      "after": 288,
      "m3": 25,
      "mp": 19,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowmin",
       "lowusg",
@@ -6294,9 +9220,11 @@
      "after": 238,
      "m3": 22.7,
      "mp": 14.7,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowmin",
       "c_to",
@@ -6315,9 +9243,11 @@
      "after": 34,
      "m3": 36.7,
      "mp": 28.9,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "up30",
       "lowusg",
@@ -6337,9 +9267,11 @@
      "after": 98,
      "m3": 35.7,
      "mp": 27.6,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": false,
+     "bo": true,
      "signs": [
       "coldfg",
       "opening",
@@ -6434,9 +9366,11 @@
      "after": 262,
      "m3": 34,
      "mp": 27,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": []
     },
     {
@@ -6449,9 +9383,11 @@
      "after": 117,
      "m3": 34.7,
      "mp": 27.6,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": false,
+     "bo": true,
      "signs": [
       "newteam",
       "opening"
@@ -6467,9 +9403,11 @@
      "after": 261,
      "m3": 30.3,
      "mp": 27.8,
+     "tier": "fringe",
      "rostered": true,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "newteam",
       "opening",
@@ -6486,9 +9424,11 @@
      "after": 237,
      "m3": 25.7,
      "mp": 18.6,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "newteam"
      ]
@@ -6503,9 +9443,11 @@
      "after": 303,
      "m3": 26,
      "mp": 22.9,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "c_ast",
       "newteam",
@@ -6550,9 +9492,11 @@
      "after": 249,
      "m3": 25,
      "mp": 26.1,
+     "tier": "fringe",
      "rostered": true,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "hiusgev",
@@ -6571,9 +9515,11 @@
      "after": 205,
      "m3": 23,
      "mp": 18.4,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowmin",
       "hiusgev",
@@ -6592,9 +9538,11 @@
      "after": 56,
      "m3": 23.3,
      "mp": 13.7,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "up30",
       "lowmin",
@@ -6661,9 +9609,11 @@
      "after": 206,
      "m3": 37.3,
      "mp": 30.8,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "coldfg",
       "opening"
@@ -6679,9 +9629,11 @@
      "after": 108,
      "m3": 35.3,
      "mp": 29.2,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": false,
+     "bo": true,
      "signs": [
       "c_ast",
       "coldfg",
@@ -6698,9 +9650,11 @@
      "after": 21,
      "m3": 37,
      "mp": 31,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "hiusgev"
      ]
@@ -6715,9 +9669,11 @@
      "after": 265,
      "m3": 22.7,
      "mp": 16,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowmin",
       "hiusgev"
@@ -6733,9 +9689,11 @@
      "after": 267,
      "m3": 25.3,
      "mp": 18.3,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowmin",
       "hiusgev",
@@ -6833,9 +9791,11 @@
      "after": 240,
      "m3": 24.3,
      "mp": 13.3,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "lowmin",
@@ -6854,9 +9814,11 @@
      "after": 32,
      "m3": 36.3,
      "mp": 30.3,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": false,
      "signs": [
       "up30",
       "lowusg",
@@ -6873,9 +9835,11 @@
      "after": 7,
      "m3": 39.7,
      "mp": 31.5,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": false,
      "signs": [
       "up30",
       "up30top",
@@ -6925,9 +9889,11 @@
      "after": 347,
      "m3": 21.7,
      "mp": 7.1,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "up30top",
@@ -6949,9 +9915,11 @@
      "after": 175,
      "m3": 22.3,
      "mp": 12,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "lowmin",
@@ -6971,9 +9939,11 @@
      "after": 41,
      "m3": 35,
      "mp": 28.2,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": false,
      "signs": [
       "up30",
       "c_stl",
@@ -7061,9 +10031,11 @@
      "after": 309,
      "m3": 30.3,
      "mp": 16.7,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "lowmin",
@@ -7083,9 +10055,11 @@
      "after": 349,
      "m3": 23,
      "mp": 14.9,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowmin",
       "coldfg",
@@ -7103,9 +10077,11 @@
      "after": 237,
      "m3": 33,
      "mp": 26.1,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "c_stl",
       "yr1-2"
@@ -7121,9 +10097,11 @@
      "after": 138,
      "m3": 23.3,
      "mp": 16.5,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "lowmin",
@@ -7227,9 +10205,11 @@
      "after": 351,
      "m3": 31.7,
      "mp": 21.4,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "coldfg",
       "opening",
@@ -7246,9 +10226,11 @@
      "after": 302,
      "m3": 31.3,
      "mp": 11.8,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "lowmin",
@@ -7269,9 +10251,11 @@
      "after": 185,
      "m3": 26.7,
      "mp": 19.7,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowmin",
       "hiusgev"
@@ -7287,9 +10271,11 @@
      "after": 229,
      "m3": 25.7,
      "mp": 18,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowmin",
       "hiusgev"
@@ -7305,9 +10291,11 @@
      "after": 162,
      "m3": 30.7,
      "mp": 22.8,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowmin",
       "hiusgev",
@@ -7324,9 +10312,11 @@
      "after": 159,
      "m3": 29.7,
      "mp": 22.7,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowmin",
       "hiusgev"
@@ -7423,9 +10413,11 @@
      "after": 324,
      "m3": 28.3,
      "mp": 17.2,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowmin",
       "lowusg",
@@ -7443,9 +10435,11 @@
      "after": 212,
      "m3": 28.3,
      "mp": 20.9,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowmin",
       "lowusg",
@@ -7462,9 +10456,11 @@
      "after": 124,
      "m3": 33.7,
      "mp": 24.9,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": false,
+     "bo": true,
      "signs": [
       "lowusg",
       "opening"
@@ -7480,9 +10476,11 @@
      "after": 85,
      "m3": 31,
      "mp": 22.4,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": false,
+     "bo": true,
      "signs": [
       "lowusg"
      ]
@@ -7497,9 +10495,11 @@
      "after": 68,
      "m3": 37.7,
      "mp": 29.2,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": false,
      "signs": [
       "up30",
       "opening",
@@ -7516,9 +10516,11 @@
      "after": 11,
      "m3": 39,
      "mp": 32.6,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "coldfg"
      ]
@@ -7533,9 +10535,11 @@
      "after": 32,
      "m3": 34.3,
      "mp": 27.6,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": false,
      "signs": [
       "up30",
       "up30top",
@@ -7636,9 +10640,11 @@
      "after": 115,
      "m3": 40.3,
      "mp": 34.3,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "lowusg",
@@ -7655,9 +10661,11 @@
      "after": 32,
      "m3": 42,
      "mp": 35.4,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "lowusg",
       "c_to"
@@ -7673,9 +10681,11 @@
      "after": 103,
      "m3": 44,
      "mp": 36.3,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "lowusg",
@@ -7693,9 +10703,11 @@
      "after": 37,
      "m3": 41,
      "mp": 32.9,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": false,
      "signs": [
       "up30",
       "newteam"
@@ -7711,9 +10723,11 @@
      "after": 55,
      "m3": 39.7,
      "mp": 32.4,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": false,
      "signs": [
       "coldfg"
      ]
@@ -7728,9 +10742,11 @@
      "after": 95,
      "m3": 40,
      "mp": 33.8,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": false,
+     "bo": false,
      "signs": [
       "coldfg"
      ]
@@ -7819,9 +10835,11 @@
      "after": 54,
      "m3": 26.3,
      "mp": 21.4,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "lowmin",
       "lowusg",
@@ -7841,9 +10859,11 @@
      "after": 61,
      "m3": 34.3,
      "mp": 27.4,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "lowusg",
       "c_reb",
@@ -7861,9 +10881,11 @@
      "after": 79,
      "m3": 36.3,
      "mp": 29.7,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": false,
      "signs": [
       "up30",
       "lowusg",
@@ -7883,9 +10905,11 @@
      "after": 38,
      "m3": 30.7,
      "mp": 23.4,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "lowusg",
       "c_reb",
@@ -7905,9 +10929,11 @@
      "after": 22,
      "m3": 34,
      "mp": 25.5,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": false,
      "signs": [
       "up30",
       "up30top",
@@ -7952,9 +10978,11 @@
      "after": 96,
      "m3": 34.7,
      "mp": 26.3,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "up30top",
@@ -8054,9 +11082,11 @@
      "after": 54,
      "m3": 38.3,
      "mp": 29.5,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": true,
      "signs": [
       "opening"
      ]
@@ -8071,9 +11101,11 @@
      "after": 124,
      "m3": 29.3,
      "mp": 23.2,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": false,
+     "bo": true,
      "signs": [
       "hiusgev",
       "opening"
@@ -8089,9 +11121,11 @@
      "after": 126,
      "m3": 33,
      "mp": 25.4,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": false,
+     "bo": false,
      "signs": [
       "hiusgev"
      ]
@@ -8106,9 +11140,11 @@
      "after": 114,
      "m3": 30,
      "mp": 23.6,
+     "tier": "deep",
      "rostered": false,
      "hit": true,
      "big": false,
+     "bo": true,
      "signs": [
       "hiusgev"
      ]
@@ -8123,9 +11159,11 @@
      "after": 138,
      "m3": 33,
      "mp": 23.5,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "hiusgev",
       "c_to"
@@ -8141,9 +11179,11 @@
      "after": 46,
      "m3": 39,
      "mp": 30.3,
+     "tier": "top80",
      "rostered": true,
      "hit": true,
      "big": true,
+     "bo": false,
      "signs": [
       "up30",
       "up30top",
@@ -8187,9 +11227,11 @@
      "after": 165,
      "m3": 27.3,
      "mp": 21.8,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "coldfg",
       "opening",
@@ -8233,9 +11275,11 @@
      "after": 325,
      "m3": 25.7,
      "mp": 14,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowmin",
       "c_stl",
@@ -8254,9 +11298,11 @@
      "after": 174,
      "m3": 22.7,
      "mp": 15.7,
+     "tier": "deep",
      "rostered": false,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "lowmin",
       "lowusg",
@@ -8275,9 +11321,11 @@
      "after": 168,
      "m3": 26.3,
      "mp": 16.1,
+     "tier": "fringe",
      "rostered": true,
      "hit": false,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "up30top",
@@ -8298,9 +11346,11 @@
      "after": 99,
      "m3": 26,
      "mp": 16.4,
+     "tier": "fringe",
      "rostered": true,
      "hit": true,
      "big": false,
+     "bo": false,
      "signs": [
       "up30",
       "up30top",
@@ -8310,6 +11360,2251 @@
      ]
     }
    ]
+  }
+ },
+ "triggerBo": {
+  "deep": {
+   "cases": 1532,
+   "hits": 277,
+   "base": 0.18080939947780678,
+   "signs": [
+    {
+     "sign": "c_ft",
+     "have": 22,
+     "hits": 7,
+     "rate": 0.3181818181818182,
+     "lift": 1.7597637020019692
+    },
+    {
+     "sign": "hiusgev",
+     "have": 162,
+     "hits": 42,
+     "rate": 0.25925925925925924,
+     "lift": 1.4338815349645675
+    },
+    {
+     "sign": "c_reb",
+     "have": 149,
+     "hits": 36,
+     "rate": 0.24161073825503357,
+     "lift": 1.3362731083274781
+    },
+    {
+     "sign": "c_fg",
+     "have": 113,
+     "hits": 27,
+     "rate": 0.23893805309734514,
+     "lift": 1.321491326155714
+    },
+    {
+     "sign": "c_blk",
+     "have": 151,
+     "hits": 35,
+     "rate": 0.23178807947019867,
+     "lift": 1.2819470676835538
+    },
+    {
+     "sign": "c_stl",
+     "have": 225,
+     "hits": 46,
+     "rate": 0.20444444444444446,
+     "lift": 1.1307180104292018
+    },
+    {
+     "sign": "lowusg",
+     "have": 419,
+     "hits": 80,
+     "rate": 0.1909307875894988,
+     "lift": 1.0559782187260367
+    },
+    {
+     "sign": "up30top",
+     "have": 152,
+     "hits": 29,
+     "rate": 0.19078947368421054,
+     "lift": 1.055196655899677
+    },
+    {
+     "sign": "yr3-4",
+     "have": 118,
+     "hits": 22,
+     "rate": 0.1864406779661017,
+     "lift": 1.0311448326500643
+    },
+    {
+     "sign": "up30",
+     "have": 397,
+     "hits": 73,
+     "rate": 0.18387909319899245,
+     "lift": 1.0169775118442472
+    },
+    {
+     "sign": "c_ast",
+     "have": 55,
+     "hits": 10,
+     "rate": 0.18181818181818182,
+     "lift": 1.0055792582868397
+    },
+    {
+     "sign": "newteam",
+     "have": 313,
+     "hits": 56,
+     "rate": 0.17891373801916932,
+     "lift": 0.9895156918605322
+    },
+    {
+     "sign": "coldfg",
+     "have": 379,
+     "hits": 66,
+     "rate": 0.1741424802110818,
+     "lift": 0.9631273634778965
+    },
+    {
+     "sign": "opening",
+     "have": 832,
+     "hits": 143,
+     "rate": 0.171875,
+     "lift": 0.950586642599278
+    },
+    {
+     "sign": "started",
+     "have": 433,
+     "hits": 74,
+     "rate": 0.17090069284064666,
+     "lift": 0.9451980557107246
+    },
+    {
+     "sign": "c_tpm",
+     "have": 99,
+     "hits": 15,
+     "rate": 0.15151515151515152,
+     "lift": 0.837982715239033
+    },
+    {
+     "sign": "lowmin",
+     "have": 1125,
+     "hits": 167,
+     "rate": 0.14844444444444443,
+     "lift": 0.8209995988768551
+    },
+    {
+     "sign": "c_to",
+     "have": 420,
+     "hits": 57,
+     "rate": 0.1357142857142857,
+     "lift": 0.750593089221248
+    },
+    {
+     "sign": "yr1-2",
+     "have": 332,
+     "hits": 45,
+     "rate": 0.1355421686746988,
+     "lift": 0.7496411639337132
+    },
+    {
+     "sign": "bigjump",
+     "have": 391,
+     "hits": 44,
+     "rate": 0.11253196930946291,
+     "lift": 0.6223789782747191
+    },
+    {
+     "sign": "c_pts",
+     "have": 1,
+     "hits": 0,
+     "rate": 0,
+     "lift": 0
+    }
+   ],
+   "pairs": [
+    {
+     "signs": "lowusg + c_stl",
+     "have": 55,
+     "hits": 19,
+     "rate": 0.34545454545454546,
+     "lift": 1.9106005907449952
+    },
+    {
+     "signs": "c_stl + yr3-4",
+     "have": 27,
+     "hits": 9,
+     "rate": 0.3333333333333333,
+     "lift": 1.8435619735258724
+    },
+    {
+     "signs": "c_stl + newteam",
+     "have": 40,
+     "hits": 13,
+     "rate": 0.325,
+     "lift": 1.7974729241877259
+    },
+    {
+     "signs": "c_blk + c_fg",
+     "have": 57,
+     "hits": 18,
+     "rate": 0.3157894736842105,
+     "lift": 1.7465323959718793
+    },
+    {
+     "signs": "hiusgev + newteam",
+     "have": 41,
+     "hits": 12,
+     "rate": 0.2926829268292683,
+     "lift": 1.618737342608083
+    },
+    {
+     "signs": "c_reb + yr1-2",
+     "have": 31,
+     "hits": 9,
+     "rate": 0.2903225806451613,
+     "lift": 1.6056830091999537
+    },
+    {
+     "signs": "lowusg + c_reb",
+     "have": 93,
+     "hits": 26,
+     "rate": 0.27956989247311825,
+     "lift": 1.5462132681184737
+    },
+    {
+     "signs": "c_reb + c_fg",
+     "have": 58,
+     "hits": 16,
+     "rate": 0.27586206896551724,
+     "lift": 1.5257064608489979
+    },
+    {
+     "signs": "c_reb + c_blk",
+     "have": 73,
+     "hits": 20,
+     "rate": 0.273972602739726,
+     "lift": 1.5152564165966076
+    },
+    {
+     "signs": "up30top + lowusg",
+     "have": 79,
+     "hits": 21,
+     "rate": 0.26582278481012656,
+     "lift": 1.4701823333181008
+    },
+    {
+     "signs": "c_ast + opening",
+     "have": 34,
+     "hits": 9,
+     "rate": 0.2647058823529412,
+     "lift": 1.464005096623487
+    },
+    {
+     "signs": "up30 + c_reb",
+     "have": 91,
+     "hits": 24,
+     "rate": 0.26373626373626374,
+     "lift": 1.4586424405918992
+    },
+    {
+     "signs": "lowusg + c_fg",
+     "have": 95,
+     "hits": 25,
+     "rate": 0.2631578947368421,
+     "lift": 1.4554436633098993
+    },
+    {
+     "signs": "up30 + c_blk",
+     "have": 99,
+     "hits": 26,
+     "rate": 0.26262626262626265,
+     "lift": 1.4525033730809906
+    },
+    {
+     "signs": "up30top + c_fg",
+     "have": 50,
+     "hits": 13,
+     "rate": 0.26,
+     "lift": 1.4379783393501806
+    }
+   ],
+   "counts": {
+    "cases": 1532,
+    "hits": 277,
+    "signs": {
+     "c_ft": [
+      22,
+      7
+     ],
+     "hiusgev": [
+      162,
+      42
+     ],
+     "c_reb": [
+      149,
+      36
+     ],
+     "c_fg": [
+      113,
+      27
+     ],
+     "c_blk": [
+      151,
+      35
+     ],
+     "c_stl": [
+      225,
+      46
+     ],
+     "lowusg": [
+      419,
+      80
+     ],
+     "up30top": [
+      152,
+      29
+     ],
+     "yr3-4": [
+      118,
+      22
+     ],
+     "up30": [
+      397,
+      73
+     ],
+     "c_ast": [
+      55,
+      10
+     ],
+     "newteam": [
+      313,
+      56
+     ],
+     "coldfg": [
+      379,
+      66
+     ],
+     "opening": [
+      832,
+      143
+     ],
+     "started": [
+      433,
+      74
+     ],
+     "c_tpm": [
+      99,
+      15
+     ],
+     "lowmin": [
+      1125,
+      167
+     ],
+     "c_to": [
+      420,
+      57
+     ],
+     "yr1-2": [
+      332,
+      45
+     ],
+     "bigjump": [
+      391,
+      44
+     ],
+     "c_pts": [
+      1,
+      0
+     ]
+    },
+    "pairs": {
+     "hiusgev+c_ast": [
+      10,
+      4
+     ],
+     "hiusgev+coldfg": [
+      20,
+      8
+     ],
+     "c_ast+bigjump": [
+      14,
+      5
+     ],
+     "c_reb+c_to": [
+      20,
+      7
+     ],
+     "lowusg+c_stl": [
+      55,
+      19
+     ],
+     "c_stl+yr3-4": [
+      27,
+      9
+     ],
+     "c_fg+yr1-2": [
+      21,
+      7
+     ],
+     "c_stl+newteam": [
+      40,
+      13
+     ],
+     "c_blk+c_fg": [
+      57,
+      18
+     ],
+     "c_reb+c_stl": [
+      23,
+      7
+     ],
+     "c_blk+yr3-4": [
+      10,
+      3
+     ],
+     "c_stl+c_blk": [
+      17,
+      5
+     ],
+     "hiusgev+newteam": [
+      41,
+      12
+     ],
+     "c_reb+yr1-2": [
+      31,
+      9
+     ],
+     "newteam+yr3-4": [
+      21,
+      6
+     ],
+     "lowusg+c_reb": [
+      93,
+      26
+     ],
+     "lowmin+c_ft": [
+      18,
+      5
+     ],
+     "c_reb+c_fg": [
+      58,
+      16
+     ],
+     "c_reb+c_blk": [
+      73,
+      20
+     ],
+     "lowusg+c_ast": [
+      11,
+      3
+     ],
+     "c_ast+coldfg": [
+      15,
+      4
+     ],
+     "up30top+lowusg": [
+      79,
+      21
+     ],
+     "c_ast+opening": [
+      34,
+      9
+     ],
+     "up30+c_reb": [
+      91,
+      24
+     ],
+     "lowusg+c_fg": [
+      95,
+      25
+     ],
+     "up30+c_blk": [
+      99,
+      26
+     ],
+     "up30top+c_fg": [
+      50,
+      13
+     ],
+     "c_tpm+started": [
+      27,
+      7
+     ],
+     "up30+c_fg": [
+      74,
+      19
+     ],
+     "lowusg+c_blk": [
+      98,
+      25
+     ],
+     "up30top+c_blk": [
+      63,
+      16
+     ],
+     "c_ast+started": [
+      12,
+      3
+     ],
+     "c_fg+opening": [
+      64,
+      16
+     ],
+     "c_blk+opening": [
+      94,
+      23
+     ],
+     "hiusgev+opening": [
+      70,
+      17
+     ],
+     "up30top+coldfg": [
+      21,
+      5
+     ],
+     "hiusgev+yr3-4": [
+      13,
+      3
+     ],
+     "c_reb+opening": [
+      78,
+      18
+     ],
+     "c_ft+opening": [
+      13,
+      3
+     ],
+     "up30top+c_reb": [
+      57,
+      13
+     ],
+     "c_reb+started": [
+      44,
+      10
+     ],
+     "hiusgev+started": [
+      40,
+      9
+     ],
+     "up30+lowusg": [
+      178,
+      40
+     ],
+     "up30top+c_to": [
+      45,
+      10
+     ],
+     "c_fg+c_to": [
+      27,
+      6
+     ],
+     "lowmin+c_reb": [
+      131,
+      29
+     ],
+     "c_stl+c_to": [
+      41,
+      9
+     ],
+     "lowmin+c_blk": [
+      137,
+      30
+     ],
+     "c_stl+opening": [
+      122,
+      26
+     ],
+     "coldfg+newteam": [
+      80,
+      17
+     ],
+     "up30top+c_stl": [
+      57,
+      12
+     ],
+     "c_blk+started": [
+      44,
+      9
+     ],
+     "lowmin+c_fg": [
+      104,
+      21
+     ],
+     "lowusg+opening": [
+      215,
+      43
+     ],
+     "c_stl+c_fg": [
+      15,
+      3
+     ],
+     "c_blk+coldfg": [
+      40,
+      8
+     ],
+     "up30+c_stl": [
+      136,
+      27
+     ],
+     "c_stl+started": [
+      61,
+      12
+     ],
+     "up30+coldfg": [
+      67,
+      13
+     ],
+     "coldfg+started": [
+      109,
+      21
+     ],
+     "up30+up30top": [
+      152,
+      29
+     ],
+     "up30top+lowmin": [
+      152,
+      29
+     ],
+     "up30top+yr1-2": [
+      21,
+      4
+     ],
+     "c_fg+started": [
+      42,
+      8
+     ],
+     "up30+c_to": [
+      111,
+      21
+     ],
+     "lowmin+c_stl": [
+      201,
+      38
+     ],
+     "up30+newteam": [
+      85,
+      16
+     ],
+     "up30+c_ast": [
+      16,
+      3
+     ],
+     "up30+yr3-4": [
+      32,
+      6
+     ],
+     "c_reb+newteam": [
+      32,
+      6
+     ],
+     "c_ast+c_stl": [
+      16,
+      3
+     ],
+     "c_tpm+coldfg": [
+      16,
+      3
+     ],
+     "newteam+opening": [
+      172,
+      32
+     ],
+     "lowusg+yr1-2": [
+      81,
+      15
+     ],
+     "opening+yr3-4": [
+      65,
+      12
+     ],
+     "c_blk+yr1-2": [
+      33,
+      6
+     ],
+     "up30+opening": [
+      216,
+      39
+     ],
+     "up30top+opening": [
+      89,
+      16
+     ],
+     "c_blk+newteam": [
+      28,
+      5
+     ],
+     "c_stl+coldfg": [
+      62,
+      11
+     ],
+     "up30+lowmin": [
+      378,
+      67
+     ],
+     "c_ast+yr1-2": [
+      17,
+      3
+     ],
+     "coldfg+yr3-4": [
+      17,
+      3
+     ],
+     "up30top+newteam": [
+      29,
+      5
+     ],
+     "lowusg+yr3-4": [
+      29,
+      5
+     ],
+     "c_fg+bigjump": [
+      35,
+      6
+     ],
+     "up30+started": [
+      123,
+      21
+     ],
+     "c_reb+coldfg": [
+      41,
+      7
+     ],
+     "lowmin+lowusg": [
+      335,
+      57
+     ],
+     "started+yr1-2": [
+      89,
+      15
+     ],
+     "lowmin+c_ast": [
+      36,
+      6
+     ],
+     "lowusg+coldfg": [
+      42,
+      7
+     ],
+     "hiusgev+c_reb": [
+      12,
+      2
+     ],
+     "hiusgev+bigjump": [
+      24,
+      4
+     ],
+     "c_ast+newteam": [
+      12,
+      2
+     ],
+     "c_tpm+opening": [
+      61,
+      10
+     ],
+     "up30top+started": [
+      43,
+      7
+     ],
+     "lowusg+started": [
+      117,
+      19
+     ],
+     "coldfg+opening": [
+      216,
+      35
+     ],
+     "c_reb+bigjump": [
+      38,
+      6
+     ],
+     "lowmin+hiusgev": [
+      83,
+      13
+     ],
+     "newteam+started": [
+      90,
+      14
+     ],
+     "c_blk+c_to": [
+      26,
+      4
+     ],
+     "opening+started": [
+      293,
+      45
+     ],
+     "bigjump+started": [
+      105,
+      16
+     ],
+     "up30+hiusgev": [
+      33,
+      5
+     ],
+     "up30+yr1-2": [
+      73,
+      11
+     ],
+     "c_stl+yr1-2": [
+      47,
+      7
+     ],
+     "lowmin+started": [
+      343,
+      51
+     ],
+     "lowmin+opening": [
+      641,
+      94
+     ],
+     "newteam+bigjump": [
+      90,
+      13
+     ],
+     "lowmin+newteam": [
+      230,
+      33
+     ],
+     "up30+bigjump": [
+      112,
+      16
+     ],
+     "hiusgev+c_stl": [
+      21,
+      3
+     ],
+     "hiusgev+c_to": [
+      14,
+      2
+     ],
+     "c_tpm+newteam": [
+      21,
+      3
+     ],
+     "lowmin+coldfg": [
+      296,
+      42
+     ],
+     "c_stl+bigjump": [
+      72,
+      10
+     ],
+     "c_to+opening": [
+      213,
+      29
+     ],
+     "c_fg+newteam": [
+      23,
+      3
+     ],
+     "lowmin+yr3-4": [
+      86,
+      11
+     ],
+     "lowmin+c_to": [
+      329,
+      42
+     ],
+     "lowusg+newteam": [
+      80,
+      10
+     ],
+     "lowmin+yr1-2": [
+      273,
+      34
+     ],
+     "c_to+bigjump": [
+      121,
+      15
+     ],
+     "c_to+coldfg": [
+      106,
+      13
+     ],
+     "c_to+started": [
+      124,
+      15
+     ],
+     "lowusg+c_to": [
+      126,
+      15
+     ],
+     "bigjump+yr1-2": [
+      105,
+      12
+     ],
+     "c_tpm+c_to": [
+      44,
+      5
+     ],
+     "lowmin+bigjump": [
+      366,
+      40
+     ],
+     "up30top+bigjump": [
+      46,
+      5
+     ],
+     "opening+yr1-2": [
+      168,
+      18
+     ],
+     "lowusg+bigjump": [
+      103,
+      11
+     ],
+     "c_to+newteam": [
+      95,
+      10
+     ],
+     "lowmin+c_tpm": [
+      67,
+      7
+     ],
+     "coldfg+bigjump": [
+      115,
+      12
+     ],
+     "opening+bigjump": [
+      244,
+      25
+     ],
+     "coldfg+yr1-2": [
+      88,
+      9
+     ],
+     "hiusgev+c_tpm": [
+      10,
+      1
+     ],
+     "c_blk+bigjump": [
+      41,
+      4
+     ],
+     "newteam+yr1-2": [
+      21,
+      2
+     ],
+     "started+yr3-4": [
+      32,
+      3
+     ],
+     "up30+c_tpm": [
+      33,
+      3
+     ],
+     "up30+c_ft": [
+      11,
+      1
+     ],
+     "lowusg+c_tpm": [
+      11,
+      1
+     ],
+     "hiusgev+yr1-2": [
+      14,
+      1
+     ],
+     "c_tpm+bigjump": [
+      29,
+      2
+     ],
+     "c_to+yr3-4": [
+      30,
+      2
+     ],
+     "c_to+yr1-2": [
+      68,
+      4
+     ],
+     "bigjump+yr3-4": [
+      28,
+      1
+     ],
+     "up30top+hiusgev": [
+      10,
+      0
+     ],
+     "up30top+c_tpm": [
+      13,
+      0
+     ],
+     "up30top+yr3-4": [
+      12,
+      0
+     ]
+    }
+   }
+  },
+  "fringe": {
+   "cases": 274,
+   "hits": 73,
+   "base": 0.2664233576642336,
+   "signs": [
+    {
+     "sign": "c_pts",
+     "have": 2,
+     "hits": 1,
+     "rate": 0.5,
+     "lift": 1.8767123287671232
+    },
+    {
+     "sign": "c_fg",
+     "have": 46,
+     "hits": 15,
+     "rate": 0.32608695652173914,
+     "lift": 1.2239428231089935
+    },
+    {
+     "sign": "hiusgev",
+     "have": 53,
+     "hits": 17,
+     "rate": 0.32075471698113206,
+     "lift": 1.2039286637373998
+    },
+    {
+     "sign": "c_ast",
+     "have": 16,
+     "hits": 5,
+     "rate": 0.3125,
+     "lift": 1.172945205479452
+    },
+    {
+     "sign": "c_reb",
+     "have": 55,
+     "hits": 17,
+     "rate": 0.3090909090909091,
+     "lift": 1.1601494396014944
+    },
+    {
+     "sign": "coldfg",
+     "have": 34,
+     "hits": 10,
+     "rate": 0.29411764705882354,
+     "lift": 1.103948428686543
+    },
+    {
+     "sign": "yr1-2",
+     "have": 21,
+     "hits": 6,
+     "rate": 0.2857142857142857,
+     "lift": 1.0724070450097847
+    },
+    {
+     "sign": "opening",
+     "have": 116,
+     "hits": 30,
+     "rate": 0.25862068965517243,
+     "lift": 0.9707132735002362
+    },
+    {
+     "sign": "c_blk",
+     "have": 41,
+     "hits": 10,
+     "rate": 0.24390243902439024,
+     "lift": 0.9154694286668894
+    },
+    {
+     "sign": "c_tpm",
+     "have": 39,
+     "hits": 9,
+     "rate": 0.23076923076923078,
+     "lift": 0.8661749209694415
+    },
+    {
+     "sign": "newteam",
+     "have": 52,
+     "hits": 12,
+     "rate": 0.23076923076923078,
+     "lift": 0.8661749209694415
+    },
+    {
+     "sign": "up30top",
+     "have": 80,
+     "hits": 18,
+     "rate": 0.225,
+     "lift": 0.8445205479452055
+    },
+    {
+     "sign": "yr3-4",
+     "have": 14,
+     "hits": 3,
+     "rate": 0.21428571428571427,
+     "lift": 0.8043052837573385
+    },
+    {
+     "sign": "up30",
+     "have": 176,
+     "hits": 37,
+     "rate": 0.21022727272727273,
+     "lift": 0.7890722291407223
+    },
+    {
+     "sign": "lowusg",
+     "have": 81,
+     "hits": 17,
+     "rate": 0.20987654320987653,
+     "lift": 0.7877557923220023
+    },
+    {
+     "sign": "c_to",
+     "have": 65,
+     "hits": 13,
+     "rate": 0.2,
+     "lift": 0.7506849315068493
+    },
+    {
+     "sign": "c_ft",
+     "have": 11,
+     "hits": 2,
+     "rate": 0.18181818181818182,
+     "lift": 0.6824408468244084
+    },
+    {
+     "sign": "lowmin",
+     "have": 50,
+     "hits": 9,
+     "rate": 0.18,
+     "lift": 0.6756164383561644
+    },
+    {
+     "sign": "c_stl",
+     "have": 45,
+     "hits": 8,
+     "rate": 0.17777777777777778,
+     "lift": 0.6672754946727549
+    },
+    {
+     "sign": "started",
+     "have": 59,
+     "hits": 8,
+     "rate": 0.13559322033898305,
+     "lift": 0.508938936614813
+    },
+    {
+     "sign": "bigjump",
+     "have": 15,
+     "hits": 2,
+     "rate": 0.13333333333333333,
+     "lift": 0.5004566210045662
+    }
+   ],
+   "pairs": [
+    {
+     "signs": "c_reb + c_fg",
+     "have": 38,
+     "hits": 14,
+     "rate": 0.3684210526315789,
+     "lift": 1.3828406633020907
+    },
+    {
+     "signs": "hiusgev + opening",
+     "have": 15,
+     "hits": 5,
+     "rate": 0.3333333333333333,
+     "lift": 1.2511415525114153
+    },
+    {
+     "signs": "c_blk + c_fg",
+     "have": 28,
+     "hits": 9,
+     "rate": 0.32142857142857145,
+     "lift": 1.206457925636008
+    },
+    {
+     "signs": "lowmin + c_fg",
+     "have": 22,
+     "hits": 7,
+     "rate": 0.3181818181818182,
+     "lift": 1.1942714819427147
+    },
+    {
+     "signs": "coldfg + opening",
+     "have": 16,
+     "hits": 5,
+     "rate": 0.3125,
+     "lift": 1.172945205479452
+    },
+    {
+     "signs": "c_reb + c_blk",
+     "have": 29,
+     "hits": 9,
+     "rate": 0.3103448275862069,
+     "lift": 1.1648559282002835
+    },
+    {
+     "signs": "lowmin + c_reb",
+     "have": 23,
+     "hits": 7,
+     "rate": 0.30434782608695654,
+     "lift": 1.1423466349017273
+    },
+    {
+     "signs": "c_reb + opening",
+     "have": 20,
+     "hits": 6,
+     "rate": 0.3,
+     "lift": 1.126027397260274
+    },
+    {
+     "signs": "up30top + c_reb",
+     "have": 27,
+     "hits": 8,
+     "rate": 0.2962962962962963,
+     "lift": 1.1121258244545915
+    },
+    {
+     "signs": "c_blk + opening",
+     "have": 17,
+     "hits": 5,
+     "rate": 0.29411764705882354,
+     "lift": 1.103948428686543
+    },
+    {
+     "signs": "up30top + c_fg",
+     "have": 28,
+     "hits": 8,
+     "rate": 0.2857142857142857,
+     "lift": 1.0724070450097847
+    },
+    {
+     "signs": "lowusg + c_fg",
+     "have": 35,
+     "hits": 10,
+     "rate": 0.2857142857142857,
+     "lift": 1.0724070450097847
+    },
+    {
+     "signs": "up30 + newteam",
+     "have": 32,
+     "hits": 9,
+     "rate": 0.28125,
+     "lift": 1.0556506849315068
+    },
+    {
+     "signs": "lowusg + c_reb",
+     "have": 36,
+     "hits": 10,
+     "rate": 0.2777777777777778,
+     "lift": 1.0426179604261796
+    },
+    {
+     "signs": "lowmin + c_blk",
+     "have": 22,
+     "hits": 6,
+     "rate": 0.2727272727272727,
+     "lift": 1.0236612702366126
+    }
+   ],
+   "counts": {
+    "cases": 274,
+    "hits": 73,
+    "signs": {
+     "c_pts": [
+      2,
+      1
+     ],
+     "c_fg": [
+      46,
+      15
+     ],
+     "hiusgev": [
+      53,
+      17
+     ],
+     "c_ast": [
+      16,
+      5
+     ],
+     "c_reb": [
+      55,
+      17
+     ],
+     "coldfg": [
+      34,
+      10
+     ],
+     "yr1-2": [
+      21,
+      6
+     ],
+     "opening": [
+      116,
+      30
+     ],
+     "c_blk": [
+      41,
+      10
+     ],
+     "c_tpm": [
+      39,
+      9
+     ],
+     "newteam": [
+      52,
+      12
+     ],
+     "up30top": [
+      80,
+      18
+     ],
+     "yr3-4": [
+      14,
+      3
+     ],
+     "up30": [
+      176,
+      37
+     ],
+     "lowusg": [
+      81,
+      17
+     ],
+     "c_to": [
+      65,
+      13
+     ],
+     "c_ft": [
+      11,
+      2
+     ],
+     "lowmin": [
+      50,
+      9
+     ],
+     "c_stl": [
+      45,
+      8
+     ],
+     "started": [
+      59,
+      8
+     ],
+     "bigjump": [
+      15,
+      2
+     ]
+    },
+    "pairs": {
+     "up30top+newteam": [
+      12,
+      5
+     ],
+     "c_reb+c_fg": [
+      38,
+      14
+     ],
+     "up30+c_ast": [
+      11,
+      4
+     ],
+     "up30top+c_tpm": [
+      14,
+      5
+     ],
+     "hiusgev+opening": [
+      15,
+      5
+     ],
+     "c_fg+c_to": [
+      12,
+      4
+     ],
+     "c_blk+c_fg": [
+      28,
+      9
+     ],
+     "lowmin+c_fg": [
+      22,
+      7
+     ],
+     "coldfg+opening": [
+      16,
+      5
+     ],
+     "c_reb+c_blk": [
+      29,
+      9
+     ],
+     "c_reb+c_to": [
+      13,
+      4
+     ],
+     "lowmin+c_reb": [
+      23,
+      7
+     ],
+     "c_reb+opening": [
+      20,
+      6
+     ],
+     "c_stl+newteam": [
+      10,
+      3
+     ],
+     "up30top+c_reb": [
+      27,
+      8
+     ],
+     "c_blk+opening": [
+      17,
+      5
+     ],
+     "up30top+c_fg": [
+      28,
+      8
+     ],
+     "lowmin+c_to": [
+      14,
+      4
+     ],
+     "lowusg+c_fg": [
+      35,
+      10
+     ],
+     "up30+newteam": [
+      32,
+      9
+     ],
+     "lowusg+c_reb": [
+      36,
+      10
+     ],
+     "lowmin+c_blk": [
+      22,
+      6
+     ],
+     "c_blk+coldfg": [
+      11,
+      3
+     ],
+     "c_tpm+opening": [
+      19,
+      5
+     ],
+     "c_fg+opening": [
+      19,
+      5
+     ],
+     "up30+c_fg": [
+      39,
+      10
+     ],
+     "up30+c_reb": [
+      48,
+      12
+     ],
+     "up30+yr3-4": [
+      12,
+      3
+     ],
+     "up30top+c_blk": [
+      28,
+      7
+     ],
+     "lowusg+yr1-2": [
+      12,
+      3
+     ],
+     "up30+c_blk": [
+      38,
+      9
+     ],
+     "up30top+c_to": [
+      22,
+      5
+     ],
+     "lowusg+c_blk": [
+      31,
+      7
+     ],
+     "up30+up30top": [
+      80,
+      18
+     ],
+     "up30top+lowusg": [
+      40,
+      9
+     ],
+     "up30+opening": [
+      76,
+      16
+     ],
+     "up30+c_tpm": [
+      29,
+      6
+     ],
+     "lowusg+opening": [
+      34,
+      7
+     ],
+     "up30+c_to": [
+      50,
+      10
+     ],
+     "up30+coldfg": [
+      20,
+      4
+     ],
+     "up30top+lowmin": [
+      46,
+      9
+     ],
+     "up30top+c_stl": [
+      26,
+      5
+     ],
+     "lowmin+lowusg": [
+      26,
+      5
+     ],
+     "c_to+opening": [
+      26,
+      5
+     ],
+     "up30+yr1-2": [
+      16,
+      3
+     ],
+     "up30+lowusg": [
+      66,
+      12
+     ],
+     "up30top+yr1-2": [
+      11,
+      2
+     ],
+     "up30+lowmin": [
+      50,
+      9
+     ],
+     "hiusgev+newteam": [
+      17,
+      3
+     ],
+     "up30+c_stl": [
+      42,
+      7
+     ],
+     "c_to+newteam": [
+      12,
+      2
+     ],
+     "c_to+started": [
+      12,
+      2
+     ],
+     "opening+started": [
+      36,
+      6
+     ],
+     "up30+hiusgev": [
+      25,
+      4
+     ],
+     "newteam+opening": [
+      19,
+      3
+     ],
+     "up30top+opening": [
+      35,
+      5
+     ],
+     "lowusg+c_to": [
+      28,
+      4
+     ],
+     "c_tpm+c_to": [
+      14,
+      2
+     ],
+     "c_tpm+started": [
+      15,
+      2
+     ],
+     "lowmin+opening": [
+      23,
+      3
+     ],
+     "lowmin+c_stl": [
+      16,
+      2
+     ],
+     "up30+started": [
+      49,
+      5
+     ],
+     "c_stl+opening": [
+      20,
+      2
+     ],
+     "c_stl+started": [
+      10,
+      1
+     ],
+     "up30top+started": [
+      22,
+      2
+     ],
+     "lowusg+c_stl": [
+      11,
+      1
+     ],
+     "up30+bigjump": [
+      13,
+      1
+     ],
+     "c_stl+c_to": [
+      13,
+      1
+     ],
+     "lowmin+started": [
+      14,
+      1
+     ],
+     "up30top+bigjump": [
+      10,
+      0
+     ],
+     "lowusg+started": [
+      16,
+      0
+     ],
+     "newteam+started": [
+      12,
+      0
+     ]
+    }
+   }
+  },
+  "top80": {
+   "cases": 262,
+   "hits": 47,
+   "base": 0.17938931297709923,
+   "signs": [
+    {
+     "sign": "coldfg",
+     "have": 17,
+     "hits": 7,
+     "rate": 0.4117647058823529,
+     "lift": 2.295369211514393
+    },
+    {
+     "sign": "yr3-4",
+     "have": 10,
+     "hits": 3,
+     "rate": 0.3,
+     "lift": 1.672340425531915
+    },
+    {
+     "sign": "lowmin",
+     "have": 7,
+     "hits": 2,
+     "rate": 0.2857142857142857,
+     "lift": 1.5927051671732522
+    },
+    {
+     "sign": "c_ast",
+     "have": 39,
+     "hits": 9,
+     "rate": 0.23076923076923078,
+     "lift": 1.286415711947627
+    },
+    {
+     "sign": "c_to",
+     "have": 26,
+     "hits": 6,
+     "rate": 0.23076923076923078,
+     "lift": 1.286415711947627
+    },
+    {
+     "sign": "opening",
+     "have": 93,
+     "hits": 21,
+     "rate": 0.22580645161290322,
+     "lift": 1.2587508579272477
+    },
+    {
+     "sign": "bigjump",
+     "have": 9,
+     "hits": 2,
+     "rate": 0.2222222222222222,
+     "lift": 1.2387706855791962
+    },
+    {
+     "sign": "lowusg",
+     "have": 53,
+     "hits": 11,
+     "rate": 0.20754716981132076,
+     "lift": 1.1569650742673625
+    },
+    {
+     "sign": "newteam",
+     "have": 50,
+     "hits": 10,
+     "rate": 0.2,
+     "lift": 1.1148936170212767
+    },
+    {
+     "sign": "yr1-2",
+     "have": 20,
+     "hits": 4,
+     "rate": 0.2,
+     "lift": 1.1148936170212767
+    },
+    {
+     "sign": "c_reb",
+     "have": 59,
+     "hits": 11,
+     "rate": 0.1864406779661017,
+     "lift": 1.0393076090876308
+    },
+    {
+     "sign": "up30",
+     "have": 242,
+     "hits": 43,
+     "rate": 0.17768595041322313,
+     "lift": 0.9905046597503077
+    },
+    {
+     "sign": "c_fg",
+     "have": 51,
+     "hits": 9,
+     "rate": 0.17647058823529413,
+     "lift": 0.983729662077597
+    },
+    {
+     "sign": "c_ft",
+     "have": 34,
+     "hits": 6,
+     "rate": 0.17647058823529413,
+     "lift": 0.983729662077597
+    },
+    {
+     "sign": "hiusgev",
+     "have": 112,
+     "hits": 18,
+     "rate": 0.16071428571428573,
+     "lift": 0.8958966565349545
+    },
+    {
+     "sign": "c_blk",
+     "have": 50,
+     "hits": 8,
+     "rate": 0.16,
+     "lift": 0.8919148936170214
+    },
+    {
+     "sign": "c_tpm",
+     "have": 36,
+     "hits": 5,
+     "rate": 0.1388888888888889,
+     "lift": 0.7742316784869977
+    },
+    {
+     "sign": "up30top",
+     "have": 155,
+     "hits": 21,
+     "rate": 0.13548387096774195,
+     "lift": 0.7552505147563487
+    },
+    {
+     "sign": "c_stl",
+     "have": 54,
+     "hits": 7,
+     "rate": 0.12962962962962962,
+     "lift": 0.7226162332545311
+    },
+    {
+     "sign": "c_pts",
+     "have": 27,
+     "hits": 1,
+     "rate": 0.037037037037037035,
+     "lift": 0.20646178092986603
+    },
+    {
+     "sign": "started",
+     "have": 16,
+     "hits": 0,
+     "rate": 0,
+     "lift": 0
+    }
+   ],
+   "pairs": [
+    {
+     "signs": "up30 + coldfg",
+     "have": 16,
+     "hits": 7,
+     "rate": 0.4375,
+     "lift": 2.4388297872340425
+    },
+    {
+     "signs": "newteam + opening",
+     "have": 15,
+     "hits": 5,
+     "rate": 0.3333333333333333,
+     "lift": 1.8581560283687943
+    },
+    {
+     "signs": "hiusgev + opening",
+     "have": 30,
+     "hits": 8,
+     "rate": 0.26666666666666666,
+     "lift": 1.4865248226950354
+    },
+    {
+     "signs": "c_fg + opening",
+     "have": 19,
+     "hits": 5,
+     "rate": 0.2631578947368421,
+     "lift": 1.4669652855543114
+    },
+    {
+     "signs": "lowusg + c_reb",
+     "have": 24,
+     "hits": 6,
+     "rate": 0.25,
+     "lift": 1.3936170212765957
+    },
+    {
+     "signs": "hiusgev + c_ft",
+     "have": 24,
+     "hits": 6,
+     "rate": 0.25,
+     "lift": 1.3936170212765957
+    },
+    {
+     "signs": "c_stl + opening",
+     "have": 20,
+     "hits": 5,
+     "rate": 0.25,
+     "lift": 1.3936170212765957
+    },
+    {
+     "signs": "up30 + opening",
+     "have": 85,
+     "hits": 20,
+     "rate": 0.23529411764705882,
+     "lift": 1.311639549436796
+    },
+    {
+     "signs": "c_blk + opening",
+     "have": 17,
+     "hits": 4,
+     "rate": 0.23529411764705882,
+     "lift": 1.311639549436796
+    },
+    {
+     "signs": "c_reb + opening",
+     "have": 22,
+     "hits": 5,
+     "rate": 0.22727272727272727,
+     "lift": 1.2669245647969052
+    },
+    {
+     "signs": "lowusg + opening",
+     "have": 18,
+     "hits": 4,
+     "rate": 0.2222222222222222,
+     "lift": 1.2387706855791962
+    },
+    {
+     "signs": "lowusg + c_fg",
+     "have": 23,
+     "hits": 5,
+     "rate": 0.21739130434782608,
+     "lift": 1.211840888066605
+    },
+    {
+     "signs": "up30 + c_ast",
+     "have": 37,
+     "hits": 8,
+     "rate": 0.21621621621621623,
+     "lift": 1.2052903967797586
+    },
+    {
+     "signs": "hiusgev + c_ast",
+     "have": 28,
+     "hits": 6,
+     "rate": 0.21428571428571427,
+     "lift": 1.1945288753799392
+    },
+    {
+     "signs": "up30 + c_to",
+     "have": 25,
+     "hits": 5,
+     "rate": 0.2,
+     "lift": 1.1148936170212767
+    }
+   ],
+   "counts": {
+    "cases": 262,
+    "hits": 47,
+    "signs": {
+     "coldfg": [
+      17,
+      7
+     ],
+     "yr3-4": [
+      10,
+      3
+     ],
+     "lowmin": [
+      7,
+      2
+     ],
+     "c_ast": [
+      39,
+      9
+     ],
+     "c_to": [
+      26,
+      6
+     ],
+     "opening": [
+      93,
+      21
+     ],
+     "bigjump": [
+      9,
+      2
+     ],
+     "lowusg": [
+      53,
+      11
+     ],
+     "newteam": [
+      50,
+      10
+     ],
+     "yr1-2": [
+      20,
+      4
+     ],
+     "c_reb": [
+      59,
+      11
+     ],
+     "up30": [
+      242,
+      43
+     ],
+     "c_fg": [
+      51,
+      9
+     ],
+     "c_ft": [
+      34,
+      6
+     ],
+     "hiusgev": [
+      112,
+      18
+     ],
+     "c_blk": [
+      50,
+      8
+     ],
+     "c_tpm": [
+      36,
+      5
+     ],
+     "up30top": [
+      155,
+      21
+     ],
+     "c_stl": [
+      54,
+      7
+     ],
+     "c_pts": [
+      27,
+      1
+     ],
+     "started": [
+      16,
+      0
+     ]
+    },
+    "pairs": {
+     "c_ast+opening": [
+      13,
+      6
+     ],
+     "up30+coldfg": [
+      16,
+      7
+     ],
+     "up30top+coldfg": [
+      11,
+      4
+     ],
+     "c_ft+opening": [
+      12,
+      4
+     ],
+     "newteam+opening": [
+      15,
+      5
+     ],
+     "up30+yr3-4": [
+      10,
+      3
+     ],
+     "lowusg+newteam": [
+      11,
+      3
+     ],
+     "c_ast+newteam": [
+      11,
+      3
+     ],
+     "hiusgev+opening": [
+      30,
+      8
+     ],
+     "c_fg+opening": [
+      19,
+      5
+     ],
+     "lowusg+c_reb": [
+      24,
+      6
+     ],
+     "hiusgev+c_ft": [
+      24,
+      6
+     ],
+     "c_stl+opening": [
+      20,
+      5
+     ],
+     "up30+opening": [
+      85,
+      20
+     ],
+     "c_blk+opening": [
+      17,
+      4
+     ],
+     "c_to+opening": [
+      13,
+      3
+     ],
+     "c_reb+opening": [
+      22,
+      5
+     ],
+     "lowusg+opening": [
+      18,
+      4
+     ],
+     "lowusg+c_fg": [
+      23,
+      5
+     ],
+     "up30+c_ast": [
+      37,
+      8
+     ],
+     "hiusgev+c_ast": [
+      28,
+      6
+     ],
+     "up30+c_to": [
+      25,
+      5
+     ],
+     "up30+yr1-2": [
+      20,
+      4
+     ],
+     "up30+lowusg": [
+      51,
+      10
+     ],
+     "c_reb+c_fg": [
+      41,
+      8
+     ],
+     "up30top+opening": [
+      58,
+      11
+     ],
+     "up30+c_reb": [
+      59,
+      11
+     ],
+     "up30top+c_blk": [
+      43,
+      8
+     ],
+     "lowusg+c_blk": [
+      27,
+      5
+     ],
+     "up30top+yr1-2": [
+      11,
+      2
+     ],
+     "c_reb+newteam": [
+      11,
+      2
+     ],
+     "c_ast+c_stl": [
+      11,
+      2
+     ],
+     "up30+c_fg": [
+      51,
+      9
+     ],
+     "up30+c_ft": [
+      34,
+      6
+     ],
+     "lowusg+c_to": [
+      17,
+      3
+     ],
+     "up30+newteam": [
+      46,
+      8
+     ],
+     "c_blk+c_fg": [
+      23,
+      4
+     ],
+     "hiusgev+c_tpm": [
+      24,
+      4
+     ],
+     "c_reb+c_blk": [
+      30,
+      5
+     ],
+     "up30+c_blk": [
+      50,
+      8
+     ],
+     "up30top+lowusg": [
+      33,
+      5
+     ],
+     "up30+hiusgev": [
+      106,
+      16
+     ],
+     "up30+c_tpm": [
+      35,
+      5
+     ],
+     "up30top+c_tpm": [
+      29,
+      4
+     ],
+     "hiusgev+newteam": [
+      29,
+      4
+     ],
+     "up30top+c_stl": [
+      44,
+      6
+     ],
+     "up30+up30top": [
+      155,
+      21
+     ],
+     "up30+c_stl": [
+      52,
+      7
+     ],
+     "hiusgev+c_reb": [
+      16,
+      2
+     ],
+     "up30top+hiusgev": [
+      65,
+      8
+     ],
+     "up30top+c_reb": [
+      49,
+      6
+     ],
+     "up30top+c_fg": [
+      42,
+      5
+     ],
+     "up30top+c_ast": [
+      26,
+      3
+     ],
+     "up30top+c_ft": [
+      26,
+      3
+     ],
+     "up30top+newteam": [
+      31,
+      3
+     ],
+     "hiusgev+c_stl": [
+      22,
+      2
+     ],
+     "hiusgev+c_blk": [
+      11,
+      1
+     ],
+     "c_stl+c_ft": [
+      11,
+      1
+     ],
+     "c_stl+newteam": [
+      11,
+      1
+     ],
+     "c_fg+newteam": [
+      11,
+      1
+     ],
+     "c_tpm+opening": [
+      12,
+      1
+     ],
+     "up30top+c_to": [
+      13,
+      1
+     ],
+     "hiusgev+c_pts": [
+      22,
+      1
+     ],
+     "up30top+c_pts": [
+      25,
+      1
+     ],
+     "up30+c_pts": [
+      27,
+      1
+     ],
+     "up30+started": [
+      16,
+      0
+     ],
+     "up30top+started": [
+      13,
+      0
+     ],
+     "hiusgev+c_fg": [
+      11,
+      0
+     ],
+     "c_pts+c_ast": [
+      10,
+      0
+     ],
+     "c_pts+opening": [
+      11,
+      0
+     ]
+    }
+   }
   }
  }
 }
