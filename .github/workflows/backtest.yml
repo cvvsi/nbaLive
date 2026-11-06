@@ -33,7 +33,7 @@ jobs:
         if: always()
       - name: Commit the summary
         run: |
-          git add data/backtest*.json data/study*.json
+          git add data/
           if git diff --cached --quiet; then exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"

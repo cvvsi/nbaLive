@@ -125,11 +125,15 @@ const pct = v => (100 * v).toFixed(1) + '%';
       return { sign: k, have: w.length, hits: wb.length, rate: w.length ? wb.length / w.length : 0, lift: w.length && base ? wb.length / w.length / base : 0 }; }).sort((a, b) => b.lift - a.lift);
     const pairs = [];
     for (let i = 0; i < signs.length; i++) for (let j = i + 1; j < signs.length; j++) {
-      const w = C.filter(c => c.signs.includes(signs[i]) && c.signs.includes(signs[j])); if (w.length < minPair) continue;
+      const w = C.filter(c => c.signs.includes(signs[i]) && c.signs.includes(signs[j])); if (w.length < Math.min(10, minPair)) continue;
       const wb = w.filter(ok).length; pairs.push({ signs: `${signs[i]} + ${signs[j]}`, have: w.length, hits: wb, rate: wb / w.length, lift: base ? wb / w.length / base : 0 });
     }
     pairs.sort((a, b) => b.lift - a.lift);
-    return { cases: C.length, hits: C.filter(ok).length, base, signs: rows, pairs: pairs.slice(0, 15) };
+    const shown = pairs.filter(p => p.have >= minPair);
+    // compact counts for the tracker (data/breakout-rates.json): [cases with it, breakouts among them]
+    const counts = { cases: C.length, hits: C.filter(ok).length, signs: Object.fromEntries(rows.map(r => [r.sign, [r.have, r.hits]])),
+      pairs: Object.fromEntries(pairs.filter(p => p.have >= 10).map(p => [p.signs.replace(' + ', '+'), [p.have, p.hits]])) };
+    return { cases: C.length, hits: C.filter(ok).length, base, signs: rows, pairs: shown.slice(0, 15), counts };
   }
   function print(title, T) {
     console.log(`\n==== ${title}: ${T.cases} cases, ${T.hits} hits (base rate ${pct(T.base)})`);
@@ -137,9 +141,10 @@ const pct = v => (100 * v).toFixed(1) + '%';
     for (const r of T.signs) if (r.have) console.log(`${r.sign.padEnd(10)} ${String(r.have).padStart(5)} ${String(r.hits).padStart(5)}   ${pct(r.rate).padStart(7)}  ${r.lift.toFixed(2)}`);
     console.log('best pairs:'); for (const p of T.pairs) console.log(`  ${p.signs.padEnd(22)} ${String(p.have).padStart(4)} cases, ${p.hits} hits, ${pct(p.rate)} (lift ${p.lift.toFixed(2)})`);
   }
-  for (const tier of ['deep', 'fringe']) {
+  const TIERN = { deep: 'outside 130', fringe: '81-130', top80: 'inside 80' };
+  for (const tier of ['deep', 'fringe', 'top80']) {
     const T = table(SC.filter(c => c.tier === tier), S_SEASON, c => c.trueBo, tier === 'deep' ? 20 : 12);
-    out.season[tier] = T; print(`Season to season, true breakouts, starting ${tier === 'deep' ? 'outside 130' : '81-130'}`, T);
+    out.season[tier] = T; print(`Season to season, true breakouts, starting ${TIERN[tier]}`, T);
   }
   out.season.trueBreakouts = SC.filter(c => c.trueBo).sort((a, b) => (b.before - b.after) - (a.before - a.after));
   out.season.comebacks = SC.filter(c => c.comeback).map(c => `${c.y} ${c.n} #${c.before}->#${c.after} (best before #${c.best})`);
@@ -177,15 +182,23 @@ const pct = v => (100 * v).toFixed(1) + '%';
         const s = { ...b.s, newteam: (prevTeam && prevTeam !== rs[i - 1].team) || new Set(soFar.map(r => r.team)).size > 1,
           opening: opening(rs[i - 1].team, last3.map(r => r.date), id), bigjump: m3 >= mp + 10, started: stT };
         TC.push({ y: label(y), id, n: nameOf(id), date: rs[i - 1].date, gp: i, before, after, m3: +m3.toFixed(1), mp: +mp.toFixed(1),
-          rostered: before <= ROST, hit: after <= ROST, big: after <= 80, signs: S_TRIG.filter(k => s[k]) });
+          tier: before > ROST ? 'deep' : before > 80 ? 'fringe' : 'top80', rostered: before <= ROST, hit: after <= ROST, big: after <= 80,
+          // the same breakout rule as season to season: 40%+ better, 20+ spots, inside 130
+          bo: after <= ROST && after <= before * MOVE && before - after >= MIN_JUMP, signs: S_TRIG.filter(k => s[k]) });
         i += 19;   // one trigger per 20 games
       }
     }
   }
-  const W = TC.filter(c => !c.rostered);   // waiver-wire triggers: the ones a tracker is for
+  const W = TC.filter(c => !c.rostered);   // waiver-wire triggers
   for (const [k, ok] of [['hit', c => c.hit], ['big', c => c.big]]) {
     const T = table(W, S_TRIG, ok, 25); out.trigger[k] = T;
     print(`In season, triggers for players outside 130 at the time: next 20 games ${k === 'hit' ? 'inside 130' : 'inside 80'}`, T);
+  }
+  // every tier, with the breakout rule (40%+ better and 20+ spots over the next 20 games)
+  out.triggerBo = {};
+  for (const tier of ['deep', 'fringe', 'top80']) {
+    const T = table(TC.filter(c => c.tier === tier), S_TRIG, c => c.bo, tier === 'deep' ? 25 : 15); out.triggerBo[tier] = T;
+    print(`In season, triggers starting ${TIERN[tier]}: breakout over the next 20 games`, T);
   }
   const bySigns = [0, 1, 2, 3, 4].map(nn => { const w = W.filter(c => Math.min(4, c.signs.filter(s => !s.startsWith('yr') && s !== 'lowmin').length) === nn), wb = w.filter(c => c.hit).length;
     return { signs: nn === 4 ? '4+' : nn, have: w.length, hits: wb, rate: w.length ? wb / w.length : 0 }; });
@@ -206,5 +219,11 @@ const pct = v => (100 * v).toFixed(1) + '%';
     for (const c of tc) console.log(`  trigger ${c.y} game ${c.gp} (${c.date}): ${c.mp} -> ${c.m3} min, #${c.before} -> next 20 #${c.after}${c.big ? ' BIG' : c.hit ? ' hit' : ''} | ${c.signs.join(', ')}`);
   }
   fs.writeFileSync('data/study-signs.json', JSON.stringify(out, null, 1));
+  // What the Breakouts view reads: per tier, how many cases had each sign (and pair) and how many broke out.
+  const rates = { built: new Date().toISOString().slice(0, 10), seasons: years.map(label), rule: out.definition, tiers: TIERN,
+    season: Object.fromEntries(['deep', 'fringe', 'top80'].map(t => [t, out.season[t].counts])),
+    trigger: Object.fromEntries(['deep', 'fringe', 'top80'].map(t => [t, out.triggerBo[t].counts])) };
+  fs.writeFileSync('data/breakout-rates.json', JSON.stringify(rates));
+  console.log('data/breakout-rates.json written');
   console.log('\ndata/study-signs.json written');
 })().catch(e => { console.error(e); process.exit(1); });
