@@ -13,6 +13,8 @@
  *   role     today's, but with last season counting only g games (0, 1, 2) once this season's mpg
  *            is 5+ off last season's (a role change)
  *   fade+role  both
+ *   fadeBlow / fadeFoul / fadeBoth  fade, with blowout games (final margin 20+) and/or games with
+ *            5+ fouls counting bw / fw as much (0 = ignored, 1 = like any game)
  *   pick52, pick53  fade with h = 5 and G = 2 or 3, fixed (no fitting), the candidates for Proj
  * Players: 500+ minutes last season. Checkpoints after 5, 8, 12, 20, 30 and 45 games played.
  * Truth: minutes per game played over (a) the next 10 games and (b) the rest of the season (10+
@@ -22,12 +24,16 @@
 const fs = require('fs');
 const MOCK = process.argv.includes('--mock');
 const API = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba';
-const NS = [5, 8, 12, 20, 30, 45], AHEAD = 10, BASE_MIN = 500, ROLE = 5;
+const NS = [5, 8, 12, 20, 30, 45], AHEAD = 10, BASE_MIN = 500, ROLE = 5, BLOWOUT = 20;
 const label = y => `${y - 1}-${String(y).slice(2)}`;
 
 function byPlayer(games) {
   const by = {};
-  for (const g of [...games].sort((a, b) => a.date < b.date ? -1 : 1)) for (const r of g.rows) (by[r.id] || (by[r.id] = [])).push(r.min);
+  for (const g of [...games].sort((a, b) => a.date < b.date ? -1 : 1)) {
+    const P = {}; for (const r of g.rows) P[r.team] = (P[r.team] || 0) + (r.pts || 0);
+    const pts = Object.values(P), blow = pts.length === 2 && Math.abs(pts[0] - pts[1]) >= BLOWOUT;
+    for (const r of g.rows) { const o = by[r.id] || (by[r.id] = { m: [], fl: [] }); o.m.push(r.min); o.fl.push({ b: blow, f: (r.pf || 0) >= 5 }); }
+  }
   return by;
 }
 const mean = a => a.reduce((s, v) => s + v, 0) / a.length;
@@ -41,9 +47,12 @@ const FAM = {
   role: [0, 1, 2].map(g => ({ g })),
   pick52: [{ h: 5, G: 2 }],          // fixed candidates, scored as-is on both targets
   pick53: [{ h: 5, G: 3 }],
+  fadeBlow: [3, 5, 8].flatMap(h => [1, 2, 3].flatMap(G => [0, .25, .5, .75, 1].map(bw => ({ h, G, bw, fw: 1 })))),
+  fadeFoul: [3, 5, 8].flatMap(h => [1, 2, 3].flatMap(G => [0, .25, .5, .75, 1].map(fw => ({ h, G, bw: 1, fw })))),
+  fadeBoth: [5].flatMap(h => [2].flatMap(G => [0, .25, .5, .75, 1].flatMap(bw => [0, .25, .5, .75, 1].map(fw => ({ h, G, bw, fw }))))),
   fadeRole: [3, 5, 8, 12, 20].flatMap(h => [1, 2, 3, 5].flatMap(G => [0, 1].map(g => ({ h, G, g })))),
 };
-function pred(fam, m, l, p) {
+function pred(fam, m, l, p, fl) {
   const N = m.length, s = mean(m);
   if (fam === 'today') return (s * N + 5 * l) / (N + 5);
   if (fam === 'season') return s;
@@ -51,7 +60,7 @@ function pred(fam, m, l, p) {
   if (fam === 'role') { const G = Math.abs(s - l) >= ROLE ? p.g : 5; return (s * N + G * l) / (N + G); }
   if (fam.startsWith('pick')) fam = 'fade';
   // fade / fadeRole: weights 0.5^(age/h); the nudge is G games of last season on the same scale.
-  let a = 0, w = 0; for (let i = 0; i < N; i++) { const wi = Math.pow(.5, (N - 1 - i) / p.h); a += wi * m[i]; w += wi; }
+  let a = 0, w = 0; for (let i = 0; i < N; i++) { const wi = Math.pow(.5, (N - 1 - i) / p.h) * (p.bw != null && fl[i].b ? p.bw : 1) * (p.fw != null && fl[i].f ? p.fw : 1); a += wi * m[i]; w += wi; }
   const G = fam === 'fadeRole' && Math.abs(s - l) >= ROLE ? p.g : p.G;
   return (a + G * l) / (w + G);
 }
@@ -61,18 +70,18 @@ function analyze(G, tests) {
   for (const y of tests) {
     S[y] = [];
     const prev = byPlayer(G[y - 1]), cur = byPlayer(G[y]);
-    for (const [id, m] of Object.entries(cur)) {
-      const pm = prev[id]; if (!pm) continue;
+    for (const [id, { m, fl }] of Object.entries(cur)) {
+      const pm = prev[id] && prev[id].m; if (!pm) continue;
       const tot = pm.reduce((a, b) => a + b, 0); if (tot < BASE_MIN) continue;
       const l = tot / pm.length;
       for (const N of NS) {
         if (m.length < N + 10) continue;
         const so = m.slice(0, N);
-        S[y].push({ N, so, l, next: mean(m.slice(N, N + AHEAD)), rest: mean(m.slice(N)), role: Math.abs(mean(so) - l) >= ROLE });
+        S[y].push({ N, so, sf: fl.slice(0, N), l, next: mean(m.slice(N, N + AHEAD)), rest: mean(m.slice(N)), role: Math.abs(mean(so) - l) >= ROLE });
       }
     }
   }
-  const err = (ys, fam, p, tgt, filt) => { let se = 0, n = 0; for (const y of ys) for (const s of S[y]) { if (filt && !filt(s)) continue; se += (pred(fam, s.so, s.l, p) - s[tgt]) ** 2; n++; } return { se, n }; };
+  const err = (ys, fam, p, tgt, filt) => { let se = 0, n = 0; for (const y of ys) for (const s of S[y]) { if (filt && !filt(s)) continue; se += (pred(fam, s.so, s.l, p, s.sf) - s[tgt]) ** 2; n++; } return { se, n }; };
   const out = { tests: tests.map(label), note: 'RMSE in minutes per game, out of sample (fit on two seasons, scored on the third); gain = % less error than today', samples: tests.map(y => S[y].length), targets: {} };
   for (const tgt of ['next', 'rest']) {
     const T = out.targets[tgt] = {};
@@ -107,7 +116,7 @@ function mockSeasons(years) {
   const G = {};
   for (const y of years) {
     for (const p of P) { if (rnd() < .2) p.m = Math.max(8, Math.min(38, p.m + (rnd() - .5) * 16)); p.shift = rnd() < .15 ? 20 + Math.floor(rnd() * 30) : 0; p.to = p.m + (rnd() - .5) * 12; }
-    G[y] = [...Array(70)].map((_, g) => ({ date: `${y}-${String(g).padStart(3, '0')}`, rows: P.map(p => ({ id: p.id, min: Math.max(2, Math.round((p.shift && g >= p.shift ? p.to : p.m) + (rnd() - .5) * 10 - (rnd() < .08 ? 12 : 0))) })) }));
+    G[y] = [...Array(70)].map((_, g) => ({ date: `${y}-${String(g).padStart(3, '0')}`, rows: P.map(p => ({ id: p.id, team: 'T' + (+p.id % 2), pts: Math.round(rnd() * 20), pf: Math.floor(rnd() * 6), min: Math.max(2, Math.round((p.shift && g >= p.shift ? p.to : p.m) + (rnd() - .5) * 10 - (rnd() < .08 ? 12 : 0))) })) }));
   }
   return G;
 }
