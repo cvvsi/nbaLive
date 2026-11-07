@@ -1241,7 +1241,7 @@ All three use your punts and the same top-130 pool.</p>
 
 <h3>Proj in five steps</h3>
 <ol>
-<li><b>Minutes</b> = (this season's minutes + ${pg} × last season's mpg) ÷ (games + ${pg}). This season's role, barely nudged.</li>
+<li><b>Minutes</b> = this season's minutes per game with recent games counting more (a game ${G.minHalf||5} games back counts half as much as the latest), plus last season's mpg counted as ${pg} games. This season's role, recent games first, barely nudged.</li>
 <li><b>Baseline</b> = last season + the season before at ${half} weight (season totals, so it's minutes-weighted).</li>
 <li><b>Rates</b>: every per-minute stat and shooting % = (this season's total + baseline rate × K) ÷ (this season's minutes or attempts + K). K per stat is in the table below.</li>
 <li><b>Line</b> = minutes × rates, with points rebuilt as 2 × FGM + 3PM + FTM.</li>
@@ -1250,7 +1250,7 @@ All three use your punts and the same top-130 pool.</p>
 <p class="dim">No age curve, injuries, news or depth charts: it's box scores only. Checked against an analyst's projections in Nov 2026: rankings agree closely (115 of his top 130 are in ours); the big disagreements are minutes calls, which he makes by hand.</p>
 
 <h3>How Proj is built</h3>
-<p><b>Role is kept.</b> Minutes per game stay at this season's, nudged by just ${pg} games' worth of last season's. Role changes usually stick.</p>
+<p><b>Role is kept.</b> Minutes per game stay at this season's, recent games counting most, nudged by just ${pg} games' worth of last season's. Role changes usually stick.</p>
 <p><b>Rates are blended.</b> Each per-minute rate and shooting % is mixed with the baseline's:</p>
 <p class="f">blended = (this season's total + baseline rate × K) ÷ (this season's minutes or attempts + K)</p>
 <p>K is how much of this season it takes to count as much as the baseline. Small K: the stat settles fast, so this season is trusted sooner. Large K: noisy, so the baseline carries more weight for longer.</p>

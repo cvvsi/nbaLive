@@ -166,7 +166,19 @@ function zOf(l, { lgFG, lgFT, st }) {
 // stl 600->1200, fta 250->450, fg 250->450. The rest already sat at the fitted value.
 const PRIOR = { fga: 150, tpa: 200, fta: 450, reb: 450, ast: 250, to: 600, stl: 1200, blk: 500,  // minutes
   fg: 450, tp: 500, ft: 200 };                                                                  // attempts
-const PRIOR_GP = 5;          // minutes: this season's mpg, nudged by 5 games of last season's (fitted; was 3)
+const PRIOR_GP = 2;          // minutes: last season's mpg counts as 2 games (backtest-minutes.js; was 5 on a flat average)
+const MIN_HALF = 5;          // minutes: recent games count more, a game 5 games back half as much as the latest
+// Minutes per game: an exponential moving average of this season's games (half-life MIN_HALF
+// games), plus last season's mpg counted as PRIOR_GP games. backtest-minutes.js (2023-24 to
+// 2025-26, out of sample): 5.1% less error than the flat average + 5 games over the next 10
+// games, 2.0% over the rest of the season; better at every checkpoint from 5 to 45 games. A
+// rolling window (last 10-15 games) gained less; counting blowouts or 5-foul games less, nothing.
+function fadeMpg(mins, ly) {
+  let a = 0, w = 0;
+  for (let i = 0; i < mins.length; i++) { const k = Math.pow(.5, (mins.length - 1 - i) / MIN_HALF); a += k * mins[i]; w += k; }
+  const G = ly == null ? 0 : PRIOR_GP;
+  return w + G ? (a + G * (ly || 0)) / (w + G) : 0;
+}
 const BASE_MIN = 500;        // under this many minutes last season, the season before counts in full
 const PREV_W = 0.5;          // otherwise the season before counts at half weight (Marcel-style 1 : 0.5).
                              // Checked against an analyst's projections (Nov 2026): closer on every
@@ -269,7 +281,8 @@ function context(games) {
 // For every regular (Proj 24+ min), each teammate's minutes as a change from his Proj minutes:
 //   dWith  in the games the regular played (Proj mixes in the games he missed, so a fill-in's
 //          Proj minutes run high once the regular is back). Per game the teammate played,
-//          nudged by 5 games of last season's mpg like Proj; 0 when the regular hasn't missed one.
+//          weighted toward recent games and nudged by last season's mpg like Proj (fadeMpg);
+//          0 when the regular hasn't missed one.
 //   dOut   while he's out: half his minutes shared by his position group (G/F/C) by minutes
 //          (the fixed rule), blended with the minutes in the games already missed, the fixed
 //          rule counting as 1 extra game (backtest-absence.js: 26% less error than no change);
@@ -277,7 +290,7 @@ function context(games) {
 // The page applies them by date from ESPN's injury report, with the ramp-up after a 5+ game
 // absence from backtest-return.js. n = games missed in a row at the end of the data; bk =
 // games played since coming back from a 5+ game absence (while still under 6).
-const NM_REG = 24, NM_GP = 5, NM_LEN = 5, NM_RAMP = 6, NM_SEEN = 3;
+const NM_REG = 24, NM_LEN = 5, NM_RAMP = 6, NM_SEEN = 3;
 const grp = p => /C/.test(p) ? 'C' : /F/.test(p) ? 'F' : /G/.test(p) ? 'G' : '?';
 function nextMan(games, scored, rankings) {
   const X = Object.fromEntries(scored.map(p => [p.id, p]));
@@ -313,7 +326,7 @@ function nextMan(games, scored, rankings) {
         const b = X[id].b, ly = b ? b.t.mpg : X[id].s.min / X[id].s.gp;
         // per game HE played, like Proj's minutes: his own absences (injury, out of the
         // rotation) say nothing about the regular's
-        const avg = ix => { const g = ix.filter(i => rows[i][id]); return (g.reduce((a, i) => a + rows[i][id].min, 0) + ly * NM_GP) / (g.length + NM_GP); };
+        const avg = ix => fadeMpg(ix.filter(i => rows[i][id]).map(i => rows[i][id].min), ly);
         // his own pattern needs 3+ games he played while the regular sat; fewer (out of the
         // rotation, hurt himself) and only the fixed rule applies
         const all = avg(idx), w = idx.filter(played), seen = idx.filter(i => !played(i) && rows[i][id]).length >= NM_SEEN;
@@ -342,13 +355,16 @@ function buildRegression(games, asOf, rankings) {
   let H = null;
   try { H = JSON.parse(fs.readFileSync(HIST, 'utf8')); }
   catch (e) { console.log(`${HIST} missing: run node build-history.js once. Skipping ${REG}.`); return; }
-  const tot = totals(games), lines = [], RP = rookiePriors(), pos = {};
-  for (const g of games) for (const r of g.rows) if (r.pos) pos[r.id] = r.pos;
+  const tot = totals(games), lines = [], RP = rookiePriors(), pos = {}, mins = {};
+  for (const g of [...games].sort((a, b) => a.date < b.date ? -1 : 1)) for (const r of g.rows) {
+    if (r.pos) pos[r.id] = r.pos;
+    (mins[r.id] || (mins[r.id] = [])).push(r.min);
+  }
   for (const s of Object.values(tot)) {
     const h = H.players[s.id], b = baseline(h && { seasons: H.seasons, s: h.s });
     // No baseline: the rookie prior for his position (see ROOKIE_K), or the raw line without one.
     const rk = !b && RP ? RP[grp(pos[s.id] || '')] || RP.F : null;
-    const x = b ? expectedLine(s, b.t) : rk ? expectedLine(s, rk, s.min / s.gp, ROOKIE_K) : expectedLine(s, NOBASE, s.min / s.gp);
+    const x = b ? expectedLine(s, b.t, fadeMpg(mins[s.id] || [], b.t.mpg)) : rk ? expectedLine(s, rk, s.min / s.gp, ROOKIE_K) : expectedLine(s, NOBASE, s.min / s.gp);
     lines.push({ id: s.id, gp: s.gp, ...x, s, b, rk, rkPos: rk ? (RP[grp(pos[s.id] || '')] ? grp(pos[s.id] || '') : 'F') : null });
   }
   const out = {}, cx = context(games), scored = score(lines);
@@ -375,7 +391,7 @@ function buildRegression(games, asOf, rankings) {
   const ly = {};
   for (const [id, h] of Object.entries(H.players)) if (h.ly) ly[id] = h.ly;
   fs.writeFileSync(REG, JSON.stringify({ asOf, cats: CATS, fields: ['gp', 'mpg', ...CATS], rates: RATES, pgf: PG,
-    seasons: H.seasons, prior: PRIOR, priorGp: PRIOR_GP, baseMin: BASE_MIN, prevW: PREV_W, xpf: XPF,
+    seasons: H.seasons, prior: PRIOR, priorGp: PRIOR_GP, minHalf: MIN_HALF, baseMin: BASE_MIN, prevW: PREV_W, xpf: XPF,
     // the pool Proj is scored against: league FG%/FT% and each category's stat, mean and spread
     zp: { lgFG: +scored.pool.lgFG.toFixed(4), lgFT: +scored.pool.lgFT.toFixed(4),
       st: Object.fromEntries(CATS.map(c => { const t = scored.pool.st[c]; return [c, [t.k, +t.m.toFixed(4), +t.sd.toFixed(4)]]; })) },
