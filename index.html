@@ -505,6 +505,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .rp p{margin:0;font:500 14.5px/1.45 var(--name);color:var(--ink)}
 .psp .chips{margin-top:10px}
 .psp .cmp{max-width:none}
+.stk .d{width:auto}
 .stkn{margin:8px 0 0;font:500 12.5px/1.4 var(--name);color:var(--dim)}.stkn b{color:var(--ink)}
 .ups{margin-top:8px;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:9px;border:1px solid var(--ball)}
 .ups b{font:700 26px/1 var(--name);color:var(--ball)}.ups p{margin:0;font:500 13.5px/1.35 var(--name);color:var(--ink)}
@@ -2142,11 +2143,11 @@ function stickHTML(q,B,id){
     return{k,be,nw,pj,pct,gap:Math.abs(bsDelta(k,nw,pj))}}).filter(r=>r&&r.gap>=.75).sort((a,b)=>b.gap-a.gap).slice(0,3);
   if(!rows.length)return"";
   const fm=(r,v)=>r.pct?d1(v)+"%":f1(v),rk=B&&B.now&&B.now[id];
-  const mrow=Math.abs(nm-x.min)>=2?`<tr><td>Minutes</td><td class="ly">${f1(bm)}</td><td class="now">${f1(nm)}</td><td>${f1(x.min)}</td></tr>`:"";
+  const mrow=Math.abs(nm-x.min)>=2?`<tr><td>Minutes</td><td class="ly">${f1(bm)}</td><td class="now">${f1(nm)}</td><td class="d ${x.min>nm?"up":"dn"}">${f1(x.min)}</td></tr>`:"";
   return`<section class="blk"><h3>Proj vs this season <span>per game</span></h3>
     <table class="cmp stk"><tr><th></th><th>Before</th><th>Now</th><th>Proj</th></tr>${mrow}
-    ${rows.map(r=>`<tr><td>${WHYL[r.k]}</td><td class="ly">${fm(r,r.be)}</td><td class="now">${fm(r,r.nw)}</td><td>${fm(r,r.pj)}</td></tr>`).join("")}</table>
-    <p class="stkn">If it all sticks, he's the <b>Now</b> rank${rk?` (#${rk})`:""}. Proj moves toward this season every game it holds.</p></section>`;
+    ${rows.map(r=>`<tr><td>${WHYL[r.k]}</td><td class="ly">${fm(r,r.be)}</td><td class="now">${fm(r,r.nw)}</td><td class="d ${(r.k==="to"?r.pj<r.nw:r.pj>r.nw)?"up":"dn"}">${fm(r,r.pj)}</td></tr>`).join("")}</table>
+    <p class="stkn">If it all sticks, he's the <b>Now</b> rank${rk?` (#${rk})`:""}. Proj in green = expected to improve from now, red = expected to cool off. Proj moves toward this season every game it holds.</p></section>`;
 }
 // Counting stats against the baseline, in the Buy/Sell tab's unit (per 36 or per game).
 function cmpCounts(q){
