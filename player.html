@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="9-Cat Box">
+<meta name="apple-mobile-web-app-title" content="Sixth Man">
 <meta name="theme-color" content="#f4f5f2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#121311" media="(prefers-color-scheme: dark)">
-<title>Player Log · 9-Cat Box</title>
+<title>Player Log · Sixth Man</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -273,7 +273,7 @@ function renderHdr(info,id){
   $("hdr").innerHTML=
     `<i><img src="${u}" alt="" width="30" height="30" onerror="this.classList.add('bad')"></i>`
    +`<div class="nm"><b>${esc(info.name)}</b><span>${esc(info.team)}${info.pos?" · "+esc(info.pos):""}</span></div>`;
-  document.title=info.name+" · 9-Cat Box";
+  document.title=info.name+" · Sixth Man";
 }
 
 function fail(msg){$("log").innerHTML=`<div class="msg err">${esc(msg)}</div>`}
