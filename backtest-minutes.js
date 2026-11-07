@@ -107,6 +107,18 @@ function analyze(G, tests) {
     }
     console.log(`  role changers: ${T.today.roleSamples} of ${out.samples.reduce((a, b) => a + b, 0)} checkpoints`);
   }
+  // Very early (1-4 games, also players back from injury): fixed settings only, next 10 games.
+  console.log('\n== First 1-4 games (next 10 games, RMSE minutes): today / fade+2 / fade+3 / fade+5');
+  out.early = {};
+  for (const N of [1, 2, 3, 4]) {
+    const E = []; for (const y of tests) { const prev = byPlayer(G[y - 1]), cur = byPlayer(G[y]);
+      for (const [id, { m }] of Object.entries(cur)) { const pm = prev[id] && prev[id].m; if (!pm || m.length < N + 10) continue;
+        const tot = pm.reduce((a, b) => a + b, 0); if (tot < BASE_MIN) continue; E.push({ so: m.slice(0, N), l: tot / pm.length, next: mean(m.slice(N, N + AHEAD)) }); } }
+    const r = (fam, p) => Math.sqrt(E.reduce((a, s) => a + (pred(fam, s.so, s.l, p, s.so.map(() => ({}))) - s.next) ** 2, 0) / E.length);
+    const v = [r('today', {}), r('fade', { h: 5, G: 2 }), r('fade', { h: 5, G: 3 }), r('fade', { h: 5, G: 5 })];
+    out.early[N] = { n: E.length, today: +v[0].toFixed(3), fade2: +v[1].toFixed(3), fade3: +v[2].toFixed(3), fade5: +v[3].toFixed(3) };
+    console.log(`  after ${N}: ${v.map(x => x.toFixed(2)).join(' / ')}  (${E.length})`);
+  }
   return out;
 }
 
