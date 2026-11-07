@@ -13,6 +13,7 @@
  *   role     today's, but with last season counting only g games (0, 1, 2) once this season's mpg
  *            is 5+ off last season's (a role change)
  *   fade+role  both
+ *   pick52, pick53  fade with h = 5 and G = 2 or 3, fixed (no fitting), the candidates for Proj
  * Players: 500+ minutes last season. Checkpoints after 5, 8, 12, 20, 30 and 45 games played.
  * Truth: minutes per game played over (a) the next 10 games and (b) the rest of the season (10+
  * games needed). Each model's settings are fitted on two seasons and scored on the third, each in
@@ -38,6 +39,8 @@ const FAM = {
   roll: [3, 5, 8, 10, 15].flatMap(n => [0, 1, 3, 5].map(G => ({ n, G }))),
   fade: [3, 5, 8, 12, 20].flatMap(h => [0, 1, 2, 3, 5].map(G => ({ h, G }))),
   role: [0, 1, 2].map(g => ({ g })),
+  pick52: [{ h: 5, G: 2 }],          // fixed candidates, scored as-is on both targets
+  pick53: [{ h: 5, G: 3 }],
   fadeRole: [3, 5, 8, 12, 20].flatMap(h => [1, 2, 3, 5].flatMap(G => [0, 1].map(g => ({ h, G, g })))),
 };
 function pred(fam, m, l, p) {
@@ -46,6 +49,7 @@ function pred(fam, m, l, p) {
   if (fam === 'season') return s;
   if (fam === 'roll') { const w = m.slice(-p.n); return (mean(w) * w.length + p.G * l) / (w.length + p.G); }
   if (fam === 'role') { const G = Math.abs(s - l) >= ROLE ? p.g : 5; return (s * N + G * l) / (N + G); }
+  if (fam.startsWith('pick')) fam = 'fade';
   // fade / fadeRole: weights 0.5^(age/h); the nudge is G games of last season on the same scale.
   let a = 0, w = 0; for (let i = 0; i < N; i++) { const wi = Math.pow(.5, (N - 1 - i) / p.h); a += wi * m[i]; w += wi; }
   const G = fam === 'fadeRole' && Math.abs(s - l) >= ROLE ? p.g : p.G;
