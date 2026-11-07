@@ -505,7 +505,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .rp p{margin:0;font:500 14.5px/1.45 var(--name);color:var(--ink)}
 .psp .chips{margin-top:10px}
 .psp .cmp{max-width:none}
-.stk .d{width:auto}
+.stk .d{width:auto;color:var(--ink)}
 .stkn{margin:8px 0 0;font:500 12.5px/1.4 var(--name);color:var(--dim)}.stkn b{color:var(--ink)}
 .ups{margin-top:8px;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:9px;border:1px solid var(--ball)}
 .ups b{font:700 26px/1 var(--name);color:var(--ball)}.ups p{margin:0;font:500 13.5px/1.35 var(--name);color:var(--ink)}
@@ -2128,9 +2128,10 @@ function readHTML(a){
     if(g&&g.l===l)g.t.push(t);else groups.push({l,t:[t]})}
   return`<div class="rd"><p class="lead">${lead}</p>${groups.map(g=>`<div class="rp"><i>${g.l}</i><p>${g.t.join(" ")}</p></div>`).join("")}</div>`;
 }
-// Where Proj and this season part ways, per game: before (last season), now, and Proj. Only stats
-// with a real gap between Now and Proj (the Buy/Sell heat scale, 0.75+), skipping stats under 1 a
-// game, at most 3; hidden when there's none or no baseline. Minutes on top when they moved 2+.
+// Proj vs this season, per game: before (last season), now and Proj for all 9 cats, then minutes,
+// in the site's fixed order. Proj is colored only where it differs from now by a real amount (the
+// Buy/Sell heat scale, 0.75+; minutes 2+): green = expected to improve, red = to cool off.
+// Punted cats are left out; hidden with no baseline.
 function stickHTML(q,B,id){
   if(!q.b||!q.xp||!G.xpf)return"";
   const F=G.rates,x=xpLine(q),bm=q.b[F.indexOf("mpg")],nm=q.r[F.indexOf("mpg")];
@@ -2139,15 +2140,18 @@ function stickHTML(q,B,id){
   const rows=["pts","reb","ast","tpm","stl","blk","to","fg","ft"].filter(k=>!S.punt.has(k)).map(k=>{
     const pct=k==="fg"||k==="ft",be=pct?q.b[F.indexOf(k)]:q.b[F.indexOf(k)]*bm/36,
       pj=pct?(x[k+"m"]/Math.max(x[k+"a"],1e-9))*100:x[k],nw=now[k];
-    if(nw==null||be==null||!Number.isFinite(pj)||(!pct&&Math.max(be,nw,pj)<1))return null;
-    return{k,be,nw,pj,pct,gap:Math.abs(bsDelta(k,nw,pj))}}).filter(r=>r&&r.gap>=.75).sort((a,b)=>b.gap-a.gap).slice(0,3);
+    if(nw==null||be==null||!Number.isFinite(pj))return null;
+    const big=Math.abs(bsDelta(k,nw,pj))>=.75&&(pct||Math.max(be,nw,pj)>=1);
+    return{k,be,nw,pj,pct,cl:big?((k==="to"?pj<nw:pj>nw)?"up":"dn"):""}}).filter(Boolean);
   if(!rows.length)return"";
   const fm=(r,v)=>r.pct?d1(v)+"%":f1(v),rk=B&&B.now&&B.now[id];
-  const mrow=Math.abs(nm-x.min)>=2?`<tr><td>Minutes</td><td class="ly">${f1(bm)}</td><td class="now">${f1(nm)}</td><td class="d ${x.min>nm?"up":"dn"}">${f1(x.min)}</td></tr>`:"";
+  const L={...WHYL,tpm:"3PM"};
+  const mcl=Math.abs(nm-x.min)>=2?(x.min>nm?"up":"dn"):"";
   return`<section class="blk"><h3>Proj vs this season <span>per game</span></h3>
-    <table class="cmp stk"><tr><th></th><th>Before</th><th>Now</th><th>Proj</th></tr>${mrow}
-    ${rows.map(r=>`<tr><td>${WHYL[r.k]}</td><td class="ly">${fm(r,r.be)}</td><td class="now">${fm(r,r.nw)}</td><td class="d ${(r.k==="to"?r.pj<r.nw:r.pj>r.nw)?"up":"dn"}">${fm(r,r.pj)}</td></tr>`).join("")}</table>
-    <p class="stkn">If it all sticks, he's the <b>Now</b> rank${rk?` (#${rk})`:""}. Proj in green = expected to improve from now, red = expected to cool off. Proj moves toward this season every game it holds.</p></section>`;
+    <table class="cmp stk"><tr><th></th><th>Before</th><th>Now</th><th>Proj</th></tr>
+    ${rows.map(r=>`<tr><td>${L[r.k]}</td><td class="ly">${fm(r,r.be)}</td><td class="now">${fm(r,r.nw)}</td><td class="d ${r.cl}">${fm(r,r.pj)}</td></tr>`).join("")}
+    <tr><td>Minutes</td><td class="ly">${d1(bm)}</td><td class="now">${d1(nm)}</td><td class="d ${mcl}">${d1(x.min)}</td></tr></table>
+    <p class="stkn">Colored only where Proj and now differ by a real amount: green = expected to improve, red = to cool off. If it all sticks, he's the <b>Now</b> rank${rk?` (#${rk})`:""}. Proj moves toward this season every game it holds.</p></section>`;
 }
 // Counting stats against the baseline, in the Buy/Sell tab's unit (per 36 or per game).
 function cmpCounts(q){
