@@ -1,0 +1,374 @@
+{
+ "note": "RMSE per 36 minutes, out of sample (fit on two seasons, scored on the third); gain = % less error than today",
+ "tests": [
+  "2023-24",
+  "2024-25",
+  "2025-26"
+ ],
+ "stats": {
+  "ast": {
+   "players": [
+    236,
+    232,
+    237
+   ],
+   "error": {
+    "today": 0.717,
+    "refit": 0.719,
+    "tracking": 0.727
+   },
+   "gainPct": {
+    "refit": -0.3,
+    "tracking": -1.3
+   },
+   "bigChanges": {
+    "players": 221,
+    "error": {
+     "today": 0.715,
+     "refit": 0.721,
+     "tracking": 0.717
+    },
+    "gainPct": {
+     "refit": -0.8,
+     "tracking": -0.2
+    }
+   },
+   "up50": {
+    "players": 57,
+    "error": {
+     "today": 0.657,
+     "refit": 0.674,
+     "tracking": 0.696
+    },
+    "gainPct": {
+     "refit": -2.6,
+     "tracking": -5.9
+    }
+   },
+   "folds": [
+    {
+     "test": "2023-24",
+     "refitK": 250,
+     "Kp": 250,
+     "Kc": 100
+    },
+    {
+     "test": "2024-25",
+     "refitK": 250,
+     "Kp": 200,
+     "Kc": 200
+    },
+    {
+     "test": "2025-26",
+     "refitK": 300,
+     "Kp": 300,
+     "Kc": 100
+    }
+   ]
+  },
+  "reb": {
+   "players": [
+    228,
+    226,
+    226
+   ],
+   "error": {
+    "today": 0.832,
+    "refit": 0.834,
+    "tracking": 0.824
+   },
+   "gainPct": {
+    "refit": -0.3,
+    "tracking": 1
+   },
+   "bigChanges": {
+    "players": 68,
+    "error": {
+     "today": 0.745,
+     "refit": 0.767,
+     "tracking": 0.761
+    },
+    "gainPct": {
+     "refit": -3,
+     "tracking": -2.2
+    }
+   },
+   "up50": {
+    "players": 8,
+    "error": {
+     "today": 0.691,
+     "refit": 0.676,
+     "tracking": 0.736
+    },
+    "gainPct": {
+     "refit": 2.2,
+     "tracking": -6.5
+    }
+   },
+   "folds": [
+    {
+     "test": "2023-24",
+     "refitK": 300,
+     "Kp": 250,
+     "Kc": 200
+    },
+    {
+     "test": "2024-25",
+     "refitK": 450,
+     "Kp": 300,
+     "Kc": 200
+    },
+    {
+     "test": "2025-26",
+     "refitK": 450,
+     "Kp": 300,
+     "Kc": 200
+    }
+   ]
+  }
+ },
+ "examples": {
+  "ast": [
+   {
+    "name": "Jrue Holiday",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 3.6,
+    "opening": 7,
+    "rest": 5.4,
+    "projToday": 5.7,
+    "projTracking": 5.5,
+    "chanceChangePct": 67,
+    "conversion": [
+     50,
+     58
+    ]
+   },
+   {
+    "name": "Stephon Castle",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 4.5,
+    "opening": 6.9,
+    "rest": 7.3,
+    "projToday": 6,
+    "projTracking": 5.9,
+    "chanceChangePct": 44,
+    "conversion": [
+     52,
+     55
+    ]
+   },
+   {
+    "name": "Jalen Suggs",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 3.7,
+    "opening": 6.1,
+    "rest": 5.6,
+    "projToday": 5,
+    "projTracking": 4.8,
+    "chanceChangePct": 15,
+    "conversion": [
+     46,
+     66
+    ]
+   },
+   {
+    "name": "Kentavious Caldwell-Pope",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 1.2,
+    "opening": 3,
+    "rest": 2.5,
+    "projToday": 2.3,
+    "projTracking": 2.1,
+    "chanceChangePct": 116,
+    "conversion": [
+     51,
+     58
+    ]
+   },
+   {
+    "name": "Kyshawn George",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 2.6,
+    "opening": 4.3,
+    "rest": 4.3,
+    "projToday": 3.6,
+    "projTracking": 3.5,
+    "chanceChangePct": 52,
+    "conversion": [
+     49,
+     52
+    ]
+   },
+   {
+    "name": "Nic Claxton",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 2.3,
+    "opening": 3.6,
+    "rest": 3.6,
+    "projToday": 3.1,
+    "projTracking": 3.2,
+    "chanceChangePct": 90,
+    "conversion": [
+     67,
+     55
+    ]
+   },
+   {
+    "name": "Pelle Larsson",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 2.3,
+    "opening": 3.6,
+    "rest": 3.5,
+    "projToday": 3,
+    "projTracking": 2.8,
+    "chanceChangePct": 9,
+    "conversion": [
+     53,
+     75
+    ]
+   },
+   {
+    "name": "Kristaps Porziņģis",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 1.7,
+    "opening": 3,
+    "rest": 2.1,
+    "projToday": 2.3,
+    "projTracking": 2,
+    "chanceChangePct": 2,
+    "conversion": [
+     53,
+     94
+    ]
+   },
+   {
+    "name": "Grayson Allen",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 2.5,
+    "opening": 3.7,
+    "rest": 3.7,
+    "projToday": 3.2,
+    "projTracking": 3.1,
+    "chanceChangePct": 25,
+    "conversion": [
+     50,
+     61
+    ]
+   },
+   {
+    "name": "De'Andre Hunter",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 1.3,
+    "opening": 2.5,
+    "rest": 1.7,
+    "projToday": 2,
+    "projTracking": 2,
+    "chanceChangePct": 100,
+    "conversion": [
+     52,
+     49
+    ]
+   },
+   {
+    "name": "Michael Porter Jr.",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 2.1,
+    "opening": 3.2,
+    "rest": 3,
+    "projToday": 2.8,
+    "projTracking": 2.7,
+    "chanceChangePct": 46,
+    "conversion": [
+     57,
+     61
+    ]
+   },
+   {
+    "name": "Ryan Dunn",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 0.7,
+    "opening": 1.5,
+    "rest": 1.3,
+    "projToday": 1.2,
+    "projTracking": 1,
+    "chanceChangePct": 40,
+    "conversion": [
+     41,
+     58
+    ]
+   },
+   {
+    "name": "Noah Clowney",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 1.1,
+    "opening": 1.8,
+    "rest": 1.6,
+    "projToday": 1.5,
+    "projTracking": 1.3,
+    "chanceChangePct": 26,
+    "conversion": [
+     45,
+     62
+    ]
+   },
+   {
+    "name": "Sam Hauser",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 1.1,
+    "opening": 1.7,
+    "rest": 1.5,
+    "projToday": 1.4,
+    "projTracking": 1.2,
+    "chanceChangePct": 8,
+    "conversion": [
+     45,
+     66
+    ]
+   },
+   {
+    "name": "Gary Trent Jr.",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 0.9,
+    "opening": 1.3,
+    "rest": 1,
+    "projToday": 1.2,
+    "projTracking": 1,
+    "chanceChangePct": 15,
+    "conversion": [
+     51,
+     68
+    ]
+   },
+   {
+    "name": "Mouhamed Gueye",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 0.8,
+    "opening": 1.2,
+    "rest": 0.8,
+    "projToday": 1,
+    "projTracking": 1,
+    "chanceChangePct": 51,
+    "conversion": [
+     61,
+     66
+    ]
+   }
+  ],
+  "reb": [
+   {
+    "name": "Kentavious Caldwell-Pope",
+    "perGame": "at rest-of-season minutes",
+    "baseline": 1.6,
+    "opening": 2.7,
+    "rest": 2.6,
+    "projToday": 2.1,
+    "projTracking": 2.2,
+    "chanceChangePct": 69,
+    "conversion": [
+     55,
+     55
+    ]
+   }
+  ]
+ }
+}
