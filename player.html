@@ -12,9 +12,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-/* One player, current season: range averages up top, then one row per game with the
-   same 9-cell heat strip as index.html so the two pages read the same way.
-   Tokens are copied from index.html verbatim - keep them in sync. */
+/* One player, current season: averages for the chosen range up top, then one card per game, in
+   the same style as the player page's "Last 5 games" in index.html. Tokens, stat order, green /
+   red thresholds and punts are copied from index.html - keep them in sync. */
 :root{
   --bg:#f4f5f2;        /* gym-floor grey, faint green bias */
   --panel:#ffffff;
@@ -39,109 +39,118 @@ html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font:500 15px/1.35 var(--name);-webkit-text-size-adjust:100%;
   padding-bottom:env(safe-area-inset-bottom,0px)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--panel);z-index:20}
-button,a{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button,a{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-decoration:none}
 :focus-visible{outline:2px solid var(--ball);outline-offset:2px}
 .gut{padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
+main{max-width:760px;margin-inline:auto}
 
-/* top bar: back link + who this is */
+/* top bar: back + who this is */
 .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;height:var(--bar);background:var(--panel);
-  border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:8px}
-.back{flex:none;display:flex;align-items:center;gap:4px;font:600 13px/1 var(--name);
-  text-transform:uppercase;letter-spacing:.06em;color:var(--dim);padding:8px 6px 8px 0}
-.back s{text-decoration:none;font-size:17px;line-height:1}
-.hdr{display:flex;align-items:center;gap:8px;min-width:0}
-.hdr i{width:30px;height:30px;border-radius:50%;background:var(--cell);overflow:hidden;flex:none;display:block}
+  border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:10px}
+.back{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;border:1px solid var(--rule);
+  font:600 20px/1 var(--name);color:var(--ink)}
+.hdr{display:flex;align-items:center;gap:9px;min-width:0}
+.hdr i{width:32px;height:32px;border-radius:50%;background:var(--cell);overflow:hidden;flex:none;display:block}
 .hdr img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
 .hdr img.bad{visibility:hidden}
 .hdr .nm{min-width:0}
-.hdr b{font:700 15px/1.1 var(--name);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hdr span{font:500 11px/1.2 var(--num);color:var(--dim);display:block}
+.hdr b{font:700 16px/1.1 var(--name);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr span{font:500 12px/1.2 var(--name);color:var(--dim);display:block;margin-top:2px}
 
-/* range selector + averages for that range */
-.ranges{background:var(--panel);border-bottom:1px solid var(--rule);padding-block:11px 13px}
-.seg{display:inline-flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden}
-.seg button{font:600 13px/1 var(--name);padding:8px 13px}
-.seg button+button{border-left:1px solid var(--rule)}
+/* sections */
+.blk{margin-top:18px}
+.blk>h3{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 8px;font:700 15px/1 var(--name)}
+.blk>h3 span{font:500 12px/1 var(--name);color:var(--dim)}
+.card{background:var(--panel);border-radius:10px;padding:12px}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:999px;overflow:hidden;background:var(--panel)}
+.seg button{font:600 13px/1 var(--name);padding:8px 14px;color:var(--dim)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
 .seg button:disabled{opacity:.35;cursor:default}
-.avg{margin-top:11px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
-.avg .big{font:600 26px/1 var(--num);font-variant-numeric:tabular-nums}
-.avg .big u{text-decoration:none;font:600 9px/1 var(--name);text-transform:uppercase;
-  letter-spacing:.1em;color:var(--dim);display:block;margin-bottom:4px}
-.avg .pair{font:500 12.5px/1.45 var(--num);color:var(--dim)}
-.avg .pair b{color:var(--ink);font-weight:600}
 
-/* sticky column ruler, same grid as the strips below it */
-.ruler{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--bar));z-index:9;background:var(--bg);
-  border-bottom:1px solid var(--rule);padding-block:6px 0}
-.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;
-  font:500 11px/1 var(--num);color:var(--dim);text-transform:uppercase;letter-spacing:.04em}
-.cats{margin-top:4px}
-.strip,.cats{display:grid;gap:3px;grid-template-columns:1.6fr 1.6fr repeat(7,1fr)}
-.cats span{font:600 10.5px/1 var(--num);color:var(--dim);padding:6px 0 7px;text-align:center;letter-spacing:.02em}
+/* numbers: big PTS REB AST, small 3PM..FT, role in grey (as on the player page) */
+.bign{display:flex;align-items:baseline;gap:16px}
+.bg{display:flex;align-items:baseline;gap:2px;white-space:nowrap}
+.bg b{font:700 25px/1 var(--name);letter-spacing:-.01em}
+.bg i,.sm i{font-style:normal;color:var(--dim)}
+.bg i{font:500 13px/1 var(--name)}
+.bign .bg b{font-size:36px}.bign .bg i{font-size:15px}
+.vlb{margin-left:auto;text-align:right}
+.vlb i{display:block;font:600 9.5px/1 var(--name);letter-spacing:.08em;font-style:normal;color:var(--dim)}
+.vlb b{font:600 18px/1.3 var(--num)}
+.sg{display:flex;flex-wrap:wrap;gap:10px 20px;margin-top:12px}
+.sg div b{display:block;font:600 18px/1 var(--name)}
+.sg div i{display:block;margin-top:3px;font:600 10px/1.2 var(--name);letter-spacing:.06em;font-style:normal;color:var(--dim)}
+.sg div i em{font:500 10.5px/1 var(--num);font-style:normal;letter-spacing:0}
+.sg .role b{color:var(--dim)}
+.vl{font:600 13px/1 var(--num)}
+.vl.good,.bg.good>b,.sm.good>b,.sg .good>b{color:var(--pos)}.vl.bad,.bg.bad>b,.sm.bad>b,.sg .bad>b{color:var(--neg)}
+.off{opacity:.38}.off b{text-decoration:line-through;text-decoration-thickness:1px}
 
 /* one row per game */
-#log{display:grid}
-.g{border-bottom:1px solid var(--rule);padding-block:9px 10px}
-.g .top{display:flex;align-items:baseline;gap:8px;font:500 12.5px/1.2 var(--num);color:var(--dim)}
-.g .dt{font-weight:600;color:var(--ink)}
-.g .opp{font-family:var(--name);font-weight:600;color:var(--ink)}
-.g .res{font-weight:600}
-.g .res.w{color:var(--pos)}
-.g .res.l{color:var(--neg)}
-.g .st{font-family:var(--name);font-weight:700;color:var(--ink)}
-.g .bo{font:600 9px/1 var(--name);text-transform:uppercase;letter-spacing:.07em;
-  color:var(--dim);border:1px solid var(--rule);border-radius:3px;padding:3px 4px}
-.g .mn{margin-left:auto;font-weight:600;color:var(--ink)}
-.strip{margin-top:7px}
-.c{border-radius:3px;padding:6px 0 5px;text-align:center;font:500 13px/1.1 var(--num);
-  background:var(--cell);min-width:0}
-.c .z{display:block;font-size:8.5px;margin-top:3px;color:var(--ink);opacity:.55;white-space:nowrap}
-.c .z i{font-style:normal;opacity:.72;margin-right:3px;letter-spacing:-.02em}
+.gl{background:var(--panel);border-radius:10px;padding:2px 12px}
+.glr{display:grid;grid-template-columns:58px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--rule)}
+.glr:last-child{border-bottom:0}
+.gd b{display:block;font:600 14px/1 var(--name)}
+.gd i{display:block;margin-top:3px;font:500 11.5px/1.2 var(--name);font-style:normal;color:var(--dim)}
+.gd .w{color:var(--pos)}.gd .l{color:var(--neg)}
+.gd .bo{display:inline-block;margin-top:4px;font:600 9px/1 var(--name);text-transform:uppercase;letter-spacing:.07em;
+  color:var(--dim);border:1px solid var(--rule);border-radius:3px;padding:2px 4px}
+.c2{display:flex;align-items:flex-end;gap:10px}
+.bigs{display:flex;align-items:baseline;gap:13px;min-width:0}
+.gs .bg b{font-size:21px}
+.c3{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 11px;margin-top:6px}
+.sm{display:flex;align-items:baseline;gap:2px;white-space:nowrap}
+.sm b{font:500 13px/1 var(--num)}
+.sm i{font:500 12px/1 var(--name)}
+.sm.good b,.sm.bad b{font-weight:600}
 
 .msg{padding:40px 14px;color:var(--dim);text-align:center;font-size:15px}
 .msg.err{color:var(--neg)}
 .foot{padding-block:14px 30px;font:500 11.5px/1.5 var(--name);color:var(--dim);max-width:62ch}
-@media (min-width:720px){
-  main,.inner{max-width:760px;margin-inline:auto}
-  .c{font-size:14px}
-  .cats span{font-size:11px}
-}
 </style>
 </head>
 <body>
 <div class="bar gut">
-  <a class="back" href="./" id="back"><s>&lsaquo;</s>Box</a>
+  <a class="back" href="./" id="back" aria-label="Back">&lsaquo;</a>
   <div class="hdr" id="hdr"></div>
 </div>
 
-<div class="ranges gut" id="ranges" hidden><div class="inner">
-  <div class="seg" id="rangeSeg">
-    <button data-n="5">L5</button><button data-n="10" aria-pressed="true">L10</button><button data-n="20">L20</button><button data-n="0">Season</button>
-  </div>
-  <div class="avg" id="avg"></div>
-</div></div>
-
-<div class="ruler gut" id="ruler" hidden><div class="inner">
-  <div class="meta"><span id="status"></span><span id="span"></span></div>
-  <div class="cats" id="cats"></div>
-</div></div>
-
-<main class="gut"><div id="log"></div>
-<div class="foot" id="foot"></div></main>
+<main class="gut">
+  <section class="blk" id="avgBlk" hidden>
+    <h3><span class="seg" id="rangeSeg"><button data-n="5">L5</button><button data-n="10" aria-pressed="true">L10</button><button data-n="20">L20</button><button data-n="0">Season</button></span><span id="span"></span></h3>
+    <div class="card" id="avg"></div>
+  </section>
+  <section class="blk" id="logBlk" hidden><h3>Games <span>newest first</span></h3><div class="gl" id="log"></div></section>
+  <div id="msg"></div>
+  <div class="foot" id="foot"></div>
+</main>
 
 <script>
-// Same 9 categories, same order, same heat scale as index.html.
+// Same 9 categories as index.html. Display order everywhere: PTS REB AST big, then 3PM STL BLK TO
+// FG FT, then MIN. Punts come from the main page (same localStorage key).
 const CATS=[
   {k:"fg",l:"FG%"},{k:"ft",l:"FT%"},{k:"tpm",l:"3PM"},{k:"pts",l:"PTS"},
   {k:"reb",l:"REB"},{k:"ast",l:"AST"},{k:"stl",l:"STL"},{k:"blk",l:"BLK"},{k:"to",l:"TO"}];
-const S={id:null,games:[],n:10,info:null};
+const BIG=["pts","reb","ast"],SMALL=["tpm","stl","blk","to","fg","ft"];
+const CL={pts:"pts",reb:"reb",ast:"ast",tpm:"3pm",stl:"stl",blk:"blk",to:"to",fg:"fg",ft:"ft"};
+const HI={pts:25,reb:8,ast:8,tpm:4,stl:3,blk:3};
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}}};
+const S={id:null,games:[],n:10,info:null,punt:new Set(store.get("punt",[]))};
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const sgn=(v,d=2)=>(v>0?"+":v<0?"−":"")+Math.abs(v).toFixed(d);
-const pct=(m,a)=>!a?"–":m===a?"1.00":(m/a).toFixed(3).replace(/^0/,"");
-function heat(z){const a=Math.abs(z),s=a<.75?0:a<1.5?14:a<2.5?30:48;
-  return s?`background:color-mix(in oklab,var(${z>0?"--pos":"--neg"}) ${s}%,var(--cell))`:""}
+const f1=v=>v.toFixed(1);
+const nh=k=>S.punt.has(k)?" off":"";
+// A big or bad single game, by plain fantasy thresholds (same as index.html's cards).
+function hl(k,o){
+  if(S.punt.has(k))return" off";
+  if(k==="to")return o.to>=4?" bad":"";
+  if(k==="fg"){const p=o.fga?o.fgm/o.fga:0;return o.fga>=10&&p>=.6?" good":o.fga>=12&&p<=.35?" bad":""}
+  if(k==="ft"){const p=o.fta?o.ftm/o.fta:0;return o.fta>=4&&p>=.9?" good":o.fta>=4&&p<.6?" bad":""}
+  return o[k]>=HI[k]?" good":"";
+}
+const vcls=v=>v>=1?"good":v<=-1?"bad":"";
+const valueOf=z=>{const a=CATS.filter(c=>!S.punt.has(c.k));return a.length?a.reduce((s,c)=>s+z[c.k],0)/a.length:0};
 
 const WEB="https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes";
 const getJSON=async u=>{const r=await fetch(u,{cache:"no-store"});if(!r.ok)throw new Error(r.status);return r.json()};
@@ -189,7 +198,6 @@ function parseLog(j){
     const src={pts:"pts",tpm:"tpm",reb:"reb",ast:"ast",stl:"stl",blk:"blk",fg:"fgi",ft:"fti",to:"to"};
     for(const c of CATS){const k=src[c.k];
       g.z[c.k]=(c.k==="to"?-1:1)*((g[k]-LG.mean[k])/LG.sd[k])}
-    g.value=CATS.reduce((a,c)=>a+g.z[c.k],0)/9;
   }
   return out;
 }
@@ -200,8 +208,7 @@ function avgOf(gs){
   const o={g:n,min:s("min")/n,pts:s("pts")/n,tpm:s("tpm")/n,reb:s("reb")/n,ast:s("ast")/n,
     stl:s("stl")/n,blk:s("blk")/n,to:s("to")/n,
     fgm:s("fgm"),fga:s("fga"),ftm:s("ftm"),fta:s("fta"),
-    value:s("value")/n,starts:0};
-  // Value for the span: average of per-game Values, same as the nightly page's mean-of-z
+    starts:0};
   o.fgi=(o.fgm-LG.fg*o.fga)/n; o.fti=(o.ftm-LG.ft*o.fta)/n;
   o.z={};
   const src={pts:"pts",tpm:"tpm",reb:"reb",ast:"ast",stl:"stl",blk:"blk",fg:"fgi",ft:"fti",to:"to"};
@@ -210,62 +217,47 @@ function avgOf(gs){
   return o;
 }
 
-function cell(o,c,isAvg){
-  const z=o.z[c.k],fg=c.k==="fg",ft=c.k==="ft";
-  let main;
-  if(fg)main=pct(o.fgm,o.fga); else if(ft)main=pct(o.ftm,o.fta);
-  else main=isAvg?o[c.k].toFixed(1):o[c.k];
-  const m=fg?o.fgm:o.ftm,a=fg?o.fga:o.fta;
-  const sub=(fg||ft)?`<i>${m}/${a}</i>${sgn(z,1)}`:sgn(z,1);
-  return`<div class="c" style="${heat(z)}">${main}<span class="z">${sub}</span></div>`;
-}
-
 function fmtDate(iso){
   if(!iso)return"";
   const d=new Date(iso);
-  return d.toLocaleDateString(undefined,{month:"numeric",day:"numeric"});
+  return isNaN(d)?"":(d.getMonth()+1)+"/"+d.getDate();
 }
 
 function render(){
   const all=S.games, n=S.n||all.length, gs=all.slice(0,n);
-  $("ranges").hidden=false; $("ruler").hidden=false;
-  $("cats").innerHTML=CATS.map(c=>`<span>${c.l}</span>`).join("");
+  $("avgBlk").hidden=false; $("logBlk").hidden=false; $("msg").innerHTML="";
   $("rangeSeg").querySelectorAll("button").forEach(b=>{
     const v=+b.dataset.n;
     b.setAttribute("aria-pressed",v===S.n);
     b.disabled=v>0&&v>all.length;       // don't offer L20 when there are 4 games
   });
-
-  const a=avgOf(gs);
-  if(a){
-    $("avg").innerHTML=
-      `<span class="big"><u>value / g</u>${sgn(a.value)}</span>`
-     +`<span class="big"><u>min / g</u>${a.min.toFixed(1)}</span>`
-     +`<span class="pair">${a.g} game${a.g===1?"":"s"}<br>`
-     +`${a.pts?"":""}${a.pts.toFixed(1)} pts &middot; ${a.reb.toFixed(1)} reb &middot; ${a.ast.toFixed(1)} ast</span>`;
-  }
-  $("status").textContent=`${all.length} game${all.length===1?"":"s"} this season`;
-  $("span").textContent=S.n?`last ${gs.length}`:"season";
+  for(const g of all)g.value=valueOf(g.z);
+  const a=avgOf(gs);a.value=gs.reduce((s,g)=>s+g.value,0)/gs.length;
+  $("span").textContent=`per game · ${gs.length} of ${all.length} game${all.length===1?"":"s"}`;
+  const pc=(m,t)=>t?(m/t*100).toFixed(1)+"%":"–";
+  $("avg").innerHTML=`<div class="bign">${BIG.map(k=>`<span class="bg${nh(k)}"><b>${f1(a[k])}</b><i>${CL[k]}</i></span>`).join("")}
+      <span class="vlb"><i>VALUE</i><b class="vl ${vcls(a.value)}">${sgn(a.value)}</b></span></div>
+    <div class="sg">${SMALL.map(k=>{
+      const v=k==="fg"?pc(a.fgm,a.fga):k==="ft"?pc(a.ftm,a.fta):f1(a[k]);
+      const att=k==="fg"?` <em>${f1(a.fga/a.g)} att</em>`:k==="ft"?` <em>${f1(a.fta/a.g)} att</em>`:"";
+      return`<div class="${nh(k).trim()}"><b>${v}</b><i>${CL[k].toUpperCase()}${att}</i></div>`}).join("")}
+      <div class="role"><b>${f1(a.min)}</b><i>MIN</i></div></div>`;
 
   $("log").innerHTML=gs.map(g=>{
-    const blow=g.margin>=20;
-    return`<article class="g">
-      <div class="top">
-        <span class="dt">${fmtDate(g.date)}</span>
-        <span class="opp">${g.at==="@"?"@":"vs"} ${esc(g.opp)}</span>
-        <span class="res ${g.res.toLowerCase()==="w"?"w":"l"}">${esc(g.res)}</span>
-        <span>${esc(g.score)}</span>
-        ${blow?'<span class="bo" title="Decided by 20+">blowout</span>':""}
-        <span class="mn">${Math.round(g.min)}m</span>
-      </div>
-      <div class="strip">${CATS.map(c=>cell(g,c,false)).join("")}</div>
-    </article>`}).join("");
+    const r=(g.res||"").toLowerCase();
+    const cats=["tpm","stl","blk","to"].map(k=>`<span class="sm${hl(k,g)}"><b>${g[k]}</b><i>${CL[k]}</i></span>`).join("")
+      +`<span class="sm${hl("fg",g)}"><b>${g.fgm}/${g.fga}</b><i>fg</i></span><span class="sm${hl("ft",g)}"><b>${g.ftm}/${g.fta}</b><i>ft</i></span>`;
+    return`<div class="glr"><div class="gd"><b>${fmtDate(g.date)}</b><i>${g.at==="@"?"@":"vs"} ${esc(g.opp)}</i>
+        <i><span class="${r==="w"?"w":r==="l"?"l":""}">${esc(g.res)}</span> ${esc(g.score)}</i><i>${Math.round(g.min)} min</i>
+        ${g.margin>=20?'<span class="bo" title="Decided by 20+">blowout</span>':""}</div>
+      <div class="gs"><div class="c2"><div class="bigs">${BIG.map(k=>`<span class="bg${hl(k,g)}"><b>${g[k]}</b><i>${CL[k]}</i></span>`).join("")}</div>
+        <span class="vl ${vcls(g.value)}" style="margin-left:auto">${sgn(g.value)}</span></div><div class="c3">${cats}</div></div></div>`}).join("");
 
   $("foot").textContent=
-    "Value is the mean of the 9 category z-scores, scored against season-long league "
-   +"averages rather than one night's pool, so games from different dates are comparable. "
-   +"Blowout marks games decided by 20 or more, where minutes are often garbage time. "
-   +"Current regular season only; preseason is excluded.";
+    "Value is the mean of the category z-scores (punts from the main page left out), scored against "
+   +"season-long league averages rather than one night's pool, so games from different dates compare. "
+   +"Green and red mark a big or bad game by plain fantasy thresholds, as on the main page. Blowout = "
+   +"decided by 20 or more. Current regular season only.";
 }
 
 function renderHdr(info,id){
@@ -276,7 +268,7 @@ function renderHdr(info,id){
   document.title=info.name+" · Sixth Man";
 }
 
-function fail(msg){$("log").innerHTML=`<div class="msg err">${esc(msg)}</div>`}
+function fail(msg){$("msg").innerHTML=`<div class="msg err">${esc(msg)}</div>`}
 
 async function load(){
   const q=new URLSearchParams(location.search);
@@ -284,7 +276,7 @@ async function load(){
   if(!id)return fail("No player id. Open this page by tapping a player on the box score.");
   S.id=id;
   if(q.get("name"))renderHdr({name:q.get("name"),team:q.get("team")||"",pos:q.get("pos")||""},id);
-  $("log").innerHTML='<div class="msg">Loading game log…</div>';
+  $("msg").innerHTML='<div class="msg">Loading game log…</div>';
   let log,ath;
   try{
     [log,ath]=await Promise.all([
@@ -298,14 +290,16 @@ async function load(){
       pos:(a.position||{}).abbreviation||q.get("pos")||""},id)}
   S.games=parseLog(log);
   if(!S.games.length){
-    $("ranges").hidden=true;$("ruler").hidden=true;
+    $("avgBlk").hidden=true;$("logBlk").hidden=true;
     return fail("No regular-season games yet this season.");
   }
   if(S.games.length<S.n)S.n=S.games.length>=5?5:0;
   render();
 }
 
-$("rangeSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.n=+b.dataset.n;render()});
+$("rangeSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{if(!b.disabled){S.n=+b.dataset.n;render()}});
+// Back: return to wherever the page was opened from (the player sheet), else the main page.
+$("back").onclick=e=>{if(history.length>1&&document.referrer&&new URL(document.referrer).origin===location.origin){e.preventDefault();history.back()}};
 load();
 </script>
 </body>
