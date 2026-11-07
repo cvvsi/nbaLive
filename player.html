@@ -154,6 +154,38 @@ const valueOf=z=>{const a=CATS.filter(c=>!S.punt.has(c.k));return a.length?a.red
 
 const WEB="https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes";
 const getJSON=async u=>{const r=await fetch(u,{cache:"no-store"});if(!r.ok)throw new Error(r.status);return r.json()};
+const SUM="https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=";
+
+// Usage needs the team's totals, which the game log doesn't have: fetch each shown game's box
+// score (5 at a time, once per game) and use the same formula as index.html:
+// USG = 100 x (FGA + .44 FTA + TO) x (team min / 5) / (min x (team FGA + .44 team FTA + team TO)).
+function usageFrom(j,pid){
+  for(const t of (j.boxscore&&j.boxscore.players)||[]){
+    const st=t.statistics&&t.statistics[0];if(!st)continue;
+    const ix=n=>st.keys.indexOf(n),I={min:ix("minutes"),fg:ix("fieldGoalsMade-fieldGoalsAttempted"),ft:ix("freeThrowsMade-freeThrowsAttempted"),to:ix("turnovers")};
+    const rows=st.athletes.filter(a=>!a.didNotPlay&&a.stats&&a.stats.length).map(a=>{const x=a.stats;
+      return{id:String((a.athlete||{}).id||""),min:parseFloat(x[I.min])||0,fga:split(x[I.fg])[1],fta:split(x[I.ft])[1],to:+x[I.to]||0}}).filter(r=>r.min>0);
+    const me=rows.find(r=>r.id===String(pid));if(!me)continue;
+    const T=rows.reduce((o,r)=>(o.min+=r.min,o.fga+=r.fga,o.fta+=r.fta,o.to+=r.to,o),{min:0,fga:0,fta:0,to:0}),tp=T.fga+.44*T.fta+T.to;
+    return tp?100*((me.fga+.44*me.fta+me.to)*(T.min/5))/(me.min*tp):null;
+  }
+  return null;
+}
+async function loadUsage(gs){
+  const todo=gs.filter(g=>g.usg===undefined);if(!todo.length)return;
+  for(const g of todo)g.usg=null;   // claimed: don't fetch twice
+  const q=[...todo];
+  const work=async()=>{while(q.length){const g=q.shift();
+    try{g.usg=usageFrom(await getJSON(SUM+encodeURIComponent(g.eid)),S.id)}catch(e){g.usg=null}
+    paintUsage()}};
+  await Promise.all([...Array(Math.min(5,todo.length))].map(work));
+}
+function paintUsage(){
+  for(const el of document.querySelectorAll("[data-usg]")){const g=S.games.find(x=>x.eid===el.dataset.usg);
+    if(g&&g.usg!=null)el.textContent=Math.round(g.usg)+"% usg"}
+  const gs=S.games.slice(0,S.n||S.games.length).filter(g=>g.usg!=null),el=document.getElementById("avgUsg");
+  if(el&&gs.length){const m=gs.reduce((a,g)=>a+g.min,0);el.textContent=(gs.reduce((a,g)=>a+g.usg*g.min,0)/m).toFixed(0)+"%"}
+}
 
 // League-average rates for the percentage impact terms. These are the stable
 // season-long numbers; z-scores here are per-game against a fixed league shape
@@ -241,14 +273,14 @@ function render(){
       const v=k==="fg"?pc(a.fgm,a.fga):k==="ft"?pc(a.ftm,a.fta):f1(a[k]);
       const att=k==="fg"?` <em>${f1(a.fga/a.g)} att</em>`:k==="ft"?` <em>${f1(a.fta/a.g)} att</em>`:"";
       return`<div class="${nh(k).trim()}"><b>${v}</b><i>${CL[k].toUpperCase()}${att}</i></div>`}).join("")}
-      <div class="role"><b>${f1(a.min)}</b><i>MIN</i></div></div>`;
+      <div class="role"><b>${f1(a.min)}</b><i>MIN</i></div><div class="role"><b id="avgUsg">–</b><i>USAGE</i></div></div>`;
 
   $("log").innerHTML=gs.map(g=>{
     const r=(g.res||"").toLowerCase();
     const cats=["tpm","stl","blk","to"].map(k=>`<span class="sm${hl(k,g)}"><b>${g[k]}</b><i>${CL[k]}</i></span>`).join("")
       +`<span class="sm${hl("fg",g)}"><b>${g.fgm}/${g.fga}</b><i>fg</i></span><span class="sm${hl("ft",g)}"><b>${g.ftm}/${g.fta}</b><i>ft</i></span>`;
     return`<div class="glr"><div class="gd"><b>${fmtDate(g.date)}</b><i>${g.at==="@"?"@":"vs"} ${esc(g.opp)}</i>
-        <i><span class="${r==="w"?"w":r==="l"?"l":""}">${esc(g.res)}</span> ${esc(g.score)}</i><i>${Math.round(g.min)} min</i>
+        <i><span class="${r==="w"?"w":r==="l"?"l":""}">${esc(g.res)}</span> ${esc(g.score)}</i><i>${Math.round(g.min)} min</i><i data-usg="${esc(g.eid)}">&nbsp;</i>
         ${g.margin>=20?'<span class="bo" title="Decided by 20+">blowout</span>':""}</div>
       <div class="gs"><div class="c2"><div class="bigs">${BIG.map(k=>`<span class="bg${hl(k,g)}"><b>${g[k]}</b><i>${CL[k]}</i></span>`).join("")}</div>
         <span class="vl ${vcls(g.value)}" style="margin-left:auto">${sgn(g.value)}</span></div><div class="c3">${cats}</div></div></div>`}).join("");
@@ -257,7 +289,9 @@ function render(){
     "Value is the mean of the category z-scores (punts from the main page left out), scored against "
    +"season-long league averages rather than one night's pool, so games from different dates compare. "
    +"Green and red mark a big or bad game by plain fantasy thresholds, as on the main page. Blowout = "
-   +"decided by 20 or more. Current regular season only.";
+   +"decided by 20 or more. Usage (share of the team's plays he used while on the floor) comes from each "
+   +"game's box score. Current regular season only.";
+  paintUsage();loadUsage(gs);
 }
 
 function renderHdr(info,id){
