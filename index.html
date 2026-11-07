@@ -505,6 +505,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .rp p{margin:0;font:500 14.5px/1.45 var(--name);color:var(--ink)}
 .psp .chips{margin-top:10px}
 .psp .cmp{max-width:none}
+.stkn{margin:8px 0 0;font:500 12.5px/1.4 var(--name);color:var(--dim)}.stkn b{color:var(--ink)}
 .ups{margin-top:8px;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:9px;border:1px solid var(--ball)}
 .ups b{font:700 26px/1 var(--name);color:var(--ball)}.ups p{margin:0;font:500 13.5px/1.35 var(--name);color:var(--ink)}
 .lg{background:var(--panel);border-radius:10px;padding:12px 10px 10px}
@@ -2102,6 +2103,7 @@ function renderSheet(){
       return tile({season:"Season",d14:"14 days",d7:"7 days",g3:"Last 3"}[w.k],a?S.rk[w.k][id]:0,a?(w.k==="g3"?a[0]+"/3 played":a[0]+"g · "+Math.round(a[1])+"m"):"",w.k==="g3"&&m?(m.hot?"up":m.cold?"dn":""):"")}).join("")}</div>
       ${q&&B?`<div class="tiles t3">${tile("Now",B.now[id],"this season")}${tile("Projected",hasPj(q)?B.x[id]:0,q.b?"if luck evens out":q.rk?"rookie estimate":"no baseline",B.v[id]==="buy"?"up":B.v[id]==="sell"?"dn":"")}${tile("Last season",B.ly[id],"final rank")}</div>`:""}</section>`);
   }
+  if(q)h.push(stickHTML(q,B,id));
   // Game log chart (filled in async)
   h.push(`<section class="blk"><h3>Last 5 games <span>newest first</span></h3><div class="gl" id="psLog"><p class="lgk">Loading game log…</p></div></section>`);
   // The read
@@ -2124,6 +2126,30 @@ function readHTML(a){
   for(const t of rest){const l=(RL.find(([,re])=>re.test(t))||["More"])[0],g=groups[groups.length-1];
     if(g&&g.l===l)g.t.push(t);else groups.push({l,t:[t]})}
   return`<div class="rd"><p class="lead">${lead}</p>${groups.map(g=>`<div class="rp"><i>${g.l}</i><p>${g.t.join(" ")}</p></div>`).join("")}</div>`;
+}
+// Where Proj and this season part ways: the stats Proj expects to fade (or bounce back), per game,
+// with how much of the change from before it keeps. Only stats with a real gap (the Buy/Sell
+// heat scale, 0.75+), at most 4; hidden when there's none or no baseline.
+function stickHTML(q,B,id){
+  if(!q.b||!q.xp||!G.xpf)return"";
+  const F=G.rates,x=xpLine(q),gp=q.now[0],bm=q.b[F.indexOf("mpg")];
+  const now={pts:0,reb:0,ast:0,tpm:0,stl:0,blk:0,to:0};for(const k in now)now[k]=q.pg[G.pgf.indexOf(k)];
+  now.fg=q.r[F.indexOf("fg")];now.ft=q.r[F.indexOf("ft")];
+  const rows=["pts","reb","ast","tpm","stl","blk","to","fg","ft"].filter(k=>!S.punt.has(k)).map(k=>{
+    const pct=k==="fg"||k==="ft",be=pct?q.b[F.indexOf(k)]:q.b[F.indexOf(k)]*bm/36,
+      pj=pct?(x[k+"m"]/Math.max(x[k+"a"],1e-9))*100:x[k],nw=now[k];
+    if(nw==null||be==null||!Number.isFinite(pj))return null;
+    const gap=Math.abs(bsDelta(k,nw,pj)),keep=Math.abs(nw-be)>1e-6?(pj-be)/(nw-be):null;
+    return{k,be,nw,pj,gap,keep,pct}}).filter(r=>r&&r.gap>=.75).sort((a,b)=>b.gap-a.gap).slice(0,4);
+  if(!rows.length)return"";
+  const fm=(r,v)=>r.pct?d1(v)+"%":f1(v);
+  const kp=r=>r.keep==null||r.keep<0||r.keep>1.05?"–":Math.round(r.keep*100)+"%";
+  const mrow=Math.abs(q.r[F.indexOf("mpg")]-x.min)>=2?`<tr><td>Minutes</td><td class="ly">${f1(bm)}</td><td class="now">${f1(q.r[F.indexOf("mpg")])}</td><td>${f1(x.min)}</td><td class="ly">${Math.abs(q.r[F.indexOf("mpg")]-bm)>1e-6?Math.max(0,Math.min(100,Math.round((x.min-bm)/(q.r[F.indexOf("mpg")]-bm)*100)))+"%":"–"}</td></tr>`:"";
+  const rk=B&&B.now&&B.now[id],pk=B&&B.x&&B.x[id];
+  return`<section class="blk"><h3>Proj vs this season <span>per game</span></h3>
+    <table class="cmp stk"><tr><th></th><th>Before</th><th>Now</th><th>Proj</th><th>Keeps</th></tr>${mrow}
+    ${rows.map(r=>`<tr><td>${WHYL[r.k]}</td><td class="ly">${fm(r,r.be)}</td><td class="now">${fm(r,r.nw)}</td><td>${fm(r,r.pj)}</td><td class="ly">${kp(r)}</td></tr>`).join("")}</table>
+    <p class="stkn">If all of it sticks he's the <b>Now</b> rank${rk?` (#${rk})`:""}; Proj${pk?` (#${pk})`:""} keeps part of each change. Past seasons: a big early jump typically keeps about half for the rest of the year, and Proj moves toward this season every game it holds.</p></section>`;
 }
 // Counting stats against the baseline, in the Buy/Sell tab's unit (per 36 or per game).
 function cmpCounts(q){
