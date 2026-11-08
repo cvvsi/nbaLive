@@ -131,6 +131,11 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .wkpick span{font:600 12px/1 var(--name);letter-spacing:.06em;color:var(--ink);background:var(--cell);border-radius:4px;padding:6px 7px;min-width:52px;text-align:center;white-space:nowrap}
 .pjrow2{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 0 6px}
 .pjrow2[hidden]{display:none}
+.lgrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 0 6px}
+.lgrow[hidden]{display:none}
+.lgrow .lgs{font:500 11px/1.2 var(--num);color:var(--dim);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lgt{font:600 10.5px/1 var(--name);font-style:normal;color:var(--ball);border:1px solid var(--ball);border-radius:4px;padding:2px 4px;white-space:nowrap;flex:none;margin-left:4px}
+.lgown{margin-top:4px;font:600 13px/1.2 var(--name);color:var(--dim)}.lgown b{color:var(--ink)}.lgown.me b{color:var(--ball)}
 /* schedule grid: teams x days, opponent in each cell; the header counts that night's games */
 .sgd{display:grid;grid-template-columns:40px 22px repeat(7,1fr);font:500 11.5px/1 var(--num);margin-top:6px}
 .sgd>div{padding:7px 0;text-align:center;border-bottom:1px solid var(--rule);white-space:nowrap;overflow:hidden}
@@ -654,6 +659,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
     </div>
     <div class="meta pjrow2" id="pjRow2" hidden><span></span>
       <div class="sort" id="pjTot"><button data-k="pg">Per g</button><button data-k="tot">Totals</button></div></div>
+    <div class="meta lgrow" id="pjLgRow" hidden><span class="lgs"></span><div class="sort lgf"><button data-k="all">All</button><button data-k="avail">Available</button><button data-k="mine">Mine</button></div></div>
   </div>
 </div>
 <main class="gut pjv" id="pjList"></main>
@@ -682,6 +688,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
       <div class="sorts"><div class="sort" id="rkSz"><button data-k="pg">Per g</button><button data-k="tot">Total</button></div>
       <div class="sort" id="rkWin"><button data-k="season">Szn</button><button data-k="d14">14D</button><button data-k="d7">7D</button><button data-k="g3">L3</button></div></div>
     </div>
+    <div class="meta lgrow" id="rkLgRow" hidden><span class="lgs"></span><div class="sort lgf"><button data-k="all">All</button><button data-k="avail">Available</button><button data-k="mine">Mine</button></div></div>
   </div>
 </div>
 <main class="gut rkv" id="rkList"></main>
@@ -711,6 +718,42 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const S={date:null,events:[],players:[],game:"all",punt:new Set(store.get("punt",[])),
   pool:+store.get("pool",10),sort:"value",open:new Set(),timer:null,updated:null,err:null};
+// ---- My league (Yahoo), kept on this device only. league.html's bookmarklet reads the rosters
+// from Yahoo with the user's own login and opens the site with them in the URL hash (never sent to
+// a server); it's saved in localStorage and the hash is cleared. Nothing league-related shows on
+// a device without a saved league, so friends using the site never see it.
+(()=>{const h=location.hash;if(!h.startsWith("#league="))return;
+  try{const o=JSON.parse(decodeURIComponent(h.slice(8)));if(o&&o.v===1&&Array.isArray(o.p)&&o.p.length){store.set("league",o);store.set("lgF","avail");S.lgNew=1}}catch(e){}
+  history.replaceState(null,"",location.pathname+location.search+"#ranks")})();
+let ML=store.get("league",null);S.lgF=ML?store.get("lgF","all"):"all";
+const YT={GSW:"GS",NOP:"NO",NYK:"NY",SAS:"SA",PHO:"PHX",UTA:"UTAH",WAS:"WSH",BRK:"BKN",CHO:"CHA"};
+const lgKey=n=>String(n).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z ]/g,"").replace(/\b(jr|sr|ii|iii|iv|v)\b/g,"").replace(/\s+/g," ").trim();
+let LGX=null;
+// Yahoo player -> our (ESPN) id: full name, then team + last name + first initial; team breaks ties.
+function lgIx(){
+  if(!ML)return null;const src=[...Object.entries((typeof R!=="undefined"&&R&&R.players)||{}),...Object.entries((typeof G!=="undefined"&&G&&G.players)||{})];
+  if(LGX&&LGX.n===src.length)return LGX;
+  const full={},tlf={},seen=new Set();
+  for(const[id,q]of src){if(seen.has(id)||!q||!q.n)continue;seen.add(id);const k=lgKey(q.n),w=k.split(" ");
+    (full[k]||(full[k]=[])).push([id,q.t]);const t=`${q.t}|${w[w.length-1]}|${w[0][0]}`;(tlf[t]||(tlf[t]=[])).push([id,q.t])}
+  const own={},miss=[];
+  for(const[,name,yt,ft]of ML.p){const t=YT[yt]||yt,k=lgKey(name),w=k.split(" ");let c=full[k]||[];
+    if(c.length!==1)c=c.filter(x=>x[1]===t);
+    if(!c.length)c=(tlf[`${t}|${w[w.length-1]}|${w[0][0]}`]||[]);
+    if(c.length)own[c[0][0]]=String(ft);else miss.push(name)}
+  return LGX={n:src.length,own,miss};
+}
+const lgOf=id=>{const x=lgIx();return x?(x.own[id]||null):undefined};
+const lgTag=id=>ML&&lgOf(id)===String(ML.me)?`<i class="lgt">Mine</i>`:"";
+const lgFilter=rows=>!ML||S.lgF==="all"?rows:rows.filter(o=>{const t=lgOf(o.id);return S.lgF==="mine"?t===String(ML.me):t==null});
+function lgLine(id){if(!ML)return"";const t=lgOf(id);
+  return t==null?`<div class="lgown">Available in your league</div>`:t===String(ML.me)?`<div class="lgown me">On <b>${esc(ML.teams[t]||"your team")}</b> (you)</div>`:`<div class="lgown">On <b>${esc(ML.teams[t]||"team "+t)}</b></div>`}
+function paintLg(){
+  for(const r of ["pjLgRow","rkLgRow"]){const el=$(r);if(!el)continue;el.hidden=!ML;if(!ML)continue;
+    const x=lgIx(),d=new Date(ML.at);
+    el.querySelector(".lgs").textContent=`League synced ${d.toLocaleDateString([],{month:"short",day:"numeric"})} ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}${x&&x.miss.length?` · ${x.miss.length} unmatched`:""}`;
+    el.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.lgF))}
+}
 const $=id=>document.getElementById(id);
 
 // ---- dates (US Eastern, which is how ESPN buckets the NBA slate)
@@ -1679,7 +1722,7 @@ function pjCard(o){
   return`<article class="cd" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(o.q.n)}: open details">
     ${mug({eid:o.id})}
     <div class="body">
-      <div class="c1"><span class="rk">${o.rank}</span><b class="nm">${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)} · ${Math.round(o.min)}m${o.sub||""}</span>${rkTagQ(o.q)}<span class="vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</span></div>
+      <div class="c1"><span class="rk">${o.rank}</span><b class="nm">${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)} · ${Math.round(o.min)}m${o.sub||""}</span>${rkTagQ(o.q)}${lgTag(o.id)}<span class="vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</span></div>
       <div class="c2"><div class="bigs">${big}</div>${o.side||""}</div>
       <div class="c3">${sm}</div>${o.foot||""}
     </div>
@@ -1699,7 +1742,7 @@ function lrow(o){
   const c=`<div class="lb3">${BIG.map(k=>`<span class="${off(k).trim()}"><b class="${m(k).trim()}">${val(k)}</b><i>${CL[k]}</i></span>`).join("")}</div>`
     +`<div class="ls6">${SMALL.map(k=>`<span class="${off(k).trim()}"><b class="${m(k).trim()}">${val(k)}</b><i>${CL[k]}</i></span>`).join("")}</div>`;
   return`<article class="cd lr" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(o.q.n)}: open details">
-    <div class="lr1"><span class="rk">${o.rank}</span>${hs(o.id)}<b class="nm">${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)}${o.ctx?"":` · ${Math.round(o.min)}m`}</span>${ijTag(o.id)}${rkTagQ(o.q)}${o.ctx?`<span class="cx">${o.ctx}</span>`:`<span class="sd">${o.sdl||""}</span>`}<span class="vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</span></div>
+    <div class="lr1"><span class="rk">${o.rank}</span>${hs(o.id)}<b class="nm">${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)}${o.ctx?"":` · ${Math.round(o.min)}m`}</span>${ijTag(o.id)}${rkTagQ(o.q)}${lgTag(o.id)}${o.ctx?`<span class="cx">${o.ctx}</span>`:`<span class="sd">${o.sdl||""}</span>`}<span class="vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</span></div>
     <div class="lr2">${c}</div></article>`;
 }
 const listOn=()=>S.dense&&(document.body.dataset.view==="pj"||document.body.dataset.view==="rk");
@@ -1942,14 +1985,16 @@ $("pjSz").hidden=S.pjView!=="season";
     const ng=teams.size/2,np=priced.size/2;
     stat=`${out.length} · ${ng} game${ng===1?"":"s"} · props ${np}/${ng}`;
     cap=`Tonight (${sh(today)}): Proj's per-game line, with the sportsbooks' implied averages swapped in where there are props (<span class="mk"><b>underlined</b></span>; Proj in brackets, green or red when the market sees a different role). Shot volume follows the market's points.${PR&&PR.date===today?` Props pulled ${new Date(PR.built).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}.`:" Props for tonight aren't in yet: they're pulled around 4 and 6pm ET."}`;
-    rows.forEach((o,i)=>o.rank=i+1);
+    rows.forEach((o,i)=>o.rank=i+1);paintLg();
+    const fo=lgFilter(out),fn=lgFilter(noline),fh=lgFilter(hurt);
     $("pjStatus").textContent=stat;
-    $("pjList").innerHTML=`<p class="bzcap">${cap}</p>`+out.map(card).join("")
-      +(noline.length?`<div class="pjh">No line posted, not on the injury report (${noline.length})</div>`+noline.map(o=>{o.rank="–";return card(o)}).join(""):"")
-      +(hurt.length?`<div class="pjh">Out tonight (${hurt.length})</div>`+hurt.map(o=>{o.rank="–";return card(o)}).join(""):"");
+    $("pjList").innerHTML=`<p class="bzcap">${cap}</p>`+fo.map(card).join("")
+      +(fn.length?`<div class="pjh">No line posted, not on the injury report (${fn.length})</div>`+fn.map(o=>{o.rank="–";return card(o)}).join(""):"")
+      +(fh.length?`<div class="pjh">Out tonight (${fh.length})</div>`+fh.map(o=>{o.rank="–";return card(o)}).join(""):"");
     return;
   }
   rows.forEach((o,i)=>{o.rank=i+1;if(o.min==null)o.min=o.l.min});
+  rows=lgFilter(rows);paintLg();
   $("pjStatus").textContent=stat;
   $("pjList").innerHTML=rows.length?`<p class="bzcap">${cap}</p>`+rows.map(card).join(""):`<div class="empty">Nobody projected here.</div>`;
 }
@@ -1976,12 +2021,12 @@ function renderRK(){
     const z=Object.fromEntries(R.cats.map((c,i)=>[c,a[2+i]])),pv=pjVal(z),l={};R.lf.forEach((k,i)=>l[k]=lv[i]);
     rows.push({id,q,l,min:a[1],v:tot?val0(z,W.zp)*a[0]:pv,foot:ijNote(id),sdl:a[0]+"g",z,ctx:`<b>${a[0]}</b> g`,
       side:`<div class="pjside"><b>${a[0]}</b><i>${w==="g3"?"of last 3":"games"}</i></div>`})}
-  rows.sort((a,b)=>b.v-a.v);const top=rows.slice(0,250);top.forEach((o,i)=>o.rank=i+1);
+  rows.sort((a,b)=>b.v-a.v);rows.forEach((o,i)=>o.rank=i+1);const top=lgFilter(rows).slice(0,250);paintLg();
   const span=w==="season"?"this season":w==="g3"?"each team's last 3 games (a missed game counts as zero)":`${sh(W.from)}–${sh(W.to)}`;
   $("rkStatus").textContent=`${rows.length} · ${tot?"total":"per game"}`;
   $("rkList").innerHTML=`<p class="bzcap">Actual 9-cat value, ${span}. ${w==="g3"?"Per team game, so it already counts missed games."
     :tot?"<b>Total</b>: per-game value × games played, so time missed counts.":"<b>Per g</b>: value per game played, which ranks how well a player has played."} Stats are per game. Same pool and punts as the rank ladder; Proj is the forward-looking version.</p>`
-    +top.map(card).join("");
+    +(top.length?top.map(card).join(""):`<div class="empty">Nobody here.</div>`);
 }
 
 function bsMsg(m){$("bsList").innerHTML=`<div class="empty">${esc(m)}</div>`;$("bsStatus").textContent=""}
@@ -2070,7 +2115,7 @@ function renderSheet(){
   // Header
   const sub=tn?`${team} · ${tn.home?"vs":"@"} ${tn.opp}${tn.pos?" · "+esc(tn.pos):""}${tn.starter?" · starter":""}`
     :`${team}${q?` · ${q.now[0]} games · ${f1(q.r[G.rates.indexOf("mpg")])} min`:""}`;
-  h.push(`<div class="hero">${mug({eid:id})}<div><h2>${esc(nm)}</h2><p>${sub}</p></div></div>`);
+  h.push(`<div class="hero">${mug({eid:id})}<div><h2>${esc(nm)}</h2><p>${sub}</p>${lgLine(id)}</div></div>`);
   const tg=(a.tag?`<span class="vt ${a.cls||"ok"}" style="margin:0">${a.tag}</span>`:"")+hashtags(id);
   if(tg)h.push(`<div class="hts">${tg}</div>`);
   // Tonight
@@ -2228,6 +2273,7 @@ $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>setView(b.dataset.
 $("bsInfo").onclick=()=>toggleHelp($("bsHelp").hidden);
 $("pjView").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjView=b.dataset.k;store.set("pjView",S.pjView);renderPJ();window.scrollTo(0,0)});
 $("pjWk").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjWk=Math.max(0,S.pjWk+ +b.dataset.d);S.sgOpen=null;renderPJ()});
+document.querySelectorAll(".lgf").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>{S.lgF=b.dataset.k;store.set("lgF",S.lgF);renderPJ();renderRK()}));
 $("densBtn").onclick=()=>{S.dense=!S.dense;store.set("dense",S.dense);paintDens();renderPJ();renderRK()};
 // Bars slide away while scrolling down and come back on any scroll up (or near the top).
 {let lastY=scrollY;addEventListener("scroll",()=>{const y=scrollY,d=y-lastY;

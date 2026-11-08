@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f4f5f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121311" media="(prefers-color-scheme: dark)">
+<title>League sync · Sixth Man</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Setup for "my league": not linked from the site. Tokens copied from index.html. */
+:root{--bg:#f4f5f2;--panel:#ffffff;--ink:#141613;--dim:#6b7069;--rule:#dfe2dc;--cell:#eceee9;--ball:#d9530f;--pos:#178a4c;--neg:#c9372c;
+  --name:"Archivo Narrow","Arial Narrow","Roboto Condensed",system-ui,sans-serif;--num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#121311;--panel:#1a1c19;--ink:#e9ebe6;--dim:#8a9087;--rule:#2a2d28;--cell:#232621;--ball:#f07a36;--pos:#3cc77d;--neg:#f2675b;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:500 15px/1.45 var(--name);-webkit-text-size-adjust:100%}
+main{max-width:640px;margin:0 auto;padding:18px max(16px,env(safe-area-inset-left,0px)) 40px}
+h1{font:700 22px/1.1 var(--name);margin:6px 0 4px}
+h2{font:700 16px/1.2 var(--name);margin:0 0 8px}
+p{margin:0 0 10px}
+.dim{color:var(--dim)}
+.card{background:var(--panel);border-radius:10px;padding:14px;margin-top:14px}
+.bm{display:inline-block;margin:4px 0 8px;padding:10px 16px;border-radius:999px;background:var(--ball);color:#fff;font:700 15px/1 var(--name);text-decoration:none;cursor:grab}
+ol{margin:0;padding-left:20px}li{margin:0 0 6px}
+textarea{width:100%;height:90px;font:500 11px/1.3 var(--num);color:var(--ink);background:var(--cell);border:1px solid var(--rule);border-radius:6px;padding:8px;resize:vertical}
+button{font:600 14px/1 var(--name);color:var(--ink);background:none;border:1px solid var(--rule);border-radius:999px;padding:9px 14px;cursor:pointer}
+button.warn{color:var(--neg);border-color:var(--neg)}
+.st b{font-family:var(--num);font-weight:600}
+a{color:var(--ball)}
+</style>
+</head>
+<body>
+<main>
+  <a href="./">‹ Sixth Man</a>
+  <h1>My league</h1>
+  <p class="dim">Reads your Yahoo league's rosters with your own Yahoo login and saves them on this device only. Nothing is sent to a server or stored anywhere else, and the site shows league features only on devices that have synced.</p>
+
+  <div class="card"><h2>On this device</h2><div class="st" id="st"></div></div>
+
+  <div class="card">
+    <h2>Computer (Chrome, Edge, Firefox)</h2>
+    <ol>
+      <li>Show the bookmarks bar (Ctrl+Shift+B, or ⌘+Shift+B on a Mac).</li>
+      <li>Drag this button onto the bar: <br><a class="bm" id="bm" href="#">Sync to Sixth Man</a></li>
+      <li>To sync: open your league on Yahoo (signed in), click the bookmark. Sixth Man opens with your league loaded.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>iPhone (Safari)</h2>
+    <ol>
+      <li>Tap <button id="cp">Copy bookmark code</button> <span class="dim" id="cpd"></span></li>
+      <li>Bookmark any page (Share → Add Bookmark), name it <b>Sync to Sixth Man</b>, save.</li>
+      <li>Open Bookmarks, tap Edit, tap the new bookmark, replace its address with the copied code, Done.</li>
+      <li>To sync: open your league at basketball.fantasysports.yahoo.com in Safari (signed in), tap the address bar, type <b>Sync</b> and pick the bookmark (or open it from Bookmarks).</li>
+    </ol>
+    <p class="dim" style="margin-top:8px">If Copy doesn't work, copy it from here:</p>
+    <textarea id="code" readonly></textarea>
+  </div>
+
+  <div class="card">
+    <h2>Notes</h2>
+    <p class="dim">Each device and browser keeps its own copy: sync on each one you use, on the same address (sixthmanhoops.app). Re-sync after waivers or trades. If Yahoo changes its pages the sync may stop working until it's updated.</p>
+    <button class="warn" id="forget">Forget my league on this device</button>
+  </div>
+</main>
+<script>
+// The bookmarklet. Runs on basketball.fantasysports.yahoo.com/nba/<league>/...: loads the league
+// home (team list, which one is "My Team") and each team's roster page with the user's own
+// session, reads player name, NBA team and lineup slot, then opens Sixth Man with the rosters in
+// the URL hash (the hash never reaches a server).
+function bookmarklet(target){
+  const src=`(async()=>{try{
+const m=location.pathname.match(/\\/nba\\/(\\d+)/);
+if(!/fantasysports\\.yahoo\\.com$/.test(location.hostname)||!m){alert("Open your league on basketball.fantasysports.yahoo.com first, then run this again.");return}
+const lid=m[1],P=new DOMParser(),get=async u=>{const r=await fetch(u,{credentials:"include"});if(!r.ok)throw new Error("Yahoo answered "+r.status);return P.parseFromString(await r.text(),"text/html")};
+const home=await get("/nba/"+lid),re=new RegExp("/nba/"+lid+"/(\\\\d+)/?$"),ids=new Set();
+for(const a of home.querySelectorAll("a[href]")){const x=(a.getAttribute("href")||"").match(re);if(x)ids.add(x[1])}
+let me=null;for(const a of home.querySelectorAll('a[data-ylk*="slk:My Team"]')){const x=(a.getAttribute("href")||"").match(/\\/nba\\/\\d+\\/(\\d+)/);if(x){me=x[1];break}}
+const teams={},p=[];
+for(const t of [...ids].sort((a,b)=>a-b)){const d=await get("/nba/"+lid+"/"+t);
+  const tt=(d.title||"").split(" | ")[0],k=tt.indexOf(" - ");teams[t]=k>0?tt.slice(k+3).trim():"Team "+t;
+  for(const a of d.querySelectorAll("a.name[data-ys-playerid]")){const tr=a.closest("tr"),td=a.closest("td"),s=td&&td.querySelector(".Fz-xxs"),x=((s&&s.textContent)||"").match(/^\\s*([A-Za-z]+)\\s*-/);
+    p.push([a.getAttribute("data-ys-playerid"),a.getAttribute("title")||a.textContent.trim(),x?x[1].toUpperCase():"",t,(tr&&tr.getAttribute("data-pos"))||""])}}
+if(!p.length){alert("Couldn't read any rosters. Make sure you're signed in to Yahoo on this browser.");return}
+location.href=${JSON.stringify(target)}+"#league="+encodeURIComponent(JSON.stringify({v:1,lid,at:new Date().toISOString(),me,teams,p}))
+}catch(e){alert("Sixth Man sync failed: "+e.message)}})()`;
+  return "javascript:"+encodeURIComponent(src.replace(/\n/g,""));
+}
+const target=new URL("./",location.href).href,code=bookmarklet(target);
+document.getElementById("bm").href=code;
+document.getElementById("code").value=code;
+document.getElementById("bm").onclick=e=>{e.preventDefault();alert("Drag this button to your bookmarks bar, then click it while you're on your Yahoo league page.")};
+document.getElementById("cp").onclick=async()=>{try{await navigator.clipboard.writeText(code);document.getElementById("cpd").textContent="Copied."}catch(e){document.getElementById("code").select();document.getElementById("cpd").textContent="Select and copy it below."}};
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+function paint(){const L=store.get("league",null),el=document.getElementById("st");
+  if(!L){el.innerHTML=`<p class="dim">No league saved on this device yet.</p>`;return}
+  const d=new Date(L.at),n=Object.keys(L.teams||{}).length,mine=(L.teams||{})[L.me]||"–";
+  el.innerHTML=`<p>Synced <b>${d.toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</b> · ${n} teams · ${L.p.length} players · your team: <b>${mine.replace(/[<>&]/g,"")}</b></p>`}
+paint();
+document.getElementById("forget").onclick=()=>{if(confirm("Remove your saved league from this device?")){store.del("league");store.del("lgF");paint()}};
+</script>
+</body>
+</html>
