@@ -1166,10 +1166,10 @@ function render(){
     out=[];
     for(const g of teams){
       out.push(`<div class="thead"><b>${g.team}</b><span>${g.home?"vs":"@"} ${g.opp} · ${g.rows.length} played</span></div>`);
-      g.rows.forEach((p,i)=>out.push(isDesk()?prowW(p):prow(p,i+1)));
+      g.rows.forEach((p,i)=>out.push(isDesk()&&BXWIDE?prowW(p):prow(p,i+1)));
     }
-  }else out=rows.map(p=>isDesk()?prowW(p):prow(p,0));
-  $("list").classList.toggle("wide",isDesk());
+  }else out=rows.map(p=>isDesk()&&BXWIDE?prowW(p):prow(p,0));
+  $("list").classList.toggle("wide",isDesk()&&BXWIDE);
   $("list").innerHTML=out.join("");
   renderBxSide();
 }
@@ -1230,6 +1230,7 @@ function prow(p,pos){
     </div>
   </article>`;
 }
+const BXWIDE=false;   // one-column wide cards on desktop (off: two-column cards; being reworked)
 // Desktop Box: one column of wide cards, read straight down. Same pieces and colors as the card
 // (big three, the other six, rank ladder, hashtags, Value), laid out on one row.
 function prowW(p){
