@@ -735,6 +735,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
   .bsr .x{grid-column:1/-1;font:500 11px/1.2 var(--name);color:var(--dim);margin-top:2px}.bsr .x em{font-style:normal;color:var(--ball);font-weight:600;margin-right:6px}
   .bst{display:grid;grid-template-columns:repeat(9,1fr);gap:2px;padding-top:8px}.bst span{text-align:center}.bst b{display:block;font:600 12.5px/1 var(--num)}.bst i{display:block;font:500 9px/1 var(--name);color:var(--dim);font-style:normal;margin-top:3px;letter-spacing:.04em}
   .bse{font:500 12.5px/1.4 var(--name);color:var(--dim);padding:8px 0 2px}
+  .bsht{cursor:pointer}.bsht em{font-style:normal;font-weight:600;color:var(--ball);margin-left:6px}.bsb.min .bsh{border-bottom:0;padding-bottom:2px}
   .psp{max-width:760px}.psp .rtiles,.psp .rks{gap:8px}
   #bzList{max-width:1500px!important}body[data-view="bz"] #bzList{display:block}
   #bzSort{display:none!important}
@@ -1202,8 +1203,10 @@ function renderBxSide(){const el=$("bxSide");if(!el)return;if(!isDesk()||!S.play
   const pick=P.filter(p=>{const o=ML?lgOf(p.eid):undefined,m=S.mv&&S.mv[p.eid];return(ML?o==null:(szn(p.eid)||999)>ROST)&&(p.value>=.3||(m&&(m.hot||m.mup)&&p.value>0))}).slice(0,8);
   h+=blk("Pickup watch",ML?"free agents in your league":"outside the top 130","No standout free agents yet.",pick.length?pick.map(p=>{const m=S.mv&&S.mv[p.eid],r=szn(p.eid);
     return row(p,`<span class="x">${m&&m.hot?"<em>#Riser</em>":""}${m&&m.mup?`<em>▲${Math.round(m.mu)}m</em>`:""}${r?`szn #${r}`:""}</span>`)}).join(""):null);
-  if(ML&&opp){const op=P.filter(p=>lgOf(p.eid)===String(opp));
-    h+=blk(esc(ML.teams[opp]||"Opponent"),`opponent · ${op.length} played`,"None of theirs have played yet.",op.length?op.map(p=>row(p)).join("")+tot(op):null)}
+  // the opponent's box folds away (remembered per device): handy to see, sometimes better not to
+  if(ML&&opp){const op=P.filter(p=>lgOf(p.eid)===String(opp)),min=store.get("bxOppMin",false);
+    h+=`<section class="bsb${min?" min":""}"><div class="bsh bsht" data-bxmin="1" role="button" tabindex="0" aria-expanded="${!min}"><b>${esc(ML.teams[opp]||"Opponent")}</b><span>opponent · ${op.length} played <em>${min?"Show ▾":"Hide ▴"}</em></span></div>
+      ${min?"":op.length?op.map(p=>row(p)).join("")+tot(op):`<div class="bse">None of theirs have played yet.</div>`}</section>`}
   el.innerHTML=h}
 // Card: name line (rank, name, team, minutes, Value), the big three beside the rank ladder
 // (Szn / 14 / 7 / last 3, labels attached), then the other six cats and any flags.
@@ -2834,7 +2837,7 @@ $("date").onclick=()=>{if(S.err)loadDate(S.date)};
 $("gear").onclick=()=>{const o=$("sheet").hidden;$("sheet").hidden=!o;$("gear").setAttribute("aria-expanded",o)};
 $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
 $("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>setSort(b.dataset.k));
-$("bxSide").addEventListener("click",e=>{const r=e.target.closest("[data-id]");if(!r)return;const p=S.players.find(x=>x.id===r.dataset.id);if(p)openSheet(p.eid||p.id,p)});
+$("bxSide").addEventListener("click",e=>{if(e.target.closest("[data-bxmin]")){store.set("bxOppMin",!store.get("bxOppMin",false));renderBxSide();return}const r=e.target.closest("[data-id]");if(!r)return;const p=S.players.find(x=>x.id===r.dataset.id);if(p)openSheet(p.eid||p.id,p)});
 $("teamBtn").onclick=()=>{S.byTeam=!S.byTeam;store.set("byTeam",S.byTeam);render()};
 function paintPool(){$("poolSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===S.pool))}
 $("poolSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pool=+b.dataset.v;store.set("pool",S.pool);paintPool();
