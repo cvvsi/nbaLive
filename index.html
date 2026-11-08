@@ -713,7 +713,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
   .cw .wl.up{background:color-mix(in oklab,var(--pos) 22%,transparent)}.cw .wl.dn{background:color-mix(in oklab,var(--neg) 18%,transparent)}
   .cw .w5{display:flex;flex-wrap:wrap;gap:2px 8px;min-width:0;overflow:hidden}
   .cw .vl{text-align:right;font:600 15px/1 var(--num)}
-  .cwh{position:sticky;top:calc(var(--bar) + 112px);z-index:3;background:var(--bg);border-bottom:1px solid var(--rule);padding:8px 4px 6px;cursor:default}
+  .cwh{position:sticky;top:calc(var(--bar) + 69px);z-index:3;background:var(--bg);border-bottom:1px solid var(--rule);padding:8px 4px 6px;cursor:default}
   .cwh span{font:600 10.5px/1 var(--name)!important;letter-spacing:.06em;color:var(--dim)!important;text-transform:uppercase;text-align:right}
   .cwh .wl{text-align:center}.cwh .w1{text-align:left;flex-direction:row}.cwh .vl{text-align:right}
   .bxw #list.wide .thead{grid-column:1/-1}
@@ -1240,7 +1240,7 @@ function prow(p,pos){
     </div>
   </article>`;
 }
-const BXWIDE=false;   // one-column wide cards on desktop (off: two-column cards; being reworked)
+const BXWIDE=true;   // one-column wide cards on desktop (off: two-column cards; being reworked)
 // Desktop Box: one column of wide cards, read straight down. Same pieces and colors as the card
 // (big three, the other six, rank ladder, hashtags, Value), laid out on one row.
 function prowW(p){
