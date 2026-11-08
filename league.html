@@ -71,7 +71,10 @@ a{color:var(--ball)}
 // The bookmarklet. Runs on basketball.fantasysports.yahoo.com/nba/<league>/...: loads the league
 // home (team list, which one is "My Team") and each team's roster page with the user's own
 // session, reads player name, NBA team and lineup slot, then opens Sixth Man with the rosters in
-// the URL hash (the hash never reaches a server).
+// the URL hash (the hash never reaches a server). The matchup scoreboard is drawn by Yahoo in the
+// browser, so a plain fetch of that page has no numbers: unless the bookmark runs on the Matchup
+// page itself, it loads that page in a hidden frame (same site, so it can be read) and waits for
+// the scoreboard, up to ~15 s. No // comments inside the template: it is flattened to one line.
 function bookmarklet(target){
   const src=`(async()=>{try{
 const m=location.pathname.match(/\\/nba\\/(\\d+)/);
@@ -92,9 +95,11 @@ const readMu=d=>{const tb=[...d.querySelectorAll("table")].find(t=>/Score/.test(
   const hrefs=[...d.querySelectorAll("a[href*='week=']")].map(a=>a.getAttribute("href")||""),wk=(hrefs.map(h=>h.match(/week=(\\d+)[^"]*date=/)).find(Boolean)||[])[1],
     dates=[...new Set(hrefs.filter(h=>wk&&h.includes("week="+wk+"&")).map(h=>(h.match(/date=(\\d{4}-\\d\\d-\\d\\d)/)||[])[1]).filter(Boolean))].sort();
   return rows.length===2?{week:wk?+wk:null,dates,lab,rows}:null};
+const viaFrame=u=>new Promise(res=>{const f=document.createElement("iframe");f.style.cssText="position:fixed;left:-9999px;top:0;width:1200px;height:900px;opacity:0;pointer-events:none";f.src=u;let n=0,i;const done=v=>{clearInterval(i);f.remove();res(v)};i=setInterval(()=>{n++;let v=null;try{v=readMu(f.contentDocument)}catch(e){}if(v||n>50)done(v)},300);document.body.appendChild(f)});
 let mu=null;try{mu=/\\/matchup/.test(location.pathname)?readMu(document):null;if(!mu)mu=readMu(await get("/nba/"+lid+"/matchup"))}catch(e){}
+if(!mu)try{mu=await viaFrame("/nba/"+lid+"/matchup")}catch(e){}
 
-if(!mu)alert("Rosters synced. To include this week's matchup, open your Matchup page on Yahoo and run this again from there.");
+if(!mu)alert("Rosters synced, but this week's matchup couldn't be read. Open your Matchup page on Yahoo and run this again from there.");
 location.href=${JSON.stringify(target)}+"#league="+encodeURIComponent(JSON.stringify({v:1,lid,at:new Date().toISOString(),me,teams,p,act,mu}))
 }catch(e){alert("Sixth Man sync failed: "+e.message)}})()`;
   return "javascript:"+encodeURIComponent(src.replace(/\n/g,""));
