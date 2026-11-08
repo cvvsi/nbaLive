@@ -80,13 +80,20 @@ const lid=m[1],P=new DOMParser(),get=async u=>{const r=await fetch(u,{credential
 const home=await get("/nba/"+lid),re=new RegExp("/nba/"+lid+"/(\\\\d+)/?$"),ids=new Set();
 for(const a of home.querySelectorAll("a[href]")){const x=(a.getAttribute("href")||"").match(re);if(x)ids.add(x[1])}
 let me=null;for(const a of home.querySelectorAll('a[data-ylk*="slk:My Team"]')){const x=(a.getAttribute("href")||"").match(/\\/nba\\/\\d+\\/(\\d+)/);if(x){me=x[1];break}}
-const teams={},p=[];
+const teams={},p=[],act={};
 for(const t of [...ids].sort((a,b)=>a-b)){const d=await get("/nba/"+lid+"/"+t);
   const tt=(d.title||"").split(" | ")[0],k=tt.indexOf(" - ");teams[t]=k>0?tt.slice(k+3).trim():"Team "+t;
+  act[t]=[...d.querySelectorAll("tr[data-pos]")].filter(r=>!/^(BN|IL\\+?)$/.test(r.getAttribute("data-pos"))).length;
   for(const a of d.querySelectorAll("a.name[data-ys-playerid]")){const tr=a.closest("tr"),td=a.closest("td"),s=td&&td.querySelector(".Fz-xxs"),x=((s&&s.textContent)||"").match(/^\\s*([A-Za-z]+)\\s*-/);
     p.push([a.getAttribute("data-ys-playerid"),a.getAttribute("title")||a.textContent.trim(),x?x[1].toUpperCase():"",t,(tr&&tr.getAttribute("data-pos"))||""])}}
 if(!p.length){alert("Couldn't read any rosters. Make sure you're signed in to Yahoo on this browser.");return}
-location.href=${JSON.stringify(target)}+"#league="+encodeURIComponent(JSON.stringify({v:1,lid,at:new Date().toISOString(),me,teams,p}))
+let mu=null;try{const d=await get("/nba/"+lid+"/matchup"),tb=[...d.querySelectorAll("table")].find(t=>/Score/.test((t.querySelector("thead")||{}).textContent||""));
+  if(tb){const lab=[...tb.querySelectorAll("thead th")].map(x=>x.textContent.trim()),rows=[...tb.querySelectorAll("tbody tr")].map(tr=>{const a=tr.querySelector("a[href]"),id=a&&((a.getAttribute("href")||"").match(/\\/nba\\/\\d+\\/(\\d+)/)||[])[1];return{id,v:[...tr.querySelectorAll("td")].slice(1).map(x=>x.textContent.trim())}});
+    const hrefs=[...d.querySelectorAll("a[href*='week=']")].map(a=>a.getAttribute("href")||""),wk=(hrefs.map(h=>h.match(/week=(\\d+)[^"]*date=/)).find(Boolean)||[])[1],
+      dates=[...new Set(hrefs.filter(h=>wk&&h.includes("week="+wk+"&")).map(h=>(h.match(/date=(\\d{4}-\\d\\d-\\d\\d)/)||[])[1]).filter(Boolean))].sort();
+    if(rows.length===2)mu={week:wk?+wk:null,dates,lab,rows}}}catch(e){}
+
+location.href=${JSON.stringify(target)}+"#league="+encodeURIComponent(JSON.stringify({v:1,lid,at:new Date().toISOString(),me,teams,p,act,mu}))
 }catch(e){alert("Sixth Man sync failed: "+e.message)}})()`;
   return "javascript:"+encodeURIComponent(src.replace(/\n/g,""));
 }

@@ -131,6 +131,18 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .wkpick span{font:600 12px/1 var(--name);letter-spacing:.06em;color:var(--ink);background:var(--cell);border-radius:4px;padding:6px 7px;min-width:52px;text-align:center;white-space:nowrap}
 .pjrow2{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 0 6px}
 .pjrow2[hidden]{display:none}
+.muh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0 2px;background:var(--panel);border-radius:10px;padding:12px}
+.muh div{display:flex;flex-direction:column;align-items:center;flex:1;min-width:0}.muh b{font:700 15px/1.2 var(--name);text-align:center}.muh i{font:700 30px/1.1 var(--num);font-style:normal;margin-top:4px}
+.muh span{font:600 12px/1 var(--name);color:var(--dim)}
+.mue{font:500 13px/1.3 var(--name);color:var(--dim);text-align:center;margin:6px 0 8px}
+.mus{margin:8px 0;padding:8px 10px;border:1px solid var(--ball);border-radius:8px;font:500 13px/1.35 var(--name)}
+.mut td i{display:block;font:500 10.5px/1 var(--num);color:var(--dim);margin-top:3px;font-style:normal}
+.mut td b.up{color:var(--pos)}.mut td b.dn{color:var(--neg)}.mut td b.sw{color:var(--ink)}
+.mur{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--rule);cursor:pointer}
+.mur .nm{font:600 14px/1.2 var(--name);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mur .mt{font:500 12px/1 var(--name);color:var(--dim);flex:none}
+.mur .wk{margin-left:auto;display:flex;gap:2px;flex:none}.mur .wk span{width:20px;text-align:center;font:600 10px/16px var(--name);color:var(--dim);border-radius:3px}
+.mur .wk .on{background:var(--ink);color:var(--panel)}.mur .wk .bn{box-shadow:inset 0 0 0 1px var(--ink);color:var(--ink)}
+.mur>b{font:600 14px/1 var(--num);width:18px;text-align:right;flex:none}.mur.il{opacity:.5}
 .lgrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 0 6px}
 .lgrow[hidden]{display:none}
 .lgrow .lgs{font:500 11px/1.2 var(--num);color:var(--dim);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -662,7 +674,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
     <div class="meta">
       <span id="pjStatus" class="num">Loading</span>
       <div class="sorts"><div class="sort" id="pjSz" hidden><button data-k="pg">Per g</button><button data-k="tot">Total</button></div><div class="wkpick" id="pjWk" hidden><button data-d="-1" aria-label="Previous week">‹</button><span id="pjWkLbl"></span><button data-d="1" aria-label="Next week">›</button></div>
-      <div class="sort" id="pjView"><button data-k="season">Season</button><button data-k="week">Week</button><button data-k="today">Today</button></div></div>
+      <div class="sort" id="pjView"><button data-k="season">Season</button><button data-k="week">Week</button><button data-k="today">Today</button><button data-k="mu" id="pjMuBtn" hidden>Matchup</button></div></div>
     </div>
     <div class="meta pjrow2" id="pjRow2" hidden><span></span>
       <div class="sort" id="pjTot"><button data-k="pg">Per g</button><button data-k="tot">Totals</button></div></div>
@@ -743,12 +755,12 @@ function lgIx(){
   const full={},tlf={},seen=new Set();
   for(const[id,q]of src){if(seen.has(id)||!q||!q.n)continue;seen.add(id);const k=lgKey(q.n),w=k.split(" ");
     (full[k]||(full[k]=[])).push([id,q.t]);const t=`${q.t}|${w[w.length-1]}|${w[0][0]}`;(tlf[t]||(tlf[t]=[])).push([id,q.t])}
-  const own={},miss=[];
-  for(const[,name,yt,ft]of ML.p){const t=YT[yt]||yt,k=lgKey(name),w=k.split(" ");let c=full[k]||[];
+  const own={},slot={},miss=[];
+  for(const[,name,yt,ft,sl]of ML.p){const t=YT[yt]||yt,k=lgKey(name),w=k.split(" ");let c=full[k]||[];
     if(c.length!==1)c=c.filter(x=>x[1]===t);
     if(!c.length)c=(tlf[`${t}|${w[w.length-1]}|${w[0][0]}`]||[]);
-    if(c.length)own[c[0][0]]=String(ft);else miss.push(name)}
-  return LGX={n:src.length,own,miss};
+    if(c.length){own[c[0][0]]=String(ft);slot[c[0][0]]=sl||""}else miss.push(name)}
+  return LGX={n:src.length,own,slot,miss};
 }
 const lgOf=id=>{const x=lgIx();return x?(x.own[id]||null):undefined};
 const lgTag=id=>ML&&lgOf(id)===String(ML.me)?`<i class="lgt">Mine</i>`:"";
@@ -1962,7 +1974,62 @@ function renderSC(){
   renderGrid(ds,live,Object.entries(G.players).filter(([,q])=>q.xp&&q.xp[0]>=8),today);
 }
 function pjMsg(m){$("pjList").innerHTML=`<div class="empty">${m}</div>`;$("pjStatus").textContent=""}
+// ---- Matchup (Proj > Matchup; only with a synced league that has this week's matchup, ML.mu).
+// Yahoo's matchup totals so far + our projection for the rest of the week, per category, with a
+// win chance. The rest of the week: every rostered player not in an IL slot, on each remaining day
+// his team plays and the injury report has him available, at that day's minutes (minAt); each day
+// counts at most as many players as the team has active lineup spots (ML.act), the best by value.
+// Win chance: normal approximation, from the projected final gap and how much the rest of the week
+// can swing it (per game: variance = PHI x mean for points / rebounds / assists, like the props;
+// a Poisson for the rest; FG%/FT% as binomial makes on the projected attempts). Turnovers: fewer wins.
+const MUK={"FG%":"fg","FT%":"ft","3PTM":"tpm","3PM":"tpm","PTS":"pts","REB":"reb","AST":"ast","ST":"stl","STL":"stl","BLK":"blk","TO":"to"};
+const MUPHI={pts:2.2,reb:1.3,ast:1.4};
+const muPhi=x=>{const t=1/(1+.2316419*Math.abs(x)),d=.3989423*Math.exp(-x*x/2),p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return x>0?1-p:p};
+const etHour=d=>+new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",hour:"numeric",hourCycle:"h23"}).format(d);
+function muTeam(tid,days,all,cap){
+  const x=lgIx(),ids=Object.keys(x.own).filter(id=>x.own[id]===tid),ps=ids.map(id=>({id,q:G.players[id],il:/^IL/.test(x.slot[id]||"")})).filter(o=>o.q&&o.q.xp);
+  const tot={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0,fgm:0,fga:0,ftm:0,fta:0},vr={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0};
+  for(const o of ps){o.days=[];o.g=0}
+  for(const d of days){
+    const on=ps.filter(o=>!o.il&&plays(o.q.t,d)&&avail(o.id,d)).map(o=>{const l=lineAt(o.q,minAt(o.id,o.q,d));return{o,l,v:pjVal(pjZ(l))}}).sort((a,b)=>b.v-a.v);
+    on.forEach((e,i)=>{const used=i<cap;e.o.days.push([d,used?1:2]);if(!used)return;e.o.g++;
+      for(const k in tot)tot[k]+=e.l[k];for(const k in vr)vr[k]+=(MUPHI[k]||1)*e.l[k]})}
+  return{ps,tot,vr}
+}
+function renderMU(){
+  const mu=ML&&ML.mu,x=ML&&lgIx();
+  if(!mu||!mu.rows||mu.rows.length!==2||!x)return pjMsg("Sync your league from Yahoo to see this week's matchup.");
+  const me=String(ML.me),R0=mu.rows.find(r=>r.id===me)||mu.rows[0],R1=mu.rows.find(r=>r!==R0);
+  const cur=r=>{const o={};mu.lab.forEach((l,i)=>{const k=MUK[l];if(k){const v=parseFloat(String(r.v[i]).replace(/^\./,"0."));o[k]=Number.isFinite(v)?v:0}});return o};
+  const cA=cur(R0),cB=cur(R1),at=new Date(ML.at),syncDay=new Intl.DateTimeFormat("en-CA",{timeZone:"America/New_York"}).format(at);
+  const dates=mu.dates&&mu.dates.length?mu.dates:weekDates(0);
+  // days not yet in Yahoo's totals: after the sync day, plus the sync day if synced before 7pm ET
+  const rest=dates.filter(d=>d>syncDay||(d===syncDay&&etHour(at)<19)),past=dates.filter(d=>!rest.includes(d));
+  const all=Object.entries(G.players),capA=(ML.act&&ML.act[me])||10,capB=(ML.act&&ML.act[R1.id])||10;
+  const A=muTeam(me,rest,all,capA),B=muTeam(R1.id,rest,all,capB);
+  // attempts behind Yahoo's FG% / FT% so far (not shown there): our per-game attempts on the days played
+  const pA=muTeam(me,past,all,capA).tot,pB=muTeam(R1.id,past,all,capB).tot;
+  const fin=(c,p,t,k)=>{if(k==="fg"||k==="ft"){const a=p[k+"a"]+t[k+"a"],m=c[k]*p[k+"a"]+t[k+"m"];return{v:a?m/a:c[k],a,ra:t[k+"a"]}}return{v:c[k]+t[k]}};
+  const rows=CATS.map(cc=>{const k=cc.k,fa=fin(cA,pA,A.tot,k),fb=fin(cB,pB,B.tot,k);let p;
+    if(k==="fg"||k==="ft"){const va=fa.a?fa.v*(1-fa.v)*fa.ra/fa.a**2:0,vb=fb.a?fb.v*(1-fb.v)*fb.ra/fb.a**2:0,sd=Math.sqrt(va+vb),d=fa.v-fb.v;p=sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
+    else{const sd=Math.sqrt(A.vr[k]+B.vr[k]),d=(fa.v-fb.v)*(k==="to"?-1:1);p=sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
+    return{k,l:cc.l,a:fa.v,b:fb.v,na:cA[k],nb:cB[k],p,off:S.punt.has(k)}});
+  const live=rows.filter(r=>!r.off),won=live.filter(r=>r.p>.5).length,lost=live.filter(r=>r.p<.5).length,exp=live.reduce((s,r)=>s+r.p,0);
+  const fv=(r,v)=>r.k==="fg"||r.k==="ft"?v.toFixed(3).replace(/^0/,""):Math.round(v);
+  const pc=p=>{const v=Math.round(100*p);return`<b class="${v>=60?"up":v<=40?"dn":"sw"}">${v>=99.5?">99":v<=.5?"<1":v}%</b>`};
+  const sh=d=>fmtDate(d).replace(/^\w+, /,""),dl=d=>["M","Tu","W","Th","F","Sa","Su"][(new Date(d+"T12:00:00Z").getUTCDay()+6)%7];
+  const stale=etToday()>syncDay?`<div class="mus">Totals are from your sync on ${sh(syncDay)}. Sync again for today's numbers.</div>`:"";
+  const roster=(T,name,cap)=>`<div class="pjh">${esc(name)} · ${T.ps.reduce((s,o)=>s+o.g,0)} games left (${cap} a day max)</div>`
+    +T.ps.sort((a,b)=>b.g-a.g||(G.players[b.id].x?pjVal(zx(G.players[b.id])):0)-(G.players[a.id].x?pjVal(zx(G.players[a.id])):0)).map(o=>`<div class="mur${o.il?" il":""}" data-id="${o.id}"><span class="nm">${esc(o.q.n)}</span><span class="mt">${esc(o.q.t)}${o.il?" · IL":""}</span><span class="wk">${rest.map(d=>{const e=o.days.find(z=>z[0]===d);return`<span class="${e?e[1]===1?"on":"bn":""}">${dl(d)}</span>`}).join("")}</span><b>${o.g}</b></div>`).join("");
+  $("pjStatus").textContent=`Wk ${mu.week||""} · ${rest.length}d left`;$("pjLgRow").hidden=true;
+  $("pjList").innerHTML=`<p class="bzcap">This week so far (Yahoo, synced ${at.toLocaleString([],{weekday:"short",hour:"numeric",minute:"2-digit"})}) plus Proj for the days left (${rest.length?sh(rest[0])+"–"+sh(rest[rest.length-1]):"none"}): every player not on IL, on days his team plays and he isn't listed out, at most your active lineup spots a day. Win % = how often the rest of the week ends with you ahead in that category.${S.punt.size?" Punted categories don't count toward the score.":""}</p>${stale}
+    <div class="muh"><div><b>${esc(ML.teams[me]||"You")}</b><i>${fv({k:""},won)}</i></div><span>vs</span><div><b>${esc(ML.teams[R1.id]||"Opponent")}</b><i>${lost}</i></div></div>
+    <div class="mue">Projected ${won}–${lost}${live.length-won-lost?`–${live.length-won-lost}`:""} · expected ${exp.toFixed(1)} of ${live.length} categories</div>
+    <table class="cmp mut"><tr><th></th><th>You</th><th>Them</th><th>Win</th></tr>${rows.map(r=>`<tr class="${r.off?"off":""}"><td>${r.l}${r.off?" <i>punted</i>":""}</td><td class="now">${fv(r,r.a)}<i>${fv(r,r.na)} now</i></td><td>${fv(r,r.b)}<i>${fv(r,r.nb)} now</i></td><td>${r.off?"–":pc(r.p)}</td></tr>`).join("")}</table>
+    ${roster(A,ML.teams[me]||"You",capA)}${roster(B,ML.teams[R1.id]||"Opponent",capB)}`;
+}
 function renderPJ(){
+  $("pjMuBtn").hidden=!(ML&&ML.mu);if(S.pjView==="mu"&&!(ML&&ML.mu))S.pjView="season";
   $("pjView").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.pjView));
   $("pjWk").hidden=S.pjView!=="week";$("pjRow2").hidden=S.pjView!=="week";
   $("pjTot").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.pjTot));
@@ -1971,6 +2038,7 @@ $("pjSz").hidden=S.pjView!=="season";
   paintWk("pjWk",S.pjWk);
   if(!G)return;
   if(!G.zp||!G.xpf)return pjMsg("Projected lines arrive with the next rankings build.");
+  if(S.pjView==="mu"){$("pjAsOf").textContent="";return renderMU()}
   const today=etToday(),all=Object.entries(G.players).filter(([,q])=>q.xp&&q.xp[0]>=8);
   const sh=d=>fmtDate(d).replace(/^\w+, /,"");
   $("pjAsOf").textContent=`Proj thru ${sh(G.asOf)}`;
@@ -2279,7 +2347,7 @@ function parseLog(j){
   return out;
 }
 function cardOpen(e,list){
-  const a=e.target.closest(".cd[data-id]");if(!a)return;
+  const a=e.target.closest(".cd[data-id],.mur[data-id]");if(!a)return;
   const id=a.dataset.id;
   if(list==="list"){const p=S.players.find(x=>x.id===id);openSheet(p?p.eid||p.id:id,p)}
   else openSheet(id,null);
