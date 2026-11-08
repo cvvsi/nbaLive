@@ -138,6 +138,7 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .mux .up{color:var(--pos)}.mux .dn{color:var(--neg)}
 .mue{font:500 13px/1.3 var(--name);color:var(--dim);text-align:center;margin:8px 0 10px}.mue b{color:var(--ink);font-family:var(--num)}
 .mrs{font:600 11px/1 var(--name);color:var(--ball);background:none;border:1px solid var(--ball);border-radius:6px;padding:3px 7px;margin-left:4px;cursor:pointer}
+.mwi{margin:-2px 0 10px;padding:7px 10px;border:1px dashed var(--ball);border-radius:8px;font:500 12.5px/1.4 var(--name);color:var(--dim);text-align:center}.mwi b{color:var(--ball)}.mwi span{font-weight:600}
 .mus{margin:8px 0;padding:8px 10px;border:1px solid var(--ball);border-radius:8px;font:500 13px/1.35 var(--name)}
 .mcat{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .mt{all:unset;box-sizing:border-box;cursor:pointer;background:var(--panel);border-radius:10px;padding:8px 9px 9px;display:grid;grid-template-columns:1fr auto;align-items:baseline;row-gap:5px;box-shadow:inset 0 0 0 1px var(--rule)}
@@ -2022,10 +2023,12 @@ const muPhi=x=>{const t=1/(1+.2316419*Math.abs(x)),d=.3989423*Math.exp(-x*x/2),p
 const etHour=d=>+new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",hour:"numeric",hourCycle:"h23"}).format(d);
 // Your picks for this matchup, kept per league + week on this device: target / punt categories,
 // players added (free agents) or dropped, and games forced in or out on a day (id|date -> 1 / 0).
+// What-if moves (adds, drops, start/sit) are cleared by each new sync, since the synced rosters
+// already show what was really done; targets and punts stay for the week.
 function muSel(mu){const key=`${ML.lid||""}|${mu.week||""}|${(mu.dates||[])[0]||""}`;
-  if(S.mus&&S.mus.key===key)return S.mus;const o=store.get("muSel",null),ok=o&&o.key===key;
-  return S.mus={key,tg:new Set(ok?o.tg:[]),pn:new Set(ok?o.pn:[]),add:new Set(ok?o.add:[]),drop:new Set(ok?o.drop:[]),set:ok&&o.set||{},fa:ok&&o.fa||8}}
-function muSave(){const m=S.mus;store.set("muSel",{key:m.key,tg:[...m.tg],pn:[...m.pn],add:[...m.add],drop:[...m.drop],set:m.set,fa:m.fa})}
+  if(S.mus&&S.mus.key===key&&S.mus.at===ML.at)return S.mus;const o=store.get("muSel",null),ok=o&&o.key===key,mv=ok&&o.at===ML.at;
+  return S.mus={key,at:ML.at,tg:new Set(ok?o.tg:[]),pn:new Set(ok?o.pn:[]),add:new Set(mv?o.add:[]),drop:new Set(mv?o.drop:[]),set:mv&&o.set||{},fa:ok&&o.fa||8}}
+function muSave(){const m=S.mus;store.set("muSel",{key:m.key,at:m.at,tg:[...m.tg],pn:[...m.pn],add:[...m.add],drop:[...m.drop],set:m.set,fa:m.fa})}
 // Categories that count toward the score (not punted here or globally) and the ones players are
 // sorted by: the targets if any are picked, otherwise every category that counts.
 const muOff=m=>new Set([...S.punt,...m.pn]);
@@ -2094,7 +2097,7 @@ function renderMU(){
     return s?`<span class="dc s${s}"${tap?` data-mu="day" data-x="${o.id}|${d}"`:""}></span>`:`<span class="dc"></span>`}).join("");
   const head=`<div class="mrh"><span>Player</span><div class="md">${rest.map(d=>`<span class="dc">${dl(d)}<i>${+d.slice(8)}</i></span>`).join("")}</div><span class="mval">Per g<br>Cats</span><span></span></div>`;
   const row=(o,T,act)=>{const dl2=o.d!=null&&!o.il&&act!=="undo"?`<i class="${o.d>=.05?"up":o.d<=-.05?"dn":""}">${Math.abs(o.d)<.05?"0.0":(o.d>0?"+":"−")+Math.abs(o.d).toFixed(1)}</i>`:"";
-    return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${esc(nm(o.q.n))}</b><i>${esc(o.q.t)} · ${esc(posOf(o.id)||"–")}${o.il?" · IL":""}${o.nw?` <em>added</em>`:""}${act==="undo"?` <em>dropped</em>`:""}${ijOut(ijOf(o.id))?` <em class="o">out</em>`:""}</i></div>
+    return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${esc(nm(o.q.n))}</b><i>${esc(o.q.t)} · ${esc(posOf(o.id)||"–")}${o.il?" · IL":""}${o.nw?` <em>what-if add</em>`:""}${act==="undo"?` <em>what-if drop</em>`:""}${ijOut(ijOf(o.id))?` <em class="o">out</em>`:""}</i></div>
       <div class="md">${act==="undo"?"":cells(o,T,act==="drop")}</div>
       <div class="mval"><b class="${o.v>=1?"up":o.v<=-1?"dn":""}">${sg(o.v)}</b>${dl2}</div>
       ${act?`<button class="mb" data-mu="${act}" data-x="${o.id}" aria-label="${act}">${act==="add"?"+":act==="undo"?"↺":"−"}</button>`:"<span></span>"}</div>`};
@@ -2104,6 +2107,7 @@ function renderMU(){
   $("pjList").innerHTML=`<div class="mux">${stale}
     <div class="muh"><div><b>${esc(ML.teams[me]||"You")}</b><i class="${O.won>O.lost?"up":O.won<O.lost?"dn":""}">${O.won}</i></div><span>${O.n-O.won-O.lost?`${O.n-O.won-O.lost} even`:"vs"}</span><div><b>${esc(ML.teams[R1.id]||"Opponent")}</b><i>${O.lost}</i></div></div>
     <div class="mue">Expected <b>${O.exp.toFixed(1)}</b> of ${O.n} categories${moved?` <span class="${O.exp-O0.exp>=0?"up":"dn"}">(${O.exp-O0.exp>=0?"+":"−"}${Math.abs(O.exp-O0.exp).toFixed(1)} with your moves)</span> <button class="mrs" data-mu="reset">Reset</button>`:""}</div>
+    ${m.add.size||m.drop.size?`<div class="mwi"><b>What-if</b> (not on Yahoo): ${[...[...m.add].filter(id=>G.players[id]).map(id=>`<span class="up">+ ${esc(nm(G.players[id].n))}</span>`),...[...m.drop].filter(id=>G.players[id]).map(id=>`<span class="dn">− ${esc(nm(G.players[id].n))}</span>`)].join(" · ")}</div>`:""}
     <div class="mcat">${O.rows.map(r=>{const t=m.tg.has(r.k)&&!r.off,pn=r.off;return`<button class="mt${t?" tg":""}${pn?" pn":""}" data-mu="cat" data-x="${r.k}"${S.punt.has(r.k)?" disabled":""}>
       <span class="ml">${r.l}${t?"<em>target</em>":pn?"<em>punt</em>":""}</span><b class="${pn?"":tone(r.p)}">${pn?"–":pc(r.p)+"%"}</b>
       <span class="mvs"><span>${fv(r.k,r.a)}</span><span>${fv(r.k,r.b)}</span></span><span class="mbar"><i class="${pn?"":tone(r.p)}" style="width:${pn?0:Math.round(100*r.p)}%"></i></span></button>`}).join("")}</div>
