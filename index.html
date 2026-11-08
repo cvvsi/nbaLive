@@ -695,7 +695,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
   .tabbar button{flex:none;height:30px;padding:0 13px;font-size:13.5px;border-radius:15px}
   .tabbar button:not([aria-pressed="true"]):hover{color:var(--ink);background:var(--cell)}
   body.hidebars .bar{transform:none}body.hidebars .ruler{top:calc(env(safe-area-inset-top,0px) + var(--bar))}
-  .bar .mark{margin-right:auto}.bar .asof{margin-right:8px}
+  .bar .mark{margin-right:auto}.bar .asof{flex:none;margin-right:8px}
   .bar .datenav{margin:0 6px 0 0;flex:none}
   #densBtn{display:none!important}
   .bxw #list.wide{grid-template-columns:1fr;column-gap:0}
@@ -1240,7 +1240,7 @@ function prow(p,pos){
     </div>
   </article>`;
 }
-const BXWIDE=true;   // one-column wide cards on desktop (off: two-column cards; being reworked)
+const BXWIDE=true;   // one-column wide cards on desktop (false: two-column cards)
 // Desktop Box: one column of wide cards, read straight down. Same pieces and colors as the card
 // (big three, the other six, rank ladder, hashtags, Value), laid out on one row.
 function prowW(p){
@@ -2520,7 +2520,7 @@ $("pjSz").hidden=S.pjView!=="season";
   rows.forEach((o,i)=>{o.rank=i+1;if(o.min==null)o.min=o.l.min});
   rows=lgFilter(rows);paintLg();
   $("pjStatus").textContent=stat;
-  const cl=S.pjView==="week"?"Games":"Left";if(S.pjView==="week")rows.forEach(o=>o.dctx=`${o.side}<span class="wkc">${o.ctx}</span>`);
+  const cl=S.pjView==="week"?"Games":"Left";if(S.pjView==="week")rows.forEach(o=>o.dctx=`<span class="wkc">${o.ctx}</span>`);   // no day strip on desktop: the Schedule tab has the days
   $("pjList").innerHTML=rows.length?`<p class="bzcap">${cap}</p>`+listHTML(rows,cl):`<div class="empty">Nobody projected here.</div>`;
 }
 Promise.all(["data/schedule.json","data/props.json","data/injuries.json"].map(u=>fetch(u,{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null)))
