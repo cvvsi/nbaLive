@@ -698,6 +698,18 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
   .bar .mark{margin-right:auto}.bar .asof{margin-right:8px}
   .bar .datenav{margin:0 6px 0 0;flex:none}
   #densBtn{display:none!important}
+  .bxw{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;max-width:1560px;margin:0 auto;align-items:start;padding:0 14px}
+  .bxw #list{max-width:none!important;margin:0;padding:0;grid-template-columns:repeat(auto-fill,minmax(360px,1fr))}
+  .bxw .bxs{display:block;position:sticky;top:calc(var(--bar) + 120px);max-height:calc(100vh - var(--bar) - 136px);overflow:auto;padding-top:10px}
+  .bsb{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:8px 12px 10px;margin-bottom:12px}
+  .bsh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:2px 0 6px;border-bottom:1px solid var(--rule)}.bsh b{font:700 14px/1.2 var(--name)}.bsh span{font:500 11.5px/1 var(--name);color:var(--dim)}
+  .bsr{display:grid;grid-template-columns:auto auto 1fr auto;column-gap:6px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--rule);cursor:pointer;font:500 13px/1.3 var(--name)}
+  .bsr:hover b{color:var(--ball)}.bsr b{font-weight:600}.bsr .t{color:var(--dim);font-size:11.5px}
+  .bsr .l{font:500 12px/1 var(--num);color:var(--ink);text-align:right;white-space:nowrap}.bsr .l i{font-style:normal;color:var(--dim);font-size:10px;margin-right:2px}
+  .bsr .v{font:600 12.5px/1 var(--num);min-width:42px;text-align:right}
+  .bsr .x{grid-column:1/-1;font:500 11px/1.2 var(--name);color:var(--dim);margin-top:2px}.bsr .x em{font-style:normal;color:var(--ball);font-weight:600;margin-right:6px}
+  .bst{display:grid;grid-template-columns:repeat(9,1fr);gap:2px;padding-top:8px}.bst span{text-align:center}.bst b{display:block;font:600 12.5px/1 var(--num)}.bst i{display:block;font:500 9px/1 var(--name);color:var(--dim);font-style:normal;margin-top:3px;letter-spacing:.04em}
+  .bse{font:500 12.5px/1.4 var(--name);color:var(--dim);padding:8px 0 2px}
   .psp{max-width:760px}.psp .rtiles,.psp .rks{gap:8px}
   #bzList{max-width:1500px!important}body[data-view="bz"] #bzList{display:block}
   #bzSort{display:none!important}
@@ -739,6 +751,8 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .dt td.hn1{background:color-mix(in srgb,var(--neg) 10%,transparent)}.dt td.hn2{background:color-mix(in srgb,var(--neg) 20%,transparent)}.dt td.hn3{background:color-mix(in srgb,var(--neg) 32%,transparent);font-weight:600}
 .dt td.mk{text-decoration:underline;text-underline-offset:3px}
 .dt .vl{font-weight:600;font-size:13.5px;padding-right:12px}.dt th.vh{padding-right:12px}
+.bxs{display:none}
+.cd.mine{box-shadow:inset 3px 0 0 var(--ball)}
 </style>
 </head>
 <body>
@@ -791,7 +805,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
   </div>
 </div>
 
-<main class="gut boxv" id="list"></main>
+<div class="bxw boxv"><main class="gut boxv" id="list"></main><aside class="bxs" id="bxSide"></aside></div>
 
 <div class="sheet help gut bsv" id="bsHelp" hidden><div id="bsHelpBody"></div></div>
 
@@ -1141,7 +1155,30 @@ function render(){
     }
   }else out=rows.map(p=>prow(p,0));
   $("list").innerHTML=out.join("");
+  renderBxSide();
 }
+// Desktop side column on the Box tab: what tonight means for you. My team (your players who played,
+// one line each, plus their totals), Pickup watch (free agents in your league with a good night or a
+// role change; without a synced league, anyone outside the top 130 on the season) and your
+// opponent's players this week. Pinned while the cards scroll; a name opens the player page.
+function renderBxSide(){const el=$("bxSide");if(!el)return;if(!isDesk()||!S.players.length){el.innerHTML="";return}
+  const P=S.players.filter(p=>S.game==="all"||p.game===S.game).sort((a,b)=>b.value-a.value),me=ML&&String(ML.me);
+  const opp=ML&&ML.mu&&ML.mu.rows&&(ML.mu.rows.find(r=>r.id!==me)||{}).id,szn=id=>S.rk&&S.rk.season[id];
+  const nm=n=>n.replace(/^(\S)\S*\s/,"$1. ");
+  const line=p=>`${p.pts}<i>p</i> ${p.reb}<i>r</i> ${p.ast}<i>a</i>${p.tpm?` ${p.tpm}<i>3</i>`:""}${p.stl?` ${p.stl}<i>s</i>`:""}${p.blk?` ${p.blk}<i>b</i>`:""}`;
+  const row=(p,extra="")=>`<div class="bsr" data-id="${esc(p.id)}"><b>${esc(nm(p.name))}</b><span class="t">${p.team}</span><span class="l">${line(p)}</span><span class="v ${vcls(p.value)}">${sgn(p.value)}</span>${extra}</div>`;
+  const tot=ps=>{if(!ps.length)return"";const s=k=>ps.reduce((a,p)=>a+p[k],0),fg=s("fga")?(s("fgm")/s("fga")*100).toFixed(0):"–",ft=s("fta")?(s("ftm")/s("fta")*100).toFixed(0):"–";
+    return`<div class="bst">${[["PTS",s("pts")],["REB",s("reb")],["AST",s("ast")],["3PM",s("tpm")],["STL",s("stl")],["BLK",s("blk")],["TO",s("to")],["FG%",fg],["FT%",ft]].map(([l,v])=>`<span><b>${v}</b><i>${l}</i></span>`).join("")}</div>`};
+  const blk=(t,sub,ps,body)=>`<section class="bsb"><div class="bsh"><b>${t}</b><span>${sub}</span></div>${body||`<div class="bse">${ps}</div>`}</section>`;
+  let h="";
+  if(ML){const mine=P.filter(p=>lgOf(p.eid)===me);
+    h+=blk(esc(ML.teams[me]||"My team"),`${mine.length} played`,"None of your players have played yet.",mine.length?mine.map(p=>row(p)).join("")+tot(mine):null)}
+  const pick=P.filter(p=>{const o=ML?lgOf(p.eid):undefined,m=S.mv&&S.mv[p.eid];return(ML?o==null:(szn(p.eid)||999)>ROST)&&(p.value>=.3||(m&&(m.hot||m.mup)&&p.value>0))}).slice(0,8);
+  h+=blk("Pickup watch",ML?"free agents in your league":"outside the top 130","No standout free agents yet.",pick.length?pick.map(p=>{const m=S.mv&&S.mv[p.eid],r=szn(p.eid);
+    return row(p,`<span class="x">${m&&m.hot?"<em>#Riser</em>":""}${m&&m.mup?`<em>▲${Math.round(m.mu)}m</em>`:""}${r?`szn #${r}`:""}</span>`)}).join(""):null);
+  if(ML&&opp){const op=P.filter(p=>lgOf(p.eid)===String(opp));
+    h+=blk(esc(ML.teams[opp]||"Opponent"),`opponent · ${op.length} played`,"None of theirs have played yet.",op.length?op.map(p=>row(p)).join("")+tot(op):null)}
+  el.innerHTML=h}
 // Card: name line (rank, name, team, minutes, Value), the big three beside the rank ladder
 // (Szn / 14 / 7 / last 3, labels attached), then the other six cats and any flags.
 const BIG=["pts","reb","ast"],SMALL=["tpm","stl","blk","to","fg","ft"];
@@ -1167,10 +1204,11 @@ function prow(p,pos){
   const big=BIG.map(k=>`<span class="bg${hl(k,p)}"><b>${p[k]}</b><i>${CL[k]}</i></span>`).join("");
   const sm=SMALL.map(k=>`<span class="sm${hl(k,p)}"><b>${k==="fg"?p.fgm+"/"+p.fga:k==="ft"?p.ftm+"/"+p.fta:p[k]}</b><i>${CL[k]}</i></span>`).join("");
   const v=p.value,vc=vcls(v);
-  return`<article class="cd" data-id="${esc(p.id)}" tabindex="0" aria-label="${esc(p.name)}: open details">
+  const own=ML?lgOf(p.eid):undefined,mine=ML&&own===String(ML.me),fa=ML&&own==null&&p.value>=.3;
+  return`<article class="cd${mine?" mine":""}" data-id="${esc(p.id)}" tabindex="0" aria-label="${esc(p.name)}: open details">
     ${mug(p,pos)}
     <div class="body">
-      <div class="c1"><span class="rk">${p.rank}</span><b class="nm">${esc(p.name)}</b><span class="mt">${p.team} · ${Math.round(p.min)}m${minUp(p)}</span><span class="vl ${vc}">${sgn(v)}</span></div>
+      <div class="c1"><span class="rk">${p.rank}</span><b class="nm">${esc(p.name)}</b><span class="mt">${p.team} · ${Math.round(p.min)}m${minUp(p)}</span>${mine?`<i class="lgt">Mine</i>`:fa?`<i class="lgt fa">FA</i>`:""}<span class="vl ${vc}">${sgn(v)}</span></div>
       <div class="c2"><div class="bigs">${big}</div>${ladder(p.eid)}</div>
       <div class="c3">${sm}${hashtags(p.eid)}</div>
     </div>
@@ -2730,7 +2768,7 @@ document.querySelectorAll(".lgf").forEach(g=>g.querySelectorAll("button").forEac
 $("rfBtn").onclick=()=>{$("rfBtn").classList.add("go");setTimeout(()=>location.reload(),120)};
 for(const l of ["pjList","rkList"])$(l).addEventListener("click",e=>{const h=e.target.closest("[data-dsort]");if(!h)return;e.stopPropagation();
   const k=h.dataset.dsort;if(S.dsort===k)S.ddir=-S.ddir;else{S.dsort=k;S.ddir=-1}renderPJ();renderRK()},true);
-DESK.addEventListener("change",()=>{paintDens();renderPJ();renderRK();renderSC();if(BZ)renderBZ()});
+DESK.addEventListener("change",()=>{if(S.players.length)render();paintDens();renderPJ();renderRK();renderSC();if(BZ)renderBZ()});
 $("densBtn").onclick=()=>{S.dense=!S.dense;store.set("dense",S.dense);paintDens();renderPJ();renderRK()};
 // Bars slide away while scrolling down and come back on any scroll up (or near the top).
 {let lastY=scrollY;addEventListener("scroll",()=>{const y=scrollY,d=y-lastY;
@@ -2756,6 +2794,7 @@ $("date").onclick=()=>{if(S.err)loadDate(S.date)};
 $("gear").onclick=()=>{const o=$("sheet").hidden;$("sheet").hidden=!o;$("gear").setAttribute("aria-expanded",o)};
 $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
 $("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>setSort(b.dataset.k));
+$("bxSide").addEventListener("click",e=>{const r=e.target.closest("[data-id]");if(!r)return;const p=S.players.find(x=>x.id===r.dataset.id);if(p)openSheet(p.eid||p.id,p)});
 $("teamBtn").onclick=()=>{S.byTeam=!S.byTeam;store.set("byTeam",S.byTeam);render()};
 function paintPool(){$("poolSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===S.pool))}
 $("poolSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pool=+b.dataset.v;store.set("pool",S.pool);paintPool();
