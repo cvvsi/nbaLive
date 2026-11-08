@@ -182,7 +182,7 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .mct thead th.tg button{box-shadow:inset 0 0 0 2px var(--ball)}.mct thead button:disabled{cursor:default}
 .mct td{border-top:1px solid var(--rule);color:var(--ink)}.mct td.dim{color:var(--dim)}
 .mct tr.wp td{font-weight:600}.mct tr.rk td{font-size:11px;color:var(--dim)}.mct tr.rk td.up{color:var(--pos)}.mct tr.rk td.dn{color:var(--neg)}
-.mct .pn{opacity:.35}.mct thead th.pn em{color:var(--dim)}
+.mct .pn{opacity:.5}.mct thead th.pn em{color:var(--dim)}
 .msw{display:grid;gap:4px;margin:8px 2px 0;font:500 12.5px/1.4 var(--name);color:var(--dim)}
 .msw>div{display:flex;flex-wrap:wrap;gap:2px 10px}.msw>div>b{color:var(--ink);font-weight:700}.msw b.up,.msw b.dn{font-weight:600}
 .mstl{display:block;margin-top:3px;white-space:nowrap}.mst{margin-right:8px;font:500 10.5px/1 var(--num);color:var(--ink)}
@@ -2089,8 +2089,9 @@ function muOdds(cA,cB,pA,pB,A,B,off){
     if(k==="fg"||k==="ft"){const va=fa.a?fa.v*(1-fa.v)*fa.ra/fa.a**2:0,vb=fb.a?fb.v*(1-fb.v)*fb.ra/fb.a**2:0,sd=Math.sqrt(va+vb),d=fa.v-fb.v;p=sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
     else{const sd=Math.sqrt(A.vr[k]+B.vr[k]),d=(fa.v-fb.v)*(k==="to"?-1:1);p=sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
     return{k,l:cc.l,a:fa.v,b:fb.v,na:cA[k],nb:cB[k],p,off:off.has(k)}});
-  const live=rows.filter(r=>!r.off);
-  return{rows,won:live.filter(r=>r.p>.5).length,lost:live.filter(r=>r.p<.5).length,n:live.length,exp:live.reduce((s,r)=>s+r.p,0)}}
+  // The score counts all 9: a punted category still goes to whoever wins it on Yahoo. expP (the
+  // categories you're playing for) is what a player's "Cats" gain or loss is measured on.
+  return{rows,won:rows.filter(r=>r.p>.5).length,lost:rows.filter(r=>r.p<.5).length,n:rows.length,exp:rows.reduce((s,r)=>s+r.p,0),expP:rows.filter(r=>!r.off).reduce((s,r)=>s+r.p,0)}}
 S.muWk=null;
 function renderMU(){
   const mu=ML&&ML.mu,x=ML&&lgIx();
@@ -2121,7 +2122,7 @@ function renderMU(){
   const pA=muSim(base,past,capA,F,null,C).tot,pB=muSim(oppR,past,capB,F,null,C).tot;
   const B=muSim(oppR,rest,capB,F,null,C),A=muSim(mine,rest,capA,F,m.set,C),O=muOdds(cA,cB,pA,pB,A,B,off);
   const moved=m.add.size||m.drop.size||Object.keys(m.set).length,O0=moved?muOdds(cA,cB,pA,pB,muSim(base,rest,capA,F,null,C),B,off):O;
-  const dExp=ps=>muOdds(cA,cB,pA,pB,muSim(ps,rest,capA,F,m.set,C),B,off).exp-O.exp;
+  const dExp=ps=>muOdds(cA,cB,pA,pB,muSim(ps,rest,capA,F,m.set,C),B,off).expP-O.expP;
   // League scouting: every team's projected totals for the whole week (your what-if moves included),
   // each category ranked 1 (best) to n across the league; FG%/FT% as made / attempted.
   const all=ML.teams?Object.keys(ML.teams):[],FA=CATS.map(c=>c.k).filter(k=>!S.punt.has(k));
@@ -2177,12 +2178,12 @@ function renderMU(){
     <div class="mctw"><table class="mct"><thead><tr><th></th>${O.rows.map(r=>{const t=m.tg.has(r.k)&&!r.off;return`<th class="${t?"tg":""}${r.off?" pn":""}"><button data-mu="cat" data-x="${r.k}"${S.punt.has(r.k)?" disabled":""}>${r.l}<em>${t?"target":r.off?"punt":"&nbsp;"}</em></button></th>`}).join("")}</tr></thead><tbody>
       <tr><th>You</th>${O.rows.map(r=>`<td class="${r.off?"pn":""}">${fv(r.k,r.a)}</td>`).join("")}</tr>
       <tr><th>Them</th>${O.rows.map(r=>`<td class="${r.off?"pn":""} dim">${fv(r.k,r.b)}</td>`).join("")}</tr>
-      <tr class="wp"><th>Win</th>${O.rows.map(r=>`<td class="${r.off?"pn":tone(r.p)}">${r.off?"–":pc(r.p)+"%"}</td>`).join("")}</tr>
+      <tr class="wp"><th>Win</th>${O.rows.map(r=>`<td class="${tone(r.p)}${r.off?" pn":""}">${pc(r.p)}%</td>`).join("")}</tr>
       <tr class="rk"><th>You rk</th>${O.rows.map(r=>`<td class="${r.off?"pn":rkc(rk[me][r.k])}">${ord(rk[me][r.k])}</td>`).join("")}</tr>
       <tr class="rk"><th>Them rk</th>${O.rows.map(r=>`<td class="${r.off?"pn":rkc(rk[opId][r.k])}">${ord(rk[opId][r.k])}</td>`).join("")}</tr>
     </tbody></table></div>
     <div class="msw"><div><b>${esc(nameB)}</b>${sw(opId)||"<span>No clear edges.</span>"}</div><div><b>${esc(nameA)}</b>${sw(me)||"<span>No clear edges.</span>"}</div></div>
-    <p class="mhint">${isS?"Projected finals: Yahoo's totals so far plus Proj for the days left.":"Projected finals for the whole week (Proj only; your Yahoo totals start when the week does)."} Ranks = each team's projected week against the other ${nT-1} in your league. Tap a category to <b>target</b> it (players re-sort by it), again to <b>punt</b> it, again to clear.</p>
+    <p class="mhint">${isS?"Projected finals: Yahoo's totals so far plus Proj for the days left.":"Projected finals for the whole week (Proj only; your Yahoo totals start when the week does)."} Ranks = each team's projected week against the other ${nT-1} in your league. Tap a category to <b>target</b> it (players re-sort by it), again to <b>punt</b> it, again to clear. A punted category still counts in the score (your opponent still wins it on Yahoo); punting only stops it from shaping your lineup, the sort and each player's Cats.</p>
     <div class="mcols">
     <div class="msec"><div class="msh"><b>${esc(nameA)}</b><span>${gA} games · ${capA} spots a day · by ${esc(lab)}</span></div>${head}
       ${sortR(mine).map(o=>row(o,A,o.nw?"undrop":"drop")).join("")}${dropped.map(o=>row(o,A,"undo")).join("")}
