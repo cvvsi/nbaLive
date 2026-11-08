@@ -135,6 +135,7 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .lgrow[hidden]{display:none}
 .lgrow .lgs{font:500 11px/1.2 var(--num);color:var(--dim);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lgt{font:600 10.5px/1 var(--name);font-style:normal;color:var(--ball);border:1px solid var(--ball);border-radius:4px;padding:2px 4px;white-space:nowrap;flex:none;margin-left:4px}
+.lgt.fa{color:var(--ink);border-color:var(--ink)}
 .lgown{margin-top:4px;font:600 13px/1.2 var(--name);color:var(--dim)}.lgown b{color:var(--ink)}.lgown.me b{color:var(--ball)}
 /* schedule grid: teams x days, opponent in each cell; the header counts that night's games */
 .sgd{display:grid;grid-template-columns:40px 22px repeat(7,1fr);font:500 11.5px/1 var(--num);margin-top:6px}
@@ -745,6 +746,8 @@ function lgIx(){
 }
 const lgOf=id=>{const x=lgIx();return x?(x.own[id]||null):undefined};
 const lgTag=id=>ML&&lgOf(id)===String(ML.me)?`<i class="lgt">Mine</i>`:"";
+// Buzz: also flag free agents (taken by another team: nothing, to keep the rows quiet).
+const lgTagFA=id=>{if(!ML||!id)return"";const t=lgOf(id);return t==null?`<i class="lgt fa">FA</i>`:t===String(ML.me)?`<i class="lgt">Mine</i>`:""};
 const lgFilter=rows=>!ML||S.lgF==="all"?rows:rows.filter(o=>{const t=lgOf(o.id);return S.lgF==="mine"?t===String(ML.me):t==null});
 function lgLine(id){if(!ML)return"";const t=lgOf(id);
   return t==null?`<div class="lgown">Available in your league</div>`:t===String(ML.me)?`<div class="lgown me">On <b>${esc(ML.teams[t]||"your team")}</b> (you)</div>`:`<div class="lgown">On <b>${esc(ML.teams[t]||"team "+t)}</b></div>`}
@@ -1584,7 +1587,7 @@ function bzRow(r){
   return`<article class="cd" ${id?`data-id="${esc(id)}" tabindex="0"`:""} aria-label="${esc(r.name)}">
     ${mug({eid:id})}
     <div class="body">
-      <div class="c1"><b class="nm">${esc(r.name)}</b><span class="mt">${esc(r.team)} · ${esc(r.pos)}</span><span class="vt ${tc}">${rd.t}</span></div>
+      <div class="c1"><b class="nm">${esc(r.name)}</b><span class="mt">${esc(r.team)} · ${esc(r.pos)}</span>${lgTagFA(id)}<span class="vt ${tc}">${rd.t}</span></div>
       <div class="bzb"><span class="bg"><b>${drop?"−"+fmtN(r.drops):"+"+fmtN(r.adds)}</b><i>${drop?"drops":"adds"}</i></span><span class="bg"><b>${r.ros}%</b><i>rostered</i></span>${mins}</div>
       ${rd.why?`<div class="bzw">${esc(rd.why.charAt(0).toUpperCase()+rd.why.slice(1))}</div>`:""}
       ${ctx}
@@ -1600,7 +1603,7 @@ function renderBZ(){
   $("bzStatus").textContent=`${rows.length} · Yahoo ${drop?"drops":"adds"}`;
   $("bzAsOf").textContent=fmtDate(D.date).replace(/^\w+, /,"")+(part?" so far":"");
   const upd=BZ.built?` Updated ${new Date(BZ.built).toLocaleString(undefined,{weekday:"short",hour:"numeric",minute:"2-digit"})}.`:"";
-  const cap=`<p class="bzcap">Across all Yahoo leagues on ${fmtDate(D.date)}${part?", so far today":""}.${upd} ${drop?"<b>Panic</b> = my numbers still like him; <b>Agree</b> = the role shrank.":"<b>Follow</b> = minutes or Proj back it up; <b>Fade</b> = it doesn't."} Ranks${R?` thru ${fmtDate(R.asOf).replace(/^\w+, /,"")}`:" loading"}. Tap a player for the full page.</p>`;
+  const cap=`<p class="bzcap">Across all Yahoo leagues on ${fmtDate(D.date)}${part?", so far today":""}.${upd} ${drop?"<b>Panic</b> = my numbers still like him; <b>Agree</b> = the role shrank.":"<b>Follow</b> = minutes or Proj back it up; <b>Fade</b> = it doesn't."} Ranks${R?` thru ${fmtDate(R.asOf).replace(/^\w+, /,"")}`:" loading"}.${ML?` <b>FA</b> = available in your league (synced ${new Date(ML.at).toLocaleDateString([],{month:"short",day:"numeric"})}).`:""} Tap a player for the full page.</p>`;
   $("bzList").innerHTML=rows.length?cap+rows.map(bzRow).join(""):`<div class="empty">No Yahoo buzz for this day.</div>`;
 }
 fetch("data/buzz.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
