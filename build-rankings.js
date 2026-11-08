@@ -410,7 +410,8 @@ function buildRegression(games, asOf, rankings) {
 //           10 games vs before), yr1-2 (a rookie or second-year player)
 //   trig    the role is changing now: his last 3 games average 6+ more minutes than the up-to-10
 //           before (and 22+), or he started the last 2 after starting under 30% before. Flags:
-//           opening (a 24+ min teammate missed 2 of those 3; named), bigjump (10+ more), started.
+//           opening (a 24+ min teammate missed 2 of those 3; named), bigjump (10+ more), started;
+//           u3 / ub = usage % over the last 3 and the games before them.
 // since = the first night each sign (and the trigger) was lit, kept in data/breakouts-hist.json.
 const BO = 'data/breakouts.json', BO_HIST = 'data/breakouts-hist.json';
 function breakouts(games, players, asOf) {
@@ -463,7 +464,9 @@ function breakouts(games, players, asOf) {
         for (const oid of new Set(pr.flatMap(g => Object.keys(g.mins)))) { if (oid === id) continue;
           const played = pr.filter(g => g.mins[oid]).length, m = pr.reduce((a, g) => a + (g.mins[oid] || 0), 0) / Math.max(1, pr.length);
           if (played >= Math.min(6, pr.length - 1) && m >= 24 && rec.filter(g => !g.mins[oid]).length >= 2) { opening = players[oid] ? players[oid].n : 'a teammate'; break; } }
-        trig = { kind: stT ? 'start' : 'min', m3: r1(m3), mp: r1(mp), opening, bigjump: m3 >= mp + 10 };
+        // usage over the same two spans (share of team plays while on the floor), for the Rise rows
+        const us = a => { const t = sum(a); return t.tpos ? r1(100 * t.use / t.tpos) : null; };
+        trig = { kind: stT ? 'start' : 'min', m3: r1(m3), mp: r1(mp), u3: us(l3), ub: us(prior), opening, bigjump: m3 >= mp + 10 };
       }
     }
     // first night each sign was lit (and the trigger)
