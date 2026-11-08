@@ -144,24 +144,17 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .mwi{margin:-2px 0 10px;padding:7px 10px;border:1px dashed var(--ball);border-radius:8px;font:500 12.5px/1.4 var(--name);color:var(--dim);text-align:center}.mwi b{color:var(--ball)}.mwi span{font-weight:600}
 .mus{margin:8px 0;padding:8px 10px;border:1px solid var(--ball);border-radius:8px;font:500 13px/1.35 var(--name)}
 .mhint{font:500 12px/1.45 var(--name);color:var(--dim);margin:8px 2px 0}.mhint b{color:var(--ink)}
-.mhint .dc{display:inline-block;width:12px;height:10px;vertical-align:-1px;margin:0 1px}
 .msec{margin-top:14px;background:var(--panel);border-radius:12px;padding:4px 10px 10px}
 .msh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:10px 0 6px;list-style:none;cursor:default}.msh::-webkit-details-marker{display:none}
 .msh b{font:700 15px/1.2 var(--name)}.msh span{font:500 12px/1.2 var(--name);color:var(--dim)}
 .mopp>.msh{cursor:pointer}.mopp>.msh::after{content:"Show ▾";margin-left:auto;font:600 12px/1 var(--name);color:var(--ball)}.mopp.open>.msh::after{content:"Hide ▴"}.mopp:not(.open) .mob{display:none}
 .mrh,.mr{display:grid;grid-template-columns:minmax(0,1fr) auto 56px 30px;align-items:center;gap:6px}
 .mrh{font:600 9.5px/1 var(--name);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding:4px 0 6px}.mrh .mval{text-align:right}
-.mrh .dc{height:auto;background:none!important;box-shadow:none!important;text-align:center;line-height:1.15}.mrh .dc i{display:block;font:500 9px/1 var(--num);font-style:normal;letter-spacing:0}
 .mr{padding:7px 0;border-top:1px solid var(--rule);cursor:pointer}
 .mn{min-width:0}.mn b{display:block;font:600 14px/1.2 var(--name);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mn i{display:block;font:500 11.5px/1.2 var(--name);font-style:normal;color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mn em{font-style:normal;font-weight:600;color:var(--ball)}.mn em.o{color:var(--neg)}
 .md{display:flex;gap:3px}
-.dc{width:20px;height:18px;border-radius:4px;flex:none;display:inline-block}
-.dc.s1{background:var(--ink)}.dc.s2{box-shadow:inset 0 0 0 1.5px var(--dim)}.dc.s3{background:var(--ball)}
-.dc.s4{box-shadow:inset 0 0 0 1.5px var(--ball);background:repeating-linear-gradient(135deg,transparent 0 4px,color-mix(in srgb,var(--ball) 45%,transparent) 4px 5.5px)}
-.dc.s5{background:var(--cell);box-shadow:inset 0 0 0 1px var(--rule)}
-.md .dc:not([class*="s"]){background:radial-gradient(circle,var(--rule) 1.5px,transparent 2px)}
 .mval{text-align:right;min-width:0}.mval b{display:block;font:600 13.5px/1 var(--num)}.mval b.up{color:var(--pos)}.mval b.dn{color:var(--neg)}
 .mval i{display:block;font:500 10px/1.1 var(--num);font-style:normal;color:var(--dim);margin-top:3px;white-space:nowrap}.mval i.up{color:var(--pos)}.mval i.dn{color:var(--neg)}
 .mb{width:28px;height:28px;border-radius:50%;border:1px solid var(--rule);background:var(--bg);color:var(--ink);font:600 17px/1 var(--num);cursor:pointer;padding:0;display:grid;place-items:center}
@@ -173,16 +166,41 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .mwk span{font:500 13px/1.2 var(--name);color:var(--dim);text-align:center}.mwk span b{color:var(--ink);font-weight:700;margin-right:4px}.mwk span i{font-style:normal;color:var(--ball);font-weight:600;margin-left:4px}
 .mar{width:34px;height:30px;border:0;border-radius:7px;background:var(--cell);color:var(--ink);font:600 18px/1 var(--name);cursor:pointer}.mar:disabled{opacity:.3;cursor:default}
 .mop{max-width:100%;font:700 15px/1.2 var(--name);color:var(--ink);background:var(--cell);border:0;border-radius:6px;padding:3px 6px;text-align:center;cursor:pointer}
-.mctw{overflow-x:auto;background:var(--panel);border-radius:10px;padding:2px 6px 6px}
+.mctw{overflow-x:auto;background:var(--panel);border-radius:10px;padding:4px 8px 6px;margin-top:8px}
 .mct{width:100%;border-collapse:collapse;font:500 12px/1 var(--num);font-variant-numeric:tabular-nums}
-.mct th,.mct td{padding:6px 2px;text-align:center;white-space:nowrap}
-.mct tbody th{font:600 10.5px/1 var(--name);letter-spacing:.04em;color:var(--dim);text-align:left;padding-right:4px}
-.mct thead button{all:unset;cursor:pointer;display:block;width:100%;font:700 11.5px/1 var(--name);letter-spacing:.03em;color:var(--ink);padding:6px 0 3px;border-radius:6px}
-.mct thead button em{display:block;font:600 8px/1 var(--name);letter-spacing:.06em;text-transform:uppercase;font-style:normal;color:var(--ball);margin-top:3px}
-.mct thead th.tg button{box-shadow:inset 0 0 0 2px var(--ball)}.mct thead button:disabled{cursor:default}
-.mct td{border-top:1px solid var(--rule);color:var(--ink)}.mct td.dim{color:var(--dim)}
-.mct tr.wp td{font-weight:600}.mct tr.rk td{font-size:11px;color:var(--dim)}.mct tr.rk td.up{color:var(--pos)}.mct tr.rk td.dn{color:var(--neg)}
-.mct .pn{opacity:.5}.mct thead th.pn em{color:var(--dim)}
+.mct th,.mct td{padding:6px 3px;text-align:center;white-space:nowrap}
+.mct thead th{font:700 11px/1 var(--name);letter-spacing:.04em;color:var(--dim);text-transform:uppercase}
+.mct .tn{text-align:left;font:600 12px/1.1 var(--name);color:var(--ink);max-width:92px;overflow:hidden;text-overflow:ellipsis;padding-right:6px}
+.mct thead .tn{color:var(--ink);font-size:13px;text-transform:none;letter-spacing:0}
+.mct tbody td{border-top:1px solid var(--rule);color:var(--ink)}
+.mct .g{color:var(--dim)}.mct tbody td.g{font-weight:600;color:var(--ink)}
+.mct sup{font:600 8px/1 var(--num);margin-left:1px;vertical-align:4px}
+.mct tr.cp td{font-size:11px}.mct tr.cp td.up{color:var(--pos)}.mct tr.cp td.dn{color:var(--neg)}.mct tr.cp .tn,.mct tr.wp .tn,.mct tr.tgr .tn{color:var(--dim);font-weight:500}
+.mct tr.wp td{font-weight:600;border-radius:4px}
+.mct tr.tgr th{padding:2px 3px 6px}
+.tk{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--dim);background:none;cursor:pointer;padding:0;display:inline-grid;place-items:center;vertical-align:middle}
+.tk.on{background:var(--ball);border-color:var(--ball)}.tk.on::after{content:"";width:8px;height:4px;border:solid var(--panel);border-width:0 0 2px 2px;transform:translateY(-1px) rotate(-45deg)}
+.md{display:flex;gap:3px}
+.dc{width:24px;height:20px;border-radius:4px;flex:none;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+.dc b,.dc i{display:none}
+.dc.s1{background:color-mix(in srgb,var(--pos) 30%,var(--cell))}
+.dc.s2{box-shadow:inset 0 0 0 1.5px var(--dim);background:var(--panel)}
+.dc.s3{background:color-mix(in srgb,var(--ball) 30%,var(--cell));box-shadow:inset 0 0 0 2px var(--ball)}
+.dc.s4{box-shadow:inset 0 0 0 1.5px var(--ball);background:repeating-linear-gradient(135deg,transparent 0 4px,color-mix(in srgb,var(--ball) 40%,transparent) 4px 5.5px)}
+.dc.s5{background:var(--cell);box-shadow:inset 0 0 0 1px var(--rule)}
+.dc.s6{background:var(--cell);opacity:.4}
+.dc.ot{background:color-mix(in srgb,var(--neg) 22%,var(--cell))}.dc.il{background:var(--cell);opacity:.45}
+.md .dc:not([class*=" "]){background:radial-gradient(circle,var(--rule) 1.5px,transparent 2px)}
+.dc[data-mu]{cursor:pointer}
+.dh{width:24px;flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;text-transform:none;letter-spacing:0}
+.dh b{font:600 8.5px/1 var(--name);color:var(--dim)}.dh i{font:600 9.5px/1 var(--num);font-style:normal;color:var(--ink);white-space:nowrap}
+.dh em{font-style:normal;color:var(--neg)}.dh.fu i{color:var(--neg)}.dh.op i{color:var(--pos)}
+.mhint .dc{display:inline-block;width:14px;height:11px;vertical-align:-1px;margin:0 1px}
+@media (max-width:999px){
+  .mct{font-size:11px}.mct th,.mct td{padding:5px 2px}.mct .tn{max-width:58px;font-size:11px}.mct sup{display:none}.mct thead th{font-size:10px}
+  .tk{width:16px;height:16px}
+  .dc,.dh{width:20px}.dh .cap{display:none}.dh b span{display:block;margin-top:1px}.dh b{text-align:center;white-space:nowrap}.dh em{display:block}
+}
 .msw{display:grid;gap:4px;margin:8px 2px 0;font:500 12.5px/1.4 var(--name);color:var(--dim)}
 .msw>div{display:flex;flex-wrap:wrap;gap:2px 10px}.msw>div>b{color:var(--ink);font-weight:700}.msw b.up,.msw b.dn{font-weight:600}
 .mstl{display:block;margin-top:3px;white-space:nowrap}.mst{margin-right:8px;font:500 10.5px/1 var(--num);color:var(--ink)}
@@ -192,16 +210,23 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
   .mux{max-width:1560px}
   .mtop{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;background:var(--panel);border-radius:12px;padding:8px 12px}
   .mtop .mwk{padding:0}.mtop .muh{margin:0;padding:0;gap:18px}.mtop .muh i{font-size:26px}.mtop .mue{margin:0;text-align:right}
-  .mct{font-size:13px}.mct th,.mct td{padding:5px 4px}
-  .msw{grid-template-columns:1fr 1fr}
-  .mcols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
-  .mcols .msec{margin-top:12px}
+  .mfin{display:grid;grid-template-columns:minmax(0,900px) minmax(240px,1fr);gap:18px;align-items:start}
+  .mfs .msw{grid-template-columns:1fr;gap:10px;margin-top:14px}.mfs .msw>div{flex-direction:column;gap:3px}
+  .mct{font-size:13.5px}.mct th,.mct td{padding:7px 8px}.mct .tn{max-width:180px}.mct sup{font-size:9px}
+  .mcols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+  .mcols .msec,.mme{margin-top:12px}
   .mopp .mob{display:block!important}.mopp>.msh{cursor:default}.mopp>.msh::after{content:none!important}
-  .mr{padding:4px 0}.mn{display:flex;align-items:baseline;gap:6px;min-width:0}.mn b{font-size:13.5px;flex:none;max-width:52%}.mn i{margin:0}.mstl{margin:0;flex:none}.mst{margin:0 0 0 6px}
-  .dc{width:16px;height:15px;border-radius:3px}.md{gap:2px}
+  .mrh,.mr{grid-template-columns:minmax(150px,210px) minmax(0,1fr) 50px 26px}
+  .mr{padding:3px 0}.mn{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:6px}.mn b{font-size:13.5px}.mn i{margin:0}.mstl{flex-basis:100%;margin-top:3px}
+  .md{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+  .dc,.dh{width:auto;min-width:0}
+  .dc{height:32px;flex-direction:column;gap:2px;border-radius:5px}
+  .dc b,.dc i{display:block;font:600 10.5px/1 var(--name);font-style:normal;color:var(--ink)}
+  .dc i{font:500 10px/1 var(--num);color:var(--dim)}.dc i.up{color:var(--pos)}.dc i.dn{color:var(--neg)}
+  .dc.ot i{color:var(--neg)}
+  .dh b{font-size:11px;color:var(--ink)}.dh i{font-size:11px}
   .mval b{font-size:12.5px}.mval i{margin-top:1px}
   .mb{width:24px;height:24px;font-size:15px}
-  .mrh,.mr{grid-template-columns:minmax(0,1fr) auto 48px 26px}
 }
 .lgrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 0 6px}
 .lgrow[hidden]{display:none}
@@ -2066,7 +2091,7 @@ function muSave(){const m=S.mus,all=store.get("muSel2",{}),wk0=weekDates(0)[0];
   all[m.key]={at:m.at,tg:[...m.tg],pn:[...m.pn],add:[...m.add],drop:[...m.drop],set:m.set,fa:m.fa,opp:m.opp,oo:m.oo};store.set("muSel2",all)}
 // Categories that count toward the score (not punted here or globally) and the ones players are
 // sorted by: the targets if any are picked, otherwise every category that counts.
-const muOff=m=>new Set([...S.punt,...m.pn]);
+const muOff=m=>new Set(S.punt);
 const muFocus=m=>{const off=muOff(m),t=[...m.tg].filter(k=>!off.has(k));return t.length?t:CATS.map(c=>c.k).filter(k=>!off.has(k))};
 const muFz=(z,F)=>F.length?F.reduce((a,k)=>a+z[k],0)/F.length:0;
 function muLine(id,q,d,C){const k=id+"|"+d;return C[k]||(C[k]=(l=>({l,z:pjZ(l)}))(lineAt(q,minAt(id,q,d))))}
@@ -2118,24 +2143,25 @@ function renderMU(){
   const roster=tid=>Object.keys(x.own).filter(id=>x.own[id]===tid).map(P).filter(o=>o.q&&o.q.xp);
   const base=roster(me),oppR=roster(opId);
   const mine=[...base.filter(o=>!m.drop.has(o.id)),...[...m.add].filter(id=>G.players[id]&&G.players[id].xp&&x.own[id]==null).map(id=>({...P(id),nw:1}))];
-  // attempts behind Yahoo's FG% / FT% so far (it shows only the %): our per-game attempts on the days played
-  const pA=muSim(base,past,capA,F,null,C).tot,pB=muSim(oppR,past,capB,F,null,C).tot;
+  // the days already played (synced week): attempts behind Yahoo's FG% / FT% (it shows only the %)
+  // and games played so far, both estimated from Proj on those days
+  const PA=muSim(base,past,capA,F,null,C),PB=muSim(oppR,past,capB,F,null,C),pA=PA.tot,pB=PB.tot;
   const B=muSim(oppR,rest,capB,F,null,C),A=muSim(mine,rest,capA,F,m.set,C),O=muOdds(cA,cB,pA,pB,A,B,off);
   const moved=m.add.size||m.drop.size||Object.keys(m.set).length,O0=moved?muOdds(cA,cB,pA,pB,muSim(base,rest,capA,F,null,C),B,off):O;
   const dExp=ps=>muOdds(cA,cB,pA,pB,muSim(ps,rest,capA,F,m.set,C),B,off).expP-O.expP;
+  const gSum=T=>Object.values(T.g).reduce((a,b)=>a+b,0),gA=gSum(A),gB=gSum(B),gTA=gA+gSum(PA),gTB=gB+gSum(PB);
   // League scouting: every team's projected totals for the whole week (your what-if moves included),
-  // each category ranked 1 (best) to n across the league; FG%/FT% as made / attempted.
-  const all=ML.teams?Object.keys(ML.teams):[],FA=CATS.map(c=>c.k).filter(k=>!S.punt.has(k));
+  // each category ranked 1 (best) to n; shown as a badge on a total only when it's top or bottom 3.
+  const all=Object.keys(ML.teams),FA=CATS.map(c=>c.k).filter(k=>!S.punt.has(k));
   const prof={};for(const t of all){const T=muSim(t===me?mine:roster(t),dates,cap(t),FA,t===me?m.set:null,C).tot;
     prof[t]=Object.fromEntries(CATS.map(c=>[c.k,c.k==="fg"?(T.fga?T.fgm/T.fga:0):c.k==="ft"?(T.fta?T.ftm/T.fta:0):T[c.k]]))}
   const rk={};for(const c of CATS){const s=all.slice().sort((a,b)=>c.k==="to"?prof[a][c.k]-prof[b][c.k]:prof[b][c.k]-prof[a][c.k]);s.forEach((t,i)=>(rk[t]||(rk[t]={}))[c.k]=i+1)}
   const nT=all.length,ord=n=>n+(n%10===1&&n!==11?"st":n%10===2&&n!==12?"nd":n%10===3&&n!==13?"rd":"th");
-  const sw=t=>{if(!rk[t])return"";const r=rk[t],s=CATS.filter(c=>r[c.k]<=3).sort((a,b)=>r[a.k]-r[b.k]),w=CATS.filter(c=>r[c.k]>nT-3).sort((a,b)=>r[b.k]-r[a.k]);
-    return`${s.length?`<span>Strong <b class="up">${s.map(c=>`${c.l} ${ord(r[c.k])}`).join(", ")}</b></span>`:""}${w.length?`<span>Weak <b class="dn">${w.map(c=>`${c.l} ${ord(r[c.k])}`).join(", ")}</b></span>`:""}`};
-  // per-game value on the sort categories, averaged over his days left (or Proj's line with none)
+  const badge=(t,k)=>{const r=rk[t]&&rk[t][k];return r<=3?`<sup class="up">${ord(r)}</sup>`:r>nT-3?`<sup class="dn">${ord(r)}</sup>`:""};
+  const scout=t=>{if(!rk[t])return"";const r=rk[t],s=CATS.filter(c=>r[c.k]<=3).sort((a,b)=>r[a.k]-r[b.k]),w=CATS.filter(c=>r[c.k]>nT-3).sort((a,b)=>r[b.k]-r[a.k]);
+    return(s.length?`<span>strong in <b class="up">${s.map(c=>c.l).join(", ")}</b></span>`:"")+(w.length?`<span>weak in <b class="dn">${w.map(c=>c.l).join(", ")}</b></span>`:"")||"<span>no clear edges</span>"};
   const myDs=o=>rest.filter(d=>plays(o.q.t,d)&&avail(o.id,d));
   const pv=o=>{const ds=myDs(o);return ds.length?ds.reduce((a,d)=>a+muFz(muLine(o.id,o.q,d,C).z,F),0)/ds.length:muFz(pjZ(xpLine(o.q)),F)};
-  // his per-game numbers in the targeted categories (1-3 picked), for the row
   const tgs=[...m.tg].filter(k=>!off.has(k));
   const stl=o=>{if(!tgs.length||tgs.length>3)return"";const ds=myDs(o),ls=(ds.length?ds:[null]).map(d=>d?muLine(o.id,o.q,d,C).l:xpLine(o.q)),n=ls.length,sum=k=>ls.reduce((a,l)=>a+l[k],0);
     return tgs.map(k=>{const c=CATS.find(c=>c.k===k),v=k==="fg"?(sum("fga")?sum("fgm")/sum("fga"):0):k==="ft"?(sum("fta")?sum("ftm")/sum("fta"):0):sum(k)/n;
@@ -2149,56 +2175,66 @@ function renderMU(){
   const dropped=base.filter(o=>m.drop.has(o.id));for(const o of dropped)o.v=pv(o);
   const fv=(k,v)=>k==="fg"||k==="ft"?v.toFixed(3).replace(/^0/,""):Math.round(v);
   const pc=p=>{const v=Math.round(100*p);return v>=99.5?">99":v<=.5?"<1":v};
-  const tone=p=>p>=.6?"up":p<=.4?"dn":"";
-  const sh=d=>fmtDate(d).replace(/^\w+, /,""),dl=d=>["M","Tu","W","Th","F","Sa","Su"][(new Date(d+"T12:00:00Z").getUTCDay()+6)%7];
+  const heat=p=>{const d=Math.min(1,Math.abs(p-.5)*2.2);return p===.5?"":`background:color-mix(in srgb,var(${p>.5?"--pos":"--neg"}) ${Math.round(8+d*34)}%,transparent)`};
+  const sh=d=>fmtDate(d).replace(/^\w+, /,""),dl=d=>["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][(new Date(d+"T12:00:00Z").getUTCDay()+6)%7];
   const nm=n=>n.replace(/^(\S)\S*\s/,"$1. "),sg=v=>(v>=0?"+":"−")+Math.abs(v).toFixed(2);
-  const lab=F.length===CATS.filter(c=>!off.has(c.k)).length?(off.size?"value (punts out)":"value"):F.map(k=>CATS.find(c=>c.k===k).l).join(", ");
+  const lab=tgs.length?tgs.map(k=>CATS.find(c=>c.k===k).l).join(", "):"value";
   const nameA=ML.teams[me]||"You",nameB=ML.teams[opId]||"Opponent";
   const stale=isS&&today>syncDay&&rest.length?`<div class="mus">Totals are from your sync on ${sh(syncDay)}. Sync again for today's numbers.</div>`:"";
-  const cells=(o,T,tap)=>rest.map(d=>{const s=T.st[o.id]&&T.st[o.id][d];
-    return s?`<span class="dc s${s}"${tap?` data-mu="day" data-x="${o.id}|${d}"`:""} title="${dl(d)} ${opp(o.q.t,d)}"></span>`:`<span class="dc"></span>`}).join("");
-  const head=`<div class="mrh"><span>Player</span><div class="md">${rest.map(d=>`<span class="dc">${dl(d)}<i>${+d.slice(8)}</i></span>`).join("")}</div><span class="mval">Per g<br>Cats</span><span></span></div>`;
-  const row=(o,T,act)=>{const dl2=o.d!=null&&!o.il&&act!=="undo"?`<i class="${o.d>=.05?"up":o.d<=-.05?"dn":""}">${Math.abs(o.d)<.05?"0.0":(o.d>0?"+":"−")+Math.abs(o.d).toFixed(1)}</i>`:"";
-    return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${esc(nm(o.q.n))}</b><i>${esc(o.q.t)} · ${esc(posOf(o.id)||"–")}${o.il?" · IL":""}${o.nw?` <em>what-if add</em>`:""}${act==="undo"?` <em>what-if drop</em>`:""}${ijOut(ijOf(o.id))?` <em class="o">out</em>`:""}</i>${tgs.length&&tgs.length<=3?`<span class="mstl">${stl(o)}</span>`:""}</div>
-      <div class="md">${act==="undo"?"":cells(o,T,act==="drop"||act==="undrop")}</div>
+  // per day: how many of a team's players count, and how many play (more than its spots = some sit)
+  const dayN=(T,d)=>{let c=0,p=0;for(const id in T.st){const s=T.st[id][d];if(!s)continue;if(s!==4)p++;if(s===1||s===3)c++}return{c,p}};
+  const hd=(T,capT,kind)=>`<div class="mrh"><span>${kind==="fa"?"Open spots":"Games / spots"}</span><div class="md">${rest.map(d=>{const n=dayN(T,d),open=capT-n.c;
+    return kind==="fa"?`<span class="dh${open>0?" op":" fu"}"><b>${dl(d)}<span> ${+d.slice(8)}</span></b><i>${open>0?open:"0"}<span class="cap"> open</span></i></span>`:`<span class="dh${n.p>capT?" fu":""}"><b>${dl(d)}<span> ${+d.slice(8)}</span></b><i>${n.c}<span class="cap">/${capT}</span>${n.p>capT?`<em>+${n.p-capT}</em>`:""}</i></span>`}).join("")}</div><span class="mval">Per g<br>Cats</span><span></span></div>`;
+  const oppS=(t,d)=>{const s=opp(t,d);return s.startsWith("@")?s.replace(" ",""):s.replace(/^vs /,"")};
+  const cells=(o,T,tap,full)=>rest.map(d=>{let s=T.st[o.id]&&T.st[o.id][d];const pl=plays(o.q.t,d);
+    if(!s&&pl&&!o.il&&!avail(o.id,d))return`<span class="dc ot"><b>${oppS(o.q.t,d)}</b><i>out</i></span>`;
+    if(!s&&pl&&o.il)return`<span class="dc il"><b>${oppS(o.q.t,d)}</b><i>IL</i></span>`;
+    if(!s)return`<span class="dc"></span>`;
+    if(s===5&&full&&full.has(d))s=6;
+    const v=muFz(muLine(o.id,o.q,d,C).z,F);
+    return`<span class="dc s${s}"${tap?` data-mu="day" data-x="${o.id}|${d}"`:""} title="${dl(d)} ${opp(o.q.t,d)}"><b>${oppS(o.q.t,d)}</b><i class="${v>=.5?"up":v<=-.5?"dn":""}">${sg(v).replace(/^\+/,"")}</i></span>`}).join("");
+  const row=(o,T,act,full)=>{const dl2=o.d!=null&&!o.il&&act!=="undo"?`<i class="${o.d>=.05?"up":o.d<=-.05?"dn":""}">${Math.abs(o.d)<.05?"0.0":(o.d>0?"+":"−")+Math.abs(o.d).toFixed(1)}</i>`:"";
+    return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${esc(nm(o.q.n))}</b><i>${esc(o.q.t)} · ${esc(posOf(o.id)||"–")}${o.il?" · IL":""}${o.nw?` <em>what-if add</em>`:""}${act==="undo"?` <em>what-if drop</em>`:""}</i>${tgs.length&&tgs.length<=3?`<span class="mstl">${stl(o)}</span>`:""}</div>
+      <div class="md">${act==="undo"?"":cells(o,T,act==="drop"||act==="undrop",full)}</div>
       <div class="mval"><b class="${o.v>=1?"up":o.v<=-1?"dn":""}">${sg(o.v)}</b>${dl2}</div>
       ${act?`<button class="mb" data-mu="${act}" data-x="${o.id}" aria-label="${act}">${act==="add"?"+":act==="undo"?"↺":"−"}</button>`:"<span></span>"}</div>`};
   const sortR=a=>a.sort((p,q)=>(p.il?1:0)-(q.il?1:0)||q.v-p.v);
-  const gA=Object.values(A.g).reduce((a,b)=>a+b,0),gB=Object.values(B.g).reduce((a,b)=>a+b,0);
+  const fullDays=new Set(rest.filter(d=>dayN(A,d).c>=capA));
   const canPrev=off0>Math.min(0,sOff??0),canNext=weekDates(off0+1)[0]<=lastWk;
-  const rkc=n=>n<=3?"up":n>nT-3?"dn":"";
+  const cmp=r=>{const d=r.a-r.b,good=r.k==="to"?d<0:d>0,s=(r.k==="fg"||r.k==="ft")?(d>=0?"+":"−")+Math.abs(d).toFixed(3).replace(/^0/,""):(d>=0?"+":"−")+Math.abs(Math.round(d));
+    return`<td class="${Math.abs(d)<1e-9?"":good?"up":"dn"}">${s}</td>`};
   $("pjStatus").textContent=`${wkNo?"Wk "+wkNo+" · ":""}${rest.length}d left`;$("pjLgRow").hidden=true;
   $("pjList").innerHTML=`<div class="mux">
     <div class="mtop">
       <div class="mwk"><button class="mar" data-mu="wk" data-x="-1"${canPrev?"":" disabled"} aria-label="Previous week">‹</button><span><b>${wkNo?"Week "+wkNo:"Week"}</b> ${sh(dates[0])}–${sh(dates[dates.length-1])}${isS?"":` <i>projection only</i>`}</span><button class="mar" data-mu="wk" data-x="1"${canNext?"":" disabled"} aria-label="Next week">›</button></div>
       <div class="muh"><div><b>${esc(nameA)}</b><i class="${O.won>O.lost?"up":O.won<O.lost?"dn":""}">${O.won}</i></div><span>${O.n-O.won-O.lost?`${O.n-O.won-O.lost} even`:"vs"}</span><div>${isS?`<b>${esc(nameB)}</b>`:`<select class="mop" data-mu-opp aria-label="Opponent">${teams.map(t=>`<option value="${t}"${t===opId?" selected":""}>${esc(ML.teams[t])}${t===sch?" (scheduled)":""}</option>`).join("")}</select>`}<i>${O.lost}</i></div></div>
-      <div class="mue">Expected <b>${O.exp.toFixed(1)}</b> of ${O.n} categories${moved?` <span class="${O.exp-O0.exp>=0?"up":"dn"}">(${O.exp-O0.exp>=0?"+":"−"}${Math.abs(O.exp-O0.exp).toFixed(1)} with your moves)</span> <button class="mrs" data-mu="reset">Reset</button>`:""}</div>
+      <div class="mue">Expected <b>${O.exp.toFixed(1)}</b> of 9${moved?` <span class="${O.exp-O0.exp>=0?"up":"dn"}">(${O.exp-O0.exp>=0?"+":"−"}${Math.abs(O.exp-O0.exp).toFixed(1)} with your moves)</span> <button class="mrs" data-mu="reset">Reset</button>`:""}</div>
     </div>
     ${stale}${m.add.size||m.drop.size?`<div class="mwi"><b>What-if</b> (not on Yahoo): ${[...[...m.add].filter(id=>G.players[id]).map(id=>`<span class="up">+ ${esc(nm(G.players[id].n))}</span>`),...[...m.drop].filter(id=>G.players[id]).map(id=>`<span class="dn">− ${esc(nm(G.players[id].n))}</span>`)].join(" · ")}</div>`:""}
-    <div class="mctw"><table class="mct"><thead><tr><th></th>${O.rows.map(r=>{const t=m.tg.has(r.k)&&!r.off;return`<th class="${t?"tg":""}${r.off?" pn":""}"><button data-mu="cat" data-x="${r.k}"${S.punt.has(r.k)?" disabled":""}>${r.l}<em>${t?"target":r.off?"punt":"&nbsp;"}</em></button></th>`}).join("")}</tr></thead><tbody>
-      <tr><th>You</th>${O.rows.map(r=>`<td class="${r.off?"pn":""}">${fv(r.k,r.a)}</td>`).join("")}</tr>
-      <tr><th>Them</th>${O.rows.map(r=>`<td class="${r.off?"pn":""} dim">${fv(r.k,r.b)}</td>`).join("")}</tr>
-      <tr class="wp"><th>Win</th>${O.rows.map(r=>`<td class="${tone(r.p)}${r.off?" pn":""}">${pc(r.p)}%</td>`).join("")}</tr>
-      <tr class="rk"><th>You rk</th>${O.rows.map(r=>`<td class="${r.off?"pn":rkc(rk[me][r.k])}">${ord(rk[me][r.k])}</td>`).join("")}</tr>
-      <tr class="rk"><th>Them rk</th>${O.rows.map(r=>`<td class="${r.off?"pn":rkc(rk[opId][r.k])}">${ord(rk[opId][r.k])}</td>`).join("")}</tr>
+    <div class="mfin"><div class="mctw"><table class="mct"><thead><tr><th class="tn">Final</th><th class="g">G</th>${O.rows.map(r=>`<th>${r.l}</th>`).join("")}</tr>
+      <tr class="tgr"><th class="tn">Target</th><th></th>${O.rows.map(r=>`<th><button class="tk${m.tg.has(r.k)?" on":""}" data-mu="cat" data-x="${r.k}" aria-pressed="${m.tg.has(r.k)}" aria-label="Target ${r.l}"></button></th>`).join("")}</tr></thead><tbody>
+      <tr><th class="tn">${esc(nameA)}</th><td class="g">${gTA}</td>${O.rows.map(r=>`<td>${fv(r.k,r.a)}${badge(me,r.k)}</td>`).join("")}</tr>
+      <tr><th class="tn">${esc(nameB)}</th><td class="g">${gTB}</td>${O.rows.map(r=>`<td>${fv(r.k,r.b)}${badge(opId,r.k)}</td>`).join("")}</tr>
+      <tr class="cp"><th class="tn">Compare</th>${cmp({k:"g",a:gTA,b:gTB})}${O.rows.map(cmp).join("")}</tr>
+      <tr class="wp"><th class="tn">Win %</th><td class="g"></td>${O.rows.map(r=>`<td style="${heat(r.p)}">${pc(r.p)}%</td>`).join("")}</tr>
     </tbody></table></div>
-    <div class="msw"><div><b>${esc(nameB)}</b>${sw(opId)||"<span>No clear edges.</span>"}</div><div><b>${esc(nameA)}</b>${sw(me)||"<span>No clear edges.</span>"}</div></div>
-    <p class="mhint">${isS?"Projected finals: Yahoo's totals so far plus Proj for the days left.":"Projected finals for the whole week (Proj only; your Yahoo totals start when the week does)."} Ranks = each team's projected week against the other ${nT-1} in your league. Tap a category to <b>target</b> it (players re-sort by it), again to <b>punt</b> it, again to clear. A punted category still counts in the score (your opponent still wins it on Yahoo); punting only stops it from shaping your lineup, the sort and each player's Cats.</p>
-    <div class="mcols">
-    <div class="msec"><div class="msh"><b>${esc(nameA)}</b><span>${gA} games · ${capA} spots a day · by ${esc(lab)}</span></div>${head}
+    <div class="mfs"><div class="msw"><div><b>${esc(nameB)}</b>${scout(opId)}</div><div><b>${esc(nameA)}</b>${scout(me)}</div></div>
+    <p class="mhint">${isS?"Projected finals: Yahoo's totals so far plus Proj for the days left.":"Projected finals for the whole week (Proj only)."} G = games that count. Small ranks mark where a team is top or bottom 3 of the ${nT} teams this week. Tick categories to <b>target</b> them: the lineup, sort and Cats then go by those only (ticking all but 3PM = punting 3PM). The score always counts all 9.</p></div></div>
+    <div class="msec mme"><div class="msh"><b>${esc(nameA)}</b><span>${gA} games left · by ${esc(lab)}</span></div>${hd(A,capA,"me")}
       ${sortR(mine).map(o=>row(o,A,o.nw?"undrop":"drop")).join("")}${dropped.map(o=>row(o,A,"undo")).join("")}
-      <p class="mhint">Tap a day to start or sit him. <span class="dc s1"></span> counts · <span class="dc s2"></span> sits (no spot) · <span class="dc s3"></span> you started him · <span class="dc s4"></span> you sat him.</p></div>
-    <div class="msec"><div class="msh"><b>Free agents</b><span>best for ${esc(lab)} · value × games</span></div>${head}
-      ${faShow.map(o=>row(o,{st:{[o.id]:Object.fromEntries(myDs(o).map(d=>[d,5]))}},"add")).join("")||`<div class="empty">No free agents playing the days left.</div>`}
+      <p class="mhint">Tap a game to start or sit him. <span class="dc s1"></span> counts · <span class="dc s2"></span> sits (no spot) · <span class="dc s3"></span> you started him · <span class="dc s4"></span> you sat him · <span class="dc ot"></span> out (injury report).</p></div>
+    <div class="mcols">
+    <div class="msec"><div class="msh"><b>Free agents</b><span>best for ${esc(lab)} · value × games</span></div>${hd(A,capA,"fa")}
+      ${faShow.map(o=>row(o,{st:{[o.id]:Object.fromEntries(myDs(o).map(d=>[d,5]))}},"add",fullDays)).join("")||`<div class="empty">No free agents playing the days left.</div>`}
       ${fa.length>m.fa?`<button class="mmore" data-mu="more">Show more</button>`:""}</div>
-    <div class="msec mopp${m.oo?" open":""}"><div class="msh" data-mu="opp"><b>${esc(nameB)}</b><span>${gB} games · ${capB} spots a day</span></div><div class="mob">${head}
+    <div class="msec mopp${m.oo?" open":""}"><div class="msh" data-mu="opp"><b>${esc(nameB)}</b><span>${gB} games left</span></div><div class="mob">${hd(B,capB,"op")}
       ${sortR(oppR.map(o=>(o.v=pv(o),o))).map(o=>row(o,B,"")).join("")}</div></div>
     </div>
-    <p class="bzcap">${isS?`Yahoo's totals so far (synced ${at.toLocaleString([],{weekday:"short",hour:"numeric",minute:"2-digit"})}) plus`:"No Yahoo totals yet for this week, so it's"} Proj for the days left (${rest.length?sh(rest[0])+"–"+sh(rest[rest.length-1]):"none"}): everyone not on IL, on days his team plays and he isn't listed out, at most each team's active spots a day, best first by the categories you sort by. Rosters are as of your last sync. Per g = his per-game value on those categories. <b>Cats</b> = how many more (or fewer) categories you'd expect to win with him added, or without him. Picks stay on this device, per week.</p></div>`;
+    <p class="bzcap">${isS?`Yahoo's totals so far (synced ${at.toLocaleString([],{weekday:"short",hour:"numeric",minute:"2-digit"})}) plus`:"No Yahoo totals yet for this week, so it's"} Proj for the days left (${rest.length?sh(rest[0])+"–"+sh(rest[rest.length-1]):"none"}): everyone not on IL, on days his team plays and he isn't listed out, at most each team's active spots a day, best first by your targets. Each game shows the opponent and his value that night. Free agents' games are dimmed on days your spots are full (he'd sit). Per g = his per-game value on your targets; <b>Cats</b> = how many more (or fewer) of your targeted categories you'd expect to win with him added, or without him. Rosters are as of your last sync; picks stay on this device, per week.</p></div>`;
 }
 function muClick(e){const b=e.target.closest("[data-mu]");if(!b||!S.mus)return;if(b.tagName==="SELECT")return;e.stopPropagation();e.preventDefault();
   const m=S.mus,k=b.dataset.x,a=b.dataset.mu;
-  if(a==="cat"){if(m.tg.has(k)){m.tg.delete(k);m.pn.add(k)}else if(m.pn.has(k))m.pn.delete(k);else m.tg.add(k)}
+  if(a==="cat"){if(m.tg.has(k))m.tg.delete(k);else m.tg.add(k)}
   else if(a==="drop")m.drop.add(k);else if(a==="undo")m.drop.delete(k);
   else if(a==="add")m.add.add(k);else if(a==="undrop"){m.add.delete(k);for(const s in m.set)if(s.startsWith(k+"|"))delete m.set[s]}
   else if(a==="more")m.fa+=10;else if(a==="reset"){m.add.clear();m.drop.clear();m.set={}}
