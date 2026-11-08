@@ -1782,7 +1782,7 @@ function renderGrid(ds,live,all,today){
   }
   const lights=ds.filter(d=>d>=today&&light(d)).map(d=>D[ds.indexOf(d)]+" "+fmtDate(d).replace(/^\w+, \w+ /,""));
   $("scStatus").textContent=`${teams.length} teams`;
-  $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Red underline = 2nd night of a back-to-back. Tap a team for its rotation this week (Week = week rank), or a game for both teams that night (Tonight, or the day: rank among that night's players). Starters = each team's lineup from its last game, with a regular coming back from injury taking his spot back.</p><div class="sgd">${h}</div>`;
+  $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Red underline = 2nd night of a back-to-back. Tap a team for its rotation this week (Week = week rank), or a game for both teams that night (Tonight, or the day: rank among that night's players). Starters match the Injuries tab: NBA.com's posted lineup for tonight (Expected, then Confirmed), otherwise each team's five from its last game, with a regular back from injury taking his spot back and anyone out replaced by whoever the team started when he sat before.</p><div class="sgd">${h}</div>`;
 }
 // The categories a player helps, for streaming: per-game Proj z-score of 0.25+ against everyone
 // projected for 15+ minutes (a broad, streamer-level bar; the top-130 pool would leave almost
@@ -1808,14 +1808,13 @@ function teamPanel(t,gd,live,all,szn,wk,nN,wkR,WM){
     .filter(o=>o.m>=10).sort((a,b)=>b.m-a.m);
   const outNow=o=>gd?!avail(o.id,gd):o.g===0,out=ps.filter(outNow),ok=ps.filter(o=>!outNow(o));
   const tg=live.filter(d=>plays(t,d)).length,days=live.filter(d=>plays(t,d)).map(d=>["M","Tu","W","Th","F","Sa","Su"][(new Date(d+"T12:00:00Z").getUTCDay()+6)%7]);
-  const ls=o=>R&&R.players[o.id]&&R.players[o.id].ls,real=ok.filter(ls).slice(0,5);
-  // A regular back from an absence (missed the team's last games, plays here) takes his spot
-  // back from the starter who gained the most minutes while he was out.
-  for(const[Rid,e]of nmC().byT[t]||[]){if(!e.n)continue;const r=ok.find(o=>o.id===Rid);if(!r||real.includes(r))continue;
-    const sub=real.filter(o=>e.m[o.id]&&e.m[o.id][1]>=2).sort((a,b)=>e.m[b.id][1]-e.m[a.id][1])[0];
-    if(sub)real.splice(real.indexOf(sub),1,r)}
-  const byRk=(a,b)=>(wk[a.id]||1e4)-(wk[b.id]||1e4);
-  const start=[...real,...ok.filter(o=>!real.includes(o))].slice(0,5).sort(byRk),bench=ok.filter(o=>!start.includes(o)).sort(byRk);
+  // Starters: the same five as the Injuries tab (pickFive): NBA.com's posted lineup for tonight,
+  // else the projection from the last game's five. Picked from the whole team, so a starter
+  // projected under 10 minutes still shows.
+  const team=all.filter(([,q])=>q.t===t).map(([id,q])=>{const o=ps.find(x=>x.id===id)||{id,q,m:q.xp[0],g:live.filter(d=>plays(t,d)&&avail(id,d)).length};
+    return Object.assign(o,{out:outNow(o),ls:!!(R&&R.players[id]&&R.players[id].ls),pos:posOf(id),base:o.m})});
+  const pf=pickFive(t,team,gd),byRk=(a,b)=>(wk[a.id]||1e4)-(wk[b.id]||1e4);
+  const start=pf.five.filter(o=>!o.out).sort(byRk),bench=ok.filter(o=>!start.includes(o)&&!o.out).sort(byRk);
   const sh=d=>fmtDate(d).replace(/^\w+, /,"");
   const tr=r=>!r?"t3":r<=TOP?"t1":r<=ROST?"t2":"t3";
   // The number is the rank shown (that night's, or the week's); for a night the color is the
@@ -1827,7 +1826,7 @@ function teamPanel(t,gd,live,all,szn,wk,nN,wkR,WM){
   const sec=(l,a)=>a.length?`<div class="psec">${l}</div>`+a.map(row).join(""):"";
   const outL=out.length?`<div class="po"><b>Out</b> ${out.map(o=>{const i=ijOf(o.id);return`<span data-id="${o.id}">${esc(o.q.n)}${i&&i[1]?` <i>~${sh(i[1])}</i>`:""}</span>`}).join(" · ")}</div>`:"";
   return`<div class="tc"><div class="th"><b>${t}</b><span>${tg} game${tg===1?"":"s"}${gd?"":" this week"}</span><span class="dd">${days.map(x=>`<i>${x}</i>`).join("")}</span><span class="rl">${gd?`${gd===etToday()?"Tonight":"That night"} · of ${nN} · wk = week`:"Week rank"}</span></div>`
-    +sec("Starters",start)+sec("Bench",bench)+outL+`</div>`;
+    +sec(pf.status==="Projected"?"Starters":`Starters · ${pf.status}`,start)+sec("Bench",bench)+outL+`</div>`;
 }
 // Week picker (Proj > Week and Schedule): this week = 0, then one week at a time to the end of
 // the schedule.
@@ -1844,6 +1843,33 @@ S.scWk=0;
 // probable, doubtful. Top: lineup changes, statuses that changed since the day's first report, the
 // biggest minute jumps; bottom: the injury horizon (rotation players out, by expected return).
 let NBR=null,LU=null;
+// ---- Starting five, shared by the Injuries tab and the Schedule panel so they always agree.
+// ps: the team's players as {id, q, out, ls (started the last game), pos, base (minutes)}.
+// 1. On today's date, NBA.com's posted lineup (Expected, then Confirmed) wins: its five start and
+//    its inactives are out.
+// 2. Otherwise the projection: the last game's five; a regular back from an absence (missed the
+//    team's last games, available now) takes his spot back from the starter who gained the most
+//    minutes while he was out; anyone out is replaced by whoever the team started when he sat
+//    before (rp in rankings.json), else the same position group (G/F/C), else the next by minutes.
+const posOf=id=>(R&&R.players[id]&&R.players[id].p)||"",posG=p=>/C/.test(p)?"C":/F/.test(p)?"F":/G/.test(p)?"G":"";
+function pickFive(t,ps,date){
+  const L=date&&date===etToday()&&LU&&LU.date===date&&LU.teams[t];
+  if(L){const byN={};ps.forEach(o=>byN[normN(o.q.n)]=o);
+    for(const n of L.inactive||[]){const o=byN[normN(n)];if(o)o.out=true}
+    const five=L.five.map(([n,pos])=>{const o=byN[normN(n)];if(o){o.pos=pos||o.pos;o.out=false}return o}).filter(Boolean);
+    return{five,status:L.status}}
+  let last=ps.filter(o=>o.ls);
+  for(const[Rid,e]of (nmC().byT[t]||[])){if(!e.n)continue;const r=ps.find(o=>o.id===Rid);if(!r||r.out||last.includes(r))continue;
+    const sub=last.filter(o=>e.m[o.id]&&e.m[o.id][1]>=2).sort((a,b)=>e.m[b.id][1]-e.m[a.id][1])[0];
+    if(sub)last=last.map(o=>o===sub?r:o)}
+  const pool=ps.filter(o=>!o.out&&!last.includes(o)).sort((a,b)=>b.base-a.base),subs=[];
+  for(const g of last.filter(o=>o.out)){const rp=R.players[g.id]&&R.players[g.id].rp,c=pool.filter(o=>!subs.includes(o));
+    const x=c.find(o=>o.id===rp)||c.find(o=>posG(o.pos)&&posG(o.pos)===posG(g.pos))||c[0];if(x)subs.push(x)}
+  const five=[...last.filter(o=>!o.out),...subs];
+  for(const o of pool)if(five.length<5&&!five.includes(o))five.push(o);
+  return{five:five.slice(0,5),status:"Projected"}
+}
+
 fetch("data/lineups.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{LU=j;if(document.body.dataset.view==="in")renderTN()}).catch(()=>{});
 fetch("data/nba-injuries.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{NBR=j;if(document.body.dataset.view==="in")renderTN()}).catch(()=>{});
 const POSO={PG:0,G:1,SG:2,GF:3,SF:4,F:5,PF:6,FC:7,C:8};
@@ -1857,7 +1883,7 @@ function renderTN(){
   const rows=(NBR&&NBR.rows||[]).filter(r=>r.date===today),RW={},time={},pend=new Set();
   for(const r of rows){if(r.time)time[r.team]=r.time;if(!r.name)pend.add(r.team);else RW[r.team+"|"+r.name.toLowerCase()]=r}
   const all=Object.entries(G.players).filter(([,q])=>q.xp),lineup=[],X=k=>G.xpf.indexOf(k);
-  const posOf=id=>(R.players[id]&&R.players[id].p)||"",pg=p=>/C/.test(p)?"C":/F/.test(p)?"F":/G/.test(p)?"G":"";
+  const pg=posG;
   const SLOTS=["PG","SG","SF","PF","C"];
   // The five in PG, SG, SF, PF, C order. NBA.com's lineup gives the slots; for our projection
   // (ESPN only says G / F / C) guards come first, then forwards, then centers, and within a group
@@ -1871,17 +1897,8 @@ function renderTN(){
     const ps=all.filter(([,q])=>q.t===t).map(([id,q])=>{const r=RW[t+"|"+q.n.toLowerCase()],s=r?r.status:null;
       return{id,q,r,s,i:ijOf(id),out:s==="Out"||s==="Doubtful"||(!s&&!avail(id,today)),base:q.xp[0],ls:R.players[id]&&R.players[id].ls,pos:posOf(id)}})
       .filter(o=>!(o.r&&/^G League/i.test(o.r.reason||"")));
-    // NBA.com's lineup (Expected, then Confirmed) wins: its five start, its inactives are out
-    const L=LU&&LU.date===today&&LU.teams[t],byN={};ps.forEach(o=>byN[normN(o.q.n)]=o);
-    let five,status;
-    if(L){for(const n of L.inactive||[]){const o=byN[normN(n)];if(o)o.out=true}
-      five=L.five.map(([n,pos])=>{const o=byN[normN(n)];if(o){o.pos=pos||o.pos;o.out=false}return o}).filter(Boolean);status=L.status}
-    else{// projection: last game's starters; anyone out is replaced by whoever the team started when he
-      // sat before (rp), else the same position group, else the next by minutes
-      const last=ps.filter(o=>o.ls),pool=ps.filter(o=>!o.out&&!o.ls).sort((a,b)=>b.base-a.base),subs=[];
-      for(const g of last.filter(o=>o.out)){const rp=R.players[g.id]&&R.players[g.id].rp,c=pool.filter(o=>!subs.includes(o));
-        const s=c.find(o=>o.id===rp)||c.find(o=>pg(o.pos)&&pg(o.pos)===pg(g.pos))||c[0];if(s)subs.push(s)}
-      five=[...last.filter(o=>!o.out),...subs];status="Projected"}
+    // NBA.com's lineup when posted, else the projection (pickFive, shared with Schedule)
+    const{five,status}=pickFive(t,ps,today);
     const inn=five.filter(o=>!o.ls),dropped=ps.filter(o=>o.ls&&!five.includes(o));
     if(inn.length)lineup.push({t,inn,outs:dropped,status});
     const bench=ps.filter(o=>!o.out&&!five.includes(o)).sort((a,b)=>b.base-a.base);
