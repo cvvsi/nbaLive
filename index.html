@@ -685,6 +685,41 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
   .bstrip .c{font-size:13px}
   #bsList,#bzList{max-width:760px;margin-inline:auto}
 }
+
+/* ---- Desktop (1100px+): its own layout. Tabs move into the top bar (no bottom strip, nothing
+   slides away), Ranks and Proj become one dense table across the full width (dtab()), and the
+   Cards / List switch goes (the table replaces both). Phones never see any of this. */
+@media (min-width:1100px){
+  body{padding-bottom:24px}
+  .tabbar{top:0;bottom:auto;left:170px;right:auto;height:var(--bar);background:none;border:0;box-shadow:none;padding:0;gap:2px;z-index:11;transform:none!important}
+  .tabbar button{flex:none;height:30px;padding:0 13px;font-size:13.5px;border-radius:15px}
+  .tabbar button:not([aria-pressed="true"]):hover{color:var(--ink);background:var(--cell)}
+  body.hidebars .bar{transform:none}body.hidebars .ruler{top:calc(env(safe-area-inset-top,0px) + var(--bar))}
+  .bar .asof{margin-left:auto;margin-right:8px}
+  #densBtn{display:none!important}
+  #rkList,#pjList:not(.muw){max-width:1500px!important}
+  #rkList .bzcap,#pjList .bzcap{max-width:110ch}
+  .ruler>div{max-width:1500px!important}
+}
+.dt{grid-column:1/-1;width:100%;border-collapse:separate;border-spacing:0;font:500 13px/1 var(--num);font-variant-numeric:tabular-nums;margin-top:6px;background:var(--panel);border-radius:10px}
+.dt th{position:sticky;top:calc(var(--bar) + 38px);z-index:2;background:var(--panel);font:600 11px/1 var(--name);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding:10px 6px;border-bottom:1px solid var(--rule);cursor:pointer;white-space:nowrap;user-select:none}
+.dt th:hover{color:var(--ink)}.dt th.on{color:var(--ball)}.dt th.off{opacity:.4;text-decoration:line-through}
+.dt td{padding:5px 6px;border-bottom:1px solid var(--rule);white-space:nowrap}
+.dt tbody tr{cursor:pointer}.dt tbody tr:hover td{background:color-mix(in srgb,var(--cell) 70%,transparent)}
+.dt tbody tr:last-child td{border-bottom:0}
+.dt .n{text-align:right}.dt th.n{text-align:right}.dt .sep{border-left:1px solid var(--rule)}
+.dt .drk{width:38px;text-align:right;color:var(--dim);font-size:12px;padding-right:10px}
+.dt .dpl{text-align:left;width:24%;max-width:0}
+.dt .ij{font:600 10.5px/1 var(--name);color:var(--neg);letter-spacing:.02em;flex:none}.dt .ij.dtd{color:var(--ball)}.dt .lgt{margin-left:0}
+.dt .pn{display:flex;align-items:center;gap:7px;min-width:0;overflow:hidden}.dt .pn b{font:600 14px/1.2 var(--name);overflow:hidden;text-overflow:ellipsis}
+.dt .pn .mt{font:500 12px/1 var(--name);color:var(--dim);flex:none}.dt .pn .hs{flex:none}
+.dt .dcx{text-align:left;font:500 12px/1 var(--name);color:var(--dim)}.dt .dcx b{color:var(--ink);font-family:var(--num)}
+.dt .dcx .wk{display:inline-flex;gap:2px;vertical-align:middle;margin-right:8px}.dt .dcx .wkc{vertical-align:middle}
+.dt td.off{opacity:.35}
+.dt td.hp1{background:color-mix(in srgb,var(--pos) 12%,transparent)}.dt td.hp2{background:color-mix(in srgb,var(--pos) 24%,transparent)}.dt td.hp3{background:color-mix(in srgb,var(--pos) 38%,transparent);font-weight:600}
+.dt td.hn1{background:color-mix(in srgb,var(--neg) 10%,transparent)}.dt td.hn2{background:color-mix(in srgb,var(--neg) 20%,transparent)}.dt td.hn3{background:color-mix(in srgb,var(--neg) 32%,transparent);font-weight:600}
+.dt td.mk{text-decoration:underline;text-underline-offset:3px}
+.dt .vl{font-weight:600;font-size:13.5px;padding-right:12px}.dt th.vh{padding-right:12px}
 </style>
 </head>
 <body>
@@ -1879,6 +1914,26 @@ function paintDens(){const v=document.body.dataset.view,on=v==="pj"||v==="rk";$(
     :`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>`;
   $("densBtn").setAttribute("aria-label",S.dense?"Show cards":"Show list")}
 const card=o=>S.dense?lrow(o):pjCard(o);
+// ---- Desktop (1100px+): Ranks and Proj as one dense table instead of cards. One row per player:
+// rank, name (team, injury, Mine / FA), the view's context (games, games left, tonight's opponent),
+// MIN, the 9 categories (each cell tinted by its z-score: the same dead zone and steps as the heat
+// strip) and Value. Click a header to sort by it (again to flip); a row opens the player page.
+const DESK=matchMedia("(min-width:1100px)");const isDesk=()=>DESK.matches;
+S.dsort=null;S.ddir=-1;
+const DCOLS=["pts","reb","ast","tpm","stl","blk","to","fg","ft"];
+function dheat(z){if(z==null||!isFinite(z))return"";const a=Math.abs(z);return a<.5?"":(z>0?"hp":"hn")+(a<1?1:a<2?2:3)}
+function dtab(rows,ctxLab){
+  const r=rows.slice();if(S.dsort){const k=S.dsort,f=o=>k==="v"?o.v:k==="min"?o.min:o.z?o.z[k]:0;r.sort((a,b)=>S.ddir*(f(a)-f(b))||0)}
+  const l=o=>o.l,val=(o,k)=>k==="fg"?pctT(o.l.fgm,o.l.fga):k==="ft"?pctT(o.l.ftm,o.l.fta):f1(o.l[k]);
+  const th=(k,lab,cls="")=>`<th class="${cls}${S.dsort===k?" on":""}${S.punt.has(k)?" off":""}" data-dsort="${k}">${lab}${S.dsort===k?(S.ddir<0?" ▾":" ▴"):""}</th>`;
+  return`<table class="dt"><thead><tr><th class="drk">#</th><th class="dpl">Player</th><th class="dcx">${ctxLab||""}</th>${th("min","MIN","n")}${DCOLS.map(k=>th(k,CL[k].toUpperCase(),"n"+(k==="pts"||k==="fg"?" sep":""))).join("")}${th("v","Value","n vh")}</tr></thead><tbody>
+  ${r.map(o=>`<tr class="dtr" data-id="${esc(o.id)}" tabindex="0"><td class="drk">${o.rank}</td>
+    <td class="dpl"><span class="pn">${hs(o.id)}<b>${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)}</span>${ijTag(o.id)}${rkTagQ(o.q)}${lgTagFA(o.id)}</span></td>
+    <td class="dcx">${o.dctx!=null?o.dctx:o.ctx||o.sdl||""}</td><td class="n">${Math.round(o.min||o.l.min||0)}</td>
+    ${DCOLS.map(k=>`<td class="n ${S.punt.has(k)?"off ":""}${dheat(o.z&&o.z[k])}${k==="pts"||k==="fg"?" sep":""}${o.mk&&o.mk[k]?" mk":""}">${val(o,k)}</td>`).join("")}
+    <td class="n vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</td></tr>`).join("")}</tbody></table>`}
+const listHTML=(rows,ctxLab)=>isDesk()?dtab(rows,ctxLab):rows.map(card).join("");
+
 // Schedule grid (Proj > Week > Schedule): every team's games this week, opponent per day,
 // '@' away. The header counts each night's games; light nights (5 or fewer) are tinted, since
 // open roster spots are easiest to fill then. A red underline marks the second night of a
@@ -2351,15 +2406,17 @@ $("pjSz").hidden=S.pjView!=="season";
     rows.forEach((o,i)=>o.rank=i+1);paintLg();
     const fo=lgFilter(out),fn=lgFilter(noline),fh=lgFilter(hurt);
     $("pjStatus").textContent=stat;
-    $("pjList").innerHTML=`<p class="bzcap">${cap}</p>`+fo.map(card).join("")
-      +(fn.length?`<div class="pjh">No line posted, not on the injury report (${fn.length})</div>`+fn.map(o=>{o.rank="–";return card(o)}).join(""):"")
-      +(fh.length?`<div class="pjh">Out tonight (${fh.length})</div>`+fh.map(o=>{o.rank="–";return card(o)}).join(""):"");
+    fn.forEach(o=>o.rank="–");fh.forEach(o=>o.rank="–");
+    $("pjList").innerHTML=`<p class="bzcap">${cap}</p>`+listHTML(fo,"Opp")
+      +(fn.length?`<div class="pjh">No line posted, not on the injury report (${fn.length})</div>`+listHTML(fn,"Opp"):"")
+      +(fh.length?`<div class="pjh">Out tonight (${fh.length})</div>`+listHTML(fh,"Opp"):"");
     return;
   }
   rows.forEach((o,i)=>{o.rank=i+1;if(o.min==null)o.min=o.l.min});
   rows=lgFilter(rows);paintLg();
   $("pjStatus").textContent=stat;
-  $("pjList").innerHTML=rows.length?`<p class="bzcap">${cap}</p>`+rows.map(card).join(""):`<div class="empty">Nobody projected here.</div>`;
+  const cl=S.pjView==="week"?"Games":"Left";if(S.pjView==="week")rows.forEach(o=>o.dctx=`${o.side}<span class="wkc">${o.ctx}</span>`);
+  $("pjList").innerHTML=rows.length?`<p class="bzcap">${cap}</p>`+listHTML(rows,cl):`<div class="empty">Nobody projected here.</div>`;
 }
 Promise.all(["data/schedule.json","data/props.json","data/injuries.json"].map(u=>fetch(u,{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null)))
   .then(([sc,pr,ij])=>{SC=sc;PR=pr;IJ=ij;S.tdays=null;S.prIx=undefined;
@@ -2389,7 +2446,7 @@ function renderRK(){
   $("rkStatus").textContent=`${rows.length} · ${tot?"total":"per game"}`;
   $("rkList").innerHTML=`<p class="bzcap">Actual 9-cat value, ${span}. ${w==="g3"?"Per team game, so it already counts missed games."
     :tot?"<b>Total</b>: per-game value × games played, so time missed counts.":"<b>Per g</b>: value per game played, which ranks how well a player has played."} Stats are per game. Same pool and punts as the rank ladder; Proj is the forward-looking version.</p>`
-    +(top.length?top.map(card).join(""):`<div class="empty">Nobody here.</div>`);
+    +(top.length?listHTML(top,"G"):`<div class="empty">Nobody here.</div>`);
 }
 
 function bsMsg(m){$("bsList").innerHTML=`<div class="empty">${esc(m)}</div>`;$("bsStatus").textContent=""}
@@ -2611,7 +2668,7 @@ function parseLog(j){
   return out;
 }
 function cardOpen(e,list){
-  const a=e.target.closest(".cd[data-id],.mr[data-id]");if(!a)return;
+  const a=e.target.closest(".cd[data-id],.mr[data-id],.dtr[data-id]");if(!a)return;
   const id=a.dataset.id;
   if(list==="list"){const p=S.players.find(x=>x.id===id);openSheet(p?p.eid||p.id:id,p)}
   else openSheet(id,null);
@@ -2644,6 +2701,9 @@ $("pjWk").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjWk=Math.max(0
 document.querySelectorAll(".lgf").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>{S.lgF=b.dataset.k;store.set("lgF",S.lgF);renderPJ();renderRK()}));
 // Refresh: reload the page (keeps the tab via the hash); the icon spins until it does.
 $("rfBtn").onclick=()=>{$("rfBtn").classList.add("go");setTimeout(()=>location.reload(),120)};
+for(const l of ["pjList","rkList"])$(l).addEventListener("click",e=>{const h=e.target.closest("[data-dsort]");if(!h)return;e.stopPropagation();
+  const k=h.dataset.dsort;if(S.dsort===k)S.ddir=-S.ddir;else{S.dsort=k;S.ddir=-1}renderPJ();renderRK()},true);
+DESK.addEventListener("change",()=>{paintDens();renderPJ();renderRK()});
 $("densBtn").onclick=()=>{S.dense=!S.dense;store.set("dense",S.dense);paintDens();renderPJ();renderRK()};
 // Bars slide away while scrolling down and come back on any scroll up (or near the top).
 {let lastY=scrollY;addEventListener("scroll",()=>{const y=scrollY,d=y-lastY;
