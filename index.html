@@ -695,8 +695,26 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
   .tabbar button{flex:none;height:30px;padding:0 13px;font-size:13.5px;border-radius:15px}
   .tabbar button:not([aria-pressed="true"]):hover{color:var(--ink);background:var(--cell)}
   body.hidebars .bar{transform:none}body.hidebars .ruler{top:calc(env(safe-area-inset-top,0px) + var(--bar))}
-  .bar .asof{margin-left:auto;margin-right:8px}
+  .bar .mark{margin-right:auto}.bar .asof{margin-right:8px}
   #densBtn{display:none!important}
+  .psp{max-width:760px}.psp .rtiles,.psp .rks{gap:8px}
+  #bzList{max-width:1500px!important}body[data-view="bz"] #bzList{display:block}
+  #bzSort{display:none!important}
+  .bzcols{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+  .bzch{font:700 15px/1 var(--name);padding:12px 0 8px;border-bottom:2px solid var(--ink)}.bzch span{color:var(--dim);font:500 12px/1 var(--num);margin-left:4px}
+  #scList{max-width:1500px!important}
+  .scw{display:grid;grid-template-columns:minmax(560px,1fr) minmax(420px,560px);gap:18px;align-items:start}
+  .scp{position:sticky;top:calc(var(--bar) + 44px);max-height:calc(100vh - var(--bar) - 60px);overflow:auto;background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:4px 12px 12px}
+  .scp .tx{margin:0;border:0;padding:0;background:none}
+  .scp0{font:500 13px/1.4 var(--name);color:var(--dim);padding:24px 8px;text-align:center}
+  #inList{max-width:1500px!important}
+  .tnt{display:grid;grid-template-columns:minmax(0,1fr) 400px;column-gap:18px;align-items:start}
+  .tnt>.sumr{grid-column:1/-1}
+  .tns{grid-column:2;grid-row:2;position:sticky;top:calc(var(--bar) + 44px);max-height:calc(100vh - var(--bar) - 60px);overflow:auto;border-radius:10px}
+  .tns .blk{margin:0}
+  .tnm{grid-column:1;grid-row:2;min-width:0}
+  .tng{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:12px;margin-bottom:12px}.tng .gc{margin:0}
+  .hzb .li{break-inside:avoid}.hzb{column-count:2;column-gap:28px}.hzb .bh{column-span:all}
   #rkList,#pjList:not(.muw){max-width:1500px!important}
   #rkList .bzcap,#pjList .bzcap{max-width:110ch}
   .ruler>div{max-width:1500px!important}
@@ -1734,8 +1752,8 @@ function bzRead(id,drop){
   return{t:"Watch",c:"dim",why:r3?`#${r3} over the last 3`:""};
 }
 const fmtN=n=>Number(n).toLocaleString("en-US");
-function bzRow(r){
-  const drop=S.bzSort==="drops",id=bzId(r),rq=id&&R.players[id],g=rq&&rq.w.g3;
+function bzRow(r,drop=S.bzSort==="drops"){
+  const id=bzId(r),rq=id&&R.players[id],g=rq&&rq.w.g3;
   const q=id&&G&&G.players[id],B=S.bs;
   const rd=id?bzRead(id,drop):{t:"",c:"dim",why:"Not in my ranks yet."};
   const mu=g&&rq.pm!=null?Math.round(g[1]-rq.pm):0;
@@ -1762,7 +1780,12 @@ function renderBZ(){
   $("bzAsOf").textContent=fmtDate(D.date).replace(/^\w+, /,"")+(part?" so far":"");
   const upd=BZ.built?` Updated ${new Date(BZ.built).toLocaleString(undefined,{weekday:"short",hour:"numeric",minute:"2-digit"})}.`:"";
   const cap=`<p class="bzcap">Across all Yahoo leagues on ${fmtDate(D.date)}${part?", so far today":""}.${upd} ${drop?"<b>Panic</b> = my numbers still like him; <b>Agree</b> = the role shrank.":"<b>Follow</b> = minutes or Proj back it up; <b>Fade</b> = it doesn't."} Ranks${R?` thru ${fmtDate(R.asOf).replace(/^\w+, /,"")}`:" loading"}.${ML?` <b>FA</b> = available in your league (synced ${new Date(ML.at).toLocaleDateString([],{month:"short",day:"numeric"})}).`:""} Tap a player for the full page.</p>`;
-  $("bzList").innerHTML=rows.length?cap+rows.map(bzRow).join(""):`<div class="empty">No Yahoo buzz for this day.</div>`;
+  // desktop: adds and drops side by side (the Adds / Drops switch is phone-only)
+  if(isDesk()){const col=(t,rs,dr)=>`<section class="bzc"><div class="bzch">${t} <span>${rs.length}</span></div>${rs.map(r=>bzRow(r,dr)).join("")||`<div class="empty">None.</div>`}</section>`;
+    $("bzStatus").textContent=`${D.added.length} adds · ${D.dropped.length} drops`;
+    const capD=cap.replace(/<b>Panic<\/b>[^.]*\.[^.]*\.|<b>Follow<\/b>[^.]*\.[^.]*\./,"<b>Follow</b> / <b>Fade</b> on adds and <b>Panic</b> / <b>Agree</b> on drops: whether minutes and Proj back the move up.");
+    $("bzList").innerHTML=capD+`<div class="bzcols">${col("Most added",D.added,false)}${col("Most dropped",D.dropped,true)}</div>`;return}
+  $("bzList").innerHTML=rows.length?cap+rows.map(r=>bzRow(r)).join(""):`<div class="empty">No Yahoo buzz for this day.</div>`;
 }
 fetch("data/buzz.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
   .then(j=>{if(!j){$("bzList").innerHTML=`<div class="empty">No Yahoo buzz yet: it's pulled hourly.</div>`;$("bzStatus").textContent="";return}
@@ -1947,6 +1970,7 @@ function renderGrid(ds,live,all,today){
   const WM={};for(const[id,q]of all){const wd=live.filter(d=>plays(q.t,d)&&avail(id,d));WM[id]={g:wd.length,m:avgMin(id,q,wd)}}
   const wk={};all.map(([id,q])=>[id,val0(zAt(q,WM[id].m),G.zp)*WM[id].g]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>wk[id]=i+1);
   teams.sort((a,b)=>left(b)-left(a)||a.localeCompare(b));
+  let side="";
   let h=`<div class="h"></div><div class="h">G</div>`+ds.map((d,i)=>`<div class="h${light(d)?" lt":""}${d<today?" past":""}">${D[i]}<b>${n(d)||"–"}</b></div>`).join("");
   for(const t of teams){const g=left(t);
     h+=`<div class="tm" data-t="${t}">${t}</div><div class="gn${g>=4?" g4":g<=2?" g2":""}">${g}</div>`
@@ -1958,11 +1982,13 @@ function renderGrid(ds,live,all,today){
       const teams2=gd?[t,opp(t,gd).replace(/^(vs|@) /,"")]:[t];
       // NIGHT: per-game Proj ranked among everyone playing (and not out) that night.
       let night=null;if(gd){night={};all.filter(([id,q])=>plays(q.t,gd)&&avail(id,gd)).map(([id,q])=>[id,pjVal(zAt(q,minAt(id,q,gd)))]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>night[id]=i+1)}
-      h+=`<div class="tx">${head}${teams2.map(x=>teamPanel(x,gd,live,all,szn,gd?night:wk,gd?Object.keys(night).length:0,wk,WM)).join("")}</div>`}
+      const tx=`<div class="tx">${head}${teams2.map(x=>teamPanel(x,gd,live,all,szn,gd?night:wk,gd?Object.keys(night).length:0,wk,WM)).join("")}</div>`;
+      // desktop: the panel opens beside the grid instead of inside it
+      if(isDesk())side=tx;else h+=tx}
   }
   const lights=ds.filter(d=>d>=today&&light(d)).map(d=>D[ds.indexOf(d)]+" "+fmtDate(d).replace(/^\w+, \w+ /,""));
   $("scStatus").textContent=`${teams.length} teams`;
-  $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Red underline = 2nd night of a back-to-back. Tap a team for its rotation this week (Week = week rank), or a game for both teams that night (Tonight, or the day: rank among that night's players). Starters match the Injuries tab: NBA.com's posted lineup for tonight (Expected, then Confirmed), otherwise each team's five from its last game, with a regular back from injury taking his spot back and anyone out replaced by whoever the team started when he sat before.</p><div class="sgd">${h}</div>`;
+  $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Red underline = 2nd night of a back-to-back. Tap a team for its rotation this week (Week = week rank), or a game for both teams that night (Tonight, or the day: rank among that night's players). Starters match the Injuries tab: NBA.com's posted lineup for tonight (Expected, then Confirmed), otherwise each team's five from its last game, with a regular back from injury taking his spot back and anyone out replaced by whoever the team started when he sat before.</p>${isDesk()?`<div class="scw"><div class="sgd">${h}</div><aside class="scp">${side||`<div class="scp0">Click a team for its rotation this week, or a game for both teams that night.</div>`}</aside></div>`:`<div class="sgd">${h}</div>`}`;
 }
 // The categories a player helps, for streaming: per-game Proj z-score of 0.25+ against everyone
 // projected for 15+ minutes (a broad, streamer-level bar; the top-130 pool would leave almost
@@ -2095,7 +2121,7 @@ function renderTN(){
   const nm=n=>n.replace(/^(\S)\S*\s/,"$1. "),clean=s=>(s||"").replace(/^Injury\/Illness - /,"").replace(/^(Left|Right) /,"").toLowerCase();
   const tm=s=>s?s.replace(/^\S+\s+/,"").replace(/^0/,""):null,stamp=NBR&&tm(NBR.stamp);
   $("inStatus").textContent=`${games.length} game${games.length===1?"":"s"}${stamp?" · report "+stamp:""}`;
-  if(!games.length){$("inList").innerHTML=`<div class="tnt">${newsHTML()}<div class="empty">No games tonight.</div></div>`;return}
+  if(!games.length){$("inList").innerHTML=`<div class="tnt"><aside class="tns">${newsHTML()}</aside><div class="tnm"><div class="empty">No games tonight.</div></div></div>`;return}
   const rows=(NBR&&NBR.rows||[]).filter(r=>r.date===today),RW={},time={},pend=new Set();
   for(const r of rows){if(r.time)time[r.team]=r.time;if(!r.name)pend.add(r.team);else RW[r.team+"|"+r.name.toLowerCase()]=r}
   const all=Object.entries(G.players).filter(([,q])=>q.xp),lineup=[],X=k=>G.xpf.indexOf(k);
@@ -2152,12 +2178,12 @@ function renderTN(){
   const q=rows.filter(r=>r.status==="Questionable"&&r.name).length,conf=LU&&LU.date===today?Object.values(LU.teams).filter(x=>x.status==="Confirmed").length:0;
   $("inList").innerHTML=`<div class="tnt">
     <div class="sumr">${chip(lineup.length,"team"+(lineup.length===1?"":"s")+" changing lineups")}${chip(conf+"/"+games.length*2,"lineups confirmed")}${chip(q,"questionable")}${chip(pend.size,"report"+(pend.size===1?"":"s")+" pending")}</div>
-    ${newsHTML()}
+    <aside class="tns">${newsHTML()}</aside><div class="tnm">
     ${lineup.length?`<div class="blk"><div class="bh">Lineup changes</div>${lineup.map(c=>`<div class="li lc"><b>${c.t}</b><span class="lcx">${c.inn.map(o=>`<span class="nw" data-id="${o.id}">${esc(surname(o.q.n))}</span>`).join(", ")} in${c.outs.length?` <span class="ar">for</span> ${c.outs.map(o=>esc(surname(o.q.n))).join(", ")}`:""}</span><span class="d">${c.status}</span></div>`).join("")}</div>`:""}
     ${changes.length?`<div class="blk"><div class="bh">Changed since the ${tm(NBR.day.first)} report</div>${changes.map(c=>`<div class="li" data-id="${c.id}"><b>${esc(nm(c.n))}</b><span class="ar">${c.t}</span><span class="d">${c.was} → <span class="${cls(c.now)}">${c.now}</span> · ${c.at}</span></div>`).join("")}</div>`:""}
-    ${cards.join("")}
-    <div class="blk"><div class="bh">Injury horizon · rotation players out</div>${hzHTML||`<div class="li ar">No one out with a return date.</div>`}</div>
-    <p class="bzcap">Starting 5 in PG, SG, SF, PF, C order: NBA.com's lineup when it's posted (<b>Expected</b>, then <b>Confirmed</b> about 30 minutes before tip); otherwise <b>Projected</b> from the team's last game, with anyone out replaced by whoever the team started when he sat before. Orange = not in the last game's starting five. Q / P / D and Out come from the NBA's official injury report${stamp?` (${stamp})`:""}; return dates from ESPN. Tap a name for his page.</p></div>`;
+    <div class="tng">${cards.join("")}</div>
+    <div class="blk hzb"><div class="bh">Injury horizon · rotation players out</div>${hzHTML||`<div class="li ar">No one out with a return date.</div>`}</div>
+    <p class="bzcap">Starting 5 in PG, SG, SF, PF, C order: NBA.com's lineup when it's posted (<b>Expected</b>, then <b>Confirmed</b> about 30 minutes before tip); otherwise <b>Projected</b> from the team's last game, with anyone out replaced by whoever the team started when he sat before. Orange = not in the last game's starting five. Q / P / D and Out come from the NBA's official injury report${stamp?` (${stamp})`:""}; return dates from ESPN. Tap a name for his page.</p></div></div>`;
 }
 function renderSC(){
   if(document.body.dataset.view==="in")renderTN();
@@ -2703,7 +2729,7 @@ document.querySelectorAll(".lgf").forEach(g=>g.querySelectorAll("button").forEac
 $("rfBtn").onclick=()=>{$("rfBtn").classList.add("go");setTimeout(()=>location.reload(),120)};
 for(const l of ["pjList","rkList"])$(l).addEventListener("click",e=>{const h=e.target.closest("[data-dsort]");if(!h)return;e.stopPropagation();
   const k=h.dataset.dsort;if(S.dsort===k)S.ddir=-S.ddir;else{S.dsort=k;S.ddir=-1}renderPJ();renderRK()},true);
-DESK.addEventListener("change",()=>{paintDens();renderPJ();renderRK()});
+DESK.addEventListener("change",()=>{paintDens();renderPJ();renderRK();renderSC();if(BZ)renderBZ()});
 $("densBtn").onclick=()=>{S.dense=!S.dense;store.set("dense",S.dense);paintDens();renderPJ();renderRK()};
 // Bars slide away while scrolling down and come back on any scroll up (or near the top).
 {let lastY=scrollY;addEventListener("scroll",()=>{const y=scrollY,d=y-lastY;
