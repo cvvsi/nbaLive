@@ -184,7 +184,7 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .mct .g{color:var(--dim)}.mct tbody td.g{font-weight:600;color:var(--ink)}
 .mct sup{font:600 8px/1 var(--num);margin-left:1px;vertical-align:4px}
 .mct tr.cp td{font-size:11px}.mct tr.cp td.up{color:var(--pos)}.mct tr.cp td.dn{color:var(--neg)}.mct tr.cp .tn,.mct tr.wp .tn,.mct tr.tgr .tn{color:var(--dim);font-weight:500}
-.mct tr.wp td{font-weight:600;border-radius:4px}
+.mct tr.wp td{font-weight:600;border-radius:4px}.mct i.nw0{display:block;font:500 9.5px/1 var(--num);font-style:normal;color:var(--dim);margin-top:3px}
 .mct tr.tgr th{padding:2px 3px 6px}
 .tk{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--dim);background:none;cursor:pointer;padding:0;display:inline-grid;place-items:center;vertical-align:middle}
 .tk.on{background:var(--ball);border-color:var(--ball)}.tk.on::after{content:"";width:8px;height:4px;border:solid var(--panel);border-width:0 0 2px 2px;transform:translateY(-1px) rotate(-45deg)}
@@ -2420,13 +2420,13 @@ function renderMU(){
     ${stale}${m.add.size||m.drop.size?`<div class="mwi"><b>What-if</b> (not on Yahoo): ${[...[...m.add].filter(id=>G.players[id]).map(id=>`<span class="up">+ ${esc(nm(G.players[id].n))}</span>`),...[...m.drop].filter(id=>G.players[id]).map(id=>`<span class="dn">− ${esc(nm(G.players[id].n))}</span>`)].join(" · ")}</div>`:""}
     <div class="mfin"><div class="mctw"><table class="mct"><thead><tr><th class="tn">Final</th><th class="g">G</th>${O.rows.map(r=>`<th>${r.l}</th>`).join("")}</tr>
       <tr class="tgr"><th class="tn">Target</th><th></th>${O.rows.map(r=>`<th><button class="tk${m.tg.has(r.k)?" on":""}" data-mu="cat" data-x="${r.k}" aria-pressed="${m.tg.has(r.k)}" aria-label="Target ${r.l}"></button></th>`).join("")}</tr></thead><tbody>
-      <tr><th class="tn">${esc(nameA)}</th><td class="g">${gTA}</td>${O.rows.map(r=>`<td>${fv(r.k,r.a)}${badge(me,r.k)}</td>`).join("")}</tr>
-      <tr><th class="tn">${esc(nameB)}</th><td class="g">${gTB}</td>${O.rows.map(r=>`<td>${fv(r.k,r.b)}${badge(opId,r.k)}</td>`).join("")}</tr>
+      <tr><th class="tn">${esc(nameA)}</th><td class="g">${gTA}</td>${O.rows.map(r=>`<td>${fv(r.k,r.a)}${badge(me,r.k)}${isS?`<i class="nw0">${fv(r.k,r.na)} now</i>`:""}</td>`).join("")}</tr>
+      <tr><th class="tn">${esc(nameB)}</th><td class="g">${gTB}</td>${O.rows.map(r=>`<td>${fv(r.k,r.b)}${badge(opId,r.k)}${isS?`<i class="nw0">${fv(r.k,r.nb)} now</i>`:""}</td>`).join("")}</tr>
       <tr class="cp"><th class="tn">Compare</th>${cmp({k:"g",a:gTA,b:gTB})}${O.rows.map(cmp).join("")}</tr>
       <tr class="wp"><th class="tn">Win %</th><td class="g"></td>${O.rows.map(r=>`<td style="${heat(r.p)}">${pc(r.p)}%</td>`).join("")}</tr>
     </tbody></table></div>
     <div class="mfs"><div class="msw"><div><b>${esc(nameB)}</b>${scout(opId)}</div><div><b>${esc(nameA)}</b>${scout(me)}</div></div>
-    <p class="mhint">${isS?"Projected finals: Yahoo's totals so far plus Proj for the days left.":"Projected finals for the whole week (Proj only)."} G = games that count. Small ranks mark where a team is top or bottom 3 of the ${nT} teams this week. Tick categories to <b>target</b> them: the lineup, sort and Cats then go by those only (ticking all but 3PM = punting 3PM). The score always counts all 9.</p></div></div>
+    <p class="mhint">${isS?"Projected finals: Yahoo's totals so far (small gray \"now\", as of your sync) plus Proj for the days left.":"Projected finals for the whole week (Proj only)."} G = games that count. Small ranks mark where a team is top or bottom 3 of the ${nT} teams this week. Tick categories to <b>target</b> them: the lineup, sort and Cats then go by those only (ticking all but 3PM = punting 3PM). The score always counts all 9.</p></div></div>
     <div class="msec mme"><div class="msh"><b>${esc(nameA)}</b><span>${gA} games left · by ${esc(lab)}</span></div>${hd(A,capA,"me")}
       ${sortR(mine).map(o=>row(o,A,o.nw?"undrop":"drop")).join("")}${dropped.map(o=>row(o,A,"undo")).join("")}
       <p class="mhint">Tap a game to start or sit him. <span class="dc s1"></span> counts · <span class="dc s2"></span> sits (no spot) · <span class="dc s3"></span> you started him · <span class="dc s4"></span> you sat him · <span class="dc ot"></span> out (injury report).</p></div>
