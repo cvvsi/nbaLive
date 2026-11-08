@@ -184,7 +184,7 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .mct .g{color:var(--dim)}.mct tbody td.g{font-weight:600;color:var(--ink)}
 .mct sup{font:600 8px/1 var(--num);margin-left:1px;vertical-align:4px}
 .mct tr.cp td{font-size:11px}.mct tr.cp td.up{color:var(--pos)}.mct tr.cp td.dn{color:var(--neg)}.mct tr.cp .tn,.mct tr.wp .tn,.mct tr.tgr .tn{color:var(--dim);font-weight:500}
-.mct tr.wp td{font-weight:600;border-radius:4px}.mct i.nw0{display:block;font:500 9.5px/1 var(--num);font-style:normal;color:var(--dim);margin-top:3px}
+.mct tr.wp td{font-weight:600;border-radius:4px}.mct td.bad{color:var(--neg);font-weight:700}.mbad{margin:8px 0;padding:8px 10px;border:1px solid var(--neg);border-radius:8px;font:500 13px/1.4 var(--name);color:var(--ink)}.mbad b{color:var(--neg)}.mct i.nw0{display:block;font:500 9.5px/1 var(--num);font-style:normal;color:var(--dim);margin-top:3px}
 .mct tr.tgr th{padding:2px 3px 6px}
 .tk{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--dim);background:none;cursor:pointer;padding:0;display:inline-grid;place-items:center;vertical-align:middle}
 .tk.on{background:var(--ball);border-color:var(--ball)}.tk.on::after{content:"";width:8px;height:4px;border:solid var(--panel);border-width:0 0 2px 2px;transform:translateY(-1px) rotate(-45deg)}
@@ -2283,7 +2283,10 @@ function pjMsg(m){$("pjList").innerHTML=`<div class="empty">${m}</div>`;$("pjSta
 // Win chance: normal approximation, from the projected final gap and how much the rest of the week
 // can swing it (per game: variance = PHI x mean for points / rebounds / assists, like the props;
 // a Poisson for the rest; FG%/FT% as binomial makes on the projected attempts). Turnovers: fewer wins.
-const MUK={"FG%":"fg","FT%":"ft","3PTM":"tpm","3PM":"tpm","PTS":"pts","REB":"reb","AST":"ast","ST":"stl","STL":"stl","BLK":"blk","TO":"to"};
+// Yahoo's column header -> our category key. Matched exactly, else by the end of the header (a
+// header like "Team FG%" still reads as FG%); longer keys first so AST never reads as ST.
+const MUKS=[["3PTM","tpm"],["FG%","fg"],["FT%","ft"],["PTS","pts"],["REB","reb"],["AST","ast"],["STL","stl"],["BLK","blk"],["3PM","tpm"],["ST","stl"],["TO","to"]];
+function muKey(l){const u=String(l||"").toUpperCase().replace(/[^A-Z0-9%]/g,"");for(const[k,v]of MUKS)if(u===k)return v;for(const[k,v]of MUKS)if(u.endsWith(k))return v;return null}
 const MUPHI={pts:2.2,reb:1.3,ast:1.4};
 const muPhi=x=>{const t=1/(1+.2316419*Math.abs(x)),d=.3989423*Math.exp(-x*x/2),p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return x>0?1-p:p};
 const etHour=d=>+new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",hour:"numeric",hourCycle:"h23"}).format(d);
@@ -2318,15 +2321,23 @@ function muSim(ps,days,cap,F,set,C){
   return{ps,tot,vr,g,st}}
 // Final totals and win chance per category, from Yahoo's totals so far (cA/cB), our attempts behind
 // them (pA/pB) and the days left (A/B).
+// The attempts behind Yahoo's FG% / FT% so far (it shows only the %), from its points so far at
+// the roster's projected attempts per point (points track shot volume), and games so far from points
+// per player-game. L = the roster's per-game Proj lines. (test-matchup.js checks this and muOdds.)
+function muPast(L,c){const sum=k=>L.reduce((a,l)=>a+(l[k]||0),0),pts=sum("pts")||1;
+  return{fga:c.pts*sum("fga")/pts,fta:c.pts*sum("fta")/pts,g:L.length?c.pts/(pts/L.length):0}}
 function muOdds(cA,cB,pA,pB,A,B,off){
   const fin=(c,p,t,k)=>{if(k==="fg"||k==="ft"){const a=p[k+"a"]+t[k+"a"],m=c[k]*p[k+"a"]+t[k+"m"];return{v:a?m/a:c[k],a,ra:t[k+"a"]}}return{v:c[k]+t[k]}};
   const rows=CATS.map(cc=>{const k=cc.k,fa=fin(cA,pA,A.tot,k),fb=fin(cB,pB,B.tot,k);let p;
     if(k==="fg"||k==="ft"){const va=fa.a?fa.v*(1-fa.v)*fa.ra/fa.a**2:0,vb=fb.a?fb.v*(1-fb.v)*fb.ra/fb.a**2:0,sd=Math.sqrt(va+vb),d=fa.v-fb.v;p=sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
     else{const sd=Math.sqrt(A.vr[k]+B.vr[k]),d=(fa.v-fb.v)*(k==="to"?-1:1);p=sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
-    return{k,l:cc.l,a:fa.v,b:fb.v,na:cA[k],nb:cB[k],p,off:off.has(k)}});
+    // a % so far with no attempts behind it can't be weighed against the days left: no win % then
+    const bad=(k==="fg"||k==="ft")&&((cA[k]>0&&!(pA[k+"a"]>0))||(cB[k]>0&&!(pB[k+"a"]>0)));
+    return{k,l:cc.l,a:fa.v,b:fb.v,na:cA[k],nb:cB[k],p:bad?null:p,bad,off:off.has(k)}});
   // The score counts all 9: a punted category still goes to whoever wins it on Yahoo. expP (the
   // categories you're playing for) is what a player's "Cats" gain or loss is measured on.
-  return{rows,won:rows.filter(r=>r.p>.5).length,lost:rows.filter(r=>r.p<.5).length,n:rows.length,exp:rows.reduce((s,r)=>s+r.p,0),expP:rows.filter(r=>!r.off).reduce((s,r)=>s+r.p,0)}}
+  const P=r=>r.p==null?.5:r.p;
+  return{rows,won:rows.filter(r=>r.p!=null&&r.p>.5).length,lost:rows.filter(r=>r.p!=null&&r.p<.5).length,n:rows.length,exp:rows.reduce((s,r)=>s+P(r),0),expP:rows.filter(r=>!r.off).reduce((s,r)=>s+P(r),0)}}
 S.muWk=null;
 function renderMU(){
   const mu=ML&&ML.mu,x=ML&&lgIx();
@@ -2342,7 +2353,7 @@ function renderMU(){
   const teams=Object.keys(ML.teams).filter(t=>t!==me);
   const R0=isS?mu.rows.find(r=>r.id===me)||mu.rows[0]:null,R1=isS?mu.rows.find(r=>r!==R0):null;
   const sch=ML.sched&&wkNo?String(ML.sched[wkNo]||""):"",opId=isS?R1.id:(m.opp&&ML.teams[m.opp]?m.opp:ML.teams[sch]&&sch!==me?sch:teams[0]);
-  const cur=r=>{const o={};CATS.forEach(c=>o[c.k]=0);if(r)mu.lab.forEach((l,i)=>{const k=MUK[l];if(k){const v=parseFloat(String(r.v[i]).replace(/^\./,"0."));o[k]=Number.isFinite(v)?v:0}});return o};
+  const cur=r=>{const o={};CATS.forEach(c=>o[c.k]=0);if(r)mu.lab.forEach((l,i)=>{const k=muKey(l);if(k){const v=parseFloat(String(r.v[i]).replace(/^\./,"0."));o[k]=Number.isFinite(v)?v:0}});return o};
   const cA=cur(R0),cB=cur(R1);
   // days still to play: on the synced week, those not yet in Yahoo's totals (after the sync day, or
   // the sync day itself if synced before 7pm ET); on other weeks, today (before 7pm) and later
@@ -2359,10 +2370,16 @@ function renderMU(){
   // (points track shot volume) at the roster's projected attempts per point; games so far likewise
   // from points per player-game. (schedule.json only holds dates still to come, so the days already
   // played can't be simulated.)
-  const estPast=(ps,c)=>{const L=ps.filter(o=>!o.il).map(o=>xpLine(o.q)),sum=k=>L.reduce((a,l)=>a+(l[k]||0),0),pts=sum("pts")||1;
-    return{fga:c.pts*sum("fga")/pts,fta:c.pts*sum("fta")/pts,g:L.length?c.pts/(pts/L.length):0}};
-  const pA=isS?estPast(base,cA):{fga:0,fta:0,g:0},pB=isS?estPast(oppR,cB):{fga:0,fta:0,g:0};
+  const pA=isS?muPast(base.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cA):{fga:0,fta:0,g:0},pB=isS?muPast(oppR.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cB):{fga:0,fta:0,g:0};
   const B=muSim(oppR,rest,capB,F,null,C),A=muSim(mine,rest,capA,F,m.set,C),O=muOdds(cA,cB,pA,pB,A,B,off);
+  // Sanity checks on what the numbers are built from; a failed one shows a red note (and a "?" win %)
+  // rather than a confident wrong number.
+  const muIssues=[];
+  if(isS){const got=new Set(mu.lab.map(muKey).filter(Boolean)),miss=CATS.filter(c=>!got.has(c.k)).map(c=>c.l);
+    if(miss.length)muIssues.push(`couldn't read ${miss.join(", ")} from Yahoo's matchup (sync again)`);
+    for(const[k,l]of[["fg","FG%"],["ft","FT%"]])for(const c of[cA,cB])if(c[k]<0||c[k]>1)muIssues.push(`Yahoo's ${l} read as ${c[k]}, not a percentage`);}
+  for(const r of O.rows){if(r.bad)muIssues.push(`${r.l} so far has no attempts behind it, so its win % is left out`);
+    if(r.k!=="fg"&&r.k!=="ft"&&(r.a<r.na-1e-6||r.b<r.nb-1e-6))muIssues.push(`${r.l} projects below the total so far`)}
   const moved=m.add.size||m.drop.size||Object.keys(m.set).length,O0=moved?muOdds(cA,cB,pA,pB,muSim(base,rest,capA,F,null,C),B,off):O;
   const dExp=ps=>muOdds(cA,cB,pA,pB,muSim(ps,rest,capA,F,m.set,C),B,off).expP-O.expP;
   const gSum=T=>Object.values(T.g).reduce((a,b)=>a+b,0),gA=gSum(A),gB=gSum(B),gTA=gA+Math.round(pA.g),gTB=gB+Math.round(pB.g);
@@ -2423,13 +2440,13 @@ function renderMU(){
       <div class="muh"><div><b>${esc(nameA)}</b><i class="${O.won>O.lost?"up":O.won<O.lost?"dn":""}">${O.won}</i></div><span>${O.n-O.won-O.lost?`${O.n-O.won-O.lost} even`:"vs"}</span><div>${isS?`<b>${esc(nameB)}</b>`:`<select class="mop" data-mu-opp aria-label="Opponent">${teams.map(t=>`<option value="${t}"${t===opId?" selected":""}>${esc(ML.teams[t])}${t===sch?" (scheduled)":""}</option>`).join("")}</select>`}<i>${O.lost}</i></div></div>
       <div class="mue">Expected <b>${O.exp.toFixed(1)}</b> of 9${moved?` <span class="${O.exp-O0.exp>=0?"up":"dn"}">(${O.exp-O0.exp>=0?"+":"−"}${Math.abs(O.exp-O0.exp).toFixed(1)} with your moves)</span> <button class="mrs" data-mu="reset">Reset</button>`:""}</div>
     </div>
-    ${stale}${m.add.size||m.drop.size?`<div class="mwi"><b>What-if</b> (not on Yahoo): ${[...[...m.add].filter(id=>G.players[id]).map(id=>`<span class="up">+ ${esc(nm(G.players[id].n))}</span>`),...[...m.drop].filter(id=>G.players[id]).map(id=>`<span class="dn">− ${esc(nm(G.players[id].n))}</span>`)].join(" · ")}</div>`:""}
+    ${stale}${muIssues.length?`<div class="mbad"><b>Check:</b> ${muIssues.join(" · ")}</div>`:""}${m.add.size||m.drop.size?`<div class="mwi"><b>What-if</b> (not on Yahoo): ${[...[...m.add].filter(id=>G.players[id]).map(id=>`<span class="up">+ ${esc(nm(G.players[id].n))}</span>`),...[...m.drop].filter(id=>G.players[id]).map(id=>`<span class="dn">− ${esc(nm(G.players[id].n))}</span>`)].join(" · ")}</div>`:""}
     <div class="mfin"><div class="mctw"><table class="mct"><thead><tr><th class="tn">Final</th><th class="g">G</th>${O.rows.map(r=>`<th>${r.l}</th>`).join("")}</tr>
       <tr class="tgr"><th class="tn">Target</th><th></th>${O.rows.map(r=>`<th><button class="tk${m.tg.has(r.k)?" on":""}" data-mu="cat" data-x="${r.k}" aria-pressed="${m.tg.has(r.k)}" aria-label="Target ${r.l}"></button></th>`).join("")}</tr></thead><tbody>
       <tr><th class="tn">${esc(nameA)}</th><td class="g">${gTA}</td>${O.rows.map(r=>`<td>${fv(r.k,r.a)}${badge(me,r.k)}${isS?`<i class="nw0">${fv(r.k,r.na)} now</i>`:""}</td>`).join("")}</tr>
       <tr><th class="tn">${esc(nameB)}</th><td class="g">${gTB}</td>${O.rows.map(r=>`<td>${fv(r.k,r.b)}${badge(opId,r.k)}${isS?`<i class="nw0">${fv(r.k,r.nb)} now</i>`:""}</td>`).join("")}</tr>
       <tr class="cp"><th class="tn">Compare</th>${cmp({k:"g",a:gTA,b:gTB})}${O.rows.map(cmp).join("")}</tr>
-      <tr class="wp"><th class="tn">Win %</th><td class="g"></td>${O.rows.map(r=>`<td style="${heat(r.p)}">${pc(r.p)}%</td>`).join("")}</tr>
+      <tr class="wp"><th class="tn">Win %</th><td class="g"></td>${O.rows.map(r=>r.p==null?`<td class="bad">?</td>`:`<td style="${heat(r.p)}">${pc(r.p)}%</td>`).join("")}</tr>
     </tbody></table></div>
     <div class="mfs"><div class="msw"><div><b>${esc(nameB)}</b>${scout(opId)}</div><div><b>${esc(nameA)}</b>${scout(me)}</div></div>
     <p class="mhint">${isS?"Projected finals: Yahoo's totals so far (small gray \"now\", as of your sync) plus Proj for the days left.":"Projected finals for the whole week (Proj only)."} G = games that count. Small ranks mark where a team is top or bottom 3 of the ${nT} teams this week. Tick categories to <b>target</b> them: the lineup, sort and Cats then go by those only (ticking all but 3PM = punting 3PM). The score always counts all 9.</p></div></div>

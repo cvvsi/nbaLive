@@ -1,0 +1,19 @@
+# Checks on every push that touches the page or the tests: test-matchup.js runs the Matchup tool's
+# real math (pulled out of index.html) through known cases, e.g. one day left with a .848 vs .888
+# FT% must not come out as a coin flip. A failure shows as a red X on the commit and emails the owner.
+name: Tests
+
+on:
+  push:
+    paths: ["index.html", "test-matchup.js", ".github/workflows/tests.yml"]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node test-matchup.js

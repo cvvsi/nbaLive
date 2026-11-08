@@ -208,6 +208,12 @@ To test the phone layout on desktop, use Chrome DevTools → device toolbar → 
 - **Read ESPN stats by key name, not array index.**
 - Anything stored in `localStorage` is wrapped in try/catch (private browsing can throw).
 
+## Tests
+
+`test-matchup.js` runs the Matchup tool's real math, pulled out of `index.html` (`muKey`, `muPast`, `muOdds`), through known cases: Yahoo headers map to the right categories (even a merged "Team FG%"), the attempts and games so far come out of Yahoo's points, one day left with .848 vs .888 FT% is a big underdog (a Nov 2026 bug showed it as 52%), no games left means whoever leads wins, a fresh week flags nothing, a % with no attempts behind it gets no win %, and counting stats never project below the total so far. It runs on every push that touches `index.html` (`.github/workflows/tests.yml`; a failure shows as a red X on the commit and emails you) and by hand with `node test-matchup.js`.
+
+The page checks itself too: on the synced week, if a category is missing from Yahoo's matchup, a percentage isn't between 0 and 1, a counting stat projects below its total so far, or a % has no attempts behind it, a red **Check:** note says so and that category's win % shows **?** (left out of the score) rather than a wrong number.
+
 ## Next man up: injury minutes
 
 When a regular is out, his teammates' minutes rise until he's back, then ease back down. Week, Schedule, Today, Season Total and Season per-game (the average over the games left) all use these minutes; only minutes move, per-minute rates stay Proj's.
