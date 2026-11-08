@@ -1189,11 +1189,11 @@ function boRow(o){
   const rk=w=>S.rk&&S.rk[w]&&S.rk[w][o.id]?"#"+S.rk[w][o.id]:"–";
   // season -> last 3 for each, side by side
   const cell=(l,a,z)=>`<div><i>${l}</i><span>${a} <s>→</s> <b>${z}</b></span></div>`;
-  // one note on every row, same place: what kind of role change this is
+  // a note only when it says something: injury minutes, or usage moving with the minutes
   const du=t.u3!=null&&p.usg!=null?t.u3-p.usg:0;
   const note=t.opening?`<div class="bow fi">Filling in for ${esc(t.opening)}: usually fades when he's back</div>`
-    :`<div class="bow">${t.kind==="start"?`Moved into the starting five${du>=3?", and the offense runs through him more":du<=-3?", but with less of the offense":""}`
-      :du>=3?"More minutes and more of the offense: a real role change":du<=-3?"More minutes but less of the offense":"More minutes, same share of the offense"}</div>`;
+    :du>=3?`<div class="bow">Bigger share of the offense too: the strongest sign of a real role</div>`
+    :du<=-3?`<div class="bow">Smaller share of the offense: more minutes, less of the action</div>`:"";
   return`<article class="cd lr bo" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(q.n)}: open details">
     <div class="lr1"><span class="rk">${p.r}</span>${hs(o.id)}<b class="nm">${esc(q.n)}</b><span class="mt">${esc(q.t)}</span>${t.kind==="start"?`<span class="bt">Starter</span>`:""}${rkTagQ(q)}${typeof lgTagFA==="function"?lgTagFA(o.id):""}
       <span class="bop"><b>${x?"#"+x:"–"}</b><i>proj</i></span></div>
