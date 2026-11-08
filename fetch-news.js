@@ -143,6 +143,7 @@ function teamOf() { const o = {};
   let sched = {}; try { sched = JSON.parse(fs.readFileSync('data/schedule.json', 'utf8')).dates || {}; } catch (e) {}
   const TEAM = teamOf();
   if (process.argv[2] === '--apply') { let j = { items: [] }; try { j = JSON.parse(fs.readFileSync(OUT, 'utf8')); } catch (e) {}
+    for (const i of j.items || []) if (i.p === undefined) i.p = parse(i.h, i.d, i.t, i.id && TEAM[i.id], sched);
     console.log(`Applied ${apply(j.items || [], TEAM, sched)} news statuses to ${INJ}`); return; }
   const r = await fetch(URL, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SixthMan news reader)', Accept: 'application/rss+xml, text/xml, */*' } });
   if (!r.ok) throw new Error('RotoWire answered ' + r.status);
@@ -164,6 +165,7 @@ function teamOf() { const o = {};
     const id = find(n), hh = h.slice(n.length + 1).trim() || h;
     have.set(g, { g, id, n, h: hh, d, u, t, p: parse(hh, d, t, id && TEAM[id], sched) });
   }
+  for (const i of have.values()) if (i.p === undefined) i.p = parse(i.h, i.d, i.t, i.id && TEAM[i.id], sched);   // saved before parsing existed
   const cut = Date.now() - KEEP_H * 3600e3;
   const out = [...have.values()].filter(i => Date.parse(i.t) >= cut).sort((a, b) => b.t < a.t ? -1 : b.t > a.t ? 1 : 0);
   // Only rewrite the file (and so commit) when there's something new; `built` alone would churn.
