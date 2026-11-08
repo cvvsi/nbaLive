@@ -143,19 +143,12 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .mrs{font:600 11px/1 var(--name);color:var(--ball);background:none;border:1px solid var(--ball);border-radius:6px;padding:3px 7px;margin-left:4px;cursor:pointer}
 .mwi{margin:-2px 0 10px;padding:7px 10px;border:1px dashed var(--ball);border-radius:8px;font:500 12.5px/1.4 var(--name);color:var(--dim);text-align:center}.mwi b{color:var(--ball)}.mwi span{font-weight:600}
 .mus{margin:8px 0;padding:8px 10px;border:1px solid var(--ball);border-radius:8px;font:500 13px/1.35 var(--name)}
-.mcat{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.mt{all:unset;box-sizing:border-box;cursor:pointer;background:var(--panel);border-radius:10px;padding:8px 9px 9px;display:grid;grid-template-columns:1fr auto;align-items:baseline;row-gap:5px;box-shadow:inset 0 0 0 1px var(--rule)}
-.mt .ml{font:700 12px/1 var(--name);letter-spacing:.04em;color:var(--ink)}.mt .ml em{display:block;font:600 9px/1 var(--name);letter-spacing:.08em;text-transform:uppercase;font-style:normal;color:var(--ball);margin-top:3px}
-.mt>b{font:600 15px/1 var(--num);color:var(--ink)}.mt>b.up{color:var(--pos)}.mt>b.dn{color:var(--neg)}
-.mvs{grid-column:1/-1;display:flex;justify-content:space-between;font:500 11.5px/1 var(--num);color:var(--dim)}.mvs span:first-child{color:var(--ink);font-weight:600}
-.mbar{grid-column:1/-1;height:4px;border-radius:2px;background:color-mix(in srgb,var(--neg) 22%,var(--cell));overflow:hidden}.mbar i{display:block;height:100%;background:var(--dim)}.mbar i.up{background:var(--pos)}.mbar i.dn{background:color-mix(in srgb,var(--neg) 70%,var(--cell))}
-.mt.tg{box-shadow:inset 0 0 0 2px var(--ball)}.mt.pn{opacity:.45}.mt.pn .ml em{color:var(--dim)}.mt:disabled{cursor:default}
 .mhint{font:500 12px/1.45 var(--name);color:var(--dim);margin:8px 2px 0}.mhint b{color:var(--ink)}
 .mhint .dc{display:inline-block;width:12px;height:10px;vertical-align:-1px;margin:0 1px}
 .msec{margin-top:14px;background:var(--panel);border-radius:12px;padding:4px 10px 10px}
 .msh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:10px 0 6px;list-style:none;cursor:default}.msh::-webkit-details-marker{display:none}
 .msh b{font:700 15px/1.2 var(--name)}.msh span{font:500 12px/1.2 var(--name);color:var(--dim)}
-details.msec>.msh{cursor:pointer}details.msec>.msh::after{content:"Show ▾";margin-left:auto;font:600 12px/1 var(--name);color:var(--ball)}details.msec[open]>.msh::after{content:"Hide ▴"}
+.mopp>.msh{cursor:pointer}.mopp>.msh::after{content:"Show ▾";margin-left:auto;font:600 12px/1 var(--name);color:var(--ball)}.mopp.open>.msh::after{content:"Hide ▴"}.mopp:not(.open) .mob{display:none}
 .mrh,.mr{display:grid;grid-template-columns:minmax(0,1fr) auto 56px 30px;align-items:center;gap:6px}
 .mrh{font:600 9.5px/1 var(--name);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding:4px 0 6px}.mrh .mval{text-align:right}
 .mrh .dc{height:auto;background:none!important;box-shadow:none!important;text-align:center;line-height:1.15}.mrh .dc i{display:block;font:500 9px/1 var(--num);font-style:normal;letter-spacing:0}
@@ -175,6 +168,41 @@ details.msec>.msh{cursor:pointer}details.msec>.msh::after{content:"Show ▾";mar
 .mr[data-id] .mb[data-mu="add"]{border-color:var(--pos);color:var(--pos)}.mr .mb[data-mu="drop"],.mr .mb[data-mu="undrop"]{color:var(--neg)}
 .mr.il,.mr.gone{opacity:.5}.mr.gone .mn b{text-decoration:line-through}.mr.nw .mn b{color:var(--ball)}
 .mmore{display:block;width:100%;margin-top:8px;padding:9px;border:1px solid var(--rule);border-radius:8px;background:none;color:var(--ink);font:600 13px/1 var(--name);cursor:pointer}
+.mtop{margin-top:6px}
+.mwk{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--panel);border-radius:10px;padding:4px}
+.mwk span{font:500 13px/1.2 var(--name);color:var(--dim);text-align:center}.mwk span b{color:var(--ink);font-weight:700;margin-right:4px}.mwk span i{font-style:normal;color:var(--ball);font-weight:600;margin-left:4px}
+.mar{width:34px;height:30px;border:0;border-radius:7px;background:var(--cell);color:var(--ink);font:600 18px/1 var(--name);cursor:pointer}.mar:disabled{opacity:.3;cursor:default}
+.mop{max-width:100%;font:700 15px/1.2 var(--name);color:var(--ink);background:var(--cell);border:0;border-radius:6px;padding:3px 6px;text-align:center;cursor:pointer}
+.mctw{overflow-x:auto;background:var(--panel);border-radius:10px;padding:2px 6px 6px}
+.mct{width:100%;border-collapse:collapse;font:500 12px/1 var(--num);font-variant-numeric:tabular-nums}
+.mct th,.mct td{padding:6px 2px;text-align:center;white-space:nowrap}
+.mct tbody th{font:600 10.5px/1 var(--name);letter-spacing:.04em;color:var(--dim);text-align:left;padding-right:4px}
+.mct thead button{all:unset;cursor:pointer;display:block;width:100%;font:700 11.5px/1 var(--name);letter-spacing:.03em;color:var(--ink);padding:6px 0 3px;border-radius:6px}
+.mct thead button em{display:block;font:600 8px/1 var(--name);letter-spacing:.06em;text-transform:uppercase;font-style:normal;color:var(--ball);margin-top:3px}
+.mct thead th.tg button{box-shadow:inset 0 0 0 2px var(--ball)}.mct thead button:disabled{cursor:default}
+.mct td{border-top:1px solid var(--rule);color:var(--ink)}.mct td.dim{color:var(--dim)}
+.mct tr.wp td{font-weight:600}.mct tr.rk td{font-size:11px;color:var(--dim)}.mct tr.rk td.up{color:var(--pos)}.mct tr.rk td.dn{color:var(--neg)}
+.mct .pn{opacity:.35}.mct thead th.pn em{color:var(--dim)}
+.msw{display:grid;gap:4px;margin:8px 2px 0;font:500 12.5px/1.4 var(--name);color:var(--dim)}
+.msw>div{display:flex;flex-wrap:wrap;gap:2px 10px}.msw>div>b{color:var(--ink);font-weight:700}.msw b.up,.msw b.dn{font-weight:600}
+.mstl{display:block;margin-top:3px;white-space:nowrap}.mst{margin-right:8px;font:500 10.5px/1 var(--num);color:var(--ink)}
+.mcols{display:block}
+@media (min-width:1000px){
+  #pjList.muw{max-width:1560px}
+  .mux{max-width:1560px}
+  .mtop{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;background:var(--panel);border-radius:12px;padding:8px 12px}
+  .mtop .mwk{padding:0}.mtop .muh{margin:0;padding:0;gap:18px}.mtop .muh i{font-size:26px}.mtop .mue{margin:0;text-align:right}
+  .mct{font-size:13px}.mct th,.mct td{padding:5px 4px}
+  .msw{grid-template-columns:1fr 1fr}
+  .mcols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
+  .mcols .msec{margin-top:12px}
+  .mopp .mob{display:block!important}.mopp>.msh{cursor:default}.mopp>.msh::after{content:none!important}
+  .mr{padding:4px 0}.mn{display:flex;align-items:baseline;gap:6px;min-width:0}.mn b{font-size:13.5px;flex:none;max-width:52%}.mn i{margin:0}.mstl{margin:0;flex:none}.mst{margin:0 0 0 6px}
+  .dc{width:16px;height:15px;border-radius:3px}.md{gap:2px}
+  .mval b{font-size:12.5px}.mval i{margin-top:1px}
+  .mb{width:24px;height:24px;font-size:15px}
+  .mrh,.mr{grid-template-columns:minmax(0,1fr) auto 48px 26px}
+}
 .lgrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 0 6px}
 .lgrow[hidden]{display:none}
 .lgrow .lgs{font:500 11px/1.2 var(--num);color:var(--dim);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -2026,21 +2054,25 @@ const muPhi=x=>{const t=1/(1+.2316419*Math.abs(x)),d=.3989423*Math.exp(-x*x/2),p
 const etHour=d=>+new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",hour:"numeric",hourCycle:"h23"}).format(d);
 // Your picks for this matchup, kept per league + week on this device: target / punt categories,
 // players added (free agents) or dropped, and games forced in or out on a day (id|date -> 1 / 0).
-// What-if moves (adds, drops, start/sit) are cleared by each new sync, since the synced rosters
-// already show what was really done; targets and punts stay for the week.
-function muSel(mu){const key=`${ML.lid||""}|${mu.week||""}|${(mu.dates||[])[0]||""}`;
-  if(S.mus&&S.mus.key===key&&S.mus.at===ML.at)return S.mus;const o=store.get("muSel",null),ok=o&&o.key===key,mv=ok&&o.at===ML.at;
-  return S.mus={key,at:ML.at,tg:new Set(ok?o.tg:[]),pn:new Set(ok?o.pn:[]),add:new Set(mv?o.add:[]),drop:new Set(mv?o.drop:[]),set:mv&&o.set||{},fa:ok&&o.fa||8}}
-function muSave(){const m=S.mus;store.set("muSel",{key:m.key,at:m.at,tg:[...m.tg],pn:[...m.pn],add:[...m.add],drop:[...m.drop],set:m.set,fa:m.fa})}
+// Your picks per league and week, kept on this device (muSel2: {key: picks}): target / punt
+// categories, the opponent (weeks other than the synced one), and what-if moves (adds, drops,
+// start/sit). What-if moves on the synced week are cleared by each new sync, since the synced
+// rosters already show what was really done.
+function muSel(key){
+  if(S.mus&&S.mus.key===key&&S.mus.at===ML.at)return S.mus;const all=store.get("muSel2",{}),o=all[key],mv=o&&o.at===ML.at;
+  return S.mus={key,at:ML.at,tg:new Set(o?o.tg:[]),pn:new Set(o?o.pn:[]),add:new Set(mv?o.add:[]),drop:new Set(mv?o.drop:[]),set:mv&&o.set||{},fa:o&&o.fa||12,opp:o&&o.opp||null,oo:o&&o.oo}}
+function muSave(){const m=S.mus,all=store.get("muSel2",{}),wk0=weekDates(0)[0];
+  for(const k of Object.keys(all))if((k.split("|")[1]||"")<wk0)delete all[k];
+  all[m.key]={at:m.at,tg:[...m.tg],pn:[...m.pn],add:[...m.add],drop:[...m.drop],set:m.set,fa:m.fa,opp:m.opp,oo:m.oo};store.set("muSel2",all)}
 // Categories that count toward the score (not punted here or globally) and the ones players are
 // sorted by: the targets if any are picked, otherwise every category that counts.
 const muOff=m=>new Set([...S.punt,...m.pn]);
 const muFocus=m=>{const off=muOff(m),t=[...m.tg].filter(k=>!off.has(k));return t.length?t:CATS.map(c=>c.k).filter(k=>!off.has(k))};
 const muFz=(z,F)=>F.length?F.reduce((a,k)=>a+z[k],0)/F.length:0;
 function muLine(id,q,d,C){const k=id+"|"+d;return C[k]||(C[k]=(l=>({l,z:pjZ(l)}))(lineAt(q,minAt(id,q,d))))}
-// The rest of the week for a roster: on each day, everyone not on IL whose team plays and who isn't
-// listed out; games forced in count first, then the best by the sort categories up to the team's
-// active spots. Cell state per id and day: 1 counts, 2 sits for lack of spots, 3 forced in, 4 forced out.
+// A roster over some days: on each day, everyone not on IL whose team plays and who isn't listed
+// out; games forced in count first, then the best by the sort categories up to the team's active
+// spots. Cell state per id and day: 1 counts, 2 sits for lack of spots, 3 forced in, 4 forced out.
 function muSim(ps,days,cap,F,set,C){
   const tot={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0,fgm:0,fga:0,ftm:0,fta:0},vr={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0},g={},st={};
   for(const d of days){
@@ -2050,7 +2082,7 @@ function muSim(ps,days,cap,F,set,C){
       g[e.o.id]=(g[e.o.id]||0)+1;for(const k in tot)tot[k]+=e.l[k];for(const k in vr)vr[k]+=(MUPHI[k]||1)*e.l[k]}}
   return{ps,tot,vr,g,st}}
 // Final totals and win chance per category, from Yahoo's totals so far (cA/cB), our attempts behind
-// them (pA/pB) and the rest of the week (A/B).
+// them (pA/pB) and the days left (A/B).
 function muOdds(cA,cB,pA,pB,A,B,off){
   const fin=(c,p,t,k)=>{if(k==="fg"||k==="ft"){const a=p[k+"a"]+t[k+"a"],m=c[k]*p[k+"a"]+t[k+"m"];return{v:a?m/a:c[k],a,ra:t[k+"a"]}}return{v:c[k]+t[k]}};
   const rows=CATS.map(cc=>{const k=cc.k,fa=fin(cA,pA,A.tot,k),fb=fin(cB,pB,B.tot,k);let p;
@@ -2059,73 +2091,111 @@ function muOdds(cA,cB,pA,pB,A,B,off){
     return{k,l:cc.l,a:fa.v,b:fb.v,na:cA[k],nb:cB[k],p,off:off.has(k)}});
   const live=rows.filter(r=>!r.off);
   return{rows,won:live.filter(r=>r.p>.5).length,lost:live.filter(r=>r.p<.5).length,n:live.length,exp:live.reduce((s,r)=>s+r.p,0)}}
+S.muWk=null;
 function renderMU(){
   const mu=ML&&ML.mu,x=ML&&lgIx();
-  if(!mu||!mu.rows||mu.rows.length!==2||!x)return pjMsg("Sync your league from Yahoo to see this week's matchup.");
-  const m=muSel(mu),off=muOff(m),F=muFocus(m),C={};
-  const me=String(ML.me),R0=mu.rows.find(r=>r.id===me)||mu.rows[0],R1=mu.rows.find(r=>r!==R0);
-  const cur=r=>{const o={};mu.lab.forEach((l,i)=>{const k=MUK[l];if(k){const v=parseFloat(String(r.v[i]).replace(/^\./,"0."));o[k]=Number.isFinite(v)?v:0}});return o};
-  const cA=cur(R0),cB=cur(R1),at=new Date(ML.at),syncDay=new Intl.DateTimeFormat("en-CA",{timeZone:"America/New_York"}).format(at);
-  const dates=mu.dates&&mu.dates.length?mu.dates:weekDates(0);
-  // days not yet in Yahoo's totals: after the sync day, plus the sync day if synced before 7pm ET
-  const rest=dates.filter(d=>d>syncDay||(d===syncDay&&etHour(at)<19)),past=dates.filter(d=>!rest.includes(d));
-  const capA=(ML.act&&ML.act[me])||10,capB=(ML.act&&ML.act[R1.id])||10;
+  if(!x||!ML.teams)return pjMsg("Sync your league from Yahoo to see your matchups.");
+  const me=String(ML.me),wk0=weekDates(0)[0],at=new Date(ML.at),syncDay=new Intl.DateTimeFormat("en-CA",{timeZone:"America/New_York"}).format(at);
+  const ok=mu&&mu.rows&&mu.rows.length===2,sDates=ok&&mu.dates&&mu.dates.length?mu.dates:null;
+  // the synced week, as an offset from this calendar week (Mon-Sun); Yahoo's own days for it
+  const sOff=ok?Math.round((new Date((sDates||weekDates(0))[0])-new Date(wk0))/6048e5):null;
+  const today=etToday(),now=new Date(),lastWk=SC?Object.keys(SC.dates).sort().pop():today;
+  if(S.muWk==null){S.muWk=sOff!=null?sOff:0;const d=S.muWk===sOff&&sDates?sDates:weekDates(S.muWk);if(!d.some(x=>x>=today))S.muWk++}
+  const off0=S.muWk,isS=ok&&off0===sOff,dates=isS&&sDates?sDates:weekDates(off0),wkNo=ok&&mu.week?mu.week+(off0-sOff):null;
+  const m=muSel(`${ML.lid||""}|${dates[0]}`),off=muOff(m),F=muFocus(m),C={};
+  const teams=Object.keys(ML.teams).filter(t=>t!==me);
+  const R0=isS?mu.rows.find(r=>r.id===me)||mu.rows[0]:null,R1=isS?mu.rows.find(r=>r!==R0):null;
+  const opId=isS?R1.id:(m.opp&&ML.teams[m.opp]?m.opp:teams[0]);
+  const cur=r=>{const o={};CATS.forEach(c=>o[c.k]=0);if(r)mu.lab.forEach((l,i)=>{const k=MUK[l];if(k){const v=parseFloat(String(r.v[i]).replace(/^\./,"0."));o[k]=Number.isFinite(v)?v:0}});return o};
+  const cA=cur(R0),cB=cur(R1);
+  // days still to play: on the synced week, those not yet in Yahoo's totals (after the sync day, or
+  // the sync day itself if synced before 7pm ET); on other weeks, today (before 7pm) and later
+  const rest=isS?dates.filter(d=>d>syncDay||(d===syncDay&&etHour(at)<19)):dates.filter(d=>d>today||(d===today&&etHour(now)<19));
+  const past=isS?dates.filter(d=>!rest.includes(d)):[];
+  const cap=t=>(ML.act&&ML.act[t])||10,capA=cap(me),capB=cap(opId);
   const P=id=>({id,q:G.players[id],il:/^IL/.test(x.slot[id]||"")});
   const roster=tid=>Object.keys(x.own).filter(id=>x.own[id]===tid).map(P).filter(o=>o.q&&o.q.xp);
-  const base=roster(me),opp=roster(R1.id);
+  const base=roster(me),oppR=roster(opId);
   const mine=[...base.filter(o=>!m.drop.has(o.id)),...[...m.add].filter(id=>G.players[id]&&G.players[id].xp&&x.own[id]==null).map(id=>({...P(id),nw:1}))];
   // attempts behind Yahoo's FG% / FT% so far (it shows only the %): our per-game attempts on the days played
-  const pA=muSim(base,past,capA,F,null,C).tot,pB=muSim(opp,past,capB,F,null,C).tot;
-  const B=muSim(opp,rest,capB,F,null,C),A=muSim(mine,rest,capA,F,m.set,C),O=muOdds(cA,cB,pA,pB,A,B,off);
+  const pA=muSim(base,past,capA,F,null,C).tot,pB=muSim(oppR,past,capB,F,null,C).tot;
+  const B=muSim(oppR,rest,capB,F,null,C),A=muSim(mine,rest,capA,F,m.set,C),O=muOdds(cA,cB,pA,pB,A,B,off);
   const moved=m.add.size||m.drop.size||Object.keys(m.set).length,O0=moved?muOdds(cA,cB,pA,pB,muSim(base,rest,capA,F,null,C),B,off):O;
   const dExp=ps=>muOdds(cA,cB,pA,pB,muSim(ps,rest,capA,F,m.set,C),B,off).exp-O.exp;
+  // League scouting: every team's projected totals for the whole week (your what-if moves included),
+  // each category ranked 1 (best) to n across the league; FG%/FT% as made / attempted.
+  const all=ML.teams?Object.keys(ML.teams):[],FA=CATS.map(c=>c.k).filter(k=>!S.punt.has(k));
+  const prof={};for(const t of all){const T=muSim(t===me?mine:roster(t),dates,cap(t),FA,t===me?m.set:null,C).tot;
+    prof[t]=Object.fromEntries(CATS.map(c=>[c.k,c.k==="fg"?(T.fga?T.fgm/T.fga:0):c.k==="ft"?(T.fta?T.ftm/T.fta:0):T[c.k]]))}
+  const rk={};for(const c of CATS){const s=all.slice().sort((a,b)=>c.k==="to"?prof[a][c.k]-prof[b][c.k]:prof[b][c.k]-prof[a][c.k]);s.forEach((t,i)=>(rk[t]||(rk[t]={}))[c.k]=i+1)}
+  const nT=all.length,ord=n=>n+(n%10===1&&n!==11?"st":n%10===2&&n!==12?"nd":n%10===3&&n!==13?"rd":"th");
+  const sw=t=>{if(!rk[t])return"";const r=rk[t],s=CATS.filter(c=>r[c.k]<=3).sort((a,b)=>r[a.k]-r[b.k]),w=CATS.filter(c=>r[c.k]>nT-3).sort((a,b)=>r[b.k]-r[a.k]);
+    return`${s.length?`<span>Strong <b class="up">${s.map(c=>`${c.l} ${ord(r[c.k])}`).join(", ")}</b></span>`:""}${w.length?`<span>Weak <b class="dn">${w.map(c=>`${c.l} ${ord(r[c.k])}`).join(", ")}</b></span>`:""}`};
   // per-game value on the sort categories, averaged over his days left (or Proj's line with none)
-  const pv=o=>{const ds=rest.filter(d=>plays(o.q.t,d)&&avail(o.id,d));return ds.length?ds.reduce((a,d)=>a+muFz(muLine(o.id,o.q,d,C).z,F),0)/ds.length:muFz(pjZ(xpLine(o.q)),F)};
-  const gl=o=>rest.filter(d=>plays(o.q.t,d)&&avail(o.id,d)).length;
+  const myDs=o=>rest.filter(d=>plays(o.q.t,d)&&avail(o.id,d));
+  const pv=o=>{const ds=myDs(o);return ds.length?ds.reduce((a,d)=>a+muFz(muLine(o.id,o.q,d,C).z,F),0)/ds.length:muFz(pjZ(xpLine(o.q)),F)};
+  // his per-game numbers in the targeted categories (1-3 picked), for the row
+  const tgs=[...m.tg].filter(k=>!off.has(k));
+  const stl=o=>{if(!tgs.length||tgs.length>3)return"";const ds=myDs(o),ls=(ds.length?ds:[null]).map(d=>d?muLine(o.id,o.q,d,C).l:xpLine(o.q)),n=ls.length,sum=k=>ls.reduce((a,l)=>a+l[k],0);
+    return tgs.map(k=>{const c=CATS.find(c=>c.k===k),v=k==="fg"?(sum("fga")?sum("fgm")/sum("fga"):0):k==="ft"?(sum("fta")?sum("ftm")/sum("fta"):0):sum(k)/n;
+      return`<span class="mst">${c.l} ${k==="fg"||k==="ft"?v.toFixed(3).replace(/^0/,""):v.toFixed(1)}</span>`}).join("")};
   // free agents: Proj 12+ minutes, playing at least once in the days left; by value x games (from zero)
   const zo=F.length?F.reduce((a,k)=>{const t=G.zp.st[k];return a+(k==="fg"||k==="ft"?0:(k==="to"?-1:1)*t[1]/t[2])},0)/F.length:0;
   const fa=Object.keys(G.players).filter(id=>x.own[id]==null&&!m.add.has(id)&&G.players[id].xp&&G.players[id].xp[0]>=12).map(P)
-    .map(o=>{o.g=gl(o);o.v=pv(o);o.w=o.g*(o.v+zo);return o}).filter(o=>o.g).sort((a,b)=>b.w-a.w);
+    .map(o=>{o.g=myDs(o).length;o.v=pv(o);o.w=o.g*(o.v+zo);return o}).filter(o=>o.g).sort((a,b)=>b.w-a.w);
   const faShow=fa.slice(0,m.fa);for(const o of faShow)o.d=dExp([...mine,o]);
   for(const o of mine){o.v=pv(o);o.d=o.il?0:dExp(mine.filter(p=>p!==o))}
   const dropped=base.filter(o=>m.drop.has(o.id));for(const o of dropped)o.v=pv(o);
   const fv=(k,v)=>k==="fg"||k==="ft"?v.toFixed(3).replace(/^0/,""):Math.round(v);
   const pc=p=>{const v=Math.round(100*p);return v>=99.5?">99":v<=.5?"<1":v};
-  const tone=p=>p>=.6?"up":p<=.4?"dn":"sw";
+  const tone=p=>p>=.6?"up":p<=.4?"dn":"";
   const sh=d=>fmtDate(d).replace(/^\w+, /,""),dl=d=>["M","Tu","W","Th","F","Sa","Su"][(new Date(d+"T12:00:00Z").getUTCDay()+6)%7];
   const nm=n=>n.replace(/^(\S)\S*\s/,"$1. "),sg=v=>(v>=0?"+":"−")+Math.abs(v).toFixed(2);
   const lab=F.length===CATS.filter(c=>!off.has(c.k)).length?(off.size?"value (punts out)":"value"):F.map(k=>CATS.find(c=>c.k===k).l).join(", ");
-  const stale=etToday()>syncDay?`<div class="mus">Totals are from your sync on ${sh(syncDay)}. Sync again for today's numbers.</div>`:"";
+  const nameA=ML.teams[me]||"You",nameB=ML.teams[opId]||"Opponent";
+  const stale=isS&&today>syncDay&&rest.length?`<div class="mus">Totals are from your sync on ${sh(syncDay)}. Sync again for today's numbers.</div>`:"";
   const cells=(o,T,tap)=>rest.map(d=>{const s=T.st[o.id]&&T.st[o.id][d];
-    return s?`<span class="dc s${s}"${tap?` data-mu="day" data-x="${o.id}|${d}"`:""}></span>`:`<span class="dc"></span>`}).join("");
+    return s?`<span class="dc s${s}"${tap?` data-mu="day" data-x="${o.id}|${d}"`:""} title="${dl(d)} ${opp(o.q.t,d)}"></span>`:`<span class="dc"></span>`}).join("");
   const head=`<div class="mrh"><span>Player</span><div class="md">${rest.map(d=>`<span class="dc">${dl(d)}<i>${+d.slice(8)}</i></span>`).join("")}</div><span class="mval">Per g<br>Cats</span><span></span></div>`;
   const row=(o,T,act)=>{const dl2=o.d!=null&&!o.il&&act!=="undo"?`<i class="${o.d>=.05?"up":o.d<=-.05?"dn":""}">${Math.abs(o.d)<.05?"0.0":(o.d>0?"+":"−")+Math.abs(o.d).toFixed(1)}</i>`:"";
-    return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${esc(nm(o.q.n))}</b><i>${esc(o.q.t)} · ${esc(posOf(o.id)||"–")}${o.il?" · IL":""}${o.nw?` <em>what-if add</em>`:""}${act==="undo"?` <em>what-if drop</em>`:""}${ijOut(ijOf(o.id))?` <em class="o">out</em>`:""}</i></div>
-      <div class="md">${act==="undo"?"":cells(o,T,act==="drop")}</div>
+    return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${esc(nm(o.q.n))}</b><i>${esc(o.q.t)} · ${esc(posOf(o.id)||"–")}${o.il?" · IL":""}${o.nw?` <em>what-if add</em>`:""}${act==="undo"?` <em>what-if drop</em>`:""}${ijOut(ijOf(o.id))?` <em class="o">out</em>`:""}</i>${tgs.length&&tgs.length<=3?`<span class="mstl">${stl(o)}</span>`:""}</div>
+      <div class="md">${act==="undo"?"":cells(o,T,act==="drop"||act==="undrop")}</div>
       <div class="mval"><b class="${o.v>=1?"up":o.v<=-1?"dn":""}">${sg(o.v)}</b>${dl2}</div>
       ${act?`<button class="mb" data-mu="${act}" data-x="${o.id}" aria-label="${act}">${act==="add"?"+":act==="undo"?"↺":"−"}</button>`:"<span></span>"}</div>`};
   const sortR=a=>a.sort((p,q)=>(p.il?1:0)-(q.il?1:0)||q.v-p.v);
   const gA=Object.values(A.g).reduce((a,b)=>a+b,0),gB=Object.values(B.g).reduce((a,b)=>a+b,0);
-  $("pjStatus").textContent=`Wk ${mu.week||""} · ${rest.length}d left`;$("pjLgRow").hidden=true;
-  $("pjList").innerHTML=`<div class="mux">${stale}
-    <div class="muh"><div><b>${esc(ML.teams[me]||"You")}</b><i class="${O.won>O.lost?"up":O.won<O.lost?"dn":""}">${O.won}</i></div><span>${O.n-O.won-O.lost?`${O.n-O.won-O.lost} even`:"vs"}</span><div><b>${esc(ML.teams[R1.id]||"Opponent")}</b><i>${O.lost}</i></div></div>
-    <div class="mue">Expected <b>${O.exp.toFixed(1)}</b> of ${O.n} categories${moved?` <span class="${O.exp-O0.exp>=0?"up":"dn"}">(${O.exp-O0.exp>=0?"+":"−"}${Math.abs(O.exp-O0.exp).toFixed(1)} with your moves)</span> <button class="mrs" data-mu="reset">Reset</button>`:""}</div>
-    ${m.add.size||m.drop.size?`<div class="mwi"><b>What-if</b> (not on Yahoo): ${[...[...m.add].filter(id=>G.players[id]).map(id=>`<span class="up">+ ${esc(nm(G.players[id].n))}</span>`),...[...m.drop].filter(id=>G.players[id]).map(id=>`<span class="dn">− ${esc(nm(G.players[id].n))}</span>`)].join(" · ")}</div>`:""}
-    <div class="mcat">${O.rows.map(r=>{const t=m.tg.has(r.k)&&!r.off,pn=r.off;return`<button class="mt${t?" tg":""}${pn?" pn":""}" data-mu="cat" data-x="${r.k}"${S.punt.has(r.k)?" disabled":""}>
-      <span class="ml">${r.l}${t?"<em>target</em>":pn?"<em>punt</em>":""}</span><b class="${pn?"":tone(r.p)}">${pn?"–":pc(r.p)+"%"}</b>
-      <span class="mvs"><span>${fv(r.k,r.a)}</span><span>${fv(r.k,r.b)}</span></span><span class="mbar"><i class="${pn?"":tone(r.p)}" style="width:${pn?0:Math.round(100*r.p)}%"></i></span></button>`}).join("")}</div>
-    <p class="mhint">Win % for each category, your projected final on the left. Tap one to <b>target</b> it (players re-sort by it), again to <b>punt</b> it, again to clear.</p>
-    <div class="msec"><div class="msh"><b>${esc(ML.teams[me]||"You")}</b><span>${gA} games left · ${capA} spots a day · sorted by ${esc(lab)}</span></div>${head}
+  const canPrev=off0>Math.min(0,sOff??0),canNext=weekDates(off0+1)[0]<=lastWk;
+  const rkc=n=>n<=3?"up":n>nT-3?"dn":"";
+  $("pjStatus").textContent=`${wkNo?"Wk "+wkNo+" · ":""}${rest.length}d left`;$("pjLgRow").hidden=true;
+  $("pjList").innerHTML=`<div class="mux">
+    <div class="mtop">
+      <div class="mwk"><button class="mar" data-mu="wk" data-x="-1"${canPrev?"":" disabled"} aria-label="Previous week">‹</button><span><b>${wkNo?"Week "+wkNo:"Week"}</b> ${sh(dates[0])}–${sh(dates[dates.length-1])}${isS?"":` <i>projection only</i>`}</span><button class="mar" data-mu="wk" data-x="1"${canNext?"":" disabled"} aria-label="Next week">›</button></div>
+      <div class="muh"><div><b>${esc(nameA)}</b><i class="${O.won>O.lost?"up":O.won<O.lost?"dn":""}">${O.won}</i></div><span>${O.n-O.won-O.lost?`${O.n-O.won-O.lost} even`:"vs"}</span><div>${isS?`<b>${esc(nameB)}</b>`:`<select class="mop" data-mu-opp aria-label="Opponent">${teams.map(t=>`<option value="${t}"${t===opId?" selected":""}>${esc(ML.teams[t])}</option>`).join("")}</select>`}<i>${O.lost}</i></div></div>
+      <div class="mue">Expected <b>${O.exp.toFixed(1)}</b> of ${O.n} categories${moved?` <span class="${O.exp-O0.exp>=0?"up":"dn"}">(${O.exp-O0.exp>=0?"+":"−"}${Math.abs(O.exp-O0.exp).toFixed(1)} with your moves)</span> <button class="mrs" data-mu="reset">Reset</button>`:""}</div>
+    </div>
+    ${stale}${m.add.size||m.drop.size?`<div class="mwi"><b>What-if</b> (not on Yahoo): ${[...[...m.add].filter(id=>G.players[id]).map(id=>`<span class="up">+ ${esc(nm(G.players[id].n))}</span>`),...[...m.drop].filter(id=>G.players[id]).map(id=>`<span class="dn">− ${esc(nm(G.players[id].n))}</span>`)].join(" · ")}</div>`:""}
+    <div class="mctw"><table class="mct"><thead><tr><th></th>${O.rows.map(r=>{const t=m.tg.has(r.k)&&!r.off;return`<th class="${t?"tg":""}${r.off?" pn":""}"><button data-mu="cat" data-x="${r.k}"${S.punt.has(r.k)?" disabled":""}>${r.l}<em>${t?"target":r.off?"punt":"&nbsp;"}</em></button></th>`}).join("")}</tr></thead><tbody>
+      <tr><th>You</th>${O.rows.map(r=>`<td class="${r.off?"pn":""}">${fv(r.k,r.a)}</td>`).join("")}</tr>
+      <tr><th>Them</th>${O.rows.map(r=>`<td class="${r.off?"pn":""} dim">${fv(r.k,r.b)}</td>`).join("")}</tr>
+      <tr class="wp"><th>Win</th>${O.rows.map(r=>`<td class="${r.off?"pn":tone(r.p)}">${r.off?"–":pc(r.p)+"%"}</td>`).join("")}</tr>
+      <tr class="rk"><th>You rk</th>${O.rows.map(r=>`<td class="${r.off?"pn":rkc(rk[me][r.k])}">${ord(rk[me][r.k])}</td>`).join("")}</tr>
+      <tr class="rk"><th>Them rk</th>${O.rows.map(r=>`<td class="${r.off?"pn":rkc(rk[opId][r.k])}">${ord(rk[opId][r.k])}</td>`).join("")}</tr>
+    </tbody></table></div>
+    <div class="msw"><div><b>${esc(nameB)}</b>${sw(opId)||"<span>No clear edges.</span>"}</div><div><b>${esc(nameA)}</b>${sw(me)||"<span>No clear edges.</span>"}</div></div>
+    <p class="mhint">${isS?"Projected finals: Yahoo's totals so far plus Proj for the days left.":"Projected finals for the whole week (Proj only; your Yahoo totals start when the week does)."} Ranks = each team's projected week against the other ${nT-1} in your league. Tap a category to <b>target</b> it (players re-sort by it), again to <b>punt</b> it, again to clear.</p>
+    <div class="mcols">
+    <div class="msec"><div class="msh"><b>${esc(nameA)}</b><span>${gA} games · ${capA} spots a day · by ${esc(lab)}</span></div>${head}
       ${sortR(mine).map(o=>row(o,A,o.nw?"undrop":"drop")).join("")}${dropped.map(o=>row(o,A,"undo")).join("")}
-      <p class="mhint">Tap a day to start or sit him that day. <span class="dc s1"></span> counts · <span class="dc s2"></span> sits (no spot) · <span class="dc s3"></span> you started him · <span class="dc s4"></span> you sat him.</p></div>
-    <div class="msec"><div class="msh"><b>Free agents</b><span>best for ${esc(lab)} this week</span></div>${head}
-      ${faShow.map(o=>row(o,{st:Object.fromEntries([[o.id,Object.fromEntries(rest.filter(d=>plays(o.q.t,d)&&avail(o.id,d)).map(d=>[d,5]))]])},"add")).join("")||`<div class="empty">No free agents playing the days left.</div>`}
+      <p class="mhint">Tap a day to start or sit him. <span class="dc s1"></span> counts · <span class="dc s2"></span> sits (no spot) · <span class="dc s3"></span> you started him · <span class="dc s4"></span> you sat him.</p></div>
+    <div class="msec"><div class="msh"><b>Free agents</b><span>best for ${esc(lab)} · value × games</span></div>${head}
+      ${faShow.map(o=>row(o,{st:{[o.id]:Object.fromEntries(myDs(o).map(d=>[d,5]))}},"add")).join("")||`<div class="empty">No free agents playing the days left.</div>`}
       ${fa.length>m.fa?`<button class="mmore" data-mu="more">Show more</button>`:""}</div>
-    <details class="msec"${m.oo?" open":""}><summary class="msh" data-mu="opp"><b>${esc(ML.teams[R1.id]||"Opponent")}</b><span>${gB} games left · ${capB} spots a day</span></summary>${head}
-      ${sortR(opp.map(o=>(o.v=pv(o),o))).map(o=>row(o,B,"")).join("")}</details>
-    <p class="bzcap">Yahoo's totals so far (synced ${at.toLocaleString([],{weekday:"short",hour:"numeric",minute:"2-digit"})}) plus Proj for the days left (${rest.length?sh(rest[0])+"–"+sh(rest[rest.length-1]):"none"}): everyone not on IL, on days his team plays and he isn't listed out, at most your active spots a day, best first by the categories you sort by. Per g = his per-game value on those categories. <b>Cats</b> = how many more (or fewer) categories you'd expect to win with him added, or without him. Your picks stay on this device for this week.</p></div>`;
+    <div class="msec mopp${m.oo?" open":""}"><div class="msh" data-mu="opp"><b>${esc(nameB)}</b><span>${gB} games · ${capB} spots a day</span></div><div class="mob">${head}
+      ${sortR(oppR.map(o=>(o.v=pv(o),o))).map(o=>row(o,B,"")).join("")}</div></div>
+    </div>
+    <p class="bzcap">${isS?`Yahoo's totals so far (synced ${at.toLocaleString([],{weekday:"short",hour:"numeric",minute:"2-digit"})}) plus`:"No Yahoo totals yet for this week, so it's"} Proj for the days left (${rest.length?sh(rest[0])+"–"+sh(rest[rest.length-1]):"none"}): everyone not on IL, on days his team plays and he isn't listed out, at most each team's active spots a day, best first by the categories you sort by. Rosters are as of your last sync. Per g = his per-game value on those categories. <b>Cats</b> = how many more (or fewer) categories you'd expect to win with him added, or without him. Picks stay on this device, per week.</p></div>`;
 }
-function muClick(e){const b=e.target.closest("[data-mu]");if(!b||!S.mus)return;e.stopPropagation();e.preventDefault();
+function muClick(e){const b=e.target.closest("[data-mu]");if(!b||!S.mus)return;if(b.tagName==="SELECT")return;e.stopPropagation();e.preventDefault();
   const m=S.mus,k=b.dataset.x,a=b.dataset.mu;
   if(a==="cat"){if(m.tg.has(k)){m.tg.delete(k);m.pn.add(k)}else if(m.pn.has(k))m.pn.delete(k);else m.tg.add(k)}
   else if(a==="drop")m.drop.add(k);else if(a==="undo")m.drop.delete(k);
@@ -2133,9 +2203,11 @@ function muClick(e){const b=e.target.closest("[data-mu]");if(!b||!S.mus)return;e
   else if(a==="more")m.fa+=10;else if(a==="reset"){m.add.clear();m.drop.clear();m.set={}}
   else if(a==="day"){const c=b.className;if(m.set[k]!=null)delete m.set[k];else m.set[k]=/\bs1\b/.test(c)?0:1}
   else if(a==="opp")m.oo=!m.oo;
+  else if(a==="wk"){muSave();S.muWk+=+k;renderMU();return}
   const y=scrollY;muSave();renderMU();scrollTo(0,y)}
+function muChange(e){if(!e.target.matches("[data-mu-opp]")||!S.mus)return;S.mus.opp=e.target.value;muSave();const y=scrollY;renderMU();scrollTo(0,y)}
 function renderPJ(){
-  $("pjMuBtn").hidden=!(ML&&ML.mu);if(S.pjView==="mu"&&!(ML&&ML.mu))S.pjView="season";
+  $("pjMuBtn").hidden=!ML;if(S.pjView==="mu"&&!ML)S.pjView="season";
   $("pjView").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.pjView));
   $("pjWk").hidden=S.pjView!=="week";$("pjRow2").hidden=S.pjView!=="week";
   $("pjTot").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.pjTot));
@@ -2144,6 +2216,7 @@ $("pjSz").hidden=S.pjView!=="season";
   paintWk("pjWk",S.pjWk);
   if(!G)return;
   if(!G.zp||!G.xpf)return pjMsg("Projected lines arrive with the next rankings build.");
+  $("pjList").classList.toggle("muw",S.pjView==="mu");
   if(S.pjView==="mu"){$("pjAsOf").textContent="";return renderMU()}
   const today=etToday(),all=Object.entries(G.players).filter(([,q])=>q.xp&&q.xp[0]>=8);
   const sh=d=>fmtDate(d).replace(/^\w+, /,"");
@@ -2480,7 +2553,7 @@ $("bsSort").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsSort=b.data
 $("bsUnit").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsUnit=b.dataset.u;store.set("bsUnit",S.bsUnit);renderBS();renderSheet()});
 $("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>setView(b.dataset.v));
 $("bsInfo").onclick=()=>toggleHelp($("bsHelp").hidden);
-$("pjList").addEventListener("click",muClick,true);
+$("pjList").addEventListener("click",muClick,true);$("pjList").addEventListener("change",muChange);
 $("pjView").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjView=b.dataset.k;store.set("pjView",S.pjView);renderPJ();window.scrollTo(0,0)});
 $("pjWk").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjWk=Math.max(0,S.pjWk+ +b.dataset.d);S.sgOpen=null;renderPJ()});
 document.querySelectorAll(".lgf").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>{S.lgF=b.dataset.k;store.set("lgF",S.lgF);renderPJ();renderRK()}));
