@@ -1,6 +1,7 @@
 # RotoWire's NBA news RSS (fetch-news.js -> data/news.json). The feed holds only the newest few
 # items, so this checks every 15 minutes through the NBA day and keeps everything it has seen for
-# 3 days. A run with nothing new commits nothing. The push redeploys Pages.
+# 3 days. Each item is also read as a status and applied to data/injuries.json, so the news moves
+# availability and minutes everywhere. A run with nothing new commits nothing. The push redeploys Pages.
 name: News
 
 on:
@@ -31,8 +32,7 @@ jobs:
 
       - name: Commit if changed
         run: |
-          [ -f data/news.json ] || exit 0
-          git add data/news.json
+          for f in data/news.json data/injuries.json; do [ -f "$f" ] && git add "$f"; done; true
           if git diff --cached --quiet; then echo "No change"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"

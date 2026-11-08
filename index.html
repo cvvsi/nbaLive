@@ -94,6 +94,7 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .nwh{display:flex;align-items:baseline;gap:6px;font:500 13.5px/1.3 var(--name)}.nwh b{font-weight:700}.nwh .ar{color:var(--dim);font-size:12px}.nwh .d{margin-left:auto;color:var(--dim);font:500 11px/1 var(--num);white-space:nowrap}
 .nwt{font:600 13.5px/1.35 var(--name);color:var(--ink);margin-top:2px}.nwd{font:500 13px/1.4 var(--name);color:var(--dim);margin-top:2px}
 .nwg{font:500 12.5px/1.4 var(--name);color:var(--dim);margin-top:4px}.nwg b{color:var(--pos);font-weight:600}.nwg span{cursor:pointer;color:var(--ink)}
+.nwx{font:600 10.5px/1 var(--name);letter-spacing:.02em;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:1px;white-space:nowrap;background:var(--cell);color:var(--ink)}.nwx.o{background:color-mix(in srgb,var(--neg) 20%,var(--cell));color:var(--neg)}.nwx.a{background:color-mix(in srgb,var(--pos) 18%,var(--cell));color:var(--pos)}
 .nwl{display:inline-block;margin-top:4px;font:600 11.5px/1 var(--name);color:var(--ball);text-decoration:none}
 .nwp{margin:10px 0 4px;padding:10px 12px;border-radius:10px;background:var(--panel);border:1px solid var(--rule)}.nwp .nwh b{font-weight:600}
 .tnt .blk{border:1px solid var(--rule);border-radius:10px;padding:10px 12px;margin:0 0 12px;background:var(--panel)}
@@ -1765,7 +1766,8 @@ function opp(t,d){for(const[a,h]of(SC&&SC.dates[d])||[]){if(a===t)return"@ "+h;i
 // no games and Season shows "?". Anything else (day-to-day, questionable) plays, flagged.
 const ijOf=id=>IJ&&IJ.players[id];
 const ijOut=i=>!!i&&/out|suspen/i.test(i[0]);
-const avail=(id,d)=>{const i=ijOf(id);return !ijOut(i)||(!!i[1]&&d>=i[1])};
+// field 6 (from the news): single later games he'll miss, on top of the status and return date
+const avail=(id,d)=>{const i=ijOf(id);if(i&&i[6]&&i[6].includes(d))return false;return !ijOut(i)||(!!i[1]&&d>=i[1])};
 // ---- Next man up: Proj minutes by date. regression.json's nm gives, for every regular, each
 // teammate's minutes change [dWith, dOut] against his Proj minutes: with the regular playing,
 // and while he's out (his minutes in the games already missed, blended with half the
@@ -1796,7 +1798,8 @@ function minAt(id,q,d){const C=nmC(),base=q.xp[0];let up=0,dn=0,own=1;
     const x=e.m[id];if(!x)continue;
     const v=p<0?x[1]:p>0?x[0]+(x[1]-x[0])*NMKEEP[p-1]:x[0];
     if(v>up)up=v;if(v<dn)dn=v}
-  return Math.max(0,Math.min(42,(base+up+dn)*own))}
+  const i=ijOf(id),cap=i&&i[5]&&i[5][d];   // a minutes cap from the news ("limited to 16-20 minutes")
+  return Math.max(0,Math.min(42,cap||42,(base+up+dn)*own))}
 // Proj's line at other minutes: per-minute rates and shooting % stay, counts scale.
 function lineAt(q,m){const b=xpLine(q);if(!(b.min>0)||Math.abs(m-b.min)<.05)return b;const f=m/b.min,o={};for(const k in b)o[k]=k==="min"?m:b[k]*f;return o}
 const zAt=(q,m)=>Math.abs(m-q.xp[0])<.05?zx(q):pjZ(lineAt(q,m));
@@ -2004,11 +2007,19 @@ const agoTxt=t=>{const m=Math.max(0,(Date.now()-Date.parse(t))/6e4);return m<60?
 const NWOUT=/\b(out|questionable|doubtful|won't play|will not play|miss(es|ing)?|sidelined|ruled out|game-time|day-to-day|not expected)\b/i,NWIN=/\b(available|will play|cleared|upgraded|returns?|returning|active)\b/i;
 function nwGain(id){const e=G&&G.nm&&G.nm[id];if(!e||!e.m)return[];
   return Object.entries(e.m).map(([t,x])=>({t,v:x[1]-x[0],q:G.players[t]})).filter(o=>o.q&&o.v>=2).sort((a,b)=>b.v-a.v).slice(0,3)}
+// What the item changed in the projections (fetch-news.js read it as a status for a game): shown
+// as a chip so it's clear the news is in Week / Today / Matchup, not just on this list.
+function nwFx(i){const p=i.p;if(!p||!i.id)return"";const dd=d=>d?fmtDate(d).replace(/,.*$/,""):"",out=[];
+  if(p.s==="Out"||p.s==="Doubtful")out.push(p.ret&&p.ret>shift(p.dt||etToday(),1)?`Out until ${fmtDate(p.ret).replace(/^\w+, /,"")}`:`Out ${dd(p.dt)}`);
+  else if(p.s==="Questionable"||p.s==="Probable")out.push(`${p.s==="Questionable"?"Q":"P"} ${dd(p.dt)}`);
+  else if(p.s==="Available")out.push(`Plays ${dd(p.dt)}`);
+  if(p.mx)out.push(`≤${p.mx} min`);
+  return out.length?` <span class="nwx${p.s==="Out"||p.s==="Doubtful"?" o":p.s==="Available"?" a":""}" title="Applied to projections">${out.join(" · ")}</span>`:""}
 function nwCard(i){const q=i.id&&G&&G.players[i.id],r=i.id&&R&&R.players[i.id],tm=(q&&q.t)||(r&&r.t)||"",txt=i.h+" "+i.d;
   const g=NWOUT.test(txt)&&!NWIN.test(i.h)?nwGain(i.id):[];
   const tg=id=>{if(!ML)return"";const t=lgOf(id);return t==null?`<i class="lgt fa">FA</i>`:t===String(ML.me)?`<i class="lgt">Mine</i>`:""};
   return`<div class="nwc"${i.id?` data-id="${i.id}"`:""}><div class="nwh"><b>${esc(i.n)}</b>${tm?`<span class="ar">${tm}</span>`:""}${i.id?tg(i.id):""}<span class="d">${agoTxt(i.t)}</span></div>
-    <div class="nwt">${esc(i.h)}</div><div class="nwd">${esc(i.d)}</div>
+    <div class="nwt">${esc(i.h)}${nwFx(i)}</div><div class="nwd">${esc(i.d)}</div>
     ${g.length?`<div class="nwg">If he sits: ${g.map(o=>`<span data-id="${o.t}">${esc(surname(o.q.n))} <b>+${Math.round(o.v)} min</b>${tg(o.t)}</span>`).join(" · ")}</div>`:""}
     <a class="nwl" href="${esc(i.u)}" target="_blank" rel="noopener">RotoWire ›</a></div>`}
 function newsHTML(){if(!NW||!NW.items||!NW.items.length)return"";

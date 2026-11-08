@@ -38,6 +38,10 @@ jobs:
         run: |
           command -v pdftotext || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
           node fetch-nba-injuries.js
+      # RotoWire news read as statuses, applied over both reports (fetch-news.js --apply).
+      - name: News statuses
+        continue-on-error: true
+        run: node fetch-news.js --apply
       # Today's starting lineups from NBA.com (Expected, then Confirmed ~30 min before tip).
       - name: Starting lineups
         continue-on-error: true
