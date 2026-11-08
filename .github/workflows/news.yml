@@ -1,0 +1,40 @@
+# RotoWire's NBA news RSS (fetch-news.js -> data/news.json). The feed holds only the newest few
+# items, so this checks every 15 minutes through the NBA day and keeps everything it has seen for
+# 3 days. A run with nothing new commits nothing. The push redeploys Pages.
+name: News
+
+on:
+  # The real trigger is cron-job.org (see README, "Scheduling"): every 15 minutes, 9am to 1:45am ET.
+  # The same window stays here as a backup (UTC; ET + 5 in winter).
+  schedule:
+    - cron: "*/15 0-6,14-23 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: news
+  cancel-in-progress: false
+
+jobs:
+  news:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: node fetch-news.js
+
+      - name: Commit if changed
+        run: |
+          [ -f data/news.json ] || exit 0
+          git add data/news.json
+          if git diff --cached --quiet; then echo "No change"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git commit -m "News $(node -p "const j=require('./data/news.json');j.items.length+' items, newest '+(j.items[0]||{}).n")"
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs && git push && exit 0; git rebase --abort 2>/dev/null; sleep $((i*4)); done; exit 1

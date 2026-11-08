@@ -101,6 +101,12 @@ Each row: **Now** (season rank), **Proj**, **LY** (last season's final per-game 
   - **Tonight's line:** the market's average for each stat it priced and Proj for the rest. Shot attempts (and turnovers, if not priced) scale with the market's points, so FG%/FT% stay Proj's but carry the role the market expects. Market names are matched to ESPN's exactly, then by team + last name + first initial ("Herb" Jones).
   - **No line:** a regular (18+ projected minutes) whose teammates have props but who has none is often out; if ESPN's report doesn't list him, he goes under "No line posted".
 
+## News (RotoWire)
+
+`fetch-news.js` reads RotoWire's public NBA news RSS (`https://www.rotowire.com/rss/news.php?sport=NBA`): one item per player update, with a headline, the first sentence of the blurb (often naming the source: "..., Will Gotlieb of CHGO reports"), a link to the player's RotoWire page and a time. The feed only holds the newest few items, so the **News** job (`.github/workflows/news.yml`) checks every 15 minutes from 9am to 1:45am ET and keeps every item it has seen for 3 days in `data/news.json`; a run with nothing new commits nothing. Names are matched to ESPN ids (rankings, regression, then the injury report). The page can't read the feed itself (no CORS), so it reads `news.json`.
+
+On the Injuries tab, a **News · RotoWire** block lists the newest items (All / Mine / My matchup with a synced league), each with the time since, Mine / FA tags, a **RotoWire ›** link, and for an absence an "If he sits" line: the teammates who gain 2+ minutes while he's out (Next man up's dOut − dWith), tagged FA when they're free agents in your league. The player page shows his latest item. RotoWire's text is shown credited, with a link back.
+
 ## Yahoo Buzz Index
 
 `fetch-buzz.js` runs in its own Action (`.github/workflows/buzz.yml`) at 4:37, 5:37 and 6:37am ET (after Yahoo's ~3am waivers), 12:37 and 3:37pm, games or not, and also inside the Rankings and Props jobs. It writes `data/buzz.json`: yesterday's (final) and today's (so far, under `today`) most added and most dropped players across all Yahoo leagues, from the public [Buzz Index](https://basketball.fantasysports.yahoo.com/nba/buzzindex) page (no login). Each row has adds, drops, trades and % rostered / started. The page is parsed from HTML, so if Yahoo changes its layout the run fails with "No rows parsed" and the rankings are unaffected. Run it by hand from *Actions → Buzz → Run workflow*. The morning report judges each move as Follow or Fade.
@@ -115,6 +121,7 @@ GitHub's own scheduled runs proved unreliable here (Rankings 8+ hours late, or s
 | Buzz | `37 4,5,6,12,15 * * *` | `.../workflows/buzz.yml/dispatches` | `{"ref":"main"}` |
 | Props | `13 16,18 * * *` | `.../workflows/props.yml/dispatches` | `{"ref":"main","inputs":{"mode":"run"}}` |
 | Injuries | `31 12,17,18 * * *` | `.../workflows/injuries.yml/dispatches` | `{"ref":"main"}` |
+| News | `*/15 0,1,9-23 * * *` | `.../workflows/news.yml/dispatches` | `{"ref":"main"}` |
 
 Headers on each: `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`, `Content-Type: application/json`. Success is `204 No Content`; failures email the account.
 
