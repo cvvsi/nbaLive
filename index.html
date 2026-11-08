@@ -689,10 +689,8 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 /* ---- Desktop (1100px+): its own layout. Tabs move into the top bar (no bottom strip, nothing
    slides away), Ranks and Proj become one dense table across the full width (dtab()), and the
    Cards / List switch goes (the table replaces both). Phones never see any of this. */
-.dsk{display:none!important}
 @media (min-width:1100px){
   body{padding-bottom:24px}
-  .dsk{display:inline-block!important}
   .tabbar{top:0;bottom:auto;left:170px;right:auto;height:var(--bar);background:none;border:0;box-shadow:none;padding:0;gap:2px;z-index:11;transform:none!important}
   .tabbar button{flex:none;height:30px;padding:0 13px;font-size:13.5px;border-radius:15px}
   .tabbar button:not([aria-pressed="true"]):hover{color:var(--ink);background:var(--cell)}
@@ -700,8 +698,6 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
   .bar .mark{margin-right:auto}.bar .asof{margin-right:8px}
   .bar .datenav{margin:0 6px 0 0;flex:none}
   #densBtn{display:none!important}
-  #list.bxt{display:block!important;max-width:1500px!important}
-  body:not([data-view="box"]) #list.bxt{display:none!important}
   .psp{max-width:760px}.psp .rtiles,.psp .rks{gap:8px}
   #bzList{max-width:1500px!important}body[data-view="bz"] #bzList{display:block}
   #bzSort{display:none!important}
@@ -743,11 +739,6 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .dt td.hn1{background:color-mix(in srgb,var(--neg) 10%,transparent)}.dt td.hn2{background:color-mix(in srgb,var(--neg) 20%,transparent)}.dt td.hn3{background:color-mix(in srgb,var(--neg) 32%,transparent);font-weight:600}
 .dt td.mk{text-decoration:underline;text-underline-offset:3px}
 .dt .vl{font-weight:600;font-size:13.5px;padding-right:12px}.dt th.vh{padding-right:12px}
-.bxdt td{padding-top:3px;padding-bottom:3px}.bxdt .dm{color:var(--dim)}.bxdt td.big{font-weight:700}
-.bxdt td.ld{font-size:12px;color:var(--dim)}.bxdt td.ld.hi{color:var(--ink);font-weight:600}.bxdt td.ld.lo{opacity:.55}.bxdt td.ld.up{background:color-mix(in srgb,var(--pos) 24%,transparent);color:var(--ink)}.bxdt td.ld.dn{background:color-mix(in srgb,var(--neg) 20%,transparent);color:var(--ink)}
-.bxdt .dht{text-align:left;white-space:nowrap}.bxdt .dht .ht{font:600 11px/1 var(--name);color:var(--ball);margin-right:6px}
-.bxdt .dpl{width:22%}.bxdt .mu{font:600 10.5px/1 var(--name);color:var(--ball);margin-left:3px}
-.bxdt tr.dgh td{background:var(--cell);font:500 12.5px/1 var(--name);color:var(--dim);padding:8px 10px}.bxdt tr.dgh b{color:var(--ink);font-weight:700;margin-right:4px}
 </style>
 </head>
 <body>
@@ -792,7 +783,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
     <div class="meta">
       <span id="status" class="num">Loading</span>
       <div class="sort" id="sortSeg">
-        <button data-k="value" aria-pressed="true">Value</button><button data-k="min">Min</button><button data-k="usg">Usg</button><button data-k="movers" id="moversBtn" hidden>Movers</button><button id="teamBtn" aria-pressed="false" title="Group by team">Teams</button><button id="bxTabBtn" class="dsk" aria-pressed="false" title="Table view (desktop)">Table</button>
+        <button data-k="value" aria-pressed="true">Value</button><button data-k="min">Min</button><button data-k="usg">Usg</button><button data-k="movers" id="moversBtn" hidden>Movers</button><button id="teamBtn" aria-pressed="false" title="Group by team">Teams</button>
       </div>
     </div>
     <div class="rkh" id="rkh" hidden><span>Szn</span><span>14</span><span>7</span><span>3G</span></div>
@@ -895,8 +886,6 @@ const CATS=[
   {k:"pts",l:"PTS"},{k:"reb",l:"REB"},{k:"ast",l:"AST"},{k:"tpm",l:"3PM"},{k:"stl",l:"STL"},
   {k:"blk",l:"BLK"},{k:"to",l:"TO"},{k:"fg",l:"FG%"},{k:"ft",l:"FT%"}];
 const SCATS=CATS;
-// Desktop layout (1100px+); see the desktop CSS block and dtab()/btab().
-const DESK=matchMedia("(min-width:1100px)");const isDesk=()=>DESK.matches;
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const S={date:null,events:[],players:[],game:"all",punt:new Set(store.get("punt",[])),
@@ -1151,31 +1140,8 @@ function render(){
       g.rows.forEach((p,i)=>out.push(prow(p,i+1)));
     }
   }else out=rows.map(p=>prow(p,0));
-  $("bxTabBtn").setAttribute("aria-pressed",!!S.bxTab);
-  $("list").classList.toggle("bxt",isDesk()&&!!S.bxTab);
-  if(isDesk()&&S.bxTab)return $("list").innerHTML=btab(rows);
   $("list").innerHTML=out.join("");
 }
-// Desktop Table view of the night (Cards stay the default; the switch is remembered): one row per
-// player with tonight's line (cells tinted by tonight's z-score), MIN and USG, Value, the rank
-// ladder (Szn / 14D / 7D / L3, colored like the cards' ladder) and the hashtags. Headers sort
-// (same sorts as the bar above); Teams groups rows under a team header.
-S.bxTab=store.get("bxTab",false);
-function btab(rows){
-  const th=(k,l,c="")=>`<th class="n${c}${S.sort===k?" on":""}${S.punt.has(k)?" off":""}"${k?` data-bsort="${k}"`:""}>${l}${S.sort===k?" ▾":""}</th>`;
-  const lad=id=>WINS.map(w=>{const r=S.rk&&S.rk[w.k][id],m=S.mv&&S.mv[id];let cl=!r?"na":r<=TOP?"hi":r<=ROST?"":"lo";if(w.k==="g3"&&m)cl+=m.hot?" up":m.cold?" dn":"";return`<td class="n ld ${cl}${w.k==="season"?" sep":""}">${r||"–"}</td>`}).join("");
-  const cellv=(p,k)=>k==="fg"?`${p.fgm}/${p.fga}`:k==="ft"?`${p.ftm}/${p.fta}`:p[k];
-  const tr=p=>`<tr class="dtr" data-id="${esc(p.id)}" tabindex="0"><td class="drk">${p.rank}</td>
-    <td class="dpl"><span class="pn">${hs(p.eid||p.id)}<b>${esc(p.name)}</b><span class="mt">${p.team} ${p.home?"vs":"@"} ${p.opp}</span>${lgTagFA(p.eid)}</span></td>
-    <td class="n">${Math.round(p.min)}${minUp(p)}</td><td class="n dm">${p.usg!=null?Math.round(p.usg):"–"}</td>
-    ${DCOLS.map(k=>`<td class="n ${S.punt.has(k)?"off ":""}${dheat(p.z&&p.z[k])}${k==="pts"||k==="fg"?" sep":""}${hl(k,p).includes("good")||hl(k,p).includes("hi")?" big":""}">${cellv(p,k)}</td>`).join("")}
-    <td class="n vl ${vcls(p.value)}">${sgn(p.value)}</td>${lad(p.eid)}<td class="dht">${hashtags(p.eid)}</td></tr>`;
-  let body;
-  if(S.byTeam){const g=[];for(const p of rows){let t=g.find(x=>x.t===p.team);if(!t){t={t:p.team,o:p.opp,h:p.home,r:[]};g.push(t)}t.r.push(p)}
-    g.sort((a,b)=>Math.max(...b.r.map(sortKey))-Math.max(...a.r.map(sortKey)));
-    body=g.map(t=>`<tr class="dgh"><td colspan="21"><b>${t.t}</b> ${t.h?"vs":"@"} ${t.o} · ${t.r.length} played</td></tr>`+t.r.map(tr).join("")).join("")}
-  else body=rows.map(tr).join("");
-  return`<table class="dt bxdt"><thead><tr><th class="drk">#</th><th class="dpl">Player</th>${th("min","MIN")}${th("usg","USG")}${DCOLS.map(k=>th(k,CL[k].toUpperCase(),k==="pts"||k==="fg"?" sep":"")).join("")}${th("value","Value"," vh")}<th class="n sep">SZN</th><th class="n">14D</th><th class="n">7D</th><th class="n">L3</th><th class="dht"></th></tr></thead><tbody>${body}</tbody></table>`}
 // Card: name line (rank, name, team, minutes, Value), the big three beside the rank ladder
 // (Szn / 14 / 7 / last 3, labels attached), then the other six cats and any flags.
 const BIG=["pts","reb","ast"],SMALL=["tpm","stl","blk","to","fg","ft"];
@@ -1976,6 +1942,7 @@ const card=o=>S.dense?lrow(o):pjCard(o);
 // rank, name (team, injury, Mine / FA), the view's context (games, games left, tonight's opponent),
 // MIN, the 9 categories (each cell tinted by its z-score: the same dead zone and steps as the heat
 // strip) and Value. Click a header to sort by it (again to flip); a row opens the player page.
+const DESK=matchMedia("(min-width:1100px)");const isDesk=()=>DESK.matches;
 S.dsort=null;S.ddir=-1;
 const DCOLS=["pts","reb","ast","tpm","stl","blk","to","fg","ft"];
 function dheat(z){if(z==null||!isFinite(z))return"";const a=Math.abs(z);return a<.5?"":(z>0?"hp":"hn")+(a<1?1:a<2?2:3)}
@@ -2763,7 +2730,7 @@ document.querySelectorAll(".lgf").forEach(g=>g.querySelectorAll("button").forEac
 $("rfBtn").onclick=()=>{$("rfBtn").classList.add("go");setTimeout(()=>location.reload(),120)};
 for(const l of ["pjList","rkList"])$(l).addEventListener("click",e=>{const h=e.target.closest("[data-dsort]");if(!h)return;e.stopPropagation();
   const k=h.dataset.dsort;if(S.dsort===k)S.ddir=-S.ddir;else{S.dsort=k;S.ddir=-1}renderPJ();renderRK()},true);
-DESK.addEventListener("change",()=>{if(S.players.length)render();paintDens();renderPJ();renderRK();renderSC();if(BZ)renderBZ()});
+DESK.addEventListener("change",()=>{paintDens();renderPJ();renderRK();renderSC();if(BZ)renderBZ()});
 $("densBtn").onclick=()=>{S.dense=!S.dense;store.set("dense",S.dense);paintDens();renderPJ();renderRK()};
 // Bars slide away while scrolling down and come back on any scroll up (or near the top).
 {let lastY=scrollY;addEventListener("scroll",()=>{const y=scrollY,d=y-lastY;
@@ -2790,8 +2757,6 @@ $("gear").onclick=()=>{const o=$("sheet").hidden;$("sheet").hidden=!o;$("gear").
 $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
 $("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>setSort(b.dataset.k));
 $("teamBtn").onclick=()=>{S.byTeam=!S.byTeam;store.set("byTeam",S.byTeam);render()};
-$("bxTabBtn").onclick=()=>{S.bxTab=!S.bxTab;store.set("bxTab",S.bxTab);render()};
-$("list").addEventListener("click",e=>{const h=e.target.closest("[data-bsort]");if(!h)return;e.stopPropagation();const k=h.dataset.bsort;setSort(S.sort===k&&k!=="value"?"value":k)},true);
 function paintPool(){$("poolSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===S.pool))}
 $("poolSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pool=+b.dataset.v;store.set("pool",S.pool);paintPool();
   if(S.players.length){compute();render()}});
