@@ -87,12 +87,14 @@ for(const t of [...ids].sort((a,b)=>a-b)){const d=await get("/nba/"+lid+"/"+t);
   for(const a of d.querySelectorAll("a.name[data-ys-playerid]")){const tr=a.closest("tr"),td=a.closest("td"),s=td&&td.querySelector(".Fz-xxs"),x=((s&&s.textContent)||"").match(/^\\s*([A-Za-z]+)\\s*-/);
     p.push([a.getAttribute("data-ys-playerid"),a.getAttribute("title")||a.textContent.trim(),x?x[1].toUpperCase():"",t,(tr&&tr.getAttribute("data-pos"))||""])}}
 if(!p.length){alert("Couldn't read any rosters. Make sure you're signed in to Yahoo on this browser.");return}
-let mu=null;try{const d=await get("/nba/"+lid+"/matchup"),tb=[...d.querySelectorAll("table")].find(t=>/Score/.test((t.querySelector("thead")||{}).textContent||""));
-  if(tb){const lab=[...tb.querySelectorAll("thead th")].map(x=>x.textContent.trim()),rows=[...tb.querySelectorAll("tbody tr")].map(tr=>{const a=tr.querySelector("a[href]"),id=a&&((a.getAttribute("href")||"").match(/\\/nba\\/\\d+\\/(\\d+)/)||[])[1];return{id,v:[...tr.querySelectorAll("td")].slice(1).map(x=>x.textContent.trim())}});
-    const hrefs=[...d.querySelectorAll("a[href*='week=']")].map(a=>a.getAttribute("href")||""),wk=(hrefs.map(h=>h.match(/week=(\\d+)[^"]*date=/)).find(Boolean)||[])[1],
-      dates=[...new Set(hrefs.filter(h=>wk&&h.includes("week="+wk+"&")).map(h=>(h.match(/date=(\\d{4}-\\d\\d-\\d\\d)/)||[])[1]).filter(Boolean))].sort();
-    if(rows.length===2)mu={week:wk?+wk:null,dates,lab,rows}}}catch(e){}
+const readMu=d=>{const tb=[...d.querySelectorAll("table")].find(t=>/Score/.test((t.querySelector("thead")||{}).textContent||""));if(!tb)return null;
+  const lab=[...tb.querySelectorAll("thead th")].map(x=>x.textContent.trim()),rows=[...tb.querySelectorAll("tbody tr")].map(tr=>{const a=tr.querySelector("a[href]"),id=a&&((a.getAttribute("href")||"").match(/\\/nba\\/\\d+\\/(\\d+)/)||[])[1];return{id,v:[...tr.querySelectorAll("td")].slice(1).map(x=>x.textContent.trim())}});
+  const hrefs=[...d.querySelectorAll("a[href*='week=']")].map(a=>a.getAttribute("href")||""),wk=(hrefs.map(h=>h.match(/week=(\\d+)[^"]*date=/)).find(Boolean)||[])[1],
+    dates=[...new Set(hrefs.filter(h=>wk&&h.includes("week="+wk+"&")).map(h=>(h.match(/date=(\\d{4}-\\d\\d-\\d\\d)/)||[])[1]).filter(Boolean))].sort();
+  return rows.length===2?{week:wk?+wk:null,dates,lab,rows}:null};
+let mu=null;try{mu=/\\/matchup/.test(location.pathname)?readMu(document):null;if(!mu)mu=readMu(await get("/nba/"+lid+"/matchup"))}catch(e){}
 
+if(!mu)alert("Rosters synced. To include this week's matchup, open your Matchup page on Yahoo and run this again from there.");
 location.href=${JSON.stringify(target)}+"#league="+encodeURIComponent(JSON.stringify({v:1,lid,at:new Date().toISOString(),me,teams,p,act,mu}))
 }catch(e){alert("Sixth Man sync failed: "+e.message)}})()`;
   return "javascript:"+encodeURIComponent(src.replace(/\n/g,""));
@@ -106,7 +108,9 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.
 function paint(){const L=store.get("league",null),el=document.getElementById("st");
   if(!L){el.innerHTML=`<p class="dim">No league saved on this device yet.</p>`;return}
   const d=new Date(L.at),n=Object.keys(L.teams||{}).length,mine=(L.teams||{})[L.me]||"–";
-  el.innerHTML=`<p>Synced <b>${d.toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</b> · ${n} teams · ${L.p.length} players · your team: <b>${mine.replace(/[<>&]/g,"")}</b></p>`}
+  const op=L.mu&&L.mu.rows&&L.mu.rows.find(r=>r.id!==String(L.me)),opn=op&&L.teams&&L.teams[op.id];
+  el.innerHTML=`<p>Synced <b>${d.toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</b> · ${n} teams · ${L.p.length} players · your team: <b>${mine.replace(/[<>&]/g,"")}</b></p>`
+    +`<p>Matchup: ${L.mu?`<b>week ${L.mu.week||"?"} vs ${String(opn||"opponent").replace(/[<>&]/g,"")}</b>`:`<b>not saved</b>. Run the bookmark from your Yahoo Matchup page to include it.`}</p>`}
 paint();
 document.getElementById("forget").onclick=()=>{if(confirm("Remove your saved league from this device?")){store.del("league");store.del("lgF");paint()}};
 </script>
