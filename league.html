@@ -55,7 +55,7 @@ a{color:var(--ball)}
   <div class="card">
     <h2>iPhone (Safari)</h2>
     <ol>
-      <li>Tap <button id="cp">Copy bookmark code</button> <span class="dim" id="cpd"></span> <span class="dim">· bookmark v2</span></li>
+      <li>Tap <button id="cp">Copy bookmark code</button> <span class="dim" id="cpd"></span> <span class="dim">· bookmark v3</span></li>
       <li>Bookmark any page (Share → Add Bookmark), name it <b>Sync to Sixth Man</b>, save.</li>
       <li>Open Bookmarks, tap Edit, tap the new bookmark, replace its address with the copied code, Done.</li>
       <li>To sync: open your league at basketball.fantasysports.yahoo.com in Safari (signed in), tap the address bar, type <b>Sync</b> and pick the bookmark (or open it from Bookmarks).</li>
@@ -102,9 +102,12 @@ const viaFrame=u=>new Promise(res=>{const f=document.createElement("iframe");f.s
 let mu=null;try{mu=/\\/matchup/.test(location.pathname)?readMu(document):null;if(!mu)mu=readMu(await get("/nba/"+lid+"/matchup"))}catch(e){}
 if(!mu)try{mu=await viaFrame("/nba/"+lid+"/matchup")}catch(e){}
 
-if(!mu)alert("(v2) Rosters synced, but this week's matchup couldn't be read. Open your Matchup page on Yahoo and run this again from there.");
-location.href=${JSON.stringify(target)}+"#league="+encodeURIComponent(JSON.stringify({v:1,lid,at:new Date().toISOString(),me,teams,p,act,mu}))
-}catch(e){alert("Sixth Man sync (v2) failed: "+e.message)}})()`;
+const readSched=d=>{const o={},tb=[...d.querySelectorAll("table")].find(t=>{const h=(t.querySelector("thead")||{}).textContent||"";return /\\bWk\\b/.test(h)&&/Opponent/.test(h)});if(!tb)return o;for(const tr of tb.querySelectorAll("tbody tr")){const w=parseInt((tr.querySelector("td")||{}).textContent),a=[...tr.querySelectorAll("a[href]")].map(a=>(a.getAttribute("href")||"").match(/\\/nba\\/\\d+\\/(\\d+)\\/?$/)).find(Boolean);if(w&&a)o[w]=a[1]}return o};
+let sched={};if(me)try{sched=readSched(await get("/nba/"+lid+"/?module=standings&lhst=sched&sctype=team&scmid="+me))}catch(e){}
+if(!Object.keys(sched).length)sched=readSched(home);
+if(!mu)alert("(v3) Rosters synced, but this week's matchup couldn't be read. Open your Matchup page on Yahoo and run this again from there.");
+location.href=${JSON.stringify(target)}+"#league="+encodeURIComponent(JSON.stringify({v:1,lid,at:new Date().toISOString(),me,teams,p,act,mu,sched}))
+}catch(e){alert("Sixth Man sync (v3) failed: "+e.message)}})()`;
   return "javascript:"+encodeURIComponent(src.replace(/\n/g,""));
 }
 const target=new URL("./",location.href).href,code=bookmarklet(target);

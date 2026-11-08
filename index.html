@@ -2105,7 +2105,7 @@ function renderMU(){
   const m=muSel(`${ML.lid||""}|${dates[0]}`),off=muOff(m),F=muFocus(m),C={};
   const teams=Object.keys(ML.teams).filter(t=>t!==me);
   const R0=isS?mu.rows.find(r=>r.id===me)||mu.rows[0]:null,R1=isS?mu.rows.find(r=>r!==R0):null;
-  const opId=isS?R1.id:(m.opp&&ML.teams[m.opp]?m.opp:teams[0]);
+  const sch=ML.sched&&wkNo?String(ML.sched[wkNo]||""):"",opId=isS?R1.id:(m.opp&&ML.teams[m.opp]?m.opp:ML.teams[sch]&&sch!==me?sch:teams[0]);
   const cur=r=>{const o={};CATS.forEach(c=>o[c.k]=0);if(r)mu.lab.forEach((l,i)=>{const k=MUK[l];if(k){const v=parseFloat(String(r.v[i]).replace(/^\./,"0."));o[k]=Number.isFinite(v)?v:0}});return o};
   const cA=cur(R0),cB=cur(R1);
   // days still to play: on the synced week, those not yet in Yahoo's totals (after the sync day, or
@@ -2170,7 +2170,7 @@ function renderMU(){
   $("pjList").innerHTML=`<div class="mux">
     <div class="mtop">
       <div class="mwk"><button class="mar" data-mu="wk" data-x="-1"${canPrev?"":" disabled"} aria-label="Previous week">‹</button><span><b>${wkNo?"Week "+wkNo:"Week"}</b> ${sh(dates[0])}–${sh(dates[dates.length-1])}${isS?"":` <i>projection only</i>`}</span><button class="mar" data-mu="wk" data-x="1"${canNext?"":" disabled"} aria-label="Next week">›</button></div>
-      <div class="muh"><div><b>${esc(nameA)}</b><i class="${O.won>O.lost?"up":O.won<O.lost?"dn":""}">${O.won}</i></div><span>${O.n-O.won-O.lost?`${O.n-O.won-O.lost} even`:"vs"}</span><div>${isS?`<b>${esc(nameB)}</b>`:`<select class="mop" data-mu-opp aria-label="Opponent">${teams.map(t=>`<option value="${t}"${t===opId?" selected":""}>${esc(ML.teams[t])}</option>`).join("")}</select>`}<i>${O.lost}</i></div></div>
+      <div class="muh"><div><b>${esc(nameA)}</b><i class="${O.won>O.lost?"up":O.won<O.lost?"dn":""}">${O.won}</i></div><span>${O.n-O.won-O.lost?`${O.n-O.won-O.lost} even`:"vs"}</span><div>${isS?`<b>${esc(nameB)}</b>`:`<select class="mop" data-mu-opp aria-label="Opponent">${teams.map(t=>`<option value="${t}"${t===opId?" selected":""}>${esc(ML.teams[t])}${t===sch?" (scheduled)":""}</option>`).join("")}</select>`}<i>${O.lost}</i></div></div>
       <div class="mue">Expected <b>${O.exp.toFixed(1)}</b> of ${O.n} categories${moved?` <span class="${O.exp-O0.exp>=0?"up":"dn"}">(${O.exp-O0.exp>=0?"+":"−"}${Math.abs(O.exp-O0.exp).toFixed(1)} with your moves)</span> <button class="mrs" data-mu="reset">Reset</button>`:""}</div>
     </div>
     ${stale}${m.add.size||m.drop.size?`<div class="mwi"><b>What-if</b> (not on Yahoo): ${[...[...m.add].filter(id=>G.players[id]).map(id=>`<span class="up">+ ${esc(nm(G.players[id].n))}</span>`),...[...m.drop].filter(id=>G.players[id]).map(id=>`<span class="dn">− ${esc(nm(G.players[id].n))}</span>`)].join(" · ")}</div>`:""}
