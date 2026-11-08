@@ -154,7 +154,7 @@ Fields used:
 
 ## Project layout
 
-Everything lives in one file: **`index.html`**. There is no build step and no dependencies besides two Google Fonts.
+Everything lives in one file: **`index.html`**. Icons (bookmark, browser tab, home screen) are PNGs in `icons/` (a dark square with an orange 6 and the logo dot), linked from each page's <head>; `favicon.ico` at the root is a copy of the 32px one. There is no build step and no dependencies besides two Google Fonts.
 
 Inside `index.html`, in order:
 
