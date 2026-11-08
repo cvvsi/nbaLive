@@ -2355,11 +2355,17 @@ function renderMU(){
   const mine=[...base.filter(o=>!m.drop.has(o.id)),...[...m.add].filter(id=>G.players[id]&&G.players[id].xp&&x.own[id]==null).map(id=>({...P(id),nw:1}))];
   // the days already played (synced week): attempts behind Yahoo's FG% / FT% (it shows only the %)
   // and games played so far, both estimated from Proj on those days
-  const PA=muSim(base,past,capA,F,null,C),PB=muSim(oppR,past,capB,F,null,C),pA=PA.tot,pB=PB.tot;
+  // Yahoo shows only FG% / FT%, so the attempts behind them are estimated from its points so far
+  // (points track shot volume) at the roster's projected attempts per point; games so far likewise
+  // from points per player-game. (schedule.json only holds dates still to come, so the days already
+  // played can't be simulated.)
+  const estPast=(ps,c)=>{const L=ps.filter(o=>!o.il).map(o=>xpLine(o.q)),sum=k=>L.reduce((a,l)=>a+(l[k]||0),0),pts=sum("pts")||1;
+    return{fga:c.pts*sum("fga")/pts,fta:c.pts*sum("fta")/pts,g:L.length?c.pts/(pts/L.length):0}};
+  const pA=isS?estPast(base,cA):{fga:0,fta:0,g:0},pB=isS?estPast(oppR,cB):{fga:0,fta:0,g:0};
   const B=muSim(oppR,rest,capB,F,null,C),A=muSim(mine,rest,capA,F,m.set,C),O=muOdds(cA,cB,pA,pB,A,B,off);
   const moved=m.add.size||m.drop.size||Object.keys(m.set).length,O0=moved?muOdds(cA,cB,pA,pB,muSim(base,rest,capA,F,null,C),B,off):O;
   const dExp=ps=>muOdds(cA,cB,pA,pB,muSim(ps,rest,capA,F,m.set,C),B,off).expP-O.expP;
-  const gSum=T=>Object.values(T.g).reduce((a,b)=>a+b,0),gA=gSum(A),gB=gSum(B),gTA=gA+gSum(PA),gTB=gB+gSum(PB);
+  const gSum=T=>Object.values(T.g).reduce((a,b)=>a+b,0),gA=gSum(A),gB=gSum(B),gTA=gA+Math.round(pA.g),gTB=gB+Math.round(pB.g);
   // League scouting: every team's projected totals for the whole week (your what-if moves included),
   // each category ranked 1 (best) to n; shown as a badge on a total only when it's top or bottom 3.
   const all=Object.keys(ML.teams),FA=CATS.map(c=>c.k).filter(k=>!S.punt.has(k));
