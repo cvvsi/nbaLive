@@ -236,6 +236,11 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .srbtn{flex:none;width:34px;height:34px;display:grid;place-items:center;color:var(--dim);border-radius:6px}
 .srbtn svg{width:19px;height:19px}
 .srbtn:active{background:var(--cell)}
+.rfbtn{flex:none;width:30px;height:34px;display:grid;place-items:center;color:var(--dim);border-radius:6px}
+.rfbtn svg{width:17px;height:17px}
+.rfbtn:active{background:var(--cell)}
+.rfbtn.go svg{animation:rfspin .7s linear infinite}
+@keyframes rfspin{to{transform:rotate(360deg)}}
 /* player search: full screen over the tabs, under the player page (.ps, z 50), so back from a
    player returns to the results */
 .sr{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column}
@@ -631,6 +636,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
     <button class="arrow" id="next" aria-label="Next day">›</button>
   </div>
   <button class="dens" id="densBtn" hidden aria-label="Switch between cards and list" title="Cards / List"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+  <button class="rfbtn" id="rfBtn" aria-label="Refresh" title="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v4.5h-4.5"/></svg></button>
   <button class="srbtn" id="srBtn" aria-label="Search players" title="Search players (/)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button>
   <button class="gear" id="gear" aria-expanded="false" aria-controls="sheet">Punt</button>
 </div>
@@ -2471,6 +2477,8 @@ $("pjList").addEventListener("click",muClick,true);
 $("pjView").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjView=b.dataset.k;store.set("pjView",S.pjView);renderPJ();window.scrollTo(0,0)});
 $("pjWk").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjWk=Math.max(0,S.pjWk+ +b.dataset.d);S.sgOpen=null;renderPJ()});
 document.querySelectorAll(".lgf").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>{S.lgF=b.dataset.k;store.set("lgF",S.lgF);renderPJ();renderRK()}));
+// Refresh: reload the page (keeps the tab via the hash); the icon spins until it does.
+$("rfBtn").onclick=()=>{$("rfBtn").classList.add("go");setTimeout(()=>location.reload(),120)};
 $("densBtn").onclick=()=>{S.dense=!S.dense;store.set("dense",S.dense);paintDens();renderPJ();renderRK()};
 // Bars slide away while scrolling down and come back on any scroll up (or near the top).
 {let lastY=scrollY;addEventListener("scroll",()=>{const y=scrollY,d=y-lastY;
