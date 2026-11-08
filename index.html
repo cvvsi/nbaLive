@@ -512,6 +512,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .psp .chips{margin-top:10px}
 .psp .cmp{max-width:none}
 .stk .d{width:auto;color:var(--ink)}
+.ptb{margin-top:10px;padding:8px 10px;border:1px solid var(--ball);border-radius:8px;font:500 13px/1.35 var(--name);color:var(--ink)}.ptb b{color:var(--ball)}
 .stkn{margin:8px 0 0;font:500 12.5px/1.4 var(--name);color:var(--dim)}.stkn b{color:var(--ink)}
 .ups{margin-top:8px;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:9px;border:1px solid var(--ball)}
 .ups b{font:700 26px/1 var(--name);color:var(--ball)}.ups p{margin:0;font:500 13.5px/1.35 var(--name);color:var(--ink)}
@@ -1059,7 +1060,8 @@ function cmpTable(q){
     const c=at(r,k),y=at(b,k);let d="",cl="";
     if(c!=null&&y!=null){const h=bsDelta(k,c,y),dd=c-y;
       const t=fmt(Math.abs(dd));d=+t?(dd>0?"+":"−")+t:"0";cl=Math.abs(h)<.75?"":h>0?"up":"dn"}
-    return`<tr><td>${l}${sub!=null?`<i>${sub} att</i>`:""}</td><td class="now">${c==null?"–":fmt(c)}</td>`
+    const pt=S.punt.has(k==="tp"?"tpm":k)&&k!=="tp"&&k!=="mpg"&&k!=="usg";
+    return`<tr class="${pt?"off":""}"><td>${l}${sub!=null?`<i>${sub} att</i>`:""}${pt?" <i>punted</i>":""}</td><td class="now">${c==null?"–":fmt(c)}</td>`
       +(b?`<td class="ly">${y==null?"–":fmt(y)}</td><td class="d ${cl}">${d}</td>`:"")+"</tr>"};
   const pc=v=>v.toFixed(1),n0=v=>String(Math.round(v));
   return`<table class="cmp"><tr><th></th><th>This yr <i>${q.now[0]}g</i></th>${b?`<th>${lbl} <i>${q.bgp}g</i></th><th>Chg</th>`:""}</tr>`
@@ -1432,6 +1434,7 @@ function analyst(id,tn){
   if(b){
     // Shooting luck, with the attempts behind it.
     [["fg",0,"from the field",4,20],["tp",1,"from three",6,8],["ft",2,"at the line",7,6]].forEach(([k,i,l,th,mn])=>{
+      if(S.punt.has(k==="tp"?"tpm":k))return;   // punted: not part of his value here
       const c=at(r,k),y=at(b,k),n=q.att[i];if(c==null||y==null||n<mn)return;
       const o={c,y,n,l};if(c-y>=th)hot.push(o);else if(y-c>=th)cold.push(o)});
     const fmt=(a,first)=>andList(a.map((o,j)=>`${d1(o.c)}% ${o.l} on ${o.n} attempts (${d1(o.y)}%${j||!first?"":" "+lyIn})`));
@@ -1440,9 +1443,9 @@ function analyst(id,tn){
     if(cold.length&&hot.length)s.push(`The shooting luck is mixed: cold at ${fmt(cold,1)}, but hot at ${fmt(hot)}. Both should drift back toward ${lyT}${why}.`);
     else if(cold.length)s.push(`The shooting is running cold: ${fmt(cold,1)}. On a sample this size, that usually swings back${why}.`);
     else if(hot.length)s.push(`The shooting is running hot: ${fmt(hot,1)}. That's usually the first thing to cool off.`);
-    if(!hot.length&&!cold.length&&gp>=BSMIN_GP)s.push(`The shooting is in line with ${lyT}, so there's no obvious luck either way.`);
+    if(!hot.length&&!cold.length&&gp>=BSMIN_GP&&!(S.punt.has("fg")&&S.punt.has("ft")))s.push(`The shooting is in line with ${lyT}, so there's no obvious luck either way.`);
     // Other per-minute changes; steals and blocks are the noisiest.
-    const ch=["reb","ast","stl","blk","to"].map(k=>{const c=at(r,k),y=at(b,k);return{k,c,y,d:(c-y)/Math.max(y,BSFLOOR[k])}})
+    const ch=["reb","ast","stl","blk","to"].filter(k=>!S.punt.has(k)).map(k=>{const c=at(r,k),y=at(b,k);return{k,c,y,d:(c-y)/Math.max(y,BSFLOOR[k])}})
       .filter(o=>Math.abs(o.d)>=.3).sort((a,c)=>Math.abs(c.d)-Math.abs(a.d)).slice(0,2);
     if(ch.length){const def=ch.filter(o=>o.k==="stl"||o.k==="blk"),defUp=def.some(o=>o.d>=.5),dn=def.filter(o=>o.d<0).map(o=>CW[o.k]);
       s.push(`Per 36 minutes, ${andList(ch.map(o=>`${CW[o.k]} are ${o.d>0?"up":"down"} (${d1(o.c)}, from ${d1(o.y)})`))}`
@@ -1453,7 +1456,7 @@ function analyst(id,tn){
   let upR=0;
   if(q.up){const uv=B.val(q.up),ur=1+B.xs.filter(t=>t>uv).length;
     if(ur<=ROST&&ur<=(sure?x:now)-25){upR=ur;
-      const p36=["pts","tpm","reb","ast","stl","blk"].filter(k=>k==="pts"||at(r,k)>=({tpm:1,reb:6,ast:3,stl:.8,blk:.8})[k]).map(k=>`${d1(at(r,k))} ${CW[k]}`);
+      const p36=["pts","tpm","reb","ast","stl","blk"].filter(k=>!S.punt.has(k)).filter(k=>k==="pts"||at(r,k)>=({tpm:1,reb:6,ast:3,stl:.8,blk:.8})[k]).map(k=>`${d1(at(r,k))} ${CW[k]}`);
       s.push(`The per-minute production is the encouraging part: ${andList(p36)} per 36. At ${q.up[1]} minutes a game${sure?`, blended with ${lyT}`:""}, that would rank around #${ur}, so the upside rides on the role growing.`)}}
   // What the projected line says about the current rank.
   if(sure){
@@ -2138,6 +2141,9 @@ function renderSheet(){
   h.push(`<div class="hero">${mug({eid:id})}<div><h2>${esc(nm)}</h2><p>${sub}</p>${lgLine(id)}</div></div>`);
   const tg=(a.tag?`<span class="vt ${a.cls||"ok"}" style="margin:0">${a.tag}</span>`:"")+hashtags(id);
   if(tg)h.push(`<div class="hts">${tg}</div>`);
+  // Punts: say so up front; every rank, Value, Proj and the read below leave these out.
+  if(S.punt.size){const pl=CATS.filter(c=>S.punt.has(c.k)).map(c=>c.l);
+    h.push(`<div class="ptb">Punting <b>${pl.join(", ")}</b>: every rank, Value, projection and the read on this page leave ${pl.length>1?"them":"it"} out.</div>`)}
   // Tonight
   if(tn){
     const z=k=>tn.z[k],zs=k=>S.punt.has(k)?"punted":sgn(z(k),1);
@@ -2165,7 +2171,7 @@ function renderSheet(){
   // Ranks
   if(rq&&S.rk){
     const m=S.mv[id];
-    h.push(`<section class="blk"><h3>9-cat rank <span>top ${TOP} start · top ${ROST} rostered</span></h3><div class="tiles">${WINS.map(w=>{const a=rq.w[w.k];
+    h.push(`<section class="blk"><h3>${9-S.punt.size}-cat rank <span>top ${TOP} start · top ${ROST} rostered</span></h3><div class="tiles">${WINS.map(w=>{const a=rq.w[w.k];
       return tile({season:"Season",d14:"14 days",d7:"7 days",g3:"Last 3"}[w.k],a?S.rk[w.k][id]:0,a?(w.k==="g3"?a[0]+"/3 played":a[0]+"g · "+Math.round(a[1])+"m"):"",w.k==="g3"&&m?(m.hot?"up":m.cold?"dn":""):"")}).join("")}</div>
       ${q&&B?`<div class="tiles t3">${tile("Now",B.now[id],"this season")}${tile("Projected",hasPj(q)?B.x[id]:0,q.b?"if luck evens out":q.rk?"rookie estimate":"no baseline",B.v[id]==="buy"?"up":B.v[id]==="sell"?"dn":"")}${tile("Last season",B.ly[id],"final rank")}</div>`:""}</section>`);
   }
@@ -2223,7 +2229,7 @@ function cmpCounts(q){
   if(!q.b)return"";
   const F=G.rates,rows=["pts","reb","ast","tpm","stl","blk","to"].map(k=>{
     const c=unitVal(q.r,k,F),y=unitVal(q.b,k,F),h=bsDelta(k,c,y),d=c-y,cl=Math.abs(h)<.75?"":h>0?"up":"dn";
-    return`<tr><td>${WHYL[k]}</td><td class="now">${f1(c)}</td><td class="ly">${f1(y)}</td><td class="d ${cl}">${(d>0?"+":d<0?"−":"")+Math.abs(d).toFixed(1)}</td></tr>`}).join("");
+    return`<tr class="${S.punt.has(k)?"off":""}"><td>${WHYL[k]}${S.punt.has(k)?" <i>punted</i>":""}</td><td class="now">${f1(c)}</td><td class="ly">${f1(y)}</td><td class="d ${cl}">${(d>0?"+":d<0?"−":"")+Math.abs(d).toFixed(1)}</td></tr>`}).join("");
   return`<table class="cmp" style="margin-top:10px"><tr><th></th><th>Now</th><th>Before</th><th>Chg</th></tr>${rows}</table>`;
 }
 async function loadLog(id){
