@@ -518,11 +518,10 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .bom th{font:600 9.5px/1 var(--name);letter-spacing:.07em;text-transform:uppercase;color:var(--dim);text-align:right;padding:0 0 4px 10px}
 .bom td{padding:3px 0 3px 10px;text-align:right;color:var(--dim)}.bom td:first-child{padding-left:0;text-align:left;font:600 12px/1 var(--name);color:var(--dim)}
 .bom td b{color:var(--ink);font-weight:600}
-.bok{min-width:0;display:flex;flex-direction:column;gap:5px;padding-top:1px}
-.bok em{font:600 12px/1.2 var(--name);font-style:normal;color:var(--ink)}
-.bor{display:flex;flex-wrap:wrap;align-items:flex-end;gap:2px 5px}.bor s{text-decoration:none;color:var(--dim);font-size:12px;padding-bottom:1px}
-.bor span{display:flex;flex-direction:column;align-items:center}.bor i{font:600 9px/1 var(--name);letter-spacing:.06em;font-style:normal;color:var(--dim)}
-.bor b{font:600 12.5px/1.3 var(--num);color:var(--ink)}
+.bok{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding-top:15px}
+.bt{font:700 10.5px/1 var(--name);letter-spacing:.07em;text-transform:uppercase;color:var(--ink);border:1px solid var(--ink);border-radius:4px;padding:3px 5px}
+.bt.fi{color:var(--neg);border-color:var(--neg);text-transform:none;letter-spacing:0;font:600 12px/1.2 var(--name);padding:3px 6px}
+.bt.fi i{display:block;font:500 11px/1.2 var(--name);font-style:normal;opacity:.85;margin-top:1px}
 .lr.bo .bow{margin:3px 0 0 26px;font:500 12.5px/1.3 var(--name);color:var(--neg)}
 .stkn{margin:8px 0 0;font:500 12.5px/1.4 var(--name);color:var(--dim)}.stkn b{color:var(--ink)}
 .ups{margin-top:8px;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:9px;border:1px solid var(--ball)}
@@ -1194,7 +1193,8 @@ function boRow(o){
   const q=G.players[o.id]||{n:o.id,t:""},p=o.p,t=p.trig,b=o.s.best,x=S.bs&&S.bs.x[o.id];
   const n0=v=>v==null?"–":String(Math.round(v)),pc=v=>v==null?"–":Math.round(v)+"%";
   const rk=w=>S.rk&&S.rk[w]&&S.rk[w][o.id]?"#"+S.rk[w][o.id]:"–";
-  const trail=[["Szn","season"],["14D","d14"],["7D","d7"],["L3","g3"]].map(([l,w])=>`<span><i>${l}</i><b>${rk(w)}</b></span>`).join(`<s>›</s>`);
+  const tags=(t.kind==="start"?`<span class="bt">Starter</span>`:"")
+    +(t.opening?`<span class="bt fi">Filling in for ${esc(surname(t.opening))}<i>usually fades when he's back</i></span>`:"");
   const k=b.keys.length===1&&b.n>=BO_MIN_N&&b.rate>=o.s.base*1.2?b.keys[0]:null;
   const hist=k?`<div class="bon">${esc((BOL[k]||k).replace(/^./,c=>c.toUpperCase()))}: ${Math.round(100*b.h/b.n)}% of ${b.n} such players held top-${ROST} (avg ${Math.round(100*o.s.base)}%).</div>`:"";
   return`<article class="cd lr bo" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(q.n)}: open details">
@@ -1203,10 +1203,10 @@ function boRow(o){
     <div class="bob">
       <table class="bom"><tr><th></th><th>Before</th><th>Last 3</th></tr>
         <tr><td>Min</td><td>${n0(t.mp)}</td><td><b>${n0(t.m3)}</b></td></tr>
-        <tr><td>Usage</td><td>${pc(t.ub)}</td><td><b>${pc(t.u3)}</b></td></tr></table>
-      <div class="bok">${t.kind==="start"?`<em>Started the last 2</em>`:""}<div class="bor">${trail}</div></div>
-    </div>
-    ${t.opening?`<div class="bow">Minutes from ${esc(t.opening)} being out: usually fade when he's back.</div>`:""}${hist}</article>`}
+        <tr><td>Usage</td><td>${pc(t.ub)}</td><td><b>${pc(t.u3)}</b></td></tr>
+        <tr><td>Rank</td><td>${rk("season")}</td><td><b>${rk("g3")}</b></td></tr></table>
+      ${tags?`<div class="bok">${tags}</div>`:""}
+    </div>${hist}</article>`}
 function renderBO(){
   $("bsSort").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k==="bo"));
   if(!BO||!BOR){$("bsList").innerHTML=`<div class="empty">${BO===null&&BOR===null?"Loading…":"Role changes arrive with the next rankings build."}</div>`;$("bsStatus").textContent="";return}
@@ -1215,7 +1215,7 @@ function renderBO(){
   const T=BOR.trigger||{},pc=t=>T[t]?Math.round(100*T[t].hits/T[t].cases):null,one=v=>v?`about 1 in ${Math.max(2,Math.round(100/v))}`:"";
   $("bsStatus").textContent=`${rows.length} rising`;
   $("bsAsOf").textContent=`Thru ${fmtDate(BO.asOf).replace(/^\w+, /,"")}`;
-  $("bsList").innerHTML=`<p class="bzcap">Players outside the top ${BO_FLOOR} whose role just grew: 6+ more minutes a game over the last 3 (to 22+) or moved into the starting five. Sorted by <b>Proj</b>, which already counts the new minutes; the number on the left is his season rank. In past seasons, of players in this spot, ${pc("top80")}% from #${BO_FLOOR+1}–80, ${pc("fringe")}% from #81–${ROST} and ${pc("deep")}% from outside ${ROST} were top-${ROST} over their next 20 games (${one(pc("deep"))} for the deep ones): most role bumps fade, so check why the minutes came.</p>`
+  $("bsList").innerHTML=`<p class="bzcap">Players outside the top ${BO_FLOOR} whose role just grew: 6+ more minutes a game over the last 3 (to 22+) or moved into the starting five. Sorted by <b>Proj</b>, which already counts the new minutes. Each row: minutes, usage and rank before vs over the last 3 games (Rank before = his season rank). In past seasons, of players in this spot, ${pc("top80")}% from #${BO_FLOOR+1}–80, ${pc("fringe")}% from #81–${ROST} and ${pc("deep")}% from outside ${ROST} were top-${ROST} over their next 20 games (${one(pc("deep"))} for the deep ones): most role bumps fade, so check why the minutes came.</p>`
     +(rows.length?rows.map(boRow).join(""):`<div class="empty">No one outside the top ${BO_FLOOR} has a growing role right now.</div>`);
 }
 // The two biggest changes from last season, labeled with what they mean: minutes and usage
