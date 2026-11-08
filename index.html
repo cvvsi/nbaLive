@@ -80,7 +80,7 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .lr .ij.dtd{color:var(--ball)}
 .lr.bo .bop{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;flex:none;padding-left:6px}
 .lr.bo .bop b{font:600 15px/1 var(--num);color:var(--ink)}.lr.bo .bop i{font:500 10px/1.2 var(--name);font-style:normal;color:var(--dim)}
-.lr.bo .bot{font:600 12px/1.3 var(--name);color:var(--ball);margin:4px 0 0 26px}
+.lr.bo .bot{font:600 12.5px/1.3 var(--name);color:var(--ink);margin:4px 0 0 26px}
 .lr.bo .bog{display:flex;flex-wrap:wrap;gap:3px;margin:5px 0 0 26px}
 .lr.bo .bog i{font:600 10px/17px var(--name);font-style:normal;letter-spacing:.02em;padding:0 5px;border-radius:4px;color:var(--dim);background:var(--cell)}
 .lr.bo .bog i.on{color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}.lr.bo .bog i.fade{color:var(--neg)}
@@ -513,6 +513,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .psp .cmp{max-width:none}
 .stk .d{width:auto;color:var(--ink)}
 .ptb{margin-top:10px;padding:8px 10px;border:1px solid var(--ball);border-radius:8px;font:500 13px/1.35 var(--name);color:var(--ink)}.ptb b{color:var(--ball)}
+.lr.bo .bow{margin:3px 0 0 26px;font:500 12.5px/1.3 var(--name);color:var(--neg)}
 .stkn{margin:8px 0 0;font:500 12.5px/1.4 var(--name);color:var(--dim)}.stkn b{color:var(--ink)}
 .ups{margin-top:8px;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:9px;border:1px solid var(--ball)}
 .ups b{font:700 26px/1 var(--name);color:var(--ball)}.ups p{margin:0;font:500 13.5px/1.35 var(--name);color:var(--ink)}
@@ -1173,33 +1174,32 @@ function boScore(id,p){
   for(let i=0;i<L.length;i++)for(let j=0;j<L.length;j++){if(i===j)continue;const c=T.pairs[L[i]+"+"+L[j]];if(c&&shr(c)>best.rate)best={rate:shr(c),keys:[L[i],L[j]],n:c[0],h:c[1]}}
   const weak=new Set(L.filter(k=>{const c=T.signs[k];return c[0]>=15&&c[1]/c[0]<base*.85}));
   return{tier,ctx,base,best,lit,weak}}
+// Rise: players outside the top 100 (waiver range) whose role is growing right now, ranked by
+// Proj (which already uses the recent minutes). One line says what changed; a teammate's injury
+// minutes are flagged as usually fading. History (breakout-rates.json, in-season table): the share
+// of players in the same spot who were top-130 over their next 20 games, by starting range; a
+// single sign is mentioned only when it beat that average on 50+ players.
+const BO_MIN_N=50;
 function boRow(o){
-  const q=G.players[o.id]||{n:o.id,t:""},p=o.p,b=o.s.best,sh=d=>fmtDate(d).replace(/^\w+, /,"");
-  // outlined = the signs behind his odds; red = the two cautions that usually fade in the study
-  // (a 10+ minute spike, minutes from a teammate's injury); the rest plain
-  const fade=k=>(k==="bigjump"||k==="opening")&&!b.keys.includes(k);
-  const tags=o.s.lit.map(k=>`<i class="${b.keys.includes(k)?"on":fade(k)?"fade":""}">${esc(k==="opening"&&p.trig.opening?`${surname(p.trig.opening)} out`:BOL[k]||k)}${fade(k)?" · usually fades":""}</i>`).join("");
-  const trig=p.trig?(p.trig.kind==="start"?`Started the last 2 (${p.trig.mp} → ${p.trig.m3} min)`:`Minutes ${p.trig.mp} → ${p.trig.m3} over the last 3`)+` · since ${sh(p.since.trig)}`:"";
-  const since=b.keys.length?b.keys.map(k=>p.since[k]).filter(Boolean).sort().pop():null;
-  const odds=b.keys.length?`${b.keys.map(k=>BOL[k]||k).join(" + ")}: <b>${b.h} of ${b.n}</b> broke out in ${o.s.ctx==="trigger"?"the next 20 games":"the next season"} (avg ${Math.round(100*o.s.base)}% from this range)${since&&!p.trig?` · lit since ${sh(since)}`:""}`
-    :`Nothing here beats the average (${Math.round(100*o.s.base)}%) yet.`;
+  const q=G.players[o.id]||{n:o.id,t:""},p=o.p,t=p.trig,b=o.s.best,x=S.bs&&S.bs.x[o.id],l3=S.rk&&S.rk.g3[o.id];
+  const what=(t.kind==="start"?`Moved into the starting five · `:"")+`${Math.round(t.mp)} → ${Math.round(t.m3)} min over the last 3`;
+  const why=t.opening?`<div class="bow">Minutes from ${esc(t.opening)} being out: usually fade when he's back.</div>`:"";
+  const k=b.keys.length===1&&b.n>=BO_MIN_N&&b.rate>=o.s.base*1.2?b.keys[0]:null;
+  const hist=k?`<div class="bon">${esc((BOL[k]||k).replace(/^./,c=>c.toUpperCase()))}: ${Math.round(100*b.h/b.n)}% of ${b.n} such players held top-${ROST} (avg ${Math.round(100*o.s.base)}%).</div>`:"";
   return`<article class="cd lr bo" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(q.n)}: open details">
-    <div class="lr1"><span class="rk">${p.r}</span>${hs(o.id)}<b class="nm">${esc(q.n)}</b><span class="mt">${esc(q.t)} · ${Math.round(p.mpg)}m · Proj #${S.bs&&S.bs.x[o.id]||"–"}</span>${rkTagQ(q)}<span class="bop"><b>${Math.round(100*b.rate)}%</b><i>odds</i></span></div>
-    ${trig?`<div class="bot">${trig}</div>`:""}<div class="bog">${tags}</div><div class="bon">${odds}</div></article>`}
+    <div class="lr1"><span class="rk">${p.r}</span>${hs(o.id)}<b class="nm">${esc(q.n)}</b><span class="mt">${esc(q.t)}</span>${rkTagQ(q)}${typeof lgTagFA==="function"?lgTagFA(o.id):""}
+      <span class="bop"><b>${x?"#"+x:"–"}</b><i>proj</i></span></div>
+    <div class="bot">${what}${l3?` · last 3 <b>#${l3}</b>`:""}</div>${why}${hist}</article>`}
 function renderBO(){
   $("bsSort").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k==="bo"));
-  if(!BO||!BOR){$("bsList").innerHTML=`<div class="empty">${BO===null&&BOR===null?"Loading…":"Breakout signs arrive with the next rankings build."}</div>`;$("bsStatus").textContent="";return}
-  const rows=Object.entries(BO.players).map(([id,p])=>({id,p,s:boScore(id,p)})).filter(o=>o.s);
-  const now=rows.filter(o=>o.p.trig).sort((a,b)=>b.s.best.rate-a.s.best.rate);
-  // a setup needs a real sample: 12+ minutes a game and 100+ minutes (the study's setups had 20+
-  // games), so a 3-minute cameo's per-minute line doesn't count; ties go to the better 30-minute line
-  const setup=rows.filter(o=>!o.p.trig&&o.s.best.keys.length&&o.s.best.rate>=o.s.base*1.5&&o.p.mpg>=12&&o.p.mpg*o.p.gp>=100)
-    .sort((a,b)=>b.s.best.rate/b.s.base-a.s.best.rate/a.s.base||a.p.up-b.p.up).slice(0,40);
-  $("bsStatus").textContent=`${now.length} now · ${setup.length} set up`;
-  $("bsAsOf").textContent=`Signs thru ${fmtDate(BO.asOf).replace(/^\w+, /,"")}`;
-  $("bsList").innerHTML=`<p class="bzcap">Players showing the signs that came before real breakouts (any jump of 40%+ and 20+ spots into the top ${ROST}: 80 → 40 counts as much as 150 → 67). <b>Odds</b> = how often players in his range with his best sign or pair broke out over five seasons, pulled toward the average when the sample is small. Outlined tags are the ones behind his odds; red ones usually fade. Most role changes fade (about 4 in 5), so the odds matter more than the jump.</p>`
-    +`<div class="pjh">Role changing now (${now.length})</div>`+(now.length?now.map(boRow).join(""):`<div class="empty">No one's role jumped over his last 3 games (needs 8+ games played).</div>`)
-    +`<div class="pjh">Set up, waiting for the role (${setup.length})</div>`+setup.map(boRow).join("");
+  if(!BO||!BOR){$("bsList").innerHTML=`<div class="empty">${BO===null&&BOR===null?"Loading…":"Role changes arrive with the next rankings build."}</div>`;$("bsStatus").textContent="";return}
+  const rows=Object.entries(BO.players).filter(([,p])=>p.trig&&p.r>TOP).map(([id,p])=>({id,p,s:boScore(id,p)})).filter(o=>o.s)
+    .sort((a,b)=>(S.bs&&S.bs.x[a.id]||1e4)-(S.bs&&S.bs.x[b.id]||1e4));
+  const T=BOR.trigger||{},pc=t=>T[t]?Math.round(100*T[t].hits/T[t].cases):null,one=v=>v?`about 1 in ${Math.max(2,Math.round(100/v))}`:"";
+  $("bsStatus").textContent=`${rows.length} rising`;
+  $("bsAsOf").textContent=`Thru ${fmtDate(BO.asOf).replace(/^\w+, /,"")}`;
+  $("bsList").innerHTML=`<p class="bzcap">Players outside the top ${TOP} whose role just grew: 6+ more minutes a game over the last 3 (to 22+) or moved into the starting five. Sorted by <b>Proj</b>, which already counts the new minutes; the number on the left is his season rank. In past seasons, ${one(pc("fringe"))} of these from #${TOP+1}–${ROST} (${pc("fringe")}%) and ${one(pc("deep"))} from outside ${ROST} (${pc("deep")}%) were top-${ROST} over their next 20 games: most role bumps fade, so check why the minutes came.</p>`
+    +(rows.length?rows.map(boRow).join(""):`<div class="empty">No one outside the top ${TOP} has a growing role right now.</div>`);
 }
 // The two biggest changes from last season, labeled with what they mean: minutes and usage
 // are the role (sticks); everything else is a rate that drifts back (hot cools, cold returns).
