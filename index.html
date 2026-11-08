@@ -2373,9 +2373,6 @@ function renderMU(){
   const myDs=o=>rest.filter(d=>plays(o.q.t,d)&&avail(o.id,d));
   const pv=o=>{const ds=myDs(o);return ds.length?ds.reduce((a,d)=>a+muFz(muLine(o.id,o.q,d,C).z,F),0)/ds.length:muFz(pjZ(xpLine(o.q)),F)};
   const tgs=[...m.tg].filter(k=>!off.has(k));
-  const stl=o=>{if(!tgs.length||tgs.length>3)return"";const ds=myDs(o),ls=(ds.length?ds:[null]).map(d=>d?muLine(o.id,o.q,d,C).l:xpLine(o.q)),n=ls.length,sum=k=>ls.reduce((a,l)=>a+l[k],0);
-    return tgs.map(k=>{const c=CATS.find(c=>c.k===k),v=k==="fg"?(sum("fga")?sum("fgm")/sum("fga"):0):k==="ft"?(sum("fta")?sum("ftm")/sum("fta"):0):sum(k)/n;
-      return`<span class="mst">${c.l} ${k==="fg"||k==="ft"?v.toFixed(3).replace(/^0/,""):v.toFixed(1)}</span>`}).join("")};
   // free agents: Proj 12+ minutes, playing at least once in the days left; by value x games (from zero)
   const zo=F.length?F.reduce((a,k)=>{const t=G.zp.st[k];return a+(k==="fg"||k==="ft"?0:(k==="to"?-1:1)*t[1]/t[2])},0)/F.length:0;
   const fa=Object.keys(G.players).filter(id=>x.own[id]==null&&!m.add.has(id)&&G.players[id].xp&&G.players[id].xp[0]>=12).map(P)
@@ -2404,7 +2401,7 @@ function renderMU(){
     const v=muFz(muLine(o.id,o.q,d,C).z,F);
     return`<span class="dc s${s}"${tap?` data-mu="day" data-x="${o.id}|${d}"`:""} title="${dl(d)} ${opp(o.q.t,d)}"><b>${oppS(o.q.t,d)}</b><i class="${v>=.5?"up":v<=-.5?"dn":""}">${sg(v).replace(/^\+/,"")}</i></span>`}).join("");
   const row=(o,T,act,full)=>{const dl2=o.d!=null&&!o.il&&act!=="undo"?`<i class="${o.d>=.05?"up":o.d<=-.05?"dn":""}">${Math.abs(o.d)<.05?"0.0":(o.d>0?"+":"−")+Math.abs(o.d).toFixed(1)}</i>`:"";
-    return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${esc(nm(o.q.n))}</b><i>${esc(o.q.t)} · ${esc(posOf(o.id)||"–")}${o.il?" · IL":""}${o.nw?` <em>what-if add</em>`:""}${act==="undo"?` <em>what-if drop</em>`:""}</i>${tgs.length&&tgs.length<=3?`<span class="mstl">${stl(o)}</span>`:""}</div>
+    return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${esc(nm(o.q.n))}</b><i>${esc(o.q.t)} · ${esc(posOf(o.id)||"–")}${o.il?" · IL":""}${o.nw?` <em>what-if add</em>`:""}${act==="undo"?` <em>what-if drop</em>`:""}</i></div>
       <div class="md">${act==="undo"?"":cells(o,T,act==="drop"||act==="undrop",full)}</div>
       <div class="mval"><b class="${o.v>=1?"up":o.v<=-1?"dn":""}">${sg(o.v)}</b>${dl2}</div>
       ${act?`<button class="mb" data-mu="${act}" data-x="${o.id}" aria-label="${act}">${act==="add"?"+":act==="undo"?"↺":"−"}</button>`:"<span></span>"}</div>`};
