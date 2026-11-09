@@ -815,7 +815,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .tcg .good b{color:var(--pos)}.tcg .bad b{color:var(--neg)}.tcg .off{opacity:.4}.tcg .mk b{text-decoration:underline;text-underline-offset:3px}
 .vch{font:500 13px/1.3 var(--name);color:var(--dim);margin-bottom:6px}.vch b{font-family:var(--num);color:var(--ink)}
 .vchart{width:100%;height:auto;background:var(--panel);border:1px solid var(--rule);border-radius:10px;touch-action:pan-y;cursor:crosshair}
-.vchart .gline{fill:none;stroke:var(--ball);stroke-width:2.5}.vchart .gpace{stroke:var(--dim);stroke-width:1.5;stroke-dasharray:5 4}.vchart .gq{stroke:var(--rule)}.vchart .g0{stroke:var(--rule);stroke-dasharray:2 3}
+.vchart .gline{fill:none;stroke:var(--ball);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}.vchart .gpace{stroke:var(--dim);stroke-width:1.5;stroke-dasharray:5 4}.vchart .gq{stroke:var(--rule)}.vchart .g0{stroke:var(--rule);stroke-dasharray:2 3}
 .vchart .gx,.vchart .gy{font:500 10px var(--num);fill:var(--dim);text-anchor:middle}.vchart .gdot{fill:var(--ball);stroke:var(--panel);stroke-width:2}
 .vtip{font:500 12.5px/1.35 var(--name);color:var(--ink);min-height:18px;margin-top:6px}
 .tup{max-height:320px;overflow:auto;border:1px solid var(--rule);border-radius:10px;background:var(--panel)}.tup>div{display:grid;grid-template-columns:70px 1fr auto;gap:8px;padding:7px 10px;border-top:1px solid var(--rule);font:500 12.5px/1.3 var(--name)}.tup>div:first-child{border-top:0}
@@ -2808,17 +2808,25 @@ function gameOf(q,tn){if(tn)return S.events.find(e=>e.id===tn.game)||null;
   if(q&&S.date===etToday())return S.events.find(e=>e.home===q.t||e.away===q.t)||null;return null}
 // His plays in one game, oldest first: [{t (game minutes), lab ("Q2 2:37"), txt, d:{stat deltas}}].
 function playsOf(tn){const P=S.plays&&S.plays[tn.game];if(!P||!P.length)return null;
-  const N=tn.name,esc2=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),n=esc2(N),out=[];
-  const R={make:new RegExp("^"+n+" makes"),miss:new RegExp("^"+n+" misses"),ast:new RegExp("\\("+n+" assists\\)"),
-    blk:new RegExp("^"+n+" blocks"),reb:new RegExp("^"+n+" (offensive |defensive )?rebound"),stl:new RegExp("\\("+n+" steals\\)"),
-    to:new RegExp("^"+n+" (bad pass|lost ball|traveling|.*turnover)")};
-  for(const p of P){const txt=String(p.text||""),per=(p.period&&p.period.number)||1,clk=String((p.clock&&p.clock.displayValue)||"0:00");
-    if(!txt.includes(N))continue;
+  // ESPN tags each play with its players (participants: the shooter / rebounder / ball handler first,
+  // then the assist, blocker or stealer) and the shot (scoringPlay, pointsAttempted). Those are read by
+  // player id; the text is only a fallback when a play has no ids. Checked against a real game (Nov 2026).
+  const id=String(tn.eid||""),N=tn.name,out=[];
+  for(const p of P){const txt=String(p.text||""),ty=String((p.type&&p.type.text)||""),pa=(p.participants||[]).map(x=>String((x.athlete&&x.athlete.id)||""));
+    if(/heave/i.test(ty)&&!p.scoringPlay)continue; // ESPN's box score leaves a missed end-of-quarter heave out of FGA
+    const first=id&&pa[0]===id,second=id&&pa[1]===id,named=!pa.length&&txt.includes(N);if(!first&&!second&&!named)continue;
+    const per=(p.period&&p.period.number)||1,clk=String((p.clock&&p.clock.displayValue)||"0:00");
     const [mm,ss]=clk.includes(":")?clk.split(":").map(Number):[0,parseFloat(clk)||0],len=per<=4?12:5,left=(mm||0)+(ss||0)/60;
     const t=(per<=4?(per-1)*12:48+(per-5)*5)+(len-left),d={};
-    if(R.make.test(txt)){if(/free throw/i.test(txt)){d.ftm=1;d.fta=1;d.pts=1}else if(/three point/i.test(txt)){d.fgm=1;d.fga=1;d.tpm=1;d.pts=3}else{d.fgm=1;d.fga=1;d.pts=2}}
-    else if(R.miss.test(txt)){if(/free throw/i.test(txt))d.fta=1;else d.fga=1}
-    if(R.ast.test(txt))d.ast=1;if(R.blk.test(txt))d.blk=1;if(R.reb.test(txt))d.reb=1;if(R.stl.test(txt))d.stl=1;if(R.to.test(txt)&&!R.make.test(txt)&&!R.miss.test(txt))d.to=1;
+    const ft=/^free throw/i.test(ty)||/free throw/i.test(txt),shot=p.shootingPlay!=null?p.shootingPlay:/ makes | misses | blocks /.test(txt);
+    const made=p.scoringPlay!=null?!!p.scoringPlay:/ makes /.test(txt),three=p.pointsAttempted!=null?p.pointsAttempted===3:/three point/i.test(txt);
+    const isB=named&&txt.startsWith(N+" blocks"),me1=first||(named&&txt.startsWith(N)&&!isB),me2=second||isB||(named&&(txt.includes("("+N+" assists)")||txt.includes("("+N+" steals)"))),T=ty||txt;
+    if(shot&&me1){if(ft){d.fta=1;if(made){d.ftm=1;d.pts=1}}else{d.fga=1;if(made){d.fgm=1;d.pts=three?3:2;if(three)d.tpm=1}}}
+    if(shot&&me2&&/ assists\)/.test(txt))d.ast=1;
+    if(shot&&me2&&/ blocks /.test(txt))d.blk=1;
+    if(/rebound/i.test(T)&&me1&&!/team/i.test(txt))d.reb=1;
+    if(/turnover|traveling|bad pass|lost ball/i.test(T)&&me1)d.to=1;
+    if(/turnover|traveling|bad pass|lost ball/i.test(T)&&me2&&/ steals\)/.test(txt))d.stl=1;
     if(Object.keys(d).length)out.push({t,lab:`${per<=4?"Q"+per:"OT"+(per-4)} ${clk}`,txt,d})}
   return out}
 function psTonightGame(id,q,tn){const g=gameOf(q,tn),h=[];
@@ -2832,24 +2840,18 @@ function psTonightGame(id,q,tn){const g=gameOf(q,tn),h=[];
       <div class="tsbt${g.home===me?" me":""}">${g.state!=="pre"?`<i>${g.hs}</i>`:""}<b>${g.home}</b>${logoImg(g.home,"big")}</div></div>`)}
   else if(q&&!tn){const o=opp(q.t,etToday()),ot=o.replace(/^(vs|@) /,"");
     h.push(`<div class="tsb"><div class="tsbt me">${logoImg(q.t,"big")}<b>${q.t}</b></div><div class="tsbm"><span>Tonight</span><em>${o.startsWith("@")?"@":"vs"}</em></div><div class="tsbt"><b>${ot}</b>${logoImg(ot,"big")}</div></div>`)}
-  // his categories tonight, projected underneath
-  const L=tn?{min:tn.min,pts:tn.pts,reb:tn.reb,ast:tn.ast,tpm:tn.tpm,stl:tn.stl,blk:tn.blk,to:tn.to,fgm:tn.fgm,fga:tn.fga,ftm:tn.ftm,fta:tn.fta}:null;
-  h.push(`<section class="blk"><h3>${tn?"His categories tonight":"Projected tonight"} <span>${tn?"projected underneath":pj?pj.src:""}</span></h3><div class="tcg">${CATS.map(c=>{const k=c.k,a=L?pv(L,k):null,p=pj?pv(pj.l,k):null;
-      const shown=L?(k==="fg"?`${L.fgm}-${L.fga}`:k==="ft"?`${L.ftm}-${L.fta}`:a):fp(k,p);
-      const cl=L?hl(k,tn):nh(k);
-      return`<div class="${cl.trim()}${!L&&pj&&pj.mk[k]?" mk":""}"><b>${shown}</b><i>${c.l}</i>${L&&p!=null?`<em>proj ${fp(k,p)}</em>`:""}</div>`}).join("")}
-    <div class="role"><b>${L?Math.round(L.min):pj?Math.round(pj.l.min):"–"}</b><i>MIN</i>${L&&pj?`<em>proj ${Math.round(pj.l.min)}</em>`:""}</div></div>
-    ${!L&&q?nmNote(id,q,[etToday()],pj?pj.l.min:q.xp[0])+ijNote(id):""}</section>`);
+  // his line in the Box card format (and the table against tonight's projection, which goes under the chart)
+  const card=psTonight(id,q,tn),cut=card.indexOf("</section>")+10,top=card.slice(0,cut),rest=card.slice(cut);h.push(top);
   // value over the game + scoring updates
   if(tn&&S.zst){const ev=playsOf(tn);
     if(ev&&ev.length){const tot={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0,fgm:0,fga:0,ftm:0,fta:0};const pts=[{t:0,v:nightVal(tot),ev:null}];
       for(const e of ev){for(const k in e.d)tot[k]+=e.d[k];pts.push({t:e.t,v:nightVal(tot),ev:e,dv:0})}
       for(let i=1;i<pts.length;i++)pts[i].dv=pts[i].v-pts[i-1].v;
-      const miss=["pts","reb","ast","stl","blk","tpm","to","fgm","fga","ftm","fta"].filter(k=>tot[k]!==tn[k]);
+      const KS=["pts","reb","ast","stl","blk","tpm","to","fgm","fga","ftm","fta"],off=KS.reduce((a,k)=>a+Math.abs(tot[k]-tn[k]),0),miss=off>=3?KS.filter(k=>tot[k]!==tn[k]):[];
       const end=Math.max(48,Math.ceil(ev[ev.length-1].t/1)),g0=pts[0].v,gP=pj?nightVal(pj.l):null,now=pts[pts.length-1];
       const elapsed=g&&g.state==="in"?Math.max(now.t,1):48,pace=g&&g.state==="in"&&now.t>4?nightVal(Object.fromEntries(Object.entries(tot).map(([k,v])=>[k,v*48/elapsed]))):null;
       const vs=[...pts.map(p=>p.v),gP??0,pace??0],lo=Math.min(...vs,g0)-.1,hi=Math.max(...vs)+.1,W=isDesk()?900:360,H=isDesk()?230:190,X=t=>Math.round(40+(W-50)*t/end),Y=v=>Math.round(10+(H-30)*(hi-v)/(hi-lo||1));
-      const step=pts.map((p,i)=>i?`H${X(p.t)}V${Y(p.v)}`:`M${X(0)} ${Y(p.v)}`).join("")+(g&&g.state==="in"?`H${X(now.t)}`:`H${X(end)}`);
+      const step=smoothPath(pts.map(p=>[X(p.t),Y(p.v)]))+(g&&g.state==="in"?"":`L${X(end)} ${Y(now.v)}`);
       const qs=[12,24,36,...(end>48?[48]:[])].map(m=>`<line x1="${X(m)}" x2="${X(m)}" y1="10" y2="${H-20}" class="gq"/><text x="${X(m)}" y="${H-6}" class="gx">${m===48?"OT":"Q"+(m/12+1)}</text>`).join("");
       const ytk=[...new Set([Math.ceil(lo*2)/2,0,Math.floor(hi*2)/2])].filter(v=>v>=lo&&v<=hi),zero=ytk.map(v=>`<line x1="40" x2="${W-10}" y1="${Y(v)}" y2="${Y(v)}" class="g0"/><text x="20" y="${Y(v)+3}" class="gy">${v>0?"+":v<0?"−":""}${Math.abs(v)}</text>`).join("");
       h.push(`<section class="blk"><h3>Value over the game <span>${g&&g.state==="in"?"live · ":""}on tonight's scale, punts applied</span></h3>
@@ -2861,7 +2863,13 @@ function psTonightGame(id,q,tn){const g=gameOf(q,tn),h=[];
         <p class="stkn">Solid: his value as the game went. Dashed: the pace to reach his projection by the final buzzer.${miss.length?` <b class="dn">The play-by-play doesn't match his box score in ${miss.join(", ").toUpperCase()}, so this chart is approximate.</b>`:""}</p></section>`);
       h.push(`<section class="blk"><h3>Scoring updates <span>newest first${g&&g.state==="in"?" · refreshes every minute":""}</span></h3><div class="tup">${pts.slice(1).reverse().map(p=>`<div><i>${p.ev.lab}</i><span>${esc(p.ev.txt)}</span><b class="${p.dv>=0?"up":"dn"}">${p.dv>=0?"+":"−"}${Math.abs(p.dv).toFixed(2)}</b></div>`).join("")}</div></section>`)}
     else if(g&&g.state!=="pre")h.push(`<p class="lgk">No play-by-play for this game yet.</p>`)}
-  return h.join("")}
+  h.push(rest);return h.join("")}
+// A smooth line through the points that never overshoots them (monotone cubic), so the curve stays honest.
+function smoothPath(P){if(P.length<3)return P.map((p,i)=>(i?"L":"M")+p[0]+" "+p[1]).join("");
+  const n=P.length,dx=[],m=[],t=[];for(let i=0;i<n-1;i++){dx[i]=(P[i+1][0]-P[i][0])||1e-6;m[i]=(P[i+1][1]-P[i][1])/dx[i]}
+  t[0]=m[0];t[n-1]=m[n-2];for(let i=1;i<n-1;i++)t[i]=m[i-1]*m[i]<=0?0:3*(dx[i-1]+dx[i])/((2*dx[i]+dx[i-1])/m[i-1]+(dx[i]+2*dx[i-1])/m[i]);
+  let d=`M${P[0][0]} ${P[0][1]}`;for(let i=0;i<n-1;i++){const h3=dx[i]/3;
+    d+=`C${(P[i][0]+h3).toFixed(1)} ${(P[i][1]+t[i]*h3).toFixed(1)} ${(P[i+1][0]-h3).toFixed(1)} ${(P[i+1][1]-t[i+1]*h3).toFixed(1)} ${P[i+1][0]} ${P[i+1][1]}`}return d}
 // chart hover: nearest play to the pointer
 function psChartBind(){const s=$("psChart");if(!s)return;const P=JSON.parse(s.dataset.pts||"[]"),dot=$("psDot"),tip=$("psTip");
   const mv=e=>{const r=s.getBoundingClientRect(),x=((e.touches?e.touches[0].clientX:e.clientX)-r.left)*(s.viewBox.baseVal.width/r.width);
