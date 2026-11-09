@@ -264,6 +264,7 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .sgd .op.lt{background:color-mix(in oklab,var(--ball) 16%,var(--cell))}
 .sgd .op.b2{box-shadow:inset 0 -2px 0 var(--neg)}.sgd .op.t34{box-shadow:inset 0 2px 0 var(--dim)}.sgd .op.b2.t34{box-shadow:inset 0 2px 0 var(--dim),inset 0 -2px 0 var(--neg)}
 .sgd .h.hv b{display:table;margin-inline:auto;background:var(--ink);color:var(--panel);border-radius:4px;padding:0 4px}
+.ezp{color:var(--pos);font-weight:700}.ezn{color:var(--neg);font-weight:700}
 .sgx{margin:6px 0 10px;padding:8px 10px;border:1px solid var(--rule);border-radius:10px;background:var(--panel);font:500 12.5px/1.45 var(--name);color:var(--ink)}.sgx p{margin:0}.sgx p+p{margin-top:5px}
 .sgd .past{opacity:.35}
 .sgd .tx{grid-column:1/-1;text-align:left;padding:8px 2px 10px;background:var(--panel);white-space:normal;font:500 12.5px/1.5 var(--name)}
@@ -2005,10 +2006,39 @@ function minAt(id,q,d){const C=nmC(),base=q.xp[0];let up=0,dn=0,own=1;
 // Proj's line at other minutes: per-minute rates and shooting % stay, counts scale.
 function lineAt(q,m){const b=xpLine(q);if(!(b.min>0)||Math.abs(m-b.min)<.05)return b;const f=m/b.min,o={};for(const k in b)o[k]=k==="min"?m:b[k]*f;return o}
 const zAt=(q,m)=>Math.abs(m-q.xp[0])<.05?zx(q):pjZ(lineAt(q,m));
+// ---- Matchup ease (G.ease, built nightly from this season's box scores by ease.js): how much more
+// or less opposing players produce against each team than against everyone else, per category,
+// pulled toward zero by K games (fitted by backtest-ease.js). Every day-level line (Today, Week,
+// Schedule, Matchup, the rest of the season) is his Proj line at that day's minutes, scaled by
+// that night's opponent: points, threes, rebounds, assists, steals, blocks and turnovers by their
+// own factor, free throws by FTA (FT% stays his), FG% by the FG factor at the same attempts.
+const EZK=["pts","tpm","reb","ast","stl","blk","to","fta","fg"];
+const oppT=(t,d)=>opp(t,d).replace(/^(vs|@) /,"");
+function easeF(o){const E=G&&G.ease;if(!E||!E.t||!o)return null;const r=E.t[o];if(!r)return null;
+  const c=S.ezC||(S.ezC={});if(c.g===G&&c[o])return c[o];if(c.g!==G){for(const k in c)delete c[k];c.g=G}
+  const f={};E.cats.forEach((k,i)=>{const st=E.s[k]||{K:40,a:0};f[k]=1+st.a*r[1+i]*r[0]/(r[0]+st.K)});return c[o]=f}
+function easeLine(l,f){if(!f)return l;const o={...l};for(const k of["pts","tpm","reb","ast","stl","blk","to"])if(o[k]!=null)o[k]*=f[k];
+  if(o.fta!=null){o.fta*=f.fta;o.ftm*=f.fta}if(o.fgm!=null)o.fgm*=f.fg;return o}
+// His line on date d: that day's minutes (next man up), against that night's opponent.
+const lineOn=(id,q,d)=>easeLine(lineAt(q,minAt(id,q,d)),easeF(oppT(q.t,d)));
+// The average game over some dates (z-scores are linear in the line, so this is the average z).
+function avgLine(id,q,ds){if(!ds.length)return xpLine(q);const o={};
+  for(const d of ds){const l=lineOn(id,q,d);for(const k in l)o[k]=(o[k]||0)+l[k]}for(const k in o)o[k]/=ds.length;return o}
+// Overall ease of a team for the grid: the mean of its believed effects, each over its spread across
+// teams (so a +5% in points counts like a +12% in blocks), punts skipped. + = easier.
+function easeScore(){const E=G&&G.ease;if(!E||!E.t)return null;if(S.ezS&&S.ezS.g===G&&S.ezS.p===[...S.punt].join())return S.ezS.v;
+  const ts=Object.keys(E.t),ks=E.cats.filter(k=>!S.punt.has(k==="fta"?"ft":k)),v={};
+  const eff=ts.map(t=>easeF(t)),sd={};for(const k of ks){const x=eff.map(f=>f[k]-1),m=x.reduce((a,b)=>a+b,0)/x.length;sd[k]=Math.sqrt(x.reduce((a,b)=>a+(b-m)**2,0)/x.length)||1}
+  ts.forEach((t,i)=>{v[t]=ks.length?ks.reduce((a,k)=>a+(k==="to"?-1:1)*(eff[i][k]-1)/sd[k],0)/ks.length:0});
+  S.ezS={g:G,p:[...S.punt].join(),v};return v}
+// "vs CHI: PTS +6%, FTA +9%" for a card: categories moved 3%+.
+function easeNote(t,d){const o=oppT(t,d),f=easeF(o);if(!f)return"";const CLx={pts:"PTS",tpm:"3PM",reb:"REB",ast:"AST",stl:"STL",blk:"BLK",to:"TO",fta:"FTA",fg:"FG%"};
+  const x=EZK.filter(k=>Math.abs(f[k]-1)>=.03).map(k=>{const v=f[k]-1,good=k==="to"?v<0:v>0;return`<span class="${good?"up":"dn"}">${CLx[k]} ${v>0?"+":"−"}${Math.round(Math.abs(v)*100)}%</span>`});
+  return x.length?`<div class="pjm">Matchup ${esc(opp(t,d))}: ${x.join(" · ")}</div>`:""}
 // Average minutes over the dates he plays (z-scores are linear in minutes, so the line at the
 // average minutes is the average game).
 const sznDs=(id,q)=>{if(!SC)return[];const t=etToday();return Object.keys(SC.dates).filter(d=>d>=t&&plays(q.t,d)&&avail(id,d))};
-function sznVals(all){const o={};for(const[id,q]of all){const ds=sznDs(id,q),m=avgMin(id,q,ds),z=zAt(q,m);o[id]={ds,m,z,v:pjVal(z)}}return o}
+function sznVals(all){const o={};for(const[id,q]of all){const ds=sznDs(id,q),l=ds.length?avgLine(id,q,ds):xpLine(q),m=l.min,z=ds.length?pjZ(l):zx(q);o[id]={ds,m,l,z,v:pjVal(z)}}return o}
 const avgMin=(id,q,ds)=>ds.length?ds.reduce((a,d)=>a+minAt(id,q,d),0)/ds.length:q.xp[0];
 // Who moved a player's minutes on these dates, for the card's note.
 function nmNote(id,q,ds,m){if(Math.abs(m-q.xp[0])<1.5)return"";const C=nmC(),who=[];
@@ -2036,8 +2066,8 @@ const propsFor=(P,q)=>P&&(P.o[normN(q.n)]||P.f[nmKey(q.t,q.n)]);
 // Tonight's line: the market's mean for each stat it priced, Proj for the rest. Shot volume
 // (and turnovers, if not priced) scales with the market's points, so FG%/FT% stay Proj's but
 // their weight follows the role the market expects. A PRA-only line is split by Proj's ratios.
-function tonightLine(q,pp,m){
-  const base=m==null?xpLine(q):lineAt(q,m),l={...base},mk={};if(!pp)return{l,base,mk};
+function tonightLine(q,pp,m,f){
+  const base=easeLine(m==null?xpLine(q):lineAt(q,m),f),l={...base},mk={};if(!pp)return{l,base,mk};
   for(const k of PK)if(pp[k]){l[k]=pp[k][0];mk[k]=pp[k]}
   if(pp.pra){const rest=Math.max(0,pp.pra[0]-l.pts),sum=(mk.reb?0:base.reb)+(mk.ast?0:base.ast);
     if(sum>0&&!(mk.reb&&mk.ast)){const left=rest-(mk.reb?l.reb:0)-(mk.ast?l.ast:0);
@@ -2106,7 +2136,7 @@ const listHTML=(rows,ctxLab)=>isDesk()?dtab(rows,ctxLab):rows.map(card).join("")
 // open roster spots are easiest to fill then. A red underline marks the second night of a
 // back-to-back. Tap a team for its players (week rank) and who's likely on waivers (Proj >130).
 function renderGrid(ds,live,all,today){
-  const D="MTWTFSS",n=d=>((SC.dates[d])||[]).length,light=d=>n(d)>0&&n(d)<=5,heavy=d=>n(d)>=10;
+  const D="MTWTFSS",n=d=>((SC.dates[d])||[]).length,light=d=>n(d)>0&&n(d)<=5,heavy=d=>n(d)>=10,EZ=easeScore(),EZT=.5;
   // a game inside a 3-games-in-4-nights stretch (a 4-night window within this week holding 3 of his games)
   const in4=(t,d)=>ds.includes(d)&&ds.includes(shift(d,3))&&[0,1,2,3].filter(j=>plays(t,shift(d,j))).length>=3;
   const t34=(t,d)=>[-3,-2,-1,0].some(k=>in4(t,shift(d,k)));
@@ -2114,8 +2144,8 @@ function renderGrid(ds,live,all,today){
   const left=t=>live.filter(d=>plays(t,d)).length;
   const SV=sznVals(all),szn={};all.map(([id])=>[id,SV[id].v]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>szn[id]=i+1);
   // week minutes (next man up) per player, for the week rank and the team panel
-  const WM={};for(const[id,q]of all){const wd=live.filter(d=>plays(q.t,d)&&avail(id,d));WM[id]={g:wd.length,m:avgMin(id,q,wd)}}
-  const wk={};all.map(([id,q])=>[id,val0(zAt(q,WM[id].m),G.zp)*WM[id].g]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>wk[id]=i+1);
+  const WM={};for(const[id,q]of all){const wd=live.filter(d=>plays(q.t,d)&&avail(id,d)),l=avgLine(id,q,wd);WM[id]={g:wd.length,m:l.min,z:wd.length?pjZ(l):zx(q)}}
+  const wk={};all.map(([id,q])=>[id,val0(WM[id].z,G.zp)*WM[id].g]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>wk[id]=i+1);
   teams.sort((a,b)=>left(b)-left(a)||a.localeCompare(b));
   let side="";
   let h=`<div class="h"></div><div class="h">G</div>`+ds.map((d,i)=>`<div class="h${light(d)?" lt":heavy(d)?" hv":""}${d<today?" past":""}">${D[i]}<b>${n(d)||"–"}</b></div>`).join("");
@@ -2123,12 +2153,12 @@ function renderGrid(ds,live,all,today){
     h+=`<div class="tm" data-t="${t}">${t}</div><div class="gn${g>=4?" g4":g<=2?" g2":""}">${g}</div>`
       +ds.map(d=>{const o=opp(t,d);if(!o)return`<div class="${d<today?"past":""}"></div>`;
         const b2=plays(t,shift(d,-1)),sel=S.sgOpen&&S.sgOpen.d===d&&(S.sgOpen.t===t||opp(S.sgOpen.t,d).endsWith(t));
-        return`<div class="op${o[0]==="@"?" aw":""}${light(d)?" lt":" on"}${b2?" b2":""}${t34(t,d)?" t34":""}${d<today?" past":""}${sel?" sel":""}" data-t="${t}" data-d="${d}">${o.replace("vs ","").replace("@ ","@")}</div>`}).join("");
+        return`<div class="op${o[0]==="@"?" aw":""}${light(d)?" lt":" on"}${b2?" b2":""}${t34(t,d)?" t34":""}${d<today?" past":""}${sel?" sel":""}" data-t="${t}" data-d="${d}">${(x=>{const v=EZ&&EZ[x];return v!=null&&Math.abs(v)>=EZT?`<span class="${v>0?"ezp":"ezn"}">${o.replace("vs ","").replace("@ ","@")}</span>`:o.replace("vs ","").replace("@ ","@")})(o.replace(/^(vs|@) /,""))}</div>`}).join("");
     if(S.sgOpen&&S.sgOpen.t===t){const gd=S.sgOpen.d;
       const head=gd?`<div class="tph">${esc(opp(t,gd)[0]==="@"?t+" "+opp(t,gd):opp(t,gd).replace("vs ","")+" @ "+t)} · ${fmtDate(gd).replace(/,/,"")}</div>`:"";
       const teams2=gd?[t,opp(t,gd).replace(/^(vs|@) /,"")]:[t];
       // NIGHT: per-game Proj ranked among everyone playing (and not out) that night.
-      let night=null;if(gd){night={};all.filter(([id,q])=>plays(q.t,gd)&&avail(id,gd)).map(([id,q])=>[id,pjVal(zAt(q,minAt(id,q,gd)))]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>night[id]=i+1)}
+      let night=null;if(gd){night={};all.filter(([id,q])=>plays(q.t,gd)&&avail(id,gd)).map(([id,q])=>[id,pjVal(pjZ(lineOn(id,q,gd)))]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>night[id]=i+1)}
       const tx=`<div class="tx">${head}${teams2.map(x=>teamPanel(x,gd,live,all,szn,gd?night:wk,gd?Object.keys(night).length:0,wk,WM)).join("")}</div>`;
       // desktop: the panel opens beside the grid instead of inside it
       if(isDesk())side=tx;else h+=tx}
@@ -2144,9 +2174,14 @@ function renderGrid(ds,live,all,today){
     const after=t=>live.filter(x=>x>d&&plays(t,x)).length,m=Math.max(0,...teams.map(after));if(m<2)continue;
     const best=teams.filter(t=>after(t)===m);
     notes.push(`<b>After ${DL(d)}</b>: ${tl(done)} ${done.length>1?"are":"is"} done for the week; ${tl(best)} ${best.length>1?"play":"plays"} ${m} more (${live.filter(x=>x>d&&plays(best[0],x)).map(DL).join(" + ")}). Swap a borderline player from the first for one from the second: ${m} games for one move.`)}
+  // easiest and toughest schedules among the teams with the most games left, then the next count down
+  if(EZ){const gl=t=>live.filter(d=>plays(t,d)).length,av=t=>{const ds=live.filter(d=>plays(t,d));return ds.reduce((a,d)=>a+(EZ[oppT(t,d)]||0),0)/ds.length};
+    for(const c of [...new Set(teams.map(gl))].filter(c=>c>=2).sort((a,b)=>b-a).slice(0,2)){const ts=teams.filter(t=>gl(t)===c).sort((a,b)=>av(b)-av(a));if(ts.length<4)continue;
+      const ez=ts.slice(0,3).filter(t=>av(t)>=.15),hd=ts.slice(-2).reverse().filter(t=>av(t)<=-.15);
+      if(ez.length||hd.length)notes.push(`<b>${c}-game schedules</b>: ${ez.length?`easiest <span class="ezp">${ez.join(" ")}</span>`:""}${ez.length&&hd.length?" · ":""}${hd.length?`toughest <span class="ezn">${hd.join(" ")}</span>`:""}`)}}
   const sgx=notes.length?`<div class="sgx">${notes.map(x=>`<p>${x}</p>`).join("")}</div>`:"";
   $("scStatus").textContent=`${teams.length} teams`;
-  $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Dark number = heavy night (10+ games). Red underline = 2nd night of a back-to-back; gray line on top = part of a 3-games-in-4-nights stretch. Tap a team for its rotation this week (Week = week rank), or a game for both teams that night (Tonight, or the day: rank among that night's players). Starters match the Injuries tab: NBA.com's posted lineup for tonight (Expected, then Confirmed), otherwise each team's five from its last game, with a regular back from injury taking his spot back and anyone out replaced by whoever the team started when he sat before.</p>${sgx}${isDesk()?`<div class="scw"><div class="sgd">${h}</div><aside class="scp">${side||`<div class="scp0">Click a team for its rotation this week, or a game for both teams that night.</div>`}</aside></div>`:`<div class="sgd">${h}</div>`}`;
+  $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Dark number = heavy night (10+ games). Red underline = 2nd night of a back-to-back; gray line on top = part of a 3-games-in-4-nights stretch. Opponent in <span class="ezp">green</span> = an easy matchup (opponents produce more against them than against everyone else), <span class="ezn">red</span> = a tough one; projections already include it. Tap a team for its rotation this week (Week = week rank), or a game for both teams that night (Tonight, or the day: rank among that night's players). Starters match the Injuries tab: NBA.com's posted lineup for tonight (Expected, then Confirmed), otherwise each team's five from its last game, with a regular back from injury taking his spot back and anyone out replaced by whoever the team started when he sat before.</p>${sgx}${isDesk()?`<div class="scw"><div class="sgd">${h}</div><aside class="scp">${side||`<div class="scp0">Click a team for its rotation this week, or a game for both teams that night.</div>`}</aside></div>`:`<div class="sgd">${h}</div>`}`;
 }
 // The categories a player helps, for streaming: per-game Proj z-score of 0.25+ against everyone
 // projected for 15+ minutes (a broad, streamer-level bar; the top-130 pool would leave almost
@@ -2383,7 +2418,7 @@ function muSave(){const m=S.mus,all=store.get("muSel2",{}),wk0=weekDates(0)[0];
 const muOff=m=>new Set(S.punt);
 const muFocus=m=>{const off=muOff(m),t=[...m.tg].filter(k=>!off.has(k));return t.length?t:CATS.map(c=>c.k).filter(k=>!off.has(k))};
 const muFz=(z,F)=>F.length?F.reduce((a,k)=>a+z[k],0)/F.length:0;
-function muLine(id,q,d,C){const k=id+"|"+d;return C[k]||(C[k]=(l=>({l,z:pjZ(l)}))(lineAt(q,minAt(id,q,d))))}
+function muLine(id,q,d,C){const k=id+"|"+d;return C[k]||(C[k]=(l=>({l,z:pjZ(l)}))(lineOn(id,q,d)))}
 // A roster over some days: on each day, everyone (an IL player too, taken as activated once the
 // injury report has him back) whose team plays and who isn't listed
 // out; games forced in count first, then the best by the sort categories up to the team's active
@@ -2593,7 +2628,7 @@ $("pjSz").hidden=S.pjView!=="season";
     const SV=sznVals(all),left=id=>{if(!SC)return null;const i=ijOf(id);if(ijOut(i)&&!i[1])return"?";return SV[id].ds.length};
     const tot=S.pjSz==="tot"&&SC;
     rows=all.map(([id,q])=>{const g=left(id),sv=SV[id];
-      return{id,q,l:lineAt(q,sv.m),min:sv.m,v:tot?val0(sv.z,G.zp)*(g==="?"?0:g):sv.v,hi:1,foot:nmNote(id,q,sv.ds,sv.m)+ijNote(id),sdl:g!=null?g+"g":"",z:sv.z,ctx:g!=null?`<b>${g}</b> g left`:"",
+      return{id,q,l:sv.l,min:sv.m,v:tot?val0(sv.z,G.zp)*(g==="?"?0:g):sv.v,hi:1,foot:nmNote(id,q,sv.ds,sv.m)+ijNote(id),sdl:g!=null?g+"g":"",z:sv.z,ctx:g!=null?`<b>${g}</b> g left`:"",
         side:g!=null?`<div class="pjside"><b>${g}</b><i>games left</i></div>`:""}}).sort((a,b)=>b.v-a.v).slice(0,250);
     stat=`${rows.length} · ${tot?"total":"per game"}`;
     cap=`Rest of season, per game: Proj's line (this season's minutes, rates blended toward a two-season baseline), with minutes shifted while a teammate is out and eased back when he returns. ${tot?"<b>Total</b>: per-game value × games left, so time missed counts.":"<b>Per g</b>: value per game, which ranks quality."} Games left are on the right, counted from any expected return on ESPN's injury report. Proj through ${sh(G.asOf)}; tap the ⓘ on Buy/Sell for how it's built.`;
@@ -2602,7 +2637,7 @@ $("pjSz").hidden=S.pjView!=="season";
     const ds=weekDates(S.pjWk),live=ds.filter(d=>d>=today);
     const SV=sznVals(all),szn={};all.map(([id])=>[id,SV[id].v]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>szn[id]=i+1);
     const b2b=(t,id)=>live.filter(d=>plays(t,d)&&avail(id,d)&&plays(t,shift(d,-1))).length;
-    rows=all.map(([id,q])=>{const wd=live.filter(d=>plays(q.t,d)&&avail(id,d)),g=wd.length,m=avgMin(id,q,wd),z=zAt(q,m),pl=lineAt(q,m),l={};
+    rows=all.map(([id,q])=>{const wd=live.filter(d=>plays(q.t,d)&&avail(id,d)),g=wd.length,pl=avgLine(id,q,wd),m=pl.min,z=pjZ(pl),l={};
       for(const k in pl)l[k]=k==="min"||S.pjTot!=="tot"?pl[k]:pl[k]*g;
       return{id,q,g,l,min:pl.min,v:g*val0(z,G.zp),
         side:`<div class="wk" aria-label="${g} games">${ds.map(d=>`<span class="${plays(q.t,d)&&avail(id,d)?"on":""}${d<today?" past":""}">${"MTWTFSS"[ds.indexOf(d)]}</span>`).join("")}</div>`,
@@ -2618,11 +2653,12 @@ $("pjSz").hidden=S.pjView!=="season";
     if(!teams.size)return pjMsg(SC?"No games today.":"No schedule yet: it's built with the nightly rankings.");
     const out=[],noline=[],hurt=[];
     for(const[id,q]of all){if(!teams.has(q.t))continue;
-      const tm=minAt(id,q,today),pp=propsFor(P,q),t=tonightLine(q,pp,tm),o={id,q,l:t.l,min:t.l.min,mk:t.mk,hi:1,v:pjVal(pjZ(t.l)),sdl:esc(opp(q.t,today)),z:pjZ(t.l),ctx:esc(opp(q.t,today)),side:`<div class="pjside"><i>${esc(opp(q.t,today))}</i></div>`};
+      const tm=minAt(id,q,today),pp=propsFor(P,q),t=tonightLine(q,pp,tm,easeF(oppT(q.t,today))),o={id,q,l:t.l,min:t.l.min,mk:t.mk,hi:1,v:pjVal(pjZ(t.l)),sdl:esc(opp(q.t,today)),z:pjZ(t.l),ctx:esc(opp(q.t,today)),side:`<div class="pjside"><i>${esc(opp(q.t,today))}</i></div>`};
       const d=PK.filter(k=>t.mk[k]).map(k=>{const gap=t.l[k]-t.base[k],c=Math.abs(gap)>=PJGAP[k]?(gap>0?"up":"dn"):"";
         return`<span class="${c}">${CL[k].toUpperCase()} <b class="${c}">${t.l[k].toFixed(1)}</b> (${t.base[k].toFixed(1)})</span>`});
       if(pp)o.foot=`<div class="pjm">Market (Proj): ${d.join(" · ")}</div>`;
       const nn=nmNote(id,q,[today],tm);if(nn)o.foot=(o.foot||"")+nn;
+      o.foot=(o.foot||"")+easeNote(q.t,today);
       const ij=ijOf(id);if(ij)o.foot=(o.foot||"")+ijNote(id);
       if(ijOut(ij)&&!avail(id,today)&&!pp){hurt.push(o);continue}
       if(!pp&&priced.has(q.t)&&t.base.min>=18){o.foot=`<div class="pjm">No line posted while teammates have one: often out or questionable. Check the news.</div>`;noline.push(o)}
@@ -2777,7 +2813,7 @@ function psPct(id,q){if(!q||!q.xp||!G.zp)return"";const B=S.bs;
 // Tonight's projection, ours against the sportsbooks: each stat's book line and the average it implies,
 // next to Proj at tonight's minutes, and what the card uses (the books where they priced it, Proj otherwise).
 function psDaily(id,q){if(!q||!q.xp||!SC)return"";const t=etToday();if(!plays(q.t,t))return"";
-  const m=minAt(id,q,t),our=lineAt(q,m),pp=propsFor(prIx(),q),tl=tonightLine(q,pp,m),o=opp(q.t,t);
+  const m=minAt(id,q,t),ef=easeF(oppT(q.t,t)),our=easeLine(lineAt(q,m),ef),pp=propsFor(prIx(),q),tl=tonightLine(q,pp,m,ef),o=opp(q.t,t);
   const pv=(l,k)=>k==="fg"?(l.fga?l.fgm/l.fga:null):k==="ft"?(l.fta?l.ftm/l.fta:null):l[k];
   const fv=(k,v)=>v==null?"–":k==="fg"||k==="ft"?v.toFixed(3).replace(/^0/,""):f1(v);
   const rows=["min",...CATS.map(c=>c.k)].map(k=>{const lab=k==="min"?"MIN":CATS.find(c=>c.k===k).l,b=pp&&pp[k],a=k==="min"?our.min:pv(our,k);
@@ -2787,7 +2823,7 @@ function psDaily(id,q){if(!q||!q.xp||!SC)return"";const t=etToday();if(!plays(q.
   return`<section class="blk"><h3>Tonight's projection <span>${esc(o)}</span></h3>
     <table class="cmp dly"><tr><th></th><th>Ours</th><th>Book line</th><th>Book avg</th></tr>${rows}</table>
     <div class="dlyv"><span>Value, ours <b class="vl ${vcls(vo)}">${sgn(vo)}</b></span>${pp?`<span>with book lines <b class="vl ${vcls(vt)}">${sgn(vt)}</b></span>`:""}</div>
-    <p class="stkn">${pp?`Book avg is the average the odds imply (vig removed, median across US books), colored where it's well above or below ours. The card uses the books where they priced a stat and ours for the rest.`:`No sportsbook lines for him yet (they're pulled around 4 and 6pm ET). Ours is Proj at tonight's minutes${Math.abs(m-q.xp[0])>=1?` (${Math.round(m)}, Proj ${Math.round(q.xp[0])}, with teammates out)`:""}.`}</p></section>`}
+    <p class="stkn">${pp?`Book avg is the average the odds imply (vig removed, median across US books), colored where it's well above or below ours. The card uses the books where they priced a stat and ours for the rest.`:`No sportsbook lines for him yet (they're pulled around 4 and 6pm ET). Ours is Proj at tonight's minutes${Math.abs(m-q.xp[0])>=1?` (${Math.round(m)}, Proj ${Math.round(q.xp[0])}, with teammates out)`:""}.`} Ours includes the matchup.</p>${easeNote(q.t,t)}</section>`}
 function psWeek(id,q){if(!q||!SC)return"";const t=etToday(),W=SC.wk||{};
   // the whole week, Mon-Sun: days already played (from the schedule's `wk`) dimmed, tonight outlined
   const og=(d)=>{for(const[a,h]of W[d]||[]){if(a===q.t)return"@"+h;if(h===q.t)return a}return""},ds=weekDates(0).filter(d=>d<t?!!og(d):plays(q.t,d));if(!ds.length)return"";
@@ -2796,7 +2832,7 @@ function psWeek(id,q){if(!q||!SC)return"";const t=etToday(),W=SC.wk||{};
     return`<span class="${out?"out":""}${d===t?" td":""}${past?" pst":""}">${logoImg(o.replace("@",""))}<b>${d===t?"Tonight":new Date(d+"T12:00:00Z").toLocaleDateString("en-US",{weekday:"short",timeZone:"UTC"})}</b><i>${esc(o)}${out?" · out":""}</i></span>`}).join("")}</div>`}
 function psTonightProj(id,q,tn){if(!q||!q.xp)return null;const t=etToday();
   if(tn&&S.date!==t)return{l:xpLine(q),mk:{},src:"Proj per game"};
-  const P=prIx(),pp=propsFor(P,q),tl=tonightLine(q,pp,minAt(id,q,t));return{l:tl.l,mk:tl.mk,src:pp?"Proj, sportsbook lines underlined":"Proj for tonight"}}
+  const P=prIx(),pp=propsFor(P,q),tl=tonightLine(q,pp,minAt(id,q,t),easeF(oppT(q.t,t)));return{l:tl.l,mk:tl.mk,src:pp?"Proj, sportsbook lines underlined":"Proj for tonight"}}
 function psTonight(id,q,tn){const pj=psTonightProj(id,q,tn),h=[];
   const pv=(l,k)=>k==="fg"?(l.fgm/Math.max(l.fga,1e-9)):k==="ft"?(l.ftm/Math.max(l.fta,1e-9)):l[k];
   const fp=(k,v)=>k==="fg"||k==="ft"?(v||0).toFixed(3).replace(/^0/,""):f1(v);
