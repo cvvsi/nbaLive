@@ -1001,8 +1001,9 @@ async function loadDate(d,auto){
   const ps=[];for(const b of boxes){if(b)ps.push(...parseBox(b.e,b.j))}
   S.players=ps;
   if(!S.events.some(e=>e.id===S.game))S.game="all";
-  S.updated=new Date();compute();renderGames();render();
+  // schedule the next live refresh first, so an error while drawing can't freeze the scores
   if(evs.some(e=>e.state==="in"))S.timer=setTimeout(()=>loadDate(S.date,false),60000);
+  S.updated=new Date();try{compute();renderGames();render()}catch(e){console.error("Box render failed:",e)}
 }
 
 function split(s){const [m,a]=String(s||"0-0").split("-").map(Number);return[m||0,a||0]}
