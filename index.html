@@ -835,6 +835,11 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .gchart{border:0;background:transparent;cursor:default}.vchart .groll{fill:none;stroke:var(--ink);stroke-width:1.4;stroke-dasharray:4 3;opacity:.7}.vchart .gpt{fill:var(--ball)}.vchart .gline.gthin{stroke-width:1.2;opacity:.45}.vchart .groll.gbold{stroke:var(--ink);stroke-width:2.2;stroke-dasharray:none;opacity:.9}.vchart .gpf{fill:var(--panel);stroke:var(--ink);stroke-width:1.6}.vchart .gpb{fill:var(--panel);stroke:var(--dim);stroke-width:1.6}.vchart .gpx{fill:var(--neg)}
 .vchart .gmk{font:700 10px var(--num);text-anchor:middle;cursor:default}.gmk{font:700 11px var(--num);display:inline-block;min-width:14px;text-align:center}.gmkf{fill:var(--ink);color:var(--ink)}.gmkb{fill:var(--dim);color:var(--dim)}.gmkx{fill:var(--neg);color:var(--neg)}
 .rwin{margin:4px 0 10px}.rwin button{padding:6px 12px}
+.pdd{margin-top:14px;border:1px solid var(--rule);border-radius:12px;background:var(--panel)}.pdd>summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:11px 14px;font:700 15px/1.2 var(--name)}
+.pdd>summary::-webkit-details-marker{display:none}.pdd>summary span{font:500 12px/1.2 var(--name);color:var(--dim)}.pdd>summary::after{content:"▾";margin-left:auto;color:var(--dim);transition:transform .15s}.pdd:not([open])>summary::after{transform:rotate(-90deg)}
+.pdd .ddb{padding:0 14px 12px}.pdd .ddb>section.blk{margin-top:0}.pdd .ddb>section.blk>h3{display:none}
+.pwk{display:flex;gap:22px;margin:2px 0 10px}.pwk b{display:block;font:600 22px/1.1 var(--num)}.pwk i{display:block;margin-top:3px;font:600 10px/1.2 var(--name);letter-spacing:.06em;font-style:normal;color:var(--dim)}.pwk em{font-style:normal;color:var(--neg)}
+.pwkt td em{font-style:normal;color:var(--ball);font-size:10px}.pwkt .pwo td{color:var(--neg)}.pwkt .pwt td{font-weight:700;border-top:1px solid var(--rule)}
 .mwhy{display:grid;gap:6px;font:500 13px/1.4 var(--name)}.mwhy>div{color:var(--ink)}
 .vchart .gfl rect{fill:var(--dim)}.vchart .gfl text{font:700 8px var(--num);fill:var(--dim);text-anchor:middle}.vchart .gfl.tr rect{fill:var(--neg)}.vchart .gfl.tr text{fill:var(--neg)}.vchart .gfsat{fill:color-mix(in srgb,var(--neg) 70%,var(--cell))}
 .gfk{display:inline-block;width:2px;height:10px;background:var(--neg);vertical-align:-1px;margin:0 3px}.gsk{display:inline-block;width:14px;height:4px;border-radius:2px;background:color-mix(in srgb,var(--neg) 70%,var(--cell));vertical-align:2px}.gfa{stop-color:var(--ball);stop-opacity:.22}.gfb{stop-color:var(--ball);stop-opacity:0}
@@ -3093,6 +3098,33 @@ function psChartBind(){const s=$("psChart");if(!s)return;const P=JSON.parse(s.da
   const mv=e=>{const r=s.getBoundingClientRect(),x=((e.touches?e.touches[0].clientX:e.clientX)-r.left)*(s.viewBox.baseVal.width/r.width);
     let b=P[0];for(const p of P)if(Math.abs(p[0]-x)<Math.abs(b[0]-x))b=p;dot.setAttribute("cx",b[0]);dot.setAttribute("cy",b[1]);tip.textContent=`${b[2]}  ·  his value then ${b[3]}`};
   s.addEventListener("mousemove",mv);s.addEventListener("touchmove",mv,{passive:true});s.addEventListener("touchstart",mv,{passive:true})}
+// A collapsible section on the player page; open/closed is remembered per device.
+const PSDD=store.get("psDD",{});
+function psDD(k,title,sub,body,def){const open=PSDD[k]!=null?PSDD[k]:def;
+  return`<details class="pdd" data-dd="${k}"${open?" open":""}><summary><b>${title}</b><span>${sub}</span></summary><div class="ddb">${body}</div></details>`}
+document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.classList&&d.classList.contains("pdd")){PSDD[d.dataset.dd]=d.open;store.set("psDD",PSDD)}},true);
+// Every player's value for the rest of this week (the Week view's number: games x per-game value
+// from zero, each game against its opponent), for his week rank. Cached until the data or punts change.
+function weekRanks(){const t=etToday(),key=[G&&G.asOf,IJ&&IJ.built,SC&&SC.built,[...S.punt].join(),t].join("|");
+  if(S.wkR&&S.wkR.key===key)return S.wkR;const live=weekDates(0).filter(d=>d>=t),v={},rk={};
+  for(const[id,q]of Object.entries(G.players)){if(!q.xp||q.xp[0]<8)continue;const wd=live.filter(d=>plays(q.t,d)&&avail(id,d));if(!wd.length)continue;v[id]=wd.length*val0(pjZ(avgLine(id,q,wd)),G.zp)}
+  Object.entries(v).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>rk[id]=i+1);return S.wkR={key,rk,n:Object.keys(rk).length}}
+// The player page's week: rank, games left, and each game against its opponent (the same daily line
+// as Today, Week, Schedule and the Matchup tool).
+function psWeekProj(id,q){if(!SC||!q.xp)return null;const t=etToday(),ds=weekDates(0),live=ds.filter(d=>d>=t&&plays(q.t,d)),R=weekRanks();
+  const pl=live.filter(d=>avail(id,d)),out=live.filter(d=>!avail(id,d)),B=S.bs,szn=B&&B.x?B.x[id]:null,wr=R.rk[id];
+  const DL=d=>new Date(d+"T12:00:00Z").toLocaleDateString("en-US",{weekday:"short",timeZone:"UTC"});
+  const lines=pl.map(d=>({d,l:lineOn(id,q,d)})),fp=(k,l)=>k==="fg"?(l.fga?(l.fgm/l.fga).toFixed(3).replace(/^0/,""):"–"):k==="ft"?(l.fta?(l.ftm/l.fta).toFixed(3).replace(/^0/,""):"–"):f1(l[k]);
+  const K=["pts","reb","ast","tpm","stl","blk","to","fg","ft"],tot={};for(const{l}of lines)for(const k in l)tot[k]=(tot[k]||0)+l[k];
+  const tr=r=>!r?"":r<=TOP?"up":r<=ROST?"":"dn";
+  const head=`<div class="pwk"><div><b class="${tr(wr)}">${wr?"#"+wr:"–"}</b><i>WEEK RANK${R.n?` of ${R.n}`:""}</i></div><div><b>${pl.length}</b><i>GAMES LEFT${out.length?` <em>out ${out.length}</em>`:""}</i></div><div><b class="${tr(szn)}">${szn?"#"+szn:"–"}</b><i>PROJ RANK · PER GAME</i></div></div>`;
+  const rows=lines.map(({d,l})=>{const v=pjVal(pjZ(l));return`<tr><td>${DL(d)}${d===t?" <em>tonight</em>":""}</td><td>${esc(opp(q.t,d).replace("vs ","").replace("@ ","@"))}</td><td>${Math.round(l.min)}</td>${K.map(k=>`<td class="${S.punt.has(k)?"off":""}">${fp(k,l)}</td>`).join("")}<td class="vl ${vcls(v)}">${sgn(v)}</td></tr>`}).join("")
+    +out.map(d=>`<tr class="pwo"><td>${DL(d)}</td><td>${esc(opp(q.t,d).replace("vs ","").replace("@ ","@"))}</td><td colspan="${K.length+2}">out (injury report)</td></tr>`).join("");
+  const sum=lines.length>1?`<tr class="pwt"><td>Week</td><td></td><td>${Math.round(tot.min||0)}</td>${K.map(k=>`<td>${k==="fg"||k==="ft"?fp(k,tot):f1(tot[k]||0)}</td>`).join("")}<td></td></tr>`:"";
+  const html=live.length?`${head}<div class="psavw"><table class="cmp psav pwkt"><tr><th></th><th></th><th>MIN</th>${K.map(k=>`<th>${CATS.find(c=>c.k===k).l}</th>`).join("")}<th>Val</th></tr>${rows}${sum}</table></div>
+    <p class="stkn">Each game is his projection that night: minutes with teammates in or out, against that opponent (the same line as Today, Week, Schedule and the Matchup tool). Week rank = the Week view's (games × per-game value), among everyone playing this week; Proj rank = per game, rest of season.</p>`
+    :`<p class="lgk">No games left this week.</p>`;
+  return{sub:live.length?`#${wr||"–"} · ${pl.length} game${pl.length===1?"":"s"} left`:"done for the week",html}}
 function renderSheet(){
   if(!S.ps)return;
   const{id,tn}=S.ps,q=G&&G.players[id],rq=R&&R.players[id],B=S.bs,nm=psName(id,tn);
@@ -3127,7 +3159,8 @@ function renderSheet(){
       if(ur<=ROST&&ur<(hasPj(q)?B.x[id]:B.now[id])-25)h.push(`<div class="ups"><b>#${ur}</b><p>If the minutes reach <b>${q.up[1]} a game</b>, these per-minute numbers rank around #${ur}. That's the upside.</p></div>`)}
   }
   if(T==="proj"){
-    if(q)h.push(stickHTML(q,B,id));
+    // Season per game first (what he's actually doing), then the projections in dropdowns, each
+    // remembered open or closed on the device (psDD).
     if(q){const pg=k=>q.pg[G.pgf.indexOf(k)],F=G.rates,r=k=>q.r[F.indexOf(k)],sz=rq&&rq.w.season,zi=k=>sz?sz[2+R.cats.indexOf(k)]:0;
       const val=sz?SCATS.filter(c=>!S.punt.has(c.k)).reduce((s,c)=>s+zi(c.k),0)/Math.max(1,SCATS.filter(c=>!S.punt.has(c.k)).length):null;
       h.push(`<section class="blk"><h3>Season <span>per game · ${q.now[0]} games</span></h3><div class="bign">${BIG.map(k=>`<span class="bg${nh(k)}"><b>${f1(pg(k))}</b><i>${CL[k]}</i></span>`).join("")}
@@ -3136,7 +3169,10 @@ function renderSheet(){
           const att=k==="fg"?` <em>${f1(q.att[0]/q.now[0])} att</em>`:k==="ft"?` <em>${f1(q.att[2]/q.now[0])} att</em>`:"";
           return`<div class="${nh(k).trim()}"><b>${v}</b><i>${CL[k].toUpperCase()}${att}</i></div>`}).join("")}
           <div class="role"><b>${f1(r("mpg"))}</b><i>MIN</i></div><div class="role"><b>${Math.round(r("usg"))}%</b><i>USAGE</i></div></div></section>`)}
-    if(q)h.push(`<section class="blk"><h3>This season vs ${q.b?baseName(q):"last season"} <span>${S.bsUnit==="g"?"per game":"per 36"} · switch on Buy/Sell</span></h3>${detailHTML(id,tn,true)}${cmpCounts(q)}</section>`);
+    if(q){const wk=psWeekProj(id,q);
+      if(wk)h.push(psDD("week","This week",wk.sub,wk.html,true));
+      h.push(psDD("proj","Proj vs this season","per game · rest of season",stickHTML(q,B,id),false));
+      h.push(psDD("ly",`This season vs ${q.b?baseName(q):"last season"}`,S.bsUnit==="g"?"per game":"per 36",detailHTML(id,tn,true)+cmpCounts(q),false))}
     if(!q)h.push(`<p class="lgk">No projection for him yet.</p>`);
   }
   if(T==="log")h.push(psLogHTML());
