@@ -184,7 +184,12 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .mct .g{color:var(--dim)}.mct tbody td.g{font-weight:600;color:var(--ink)}
 .mct sup{font:600 8px/1 var(--num);margin-left:1px;vertical-align:4px}
 .mct tr.cp td{font-size:11px}.mct tr.cp td.up{color:var(--pos)}.mct tr.cp td.dn{color:var(--neg)}.mct tr.cp .tn,.mct tr.wp .tn,.mct tr.tgr .tn{color:var(--dim);font-weight:500}
-.mct tr.wp td{font-weight:600;border-radius:4px}.mct td.bad{color:var(--neg);font-weight:700}.mbad{margin:8px 0;padding:8px 10px;border:1px solid var(--neg);border-radius:8px;font:500 13px/1.4 var(--name);color:var(--ink)}.mbad b{color:var(--neg)}.mct i.nw0{display:block;font:500 9.5px/1 var(--num);font-style:normal;color:var(--dim);margin-top:3px}
+.mct tr.wp td{font-weight:600;border-radius:4px}.mct td.bad{color:var(--neg);font-weight:700}.mct thead th.sw{color:var(--ball);text-decoration:underline;text-underline-offset:3px}.mct td.swc{box-shadow:inset 0 -2px 0 var(--ball)}
+.tsw{display:inline-block;margin:0 2px;vertical-align:1px;font:600 9.5px/1 var(--name);letter-spacing:.04em;text-transform:uppercase;color:var(--ball);border:1px solid var(--ball);border-radius:4px;padding:2px 4px;background:none;cursor:pointer}
+.mwin{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin:8px 0 2px;font:500 13px/1.2 var(--name);color:var(--dim)}.mwin>b{font:700 18px/1 var(--num);color:var(--ink)}.mwin>b.up{color:var(--pos)}.mwin>b.dn{color:var(--neg)}
+.mdist{display:flex;align-items:flex-end;gap:2px;height:26px}.mdist i{position:relative;width:10px;background:color-mix(in srgb,var(--neg) 40%,var(--cell));border-radius:2px 2px 0 0}.mdist i.w{background:color-mix(in srgb,var(--pos) 50%,var(--cell))}.mdist i.m{outline:1.5px solid var(--ink)}
+.mdist em{position:absolute;bottom:-11px;left:0;right:0;text-align:center;font:500 8px/1 var(--num);font-style:normal;color:var(--dim)}
+.mread{margin:10px 0 2px;padding:10px 12px;background:var(--panel);border-radius:10px;border-left:3px solid var(--ball);font:500 13.5px/1.45 var(--name);color:var(--ink)}.mread .up{color:var(--pos);font-weight:600}.mread .dn{color:var(--neg);font-weight:600}.mbad{margin:8px 0;padding:8px 10px;border:1px solid var(--neg);border-radius:8px;font:500 13px/1.4 var(--name);color:var(--ink)}.mbad b{color:var(--neg)}.mct i.nw0{display:block;font:500 9.5px/1 var(--num);font-style:normal;color:var(--dim);margin-top:3px}
 .mct tr.tgr th{padding:2px 3px 6px}
 .tk{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--dim);background:none;cursor:pointer;padding:0;display:inline-grid;place-items:center;vertical-align:middle}
 .tk.on{background:var(--ball);border-color:var(--ball)}.tk.on::after{content:"";width:8px;height:4px;border:solid var(--panel);border-width:0 0 2px 2px;transform:translateY(-1px) rotate(-45deg)}
@@ -207,6 +212,7 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 @media (max-width:999px){
   .mct{font-size:11px}.mct th,.mct td{padding:5px 2px}.mct .tn{max-width:58px;font-size:11px}.mct sup{display:none}.mct thead th{font-size:10px}
   .tk{width:16px;height:16px}
+  .mct i.nw0 span{display:none}.mct i.nw0{font-size:8.5px}
   .dc,.dh{width:20px}.dh .cap{display:none}.dh b span{display:block;margin-top:1px}.dh b{text-align:center;white-space:nowrap}.dh em{display:block}
 }
 .msw{display:grid;gap:4px;margin:8px 2px 0;font:500 12.5px/1.4 var(--name);color:var(--dim)}
@@ -2339,6 +2345,14 @@ function muOdds(cA,cB,pA,pB,A,B,off){
   // categories you're playing for) is what a player's "Cats" gain or loss is measured on.
   const P=r=>r.p==null?.5:r.p;
   return{rows,won:rows.filter(r=>r.p!=null&&r.p>.5).length,lost:rows.filter(r=>r.p!=null&&r.p<.5).length,n:rows.length,exp:rows.reduce((s,r)=>s+P(r),0),expP:rows.filter(r=>!r.off).reduce((s,r)=>s+P(r),0)}}
+// How many of the 9 categories you finish with: each category won with its own chance, independently
+// (a "?" category counts as a coin flip). win = chance of taking 5 or more; most = the likeliest count.
+function muDist(rows){let d=[1];for(const r of rows){const p=r.p==null?.5:r.p,n=Array(d.length+1).fill(0);
+    d.forEach((x,i)=>{n[i]+=x*(1-p);n[i+1]+=x*p});d=n}
+  const half=rows.length/2,win=d.reduce((a,x,i)=>a+(i>half?x:0),0),tie=rows.length%2?0:d[half]||0;
+  return{d,win,tie,most:d.indexOf(Math.max(...d))}}
+// Swing categories: still in play (30-70%), where a pickup can flip the result.
+const MUSW=[.3,.7],muSwing=rows=>rows.filter(r=>r.p!=null&&r.p>=MUSW[0]&&r.p<=MUSW[1]);
 S.muWk=null;
 function renderMU(){
   const mu=ML&&ML.mu,x=ML&&lgIx();
@@ -2375,6 +2389,7 @@ function renderMU(){
   const B=muSim(oppR,rest,capB,F,null,C),A=muSim(mine,rest,capA,F,m.set,C),O=muOdds(cA,cB,pA,pB,A,B,off);
   // Sanity checks on what the numbers are built from; a failed one shows a red note (and a "?" win %)
   // rather than a confident wrong number.
+  const DS=muDist(O.rows),SW=muSwing(O.rows),swK=new Set(SW.map(r=>r.k));
   const muIssues=[];
   if(isS){const got=new Set(mu.lab.map(muKey).filter(Boolean)),miss=CATS.filter(c=>!got.has(c.k)).map(c=>c.l);
     if(miss.length)muIssues.push(`couldn't read ${miss.join(", ")} from Yahoo's matchup (sync again)`);
@@ -2439,18 +2454,25 @@ function renderMU(){
     <div class="mtop">
       <div class="mwk"><button class="mar" data-mu="wk" data-x="-1"${canPrev?"":" disabled"} aria-label="Previous week">‹</button><span><b>${wkNo?"Week "+wkNo:"Week"}</b> ${sh(dates[0])}–${sh(dates[dates.length-1])}${isS?"":` <i>projection only</i>`}</span><button class="mar" data-mu="wk" data-x="1"${canNext?"":" disabled"} aria-label="Next week">›</button></div>
       <div class="muh"><div><b>${esc(nameA)}</b><i class="${O.won>O.lost?"up":O.won<O.lost?"dn":""}">${O.won}</i></div><span>${O.n-O.won-O.lost?`${O.n-O.won-O.lost} even`:"vs"}</span><div>${isS?`<b>${esc(nameB)}</b>`:`<select class="mop" data-mu-opp aria-label="Opponent">${teams.map(t=>`<option value="${t}"${t===opId?" selected":""}>${esc(ML.teams[t])}${t===sch?" (scheduled)":""}</option>`).join("")}</select>`}<i>${O.lost}</i></div></div>
+      <div class="mwin"><b class="${DS.win>=.55?"up":DS.win<=.45?"dn":""}">${Math.round(100*DS.win)}%</b> to win the week<span>most likely ${DS.most}–${9-DS.most}</span>
+        <div class="mdist" title="Chance of finishing with each number of categories">${DS.d.map((x,i)=>`<i class="${i>=5?"w":"l"}${i===DS.most?" m":""}" style="height:${Math.max(2,Math.round(100*x/Math.max(...DS.d)))}%"><em>${i}</em></i>`).join("")}</div></div>
       <div class="mue">Expected <b>${O.exp.toFixed(1)}</b> of 9${moved?` <span class="${O.exp-O0.exp>=0?"up":"dn"}">(${O.exp-O0.exp>=0?"+":"−"}${Math.abs(O.exp-O0.exp).toFixed(1)} with your moves)</span> <button class="mrs" data-mu="reset">Reset</button>`:""}</div>
     </div>
+    ${(()=>{const L=c=>c.map(r=>r.l).join(", "),ah=O.rows.filter(r=>r.p!=null&&r.p>MUSW[1]),bh=O.rows.filter(r=>r.p!=null&&r.p<MUSW[0]);
+      const tone=DS.win>=.7?"Good spot":DS.win>=.55?"Slight edge":DS.win>.45?"Close":DS.win>.3?"Uphill":"Long odds";
+      return`<div class="mread"><b>${tone}: ${Math.round(100*DS.win)}% to win</b> (projected ${O.won}–${O.lost}${O.n-O.won-O.lost?`–${O.n-O.won-O.lost}`:""}).
+        ${ah.length?`Ahead in <span class="up">${L(ah)}</span>. `:""}${bh.length?`Behind in <span class="dn">${L(bh)}</span>. `:""}
+        ${SW.length?`<b>Swing: ${L(SW)}</b> <button class="tsw" data-mu="swing" data-k="${SW.map(r=>r.k).join(",")}" title="Tick the swing categories as targets">Target these</button> `:"No category is close: streaming won't change much. "}${rest.length?`Games left: ${gA} to his ${gB}.`:""}</div>`})()}
     ${stale}${muIssues.length?`<div class="mbad"><b>Check:</b> ${muIssues.join(" · ")}</div>`:""}${m.add.size||m.drop.size?`<div class="mwi"><b>What-if</b> (not on Yahoo): ${[...[...m.add].filter(id=>G.players[id]).map(id=>`<span class="up">+ ${esc(nm(G.players[id].n))}</span>`),...[...m.drop].filter(id=>G.players[id]).map(id=>`<span class="dn">− ${esc(nm(G.players[id].n))}</span>`)].join(" · ")}</div>`:""}
-    <div class="mfin"><div class="mctw"><table class="mct"><thead><tr><th class="tn">Final</th><th class="g">G</th>${O.rows.map(r=>`<th>${r.l}</th>`).join("")}</tr>
+    <div class="mfin"><div class="mctw"><table class="mct"><thead><tr><th class="tn">Final</th><th class="g">G</th>${O.rows.map(r=>`<th class="${swK.has(r.k)?"sw":""}">${r.l}</th>`).join("")}</tr>
       <tr class="tgr"><th class="tn">Target</th><th></th>${O.rows.map(r=>`<th><button class="tk${m.tg.has(r.k)?" on":""}" data-mu="cat" data-x="${r.k}" aria-pressed="${m.tg.has(r.k)}" aria-label="Target ${r.l}"></button></th>`).join("")}</tr></thead><tbody>
-      <tr><th class="tn">${esc(nameA)}</th><td class="g">${gTA}</td>${O.rows.map(r=>`<td>${fv(r.k,r.a)}${badge(me,r.k)}${isS?`<i class="nw0">${fv(r.k,r.na)} now</i>`:""}</td>`).join("")}</tr>
-      <tr><th class="tn">${esc(nameB)}</th><td class="g">${gTB}</td>${O.rows.map(r=>`<td>${fv(r.k,r.b)}${badge(opId,r.k)}${isS?`<i class="nw0">${fv(r.k,r.nb)} now</i>`:""}</td>`).join("")}</tr>
+      <tr><th class="tn">${esc(nameA)}</th><td class="g">${gTA}</td>${O.rows.map(r=>`<td>${fv(r.k,r.a)}${badge(me,r.k)}${isS?`<i class="nw0">${fv(r.k,r.na)}<span> now</span></i>`:""}</td>`).join("")}</tr>
+      <tr><th class="tn">${esc(nameB)}</th><td class="g">${gTB}</td>${O.rows.map(r=>`<td>${fv(r.k,r.b)}${badge(opId,r.k)}${isS?`<i class="nw0">${fv(r.k,r.nb)}<span> now</span></i>`:""}</td>`).join("")}</tr>
       <tr class="cp"><th class="tn">Compare</th>${cmp({k:"g",a:gTA,b:gTB})}${O.rows.map(cmp).join("")}</tr>
-      <tr class="wp"><th class="tn">Win %</th><td class="g"></td>${O.rows.map(r=>r.p==null?`<td class="bad">?</td>`:`<td style="${heat(r.p)}">${pc(r.p)}%</td>`).join("")}</tr>
+      <tr class="wp"><th class="tn">Win %</th><td class="g"></td>${O.rows.map(r=>r.p==null?`<td class="bad">?</td>`:`<td class="${swK.has(r.k)?"swc":""}" style="${heat(r.p)}">${pc(r.p)}%</td>`).join("")}</tr>
     </tbody></table></div>
     <div class="mfs"><div class="msw"><div><b>${esc(nameB)}</b>${scout(opId)}</div><div><b>${esc(nameA)}</b>${scout(me)}</div></div>
-    <p class="mhint">${isS?"Projected finals: Yahoo's totals so far (small gray \"now\", as of your sync) plus Proj for the days left.":"Projected finals for the whole week (Proj only)."} G = games that count. Small ranks mark where a team is top or bottom 3 of the ${nT} teams this week. Tick categories to <b>target</b> them: the lineup, sort and Cats then go by those only (ticking all but 3PM = punting 3PM). The score always counts all 9.</p></div></div>
+    <p class="mhint">${isS?"Projected finals: Yahoo's totals so far (small gray \"now\", as of your sync) plus Proj for the days left.":"Projected finals for the whole week (Proj only)."} G = games that count. Small ranks mark where a team is top or bottom 3 of the ${nT} teams this week. Tick categories to <b>target</b> them: the lineup, sort and Cats then go by those only (ticking all but 3PM = punting 3PM). <b>Swing</b> (underlined) = still in play, 30–70%: where a pickup can flip the result; the Target these button ticks just those. The score always counts all 9.</p></div></div>
     <div class="msec mme"><div class="msh"><b>${esc(nameA)}</b><span>${gA} games left · by ${esc(lab)}</span></div>${hd(A,capA,"me")}
       ${sortR(mine).map(o=>row(o,A,o.nw?"undrop":"drop")).join("")}${dropped.map(o=>row(o,A,"undo")).join("")}
       <p class="mhint">Tap a game to start or sit him. <span class="dc s1"></span> counts · <span class="dc s2"></span> sits (no spot) · <span class="dc s3"></span> you started him · <span class="dc s4"></span> you sat him · <span class="dc ot"></span> out (injury report).</p></div>
@@ -2466,6 +2488,7 @@ function renderMU(){
 function muClick(e){const b=e.target.closest("[data-mu]");if(!b||!S.mus)return;if(b.tagName==="SELECT")return;e.stopPropagation();e.preventDefault();
   const m=S.mus,k=b.dataset.x,a=b.dataset.mu;
   if(a==="cat"){if(m.tg.has(k))m.tg.delete(k);else m.tg.add(k)}
+  else if(a==="swing"){const want=b.dataset.k?b.dataset.k.split(","):[];m.tg=new Set(want)}
   else if(a==="drop")m.drop.add(k);else if(a==="undo")m.drop.delete(k);
   else if(a==="add")m.add.add(k);else if(a==="undrop"){m.add.delete(k);for(const s in m.set)if(s.startsWith(k+"|"))delete m.set[s]}
   else if(a==="more")m.fa+=10;else if(a==="reset"){m.add.clear();m.drop.clear();m.set={}}

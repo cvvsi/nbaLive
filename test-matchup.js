@@ -16,10 +16,10 @@ function grab(start) {
   return m < 0 ? rest : rest.slice(0, m + 1);
 }
 const code = [
-  'const CATS=[', 'const MUKS=', 'function muKey(', 'const MUPHI=', 'const muPhi=', 'function muPast(', 'function muOdds(',
+  'const CATS=[', 'const MUKS=', 'function muKey(', 'const MUPHI=', 'const muPhi=', 'function muPast(', 'function muOdds(', 'function muDist(', 'const MUSW=',
 ].map(grab).join('\n');
-const M = new Function(code + '\nreturn {CATS,muKey,muPast,muOdds,muPhi};')();
-const { muKey, muPast, muOdds } = M;
+const M = new Function(code + '\nreturn {CATS,muKey,muPast,muOdds,muPhi,muDist,muSwing};')();
+const { muKey, muPast, muOdds, muDist, muSwing } = M;
 
 let n = 0; const t = (name, f) => { f(); n++; console.log('ok', name); };
 const zero = () => ({ pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0, to: 0, fgm: 0, fga: 0, ftm: 0, fta: 0 });
@@ -82,6 +82,24 @@ t('counting stats never project below the total so far', () => {
   const cA = now({ pts: 674, reb: 182, ast: 130, stl: 50, blk: 19, tpm: 70, to: 79 });
   const O = muOdds(cA, cA, muPast([LINE], cA), muPast([LINE], cA), rest(5, LINE), rest(7, LINE), new Set());
   for (const r of O.rows) if (r.k !== 'fg' && r.k !== 'ft') assert(r.a >= r.na && r.b >= r.nb, r.k);
+});
+
+t('overall win chance: coin flips give 50%, sure things add up, odds sum to 1', () => {
+  const R = ps => ps.map((p, i) => ({ k: 'c' + i, p }));
+  const flip = muDist(R(Array(9).fill(.5)));
+  assert(Math.abs(flip.win - .5) < 1e-9, 'nine coin flips: ' + flip.win);
+  assert(Math.abs(flip.d.reduce((a, x) => a + x, 0) - 1) < 1e-9, 'odds sum to 1');
+  const sure = muDist(R([1, 1, 1, 1, 1, 0, 0, 0, 0]));
+  assert.strictEqual(sure.win, 1); assert.strictEqual(sure.most, 5);
+  const lose = muDist(R([1, 1, 1, 1, 0, 0, 0, 0, .5]));
+  assert(Math.abs(lose.win - .5) < 1e-9, 'four sure wins + a coin flip = 50%');
+  const edge = muDist(R([.9, .9, .9, .9, .9, .1, .1, .1, .1])).win;
+  assert(Math.abs(edge - .7071491) < 1e-6, 'five 90% and four 10% categories: 70.7% (one upset is likely), got ' + edge);
+});
+
+t('swing categories are the ones still in play (30-70%)', () => {
+  const sw = muSwing([{ k: 'a', p: .29 }, { k: 'b', p: .3 }, { k: 'c', p: .55 }, { k: 'd', p: .71 }, { k: 'e', p: null }]).map(r => r.k);
+  assert.deepStrictEqual(sw, ['b', 'c']);
 });
 
 console.log(`\nAll ${n} matchup tests passed.`);
