@@ -843,6 +843,9 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .pwop{white-space:nowrap}.pwop .tlg{display:inline-block;width:16px;height:16px;vertical-align:-3px;margin-right:5px}
 .pwkt tr.hit td,.glr.hit{background:color-mix(in srgb,var(--ball) 12%,transparent)}.glr.hit{border-radius:8px}
 @keyframes flash{0%{background:color-mix(in srgb,var(--ball) 40%,transparent)}100%{background:color-mix(in srgb,var(--ball) 12%,transparent)}}.pwkt tr.flash td,.glr.flash{animation:flash .9s ease-out}
+.pwc .gd i.ezp{color:var(--pos)}.pwc .gd i.ezn{color:var(--neg)}.pwc .c3{gap:3px 6px;flex-wrap:nowrap;white-space:nowrap}.pwc .gd{align-self:start}.pwc .gd .tlg{width:22px;height:22px;margin-bottom:5px}.pwc .gd b em{font-style:normal;color:var(--ball);font-size:10px;display:block;margin-top:2px}.pwc{grid-template-columns:50px minmax(0,1fr);gap:8px}.pwc .gs{min-width:0}.pwo .pwout{color:var(--neg);font:600 13px/1 var(--name);align-self:center}
+.pwtot{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;padding:10px 0 2px}.pwtot>b{font:700 13px/1 var(--name);margin-right:4px}.pwtot span b{font:600 14px/1 var(--num)}.pwtot span i{font:500 10px/1 var(--name);font-style:normal;color:var(--dim);margin-left:2px}
+.pdd>summary span b{font:600 12px/1 var(--num);color:var(--ink)}.pdd>summary span b.up{color:var(--pos)}.pdd>summary span b.dn{color:var(--neg)}
 .pwkt td em{font-style:normal;color:var(--ball);font-size:10px}.pwkt .pwo td{color:var(--neg)}.pwkt .pwt td{font-weight:700;border-top:1px solid var(--rule)}
 .mwhy{display:grid;gap:6px;font:500 13px/1.4 var(--name)}.mwhy>div{color:var(--ink)}
 .vchart .gfl rect{fill:var(--dim)}.vchart .gfl text{font:700 8px var(--num);fill:var(--dim);text-anchor:middle}.vchart .gfl.tr rect{fill:var(--neg)}.vchart .gfl.tr text{fill:var(--neg)}.vchart .gfsat{fill:color-mix(in srgb,var(--neg) 70%,var(--cell))}
@@ -3122,15 +3125,18 @@ function psWeekProj(id,q){if(!SC||!q.xp)return null;const t=etToday(),ds=weekDat
   const lines=pl.map(d=>({d,l:lineOn(id,q,d)})),fp=(k,l)=>k==="fg"?(l.fga?(l.fgm/l.fga).toFixed(3).replace(/^0/,""):"–"):k==="ft"?(l.fta?(l.ftm/l.fta).toFixed(3).replace(/^0/,""):"–"):f1(l[k]);
   const K=["pts","reb","ast","tpm","stl","blk","to","fg","ft"],tot={};for(const{l}of lines)for(const k in l)tot[k]=(tot[k]||0)+l[k];
   const tr=r=>!r?"":r<=TOP?"up":r<=ROST?"":"dn";
-  const head=`<div class="pwk"><div><b class="${tr(wr)}">${wr?"#"+wr:"–"}</b><i>WEEK RANK${R.n?` of ${R.n}`:""}</i></div><div><b>${pl.length}</b><i>GAMES LEFT${out.length?` <em>out ${out.length}</em>`:""}</i></div><div><b class="${tr(szn)}">${szn?"#"+szn:"–"}</b><i>PROJ RANK · PER GAME</i></div></div>`;
-  const EZ=easeScore(),oc=d=>{const o=oppT(q.t,d),v=EZ&&EZ[o];return`<td class="pwop">${logoImg(o)}<span class="${v!=null&&Math.abs(v)>=.5?v>0?"ezp":"ezn":""}">${esc(opp(q.t,d).replace("vs ","").replace("@ ","@"))}</span></td>`};
-  const rows=lines.map(({d,l})=>{const v=pjVal(pjZ(l));return`<tr data-wr="${d}" class="${S.ps&&S.ps.sel===d?"hit":""}"><td>${DL(d)}${d===t?" <em>tonight</em>":""}</td>${oc(d)}<td>${Math.round(l.min)}</td>${K.map(k=>`<td class="${S.punt.has(k)?"off":""}">${fp(k,l)}</td>`).join("")}<td class="vl ${vcls(v)}">${sgn(v)}</td></tr>`}).join("")
-    +out.map(d=>`<tr class="pwo" data-wr="${d}"><td>${DL(d)}</td>${oc(d)}<td colspan="${K.length+2}">out (injury report)</td></tr>`).join("");
-  const sum=lines.length>1?`<tr class="pwt"><td>Week</td><td></td><td>${Math.round(tot.min||0)}</td>${K.map(k=>`<td>${k==="fg"||k==="ft"?fp(k,tot):f1(tot[k]||0)}</td>`).join("")}<td></td></tr>`:"";
-  const html=live.length?`${head}<div class="psavw"><table class="cmp psav pwkt"><tr><th></th><th></th><th>MIN</th>${K.map(k=>`<th>${CATS.find(c=>c.k===k).l}</th>`).join("")}<th>Val</th></tr>${rows}${sum}</table></div>
-    <p class="stkn">Each game is his projection that night: minutes with teammates in or out, against that opponent (the same line as Today, Week, Schedule and the Matchup tool). Week rank = the Week view's (games × per-game value), among everyone playing this week; Proj rank = per game, rest of season.</p>`
+  const EZ=easeScore();
+  const cats=l=>["tpm","stl","blk","to"].map(k=>`<span class="sm${S.punt.has(k)?" off":""}"><b>${f1(l[k])}</b><i>${CL[k]}</i></span>`).join("")
+    +["fg","ft"].map(k=>`<span class="sm${S.punt.has(k)?" off":""}"><b>${fp(k,l)}</b><i>${k}</i></span>`).join("");
+  const card=(d,l,cls)=>{const v=pjVal(pjZ(l)),o=oppT(q.t,d),ez=EZ&&EZ[o];
+    return`<div class="glr pwc${S.ps&&S.ps.sel===d?" hit":""}${cls||""}" data-wr="${d}"><div class="gd">${logoImg(o)}<b>${DL(d)}${d===t?` <em>tonight</em>`:""}</b><i class="${ez!=null&&Math.abs(ez)>=.5?ez>0?"ezp":"ezn":""}">${esc(opp(q.t,d).replace("vs ","vs ").replace("@ ","@"))}</i><i>${Math.round(l.min)} min</i></div>
+      <div class="gs"><div class="c2" style="margin:0"><div class="bigs">${BIG.map(k=>`<span class="bg"><b>${f1(l[k])}</b><i>${CL[k]}</i></span>`).join("")}</div><span class="vl ${vcls(v)}" style="margin-left:auto">${sgn(v)}</span></div><div class="c3">${cats(l)}</div></div></div>`};
+  const outC=d=>{const o=oppT(q.t,d);return`<div class="glr pwc pwo" data-wr="${d}"><div class="gd">${logoImg(o)}<b>${DL(d)}</b><i>${esc(opp(q.t,d).replace("@ ","@"))}</i></div><div class="gs"><span class="pwout">Out (injury report)</span></div></div>`};
+  const wkTot=lines.length>1?`<div class="pwtot"><b>Week</b>${BIG.map(k=>`<span><b>${f1(tot[k]||0)}</b><i>${CL[k]}</i></span>`).join("")}${["tpm","stl","blk","to"].map(k=>`<span><b>${f1(tot[k]||0)}</b><i>${CL[k]}</i></span>`).join("")}<span><b>${fp("fg",tot)}</b><i>fg</i></span><span><b>${fp("ft",tot)}</b><i>ft</i></span></div>`:"";
+  const html=live.length?`${[...lines.map(({d,l})=>card(d,l)),...out.map(outC)].sort((a,b)=>a.match(/data-wr="([^"]+)"/)[1]<b.match(/data-wr="([^"]+)"/)[1]?-1:1).join("")}${wkTot}
+    <p class="stkn">Each game is his projection that night: minutes with teammates in or out, against that opponent (green = easy matchup, red = tough), the same line as Today, Week, Schedule and the Matchup tool. Week rank = the Week view's (games × per-game value) among everyone playing this week.</p>`
     :`<p class="lgk">No games left this week.</p>`;
-  return{sub:live.length?`#${wr||"–"} · ${pl.length} game${pl.length===1?"":"s"} left`:"done for the week",html}}
+  return{sub:live.length?`<b class="${tr(wr)}">#${wr||"–"}</b> week of ${R.n} · ${pl.length} game${pl.length===1?"":"s"} left${out.length?` · <b class="dn">out ${out.length}</b>`:""} · Proj <b class="${tr(szn)}">#${szn||"–"}</b>`:"done for the week",html}}
 function renderSheet(){
   if(!S.ps)return;
   const{id,tn}=S.ps,q=G&&G.players[id],rq=R&&R.players[id],B=S.bs,nm=psName(id,tn);
