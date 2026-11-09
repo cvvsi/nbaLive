@@ -791,9 +791,13 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .pswk{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0 0}.pswk span{font:600 11px/1 var(--name);padding:4px 7px;border-radius:5px;background:var(--cell);color:var(--ink)}.pswk span.td{background:var(--ink);color:var(--panel)}.pswk span.out{color:var(--neg);background:color-mix(in srgb,var(--neg) 14%,var(--cell))}
 .pstabs{display:flex;gap:2px;overflow-x:auto;margin:10px 0 0;border-bottom:1px solid var(--rule);scrollbar-width:none}.pstabs::-webkit-scrollbar{display:none}
 .pstabs button{flex:none;padding:9px 11px 8px;font:600 13px/1 var(--name);color:var(--dim);border-bottom:2px solid transparent;margin-bottom:-1px}.pstabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ball)}
-.pct{display:grid;gap:7px}.pcr{display:grid;grid-template-columns:38px 1fr 26px 44px;column-gap:8px;align-items:center;font:500 12px/1 var(--num)}
+.pct{display:grid;gap:8px}.pcr{display:grid;grid-template-columns:36px 1fr 40px 44px 44px;column-gap:8px;align-items:center;font:500 12px/1 var(--num)}
 .pcr>b{font:600 12px/1 var(--name)}.pcb{height:8px;border-radius:4px;background:var(--cell);overflow:hidden}.pcb i{display:block;height:100%;background:var(--dim)}.pcb i.up{background:var(--pos)}.pcb i.dn{background:var(--neg)}
-.pcr>em{font-style:normal;text-align:right;color:var(--ink);font-weight:600}.pcv{text-align:right}.pcn{grid-column:2/-1;font:500 10.5px/1 var(--name);color:var(--dim);margin-top:-2px}.pcr.off{opacity:.4}
+.pcr>em{font-style:normal;text-align:right;color:var(--ink);font-weight:600}.pcr>em.up{color:var(--pos)}.pcr>em.dn{color:var(--neg)}.pcv{text-align:right;font-weight:600}.pcs{text-align:right;color:var(--dim)}.pcr.off{opacity:.4}
+.pcr.pch{font:600 10px/1 var(--name);letter-spacing:.05em;text-transform:uppercase;color:var(--dim)}.pcr.pch>em,.pcr.pch .pcv{color:var(--dim);font-weight:600}
+.ov2{display:grid;grid-template-columns:1fr;gap:0 28px}.ov2>.blk{min-width:0}
+.dly td,.dly th{text-align:right}.dly td:first-child,.dly th:first-child{text-align:left}.dly td.up{color:var(--pos);font-weight:600}.dly td.dn{color:var(--neg);font-weight:600}
+.dlyv{display:flex;gap:16px;flex-wrap:wrap;font:500 12.5px/1.3 var(--name);color:var(--dim);margin-top:8px}.dlyv b{font-family:var(--num)}
 .mbars{display:flex;align-items:flex-end;gap:3px;height:90px;padding-top:14px}.mbars i{position:relative;flex:1;background:color-mix(in srgb,var(--ball) 55%,var(--cell));border-radius:3px 3px 0 0;min-height:2px}
 .mbars em{position:absolute;top:-13px;left:0;right:0;text-align:center;font:500 9px/1 var(--num);font-style:normal;color:var(--dim)}
 .wwo{font:500 13.5px/1.4 var(--name);padding:6px 0;border-top:1px solid var(--rule)}.wwo:first-of-type{border-top:0}.wwo em{font-style:normal;color:var(--neg);font-weight:600;font-size:11.5px}.wwo .up{color:var(--pos);font-weight:600}.wwo .dn{color:var(--neg);font-weight:600}.wwo [data-id]{cursor:pointer}
@@ -802,7 +806,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 @media (min-width:1100px){
   .ps{justify-content:center;align-items:center}
   .psp{max-width:980px;height:min(94vh,980px);border-radius:18px;border:1px solid var(--rule);box-shadow:0 30px 80px color-mix(in srgb,#000 35%,transparent);padding-left:26px;padding-right:26px}
-  .pct{grid-template-columns:1fr 1fr;column-gap:28px}
+  .ov2{grid-template-columns:1fr 1fr}
 }
 .tlg{width:22px;height:22px;object-fit:contain;display:block}.tlg.big{width:46px;height:46px}
 .pswk span{display:flex!important;flex-direction:column;align-items:center;gap:3px;padding:6px 8px!important;min-width:58px}.pswk span b{font:600 11px/1 var(--name)}.pswk span i{font:500 10.5px/1 var(--name);font-style:normal;opacity:.8}
@@ -2719,16 +2723,35 @@ function tile(l,r,sub,cl=""){return`<div class="tl ${r?"":"na"} ${cl}"><i>${l}</
 // The read, Proj and every number are the same as before; only the layout and a few new views
 // (category percentiles, tonight vs projection, minutes trend, teammate absences, all news) are new.
 const PSTABS=[["tonight","Tonight"],["overview","Overview"],["proj","Projection"],["log","Game log"],["role","Role"],["news","News"]];
-function psPct(id,q){if(!q||!q.xp||!G.zp)return"";
-  const pool=Object.entries(G.players).filter(([,p])=>p.xp&&p.xp[0]>=15),N=pool.length,x=xpLine(q),me=zx(q),F=G.rates,r=k=>q.r[F.indexOf(k)];
+// His categories against the players who matter in a 10-team league: the top 130 by Proj (the
+// rosterable pool), ranked on Proj per game. A player outside 130 is placed where he'd slot among them.
+function psPct(id,q){if(!q||!q.xp||!G.zp)return"";const B=S.bs;
+  const pool=Object.entries(G.players).filter(([pid,p])=>pid!==id&&p.xp&&B&&hasPj(p)&&B.x[pid]<=ROST),N=pool.length;if(N<20)return"";
+  const x=xpLine(q),me=zx(q),F=G.rates,r=k=>q.r[F.indexOf(k)];
   const so={pts:"pts",reb:"reb",ast:"ast",tpm:"tpm",stl:"stl",blk:"blk",to:"to"};
-  const rows=CATS.map(c=>{const k=c.k,zs=pool.map(([,p])=>zx(p)[k]),rank=1+zs.filter(z=>z>me[k]).length,pct=Math.round(100*(N-rank)/Math.max(1,N-1));
+  const fv=(k,v)=>k==="fg"||k==="ft"?(v||0).toFixed(3).replace(/^0/,""):f1(v);
+  const rows=CATS.map(c=>{const k=c.k,zs=pool.map(([,p])=>zx(p)[k]),rank=1+zs.filter(z=>z>me[k]).length,share=(N+1-rank)/N;
     const pv=k==="fg"?(x.fgm/Math.max(x.fga,1e-9)):k==="ft"?(x.ftm/Math.max(x.fta,1e-9)):x[k];
     const now=k==="fg"?r("fg")/100:k==="ft"?(r("ft")||0)/100:q.pg[G.pgf.indexOf(so[k])];
-    const fv=v=>k==="fg"||k==="ft"?(v||0).toFixed(3).replace(/^0/,""):f1(v);
-    return`<div class="pcr${S.punt.has(k)?" off":""}"><b>${c.l}</b><span class="pcb"><i class="${pct>=70?"up":pct<=30?"dn":""}" style="width:${Math.max(2,pct)}%"></i></span><em>${pct}</em><span class="pcv">${fv(pv)}</span><span class="pcn">#${rank} of ${N} · ${fv(now)} so far</span></div>`}).join("");
-  return`<section class="blk"><h3>His categories <span>per game, Proj · percentile among ${N} rotation players</span></h3><div class="pct">${rows}</div>
-    <p class="stkn">Bar = percentile (100 = best; TO counts fewer as better). Green 70+, red 30 or under. The number after it is his Proj per game; "so far" is this season.</p></section>`}
+    const cl=rank<=25?"up":rank>N-25?"dn":"";
+    return`<div class="pcr${S.punt.has(k)?" off":""}"><b>${c.l}</b><span class="pcb"><i class="${cl}" style="width:${Math.max(3,Math.round(100*share))}%"></i></span><em class="${cl}">${rank>N?N+"+":"#"+rank}</em><span class="pcv">${fv(k,pv)}</span><span class="pcs">${fv(k,now)}</span></div>`}).join("");
+  return`<section class="blk"><h3>His categories <span>rank among the top ${ROST} rostered players</span></h3>
+    <div class="pct"><div class="pcr pch"><b></b><span>vs the top ${ROST}</span><em>Rank</em><span class="pcv">Proj</span><span class="pcs">Now</span></div>${rows}</div>
+    <p class="stkn">Ranked on Proj per game among the ${N} players projected inside the top ${ROST}, the ones on rosters in a 10-team league (TO: fewer is better). Green = top 25 in the category, red = bottom 25. Proj is his projected average; Now is this season's.</p></section>`}
+// Tonight's projection, ours against the sportsbooks: each stat's book line and the average it implies,
+// next to Proj at tonight's minutes, and what the card uses (the books where they priced it, Proj otherwise).
+function psDaily(id,q){if(!q||!q.xp||!SC)return"";const t=etToday();if(!plays(q.t,t))return"";
+  const m=minAt(id,q,t),our=lineAt(q,m),pp=propsFor(prIx(),q),tl=tonightLine(q,pp,m),o=opp(q.t,t);
+  const pv=(l,k)=>k==="fg"?(l.fga?l.fgm/l.fga:null):k==="ft"?(l.fta?l.ftm/l.fta:null):l[k];
+  const fv=(k,v)=>v==null?"–":k==="fg"||k==="ft"?v.toFixed(3).replace(/^0/,""):f1(v);
+  const rows=["min",...CATS.map(c=>c.k)].map(k=>{const lab=k==="min"?"MIN":CATS.find(c=>c.k===k).l,b=pp&&pp[k],a=k==="min"?our.min:pv(our,k);
+    const d=b?b[0]-a:null,big=d!=null&&Math.abs(d)>=Math.max(.5,.12*Math.abs(a)),good=d!=null&&(k==="to"?d<0:d>0);
+    return`<tr class="${S.punt.has(k)?"off":""}"><td>${lab}</td><td class="now">${k==="min"?Math.round(a):fv(k,a)}</td><td>${b?b[1].toFixed(1):"–"}</td><td class="${big?good?"up":"dn":""}">${b?f1(b[0]):"–"}</td></tr>`}).join("");
+  const r2=v=>Math.abs(v)<.005?0:v,vo=r2(pjVal(pjZ(our))),vt=r2(pjVal(pjZ(tl.l)));
+  return`<section class="blk"><h3>Tonight's projection <span>${esc(o)}</span></h3>
+    <table class="cmp dly"><tr><th></th><th>Ours</th><th>Book line</th><th>Book avg</th></tr>${rows}</table>
+    <div class="dlyv"><span>Value, ours <b class="vl ${vcls(vo)}">${sgn(vo)}</b></span>${pp?`<span>with book lines <b class="vl ${vcls(vt)}">${sgn(vt)}</b></span>`:""}</div>
+    <p class="stkn">${pp?`Book avg is the average the odds imply (vig removed, median across US books), colored where it's well above or below ours. The card uses the books where they priced a stat and ours for the rest.`:`No sportsbook lines for him yet (they're pulled around 4 and 6pm ET). Ours is Proj at tonight's minutes${Math.abs(m-q.xp[0])>=1?` (${Math.round(m)}, Proj ${Math.round(q.xp[0])}, with teammates out)`:""}.`}</p></section>`}
 function psWeek(id,q){if(!q||!SC)return"";const t=etToday(),ds=weekDates(0).filter(d=>d>=t&&plays(q.t,d));if(!ds.length)return"";
   return`<div class="pswk">${ds.map(d=>{const o=opp(q.t,d).replace("vs ","").replace("@ ","@"),out=!avail(id,d);
     return`<span class="${out?"out":""}${d===t?" td":""}">${logoImg(o.replace("@",""))}<b>${d===t?"Tonight":fmtDate(d).replace(/,.*$/,"")}</b><i>${esc(o)}${out?" · out":""}</i></span>`}).join("")}</div>`}
@@ -2903,7 +2926,7 @@ function renderSheet(){
       h.push(`<section class="blk"><h3>${9-S.punt.size}-cat rank <span>top ${TOP} start · top ${ROST} rostered</span></h3><div class="tiles">${WINS.map(w=>{const a=rq.w[w.k];
         return tile({season:"Season",d14:"14 days",d7:"7 days",g3:"Last 3"}[w.k],a?S.rk[w.k][id]:0,a?(w.k==="g3"?a[0]+"/3 played":a[0]+"g · "+Math.round(a[1])+"m"):"",w.k==="g3"&&m?(m.hot?"up":m.cold?"dn":""):"")}).join("")}</div>
         ${q&&B?`<div class="tiles t3">${tile("Now",B.now[id],"this season")}${tile("Projected",hasPj(q)?B.x[id]:0,q.b?"if luck evens out":q.rk?"rookie estimate":"no baseline",B.v[id]==="buy"?"up":B.v[id]==="sell"?"dn":"")}${tile("Last season",B.ly[id],"final rank")}</div>`:""}</section>`)}
-    h.push(psPct(id,q));
+    {const pc=psPct(id,q),dl=psDaily(id,q);if(pc&&dl)h.push(`<div class="ov2">${pc}${dl}</div>`);else h.push(pc+dl)}
     if(a.text)h.push(`<section class="blk"><h3>The read <span>from the numbers, 10-team league</span></h3>${readHTML(a)}</section>`);
     if(q&&q.up&&B){const uv=B.val(q.up),ur=1+B.xs.filter(t=>t>uv).length;
       if(ur<=ROST&&ur<(hasPj(q)?B.x[id]:B.now[id])-25)h.push(`<div class="ups"><b>#${ur}</b><p>If the minutes reach <b>${q.up[1]} a game</b>, these per-minute numbers rank around #${ur}. That's the upside.</p></div>`)}
