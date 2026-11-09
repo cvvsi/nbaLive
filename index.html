@@ -1361,10 +1361,10 @@ function cmpTable(q){
     if(c!=null&&y!=null){const h=bsDelta(k,c,y),dd=c-y;
       const t=fmt(Math.abs(dd));d=+t?(dd>0?"+":"−")+t:"0";cl=Math.abs(h)<.75?"":h>0?"up":"dn"}
     const pt=S.punt.has(k==="tp"?"tpm":k)&&k!=="tp"&&k!=="mpg"&&k!=="usg";
-    return`<tr class="${pt?"off":""}"><td>${l}${sub!=null?`<i>${sub} att</i>`:""}${pt?" <i>punted</i>":""}</td><td class="now">${c==null?"–":fmt(c)}</td>`
-      +(b?`<td class="ly">${y==null?"–":fmt(y)}</td><td class="d ${cl}">${d}</td>`:"")+"</tr>"};
+    return`<tr class="${pt?"off":""}"><td>${l}${sub!=null?`<i>${sub} att</i>`:""}${pt?" <i>punted</i>":""}</td>`
+      +(b?`<td class="ly">${y==null?"–":fmt(y)}</td>`:"")+`<td class="now">${c==null?"–":fmt(c)}</td>`+(b?`<td class="d ${cl}">${d}</td>`:"")+"</tr>"};
   const pc=v=>v.toFixed(1),n0=v=>String(Math.round(v));
-  return`<table class="cmp"><tr><th></th><th>This yr <i>${q.now[0]}g</i></th>${b?`<th>${lbl} <i>${q.bgp}g</i></th><th>Chg</th>`:""}</tr>`
+  return`<table class="cmp"><tr><th></th>${b?`<th>${lbl} <i>${q.bgp}g</i></th>`:""}<th>This yr <i>${q.now[0]}g</i></th>${b?`<th>Chg</th>`:""}</tr>`
     +row("Minutes","mpg",null,pc)+row("Usage %","usg",null,n0)
     +row("FG%","fg",q.att[0],pc)+row("3P%","tp",q.att[1],pc)+row("FT%","ft",q.att[2],pc)+"</table>";
 }
@@ -3011,10 +3011,11 @@ function stickHTML(q,B,id){
 // Counting stats against the baseline, in the Buy/Sell tab's unit (per 36 or per game).
 function cmpCounts(q){
   if(!q.b)return"";
+  const yr=x=>x.slice(2),lbl=q.bs.includes("+")?`${yr(q.bs.split("+")[1]).slice(0,2)}–${yr(q.bs).slice(3)}`:yr(q.bs);
   const F=G.rates,rows=["pts","reb","ast","tpm","stl","blk","to"].map(k=>{
     const c=unitVal(q.r,k,F),y=unitVal(q.b,k,F),h=bsDelta(k,c,y),d=c-y,cl=Math.abs(h)<.75?"":h>0?"up":"dn";
-    return`<tr class="${S.punt.has(k)?"off":""}"><td>${WHYL[k]}${S.punt.has(k)?" <i>punted</i>":""}</td><td class="now">${f1(c)}</td><td class="ly">${f1(y)}</td><td class="d ${cl}">${(d>0?"+":d<0?"−":"")+Math.abs(d).toFixed(1)}</td></tr>`}).join("");
-  return`<table class="cmp" style="margin-top:10px"><tr><th></th><th>Now</th><th>Before</th><th>Chg</th></tr>${rows}</table>`;
+    return`<tr class="${S.punt.has(k)?"off":""}"><td>${WHYL[k]}${S.punt.has(k)?" <i>punted</i>":""}</td><td class="ly">${f1(y)}</td><td class="now">${f1(c)}</td><td class="d ${cl}">${(d>0?"+":d<0?"−":"")+Math.abs(d).toFixed(1)}</td></tr>`}).join("");
+  return`<table class="cmp" style="margin-top:10px"><tr><th></th><th>${lbl}</th><th>This yr</th><th>Chg</th></tr>${rows}</table>`;
 }
 async function loadLog(id){
   try{
