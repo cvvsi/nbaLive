@@ -262,7 +262,9 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .sgd .op.aw{color:var(--dim)}
 .sgd .op.on{background:var(--cell)}
 .sgd .op.lt{background:color-mix(in oklab,var(--ball) 16%,var(--cell))}
-.sgd .op.b2{box-shadow:inset 0 -2px 0 var(--neg)}
+.sgd .op.b2{box-shadow:inset 0 -2px 0 var(--neg)}.sgd .op.t34{box-shadow:inset 0 2px 0 var(--dim)}.sgd .op.b2.t34{box-shadow:inset 0 2px 0 var(--dim),inset 0 -2px 0 var(--neg)}
+.sgd .h.hv b{display:table;margin-inline:auto;background:var(--ink);color:var(--panel);border-radius:4px;padding:0 4px}
+.sgx{margin:6px 0 10px;padding:8px 10px;border:1px solid var(--rule);border-radius:10px;background:var(--panel);font:500 12.5px/1.45 var(--name);color:var(--ink)}.sgx p{margin:0}.sgx p+p{margin-top:5px}
 .sgd .past{opacity:.35}
 .sgd .tx{grid-column:1/-1;text-align:left;padding:8px 2px 10px;background:var(--panel);white-space:normal;font:500 12.5px/1.5 var(--name)}
 .sgd .op.sel{outline:2px solid var(--ink);outline-offset:-2px}
@@ -2104,7 +2106,10 @@ const listHTML=(rows,ctxLab)=>isDesk()?dtab(rows,ctxLab):rows.map(card).join("")
 // open roster spots are easiest to fill then. A red underline marks the second night of a
 // back-to-back. Tap a team for its players (week rank) and who's likely on waivers (Proj >130).
 function renderGrid(ds,live,all,today){
-  const D="MTWTFSS",n=d=>((SC.dates[d])||[]).length,light=d=>n(d)>0&&n(d)<=5;
+  const D="MTWTFSS",n=d=>((SC.dates[d])||[]).length,light=d=>n(d)>0&&n(d)<=5,heavy=d=>n(d)>=10;
+  // a game inside a 3-games-in-4-nights stretch (a 4-night window within this week holding 3 of his games)
+  const in4=(t,d)=>ds.includes(d)&&ds.includes(shift(d,3))&&[0,1,2,3].filter(j=>plays(t,shift(d,j))).length>=3;
+  const t34=(t,d)=>[-3,-2,-1,0].some(k=>in4(t,shift(d,k)));
   const teams=[...new Set(Object.values(SC.dates).flat(2))].filter(t=>ds.some(d=>plays(t,d)));
   const left=t=>live.filter(d=>plays(t,d)).length;
   const SV=sznVals(all),szn={};all.map(([id])=>[id,SV[id].v]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>szn[id]=i+1);
@@ -2113,12 +2118,12 @@ function renderGrid(ds,live,all,today){
   const wk={};all.map(([id,q])=>[id,val0(zAt(q,WM[id].m),G.zp)*WM[id].g]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>wk[id]=i+1);
   teams.sort((a,b)=>left(b)-left(a)||a.localeCompare(b));
   let side="";
-  let h=`<div class="h"></div><div class="h">G</div>`+ds.map((d,i)=>`<div class="h${light(d)?" lt":""}${d<today?" past":""}">${D[i]}<b>${n(d)||"–"}</b></div>`).join("");
+  let h=`<div class="h"></div><div class="h">G</div>`+ds.map((d,i)=>`<div class="h${light(d)?" lt":heavy(d)?" hv":""}${d<today?" past":""}">${D[i]}<b>${n(d)||"–"}</b></div>`).join("");
   for(const t of teams){const g=left(t);
     h+=`<div class="tm" data-t="${t}">${t}</div><div class="gn${g>=4?" g4":g<=2?" g2":""}">${g}</div>`
       +ds.map(d=>{const o=opp(t,d);if(!o)return`<div class="${d<today?"past":""}"></div>`;
         const b2=plays(t,shift(d,-1)),sel=S.sgOpen&&S.sgOpen.d===d&&(S.sgOpen.t===t||opp(S.sgOpen.t,d).endsWith(t));
-        return`<div class="op${o[0]==="@"?" aw":""}${light(d)?" lt":" on"}${b2?" b2":""}${d<today?" past":""}${sel?" sel":""}" data-t="${t}" data-d="${d}">${o.replace("vs ","").replace("@ ","@")}</div>`}).join("");
+        return`<div class="op${o[0]==="@"?" aw":""}${light(d)?" lt":" on"}${b2?" b2":""}${t34(t,d)?" t34":""}${d<today?" past":""}${sel?" sel":""}" data-t="${t}" data-d="${d}">${o.replace("vs ","").replace("@ ","@")}</div>`}).join("");
     if(S.sgOpen&&S.sgOpen.t===t){const gd=S.sgOpen.d;
       const head=gd?`<div class="tph">${esc(opp(t,gd)[0]==="@"?t+" "+opp(t,gd):opp(t,gd).replace("vs ","")+" @ "+t)} · ${fmtDate(gd).replace(/,/,"")}</div>`:"";
       const teams2=gd?[t,opp(t,gd).replace(/^(vs|@) /,"")]:[t];
@@ -2129,8 +2134,19 @@ function renderGrid(ds,live,all,today){
       if(isDesk())side=tx;else h+=tx}
   }
   const lights=ds.filter(d=>d>=today&&light(d)).map(d=>D[ds.indexOf(d)]+" "+fmtDate(d).replace(/^\w+, \w+ /,""));
+  // Streaming notes for the days left: 3-in-4 stretches by start day, heavy nights, and the
+  // late-week move (drop a player whose team is done for one whose team still plays 2+).
+  const DL=d=>["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][ds.indexOf(d)],tl=a=>a.sort().join(" "),notes=[];
+  {const st={};for(const t of teams){const d=live.find(d=>plays(t,d)&&in4(t,d));if(d)(st[d]=st[d]||[]).push(t)}
+    const ks=Object.keys(st).sort();if(ks.length)notes.push(`<b>3 games in 4 nights</b> starting ${ks.map(d=>`${DL(d)}: ${tl(st[d])}`).join(" · ")}`)}
+  {const hv=live.filter(heavy);if(hv.length)notes.push(`<b>Heavy night${hv.length>1?"s":""}</b>: ${hv.map(d=>`${DL(d)} (${n(d)} games)`).join(", ")}. Most of your roster plays, so a streamer may not have a spot.`)}
+  for(const d of live.slice(0,-1)){const done=teams.filter(t=>plays(t,d)&&!live.some(x=>x>d&&plays(t,x)));if(!done.length)continue;
+    const after=t=>live.filter(x=>x>d&&plays(t,x)).length,m=Math.max(0,...teams.map(after));if(m<2)continue;
+    const best=teams.filter(t=>after(t)===m);
+    notes.push(`<b>After ${DL(d)}</b>: ${tl(done)} ${done.length>1?"are":"is"} done for the week; ${tl(best)} ${best.length>1?"play":"plays"} ${m} more (${live.filter(x=>x>d&&plays(best[0],x)).map(DL).join(" + ")}). Swap a borderline player from the first for one from the second: ${m} games for one move.`)}
+  const sgx=notes.length?`<div class="sgx">${notes.map(x=>`<p>${x}</p>`).join("")}</div>`:"";
   $("scStatus").textContent=`${teams.length} teams`;
-  $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Red underline = 2nd night of a back-to-back. Tap a team for its rotation this week (Week = week rank), or a game for both teams that night (Tonight, or the day: rank among that night's players). Starters match the Injuries tab: NBA.com's posted lineup for tonight (Expected, then Confirmed), otherwise each team's five from its last game, with a regular back from injury taking his spot back and anyone out replaced by whoever the team started when he sat before.</p>${isDesk()?`<div class="scw"><div class="sgd">${h}</div><aside class="scp">${side||`<div class="scp0">Click a team for its rotation this week, or a game for both teams that night.</div>`}</aside></div>`:`<div class="sgd">${h}</div>`}`;
+  $("scList").innerHTML=`<p class="sgk">${live.length<7?"Games left":"Games"} per team, opponent each day (@ = away). Orange nights have 5 or fewer games${lights.length?` (${lights.join(", ")})`:""}: easiest to start someone. Dark number = heavy night (10+ games). Red underline = 2nd night of a back-to-back; gray line on top = part of a 3-games-in-4-nights stretch. Tap a team for its rotation this week (Week = week rank), or a game for both teams that night (Tonight, or the day: rank among that night's players). Starters match the Injuries tab: NBA.com's posted lineup for tonight (Expected, then Confirmed), otherwise each team's five from its last game, with a regular back from injury taking his spot back and anyone out replaced by whoever the team started when he sat before.</p>${sgx}${isDesk()?`<div class="scw"><div class="sgd">${h}</div><aside class="scp">${side||`<div class="scp0">Click a team for its rotation this week, or a game for both teams that night.</div>`}</aside></div>`:`<div class="sgd">${h}</div>`}`;
 }
 // The categories a player helps, for streaming: per-game Proj z-score of 0.25+ against everyone
 // projected for 15+ minutes (a broad, streamer-level bar; the top-130 pool would leave almost
