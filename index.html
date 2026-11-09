@@ -2833,9 +2833,13 @@ function psWeek(id,q){if(!q||!SC)return"";const t=etToday(),W=SC.wk||{};
   const left=ds.filter(d=>d>=t),outN=left.filter(d=>!avail(id,d)).length;
   return`<div class="pswk"><em>${ds.length} game${ds.length>1?"s":""} this week${ds.length>left.length?` · ${left.length} left`:""}${outN?` · <b>out ${outN}</b>`:""}</em>${ds.map(d=>{const past=d<t,o=past?og(d):opp(q.t,d).replace("vs ","").replace("@ ","@"),out=!past&&!avail(id,d);
     return`<span class="${out?"out":""}${d===t?" td":""}${past?" pst":""}">${logoImg(o.replace("@",""))}<b>${d===t?"Tonight":new Date(d+"T12:00:00Z").toLocaleDateString("en-US",{weekday:"short",timeZone:"UTC"})}</b><i>${esc(o)}${out?" · out":""}</i></span>`}).join("")}</div>`}
+// Tonight on the player page: ours (Proj at tonight's minutes, against tonight's opponent: the same
+// line as Today, Week, Schedule and the Matchup tool) is the projection; the books are shown beside it
+// for awareness (bk = our line with the priced stats swapped in, mk = which ones), never in its place.
 function psTonightProj(id,q,tn){if(!q||!q.xp)return null;const t=etToday();
-  if(tn&&S.date!==t)return{l:xpLine(q),mk:{},src:"Proj per game"};
-  const P=prIx(),pp=propsFor(P,q),tl=tonightLine(q,pp,minAt(id,q,t),easeF(oppT(q.t,t)));return{l:tl.l,mk:tl.mk,src:pp?"Proj, sportsbook lines underlined":"Proj for tonight"}}
+  if(tn&&S.date!==t)return{l:xpLine(q),bk:null,mk:{},src:"Proj per game"};
+  const m=minAt(id,q,t),ef=easeF(oppT(q.t,t)),l=easeLine(lineAt(q,m),ef),pp=propsFor(prIx(),q),tl=pp?tonightLine(q,pp,m,ef):null;
+  return{l,bk:tl&&Object.keys(tl.mk).length?tl.l:null,mk:tl?tl.mk:{},src:"our projection"}}
 function psTonight(id,q,tn){const pj=psTonightProj(id,q,tn),h=[];
   const pv=(l,k)=>k==="fg"?(l.fgm/Math.max(l.fga,1e-9)):k==="ft"?(l.ftm/Math.max(l.fta,1e-9)):l[k];
   const fp=(k,v)=>k==="fg"||k==="ft"?(v||0).toFixed(3).replace(/^0/,""):f1(v);
@@ -2846,15 +2850,18 @@ function psTonight(id,q,tn){const pj=psTonightProj(id,q,tn),h=[];
         return`<div class="${hl(k,tn).trim()}"><b>${v}</b><i>${CL[k].toUpperCase()} <em>${zs(k)}</em></i></div>`}).join("")}
         <div class="role"><b>${Math.round(tn.min)}</b><i>MIN</i></div><div class="role"><b>${tn.usg.toFixed(0)}%</b><i>USAGE</i></div>
         <div class="role"><b>${tn.pm>0?"+":""}${tn.pm}</b><i>+/−</i></div><div class="role"><b>${tn.pf}</b><i>FOULS</i></div></div></section>`);
-    if(pj){const rows=["min",...CATS.map(c=>c.k)].map(k=>{const lab=k==="min"?"MIN":CATS.find(c=>c.k===k).l,a=k==="fg"?(tn.fga?tn.fgm/tn.fga:null):k==="ft"?(tn.fta?tn.ftm/tn.fta:null):tn[k],p=k==="min"?pj.l.min:pv(pj.l,k);
+    if(pj){const bkc=k=>pj.bk&&pj.mk[k]?`<td class="ly">${fp(k,pv(pj.bk,k))}</td>`:pj.bk?`<td class="ly">–</td>`:"";
+      const rows=["min",...CATS.map(c=>c.k)].map(k=>{const lab=k==="min"?"MIN":CATS.find(c=>c.k===k).l,a=k==="fg"?(tn.fga?tn.fgm/tn.fga:null):k==="ft"?(tn.fta?tn.ftm/tn.fta:null):tn[k],p=k==="min"?pj.l.min:pv(pj.l,k);
         const d=a==null?null:a-p,good=d==null?"":(k==="to"?d<0:d>0),big=d!=null&&Math.abs(d)>=(k==="fg"||k==="ft"?.08:k==="min"?4:Math.max(1,.25*Math.abs(p)));
-        return`<tr class="${S.punt.has(k)?"off":""}"><td>${lab}</td><td class="now">${a==null?"–":k==="fg"||k==="ft"?fp(k,a):k==="min"?Math.round(a):a}</td><td class="ly${pj.mk[k]?" mk":""}">${fp(k,p)}</td><td class="d ${big?good?"up":"dn":""}">${d==null?"":(d>0?"+":d<0?"−":"")+(k==="fg"||k==="ft"?Math.abs(d).toFixed(3).replace(/^0/,""):f1(Math.abs(d)))}</td></tr>`}).join("");
-      h.push(`<section class="blk"><h3>vs projection <span>${pj.src}</span></h3><table class="cmp"><tr><th></th><th>${S.date===etToday()?"Tonight":"Line"}</th><th>Proj</th><th>Diff</th></tr>${rows}</table><p class="stkn">Colored where he beat or missed the projection by a real amount. While a game is live, the line is so far.</p></section>`)}
+        return`<tr class="${S.punt.has(k)?"off":""}"><td>${lab}</td><td class="now">${a==null?"–":k==="fg"||k==="ft"?fp(k,a):k==="min"?Math.round(a):a}</td><td class="ly">${k==="min"?Math.round(p):fp(k,p)}</td>${bkc(k)}<td class="d ${big?good?"up":"dn":""}">${d==null?"":(d>0?"+":d<0?"−":"")+(k==="fg"||k==="ft"?Math.abs(d).toFixed(3).replace(/^0/,""):f1(Math.abs(d)))}</td></tr>`}).join("");
+      h.push(`<section class="blk"><h3>vs projection <span>${pj.src}</span></h3><table class="cmp"><tr><th></th><th>${S.date===etToday()?"Tonight":"Line"}</th><th>Ours</th>${pj.bk?"<th>Books</th>":""}<th>Diff</th></tr>${rows}</table><p class="stkn">Diff is against ours, colored where he beat or missed it by a real amount.${pj.bk?" Books = the average the sportsbook lines imply, where they priced the stat (for awareness; not part of our projection).":""} While a game is live, the line is so far.</p></section>`)}
   }else if(pj){const o=opp(q.t,etToday());
-    h.push(`<section class="blk"><h3>Tonight <span>${esc(o)} · ${pj.src}</span></h3><div class="bign">${BIG.map(k=>`<span class="bg${nh(k)}${pj.mk[k]?" mk":""}"><b>${f1(pj.l[k])}</b><i>${CL[k]}</i></span>`).join("")}
+    const bks=pj.bk?PK.filter(k=>pj.mk[k]).map(k=>{const gap=pj.bk[k]-pj.l[k],c=Math.abs(gap)>=PJGAP[k]?(gap>0?"up":"dn"):"";return`<span class="${c}">${CL[k].toUpperCase()} <b class="${c}">${f1(pj.bk[k])}</b></span>`}):[];
+    const vb=pj.bk?pjVal(pjZ(pj.bk)):null;
+    h.push(`<section class="blk"><h3>Tonight <span>${esc(o)} · ${pj.src}</span></h3><div class="bign">${BIG.map(k=>`<span class="bg${nh(k)}"><b>${f1(pj.l[k])}</b><i>${CL[k]}</i></span>`).join("")}
       <span class="vlb"><i>VALUE</i><b class="vl ${vcls(pjVal(pjZ(pj.l)))}">${sgn(pjVal(pjZ(pj.l)))}</b></span></div>
-      <div class="sg">${SMALL.map(k=>`<div class="${nh(k).trim()}${pj.mk[k]?" mk":""}"><b>${k==="fg"||k==="ft"?fp(k,pv(pj.l,k)):f1(pj.l[k])}</b><i>${CL[k].toUpperCase()}</i></div>`).join("")}
-        <div class="role"><b>${Math.round(pj.l.min)}</b><i>MIN</i></div></div>${nmNote(id,q,[etToday()],pj.l.min)}${ijNote(id)}</section>`)}
+      <div class="sg">${SMALL.map(k=>`<div class="${nh(k).trim()}"><b>${k==="fg"||k==="ft"?fp(k,pv(pj.l,k)):f1(pj.l[k])}</b><i>${CL[k].toUpperCase()}</i></div>`).join("")}
+        <div class="role"><b>${Math.round(pj.l.min)}</b><i>MIN</i></div></div>${easeNote(q.t,etToday())}${bks.length?`<div class="pjm">Books: ${bks.join(" · ")} · Value with them <b class="vl ${vcls(vb)}">${sgn(vb)}</b> <span class="lgk">(for awareness; green/red = well above/below ours)</span></div>`:""}${nmNote(id,q,[etToday()],pj.l.min)}${ijNote(id)}</section>`)}
   return h.join("")}
 function psLogHTML(){const L=S.ps&&S.ps.log;if(!L)return`<p class="lgk">${S.ps&&S.ps.logErr?"Couldn't load the game log from ESPN.":"Loading game log…"}</p>`;
   if(!L.length)return`<p class="lgk">No regular-season games yet.</p>`;
