@@ -804,6 +804,23 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
   .psp{max-width:980px;height:min(94vh,980px);border-radius:18px;border:1px solid var(--rule);box-shadow:0 30px 80px color-mix(in srgb,#000 35%,transparent);padding-left:26px;padding-right:26px}
   .pct{grid-template-columns:1fr 1fr;column-gap:28px}
 }
+.tlg{width:22px;height:22px;object-fit:contain;display:block}.tlg.big{width:46px;height:46px}
+.pswk span{display:flex!important;flex-direction:column;align-items:center;gap:3px;padding:6px 8px!important;min-width:58px}.pswk span b{font:600 11px/1 var(--name)}.pswk span i{font:500 10.5px/1 var(--name);font-style:normal;opacity:.8}
+.pswk span.td{background:var(--ink)}.pswk span.td .tlg{background:var(--panel);border-radius:50%;padding:2px}
+.tsb{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:14px 18px;margin:12px 0 4px}
+.tsbt{display:flex;align-items:center;gap:10px}.tsbt:last-child{justify-content:flex-end}.tsbt b{font:700 17px/1 var(--name);color:var(--dim)}.tsbt.me b{color:var(--ink)}.tsbt i{font:600 30px/1 var(--num);font-style:normal;color:var(--ink)}
+.tsbm{display:flex;flex-direction:column;align-items:center;gap:4px}.tsbm span{font:600 12px/1 var(--name);color:var(--dim);white-space:nowrap}.tsbm span.live{color:var(--neg)}.tsbm em{font:500 11px/1 var(--name);font-style:normal;color:var(--dim)}
+.tcg{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.tcg>div{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:9px 6px;text-align:center}
+.tcg b{display:block;font:600 19px/1 var(--num)}.tcg i{display:block;font:600 10px/1 var(--name);letter-spacing:.06em;color:var(--dim);font-style:normal;margin-top:4px}.tcg em{display:block;white-space:nowrap;font:500 10.5px/1 var(--num);font-style:normal;color:var(--dim);margin-top:5px}
+.tcg .good b{color:var(--pos)}.tcg .bad b{color:var(--neg)}.tcg .off{opacity:.4}.tcg .mk b{text-decoration:underline;text-underline-offset:3px}
+.vch{font:500 13px/1.3 var(--name);color:var(--dim);margin-bottom:6px}.vch b{font-family:var(--num);color:var(--ink)}
+.vchart{width:100%;height:auto;background:var(--panel);border:1px solid var(--rule);border-radius:10px;touch-action:pan-y;cursor:crosshair}
+.vchart .gline{fill:none;stroke:var(--ball);stroke-width:2.5}.vchart .gpace{stroke:var(--dim);stroke-width:1.5;stroke-dasharray:5 4}.vchart .gq{stroke:var(--rule)}.vchart .g0{stroke:var(--rule);stroke-dasharray:2 3}
+.vchart .gx,.vchart .gy{font:500 10px var(--num);fill:var(--dim);text-anchor:middle}.vchart .gdot{fill:var(--ball);stroke:var(--panel);stroke-width:2}
+.vtip{font:500 12.5px/1.35 var(--name);color:var(--ink);min-height:18px;margin-top:6px}
+.tup{max-height:320px;overflow:auto;border:1px solid var(--rule);border-radius:10px;background:var(--panel)}.tup>div{display:grid;grid-template-columns:70px 1fr auto;gap:8px;padding:7px 10px;border-top:1px solid var(--rule);font:500 12.5px/1.3 var(--name)}.tup>div:first-child{border-top:0}
+.tup i{font:500 11px/1.3 var(--num);font-style:normal;color:var(--dim)}.tup b{font:600 12px/1.3 var(--num)}.tup b.up{color:var(--pos)}.tup b.dn{color:var(--neg)}
+@media (max-width:600px){.tcg{grid-template-columns:repeat(5,1fr);gap:4px}.tcg>div{padding:8px 2px}.tcg b{font-size:15px}.tcg em{font-size:9.5px}.tsbt i{font-size:24px}.tlg.big{width:36px;height:36px}}
 </style>
 </head>
 <body>
@@ -1023,7 +1040,8 @@ async function loadDate(d,auto){
   if(!started.length){S.players=[];renderGames();setStatus("");
     return renderList(evs.length?`${evs.length} games tonight. Stats show up at tip-off.`:"No NBA games on this date.")}
   const boxes=await Promise.all(started.map(e=>getJSON(`${API}/summary?event=${e.id}`).then(j=>({e,j})).catch(()=>null)));
-  const ps=[];for(const b of boxes){if(b)ps.push(...parseBox(b.e,b.j))}
+  // keep each game's play-by-play for the player card's Tonight tab (value chart, scoring updates)
+  S.plays={};const ps=[];for(const b of boxes){if(b){ps.push(...parseBox(b.e,b.j));S.plays[b.e.id]=b.j.plays||[]}}
   S.players=ps;
   if(!S.events.some(e=>e.id===S.game))S.game="all";
   // schedule the next live refresh first, so an error while drawing can't freeze the scores
@@ -1066,8 +1084,9 @@ function compute(){
   const lgFG=sum(base,"fgm")/Math.max(1,sum(base,"fga")),lgFT=sum(base,"ftm")/Math.max(1,sum(base,"fta"));
   for(const p of P){p.fgi=p.fgm-lgFG*p.fga;p.fti=p.ftm-lgFT*p.fta}
   const src={pts:"pts",tpm:"tpm",reb:"reb",ast:"ast",stl:"stl",blk:"blk",fg:"fgi",ft:"fti",to:"to"};
+  S.zst={lgFG,lgFT,st:{}};
   for(const c of SCATS){const k=src[c.k],m=sum(base,k)/base.length;
-    const sd=Math.sqrt(base.reduce((a,p)=>a+(p[k]-m)**2,0)/base.length)||1;
+    const sd=Math.sqrt(base.reduce((a,p)=>a+(p[k]-m)**2,0)/base.length)||1;S.zst.st[c.k]=[k,m,sd];
     for(const p of P){(p.z||(p.z={}))[c.k]=(c.k==="to"?-1:1)*(p[k]-m)/sd}}
   scoreValue();
 }
@@ -2712,7 +2731,7 @@ function psPct(id,q){if(!q||!q.xp||!G.zp)return"";
     <p class="stkn">Bar = percentile (100 = best; TO counts fewer as better). Green 70+, red 30 or under. The number after it is his Proj per game; "so far" is this season.</p></section>`}
 function psWeek(id,q){if(!q||!SC)return"";const t=etToday(),ds=weekDates(0).filter(d=>d>=t&&plays(q.t,d));if(!ds.length)return"";
   return`<div class="pswk">${ds.map(d=>{const o=opp(q.t,d).replace("vs ","").replace("@ ","@"),out=!avail(id,d);
-    return`<span class="${out?"out":""}${d===t?" td":""}">${d===t?"Tonight":fmtDate(d).replace(/,.*$/,"")} ${esc(o)}${out?" · out":""}</span>`}).join("")}</div>`}
+    return`<span class="${out?"out":""}${d===t?" td":""}">${logoImg(o.replace("@",""))}<b>${d===t?"Tonight":fmtDate(d).replace(/,.*$/,"")}</b><i>${esc(o)}${out?" · out":""}</i></span>`}).join("")}</div>`}
 function psTonightProj(id,q,tn){if(!q||!q.xp)return null;const t=etToday();
   if(tn&&S.date!==t)return{l:xpLine(q),mk:{},src:"Proj per game"};
   const P=prIx(),pp=propsFor(P,q),tl=tonightLine(q,pp,minAt(id,q,t));return{l:tl.l,mk:tl.mk,src:pp?"Proj, sportsbook lines underlined":"Proj for tonight"}}
@@ -2774,6 +2793,80 @@ function psNews(id,q,nm){const h=[],team=q?q.t:"";
   if(lu){const inFive=(lu.five||[]).some(([n])=>lgKey(n)===lgKey(nm)),inact=(lu.inactive||[]).some(n=>lgKey(n)===lgKey(nm));
     h.push(`<section class="blk"><h3>Tonight's lineup <span>NBA.com · ${esc(lu.status||"")}</span></h3><p class="note">${inFive?"<b>Starting</b>":inact?"<b>Inactive</b>":"Bench"}</p></section>`)}
   return h.join("")}
+// ---- Tonight tab: the game (logos, score, clock), his categories against tonight's projection, a
+// value chart over the game and his plays, newest first. The plays come from the same ESPN summary
+// the Box tab loads (S.plays). Each play is read from ESPN's text ("X makes 2-foot dunk (Y assists)",
+// "X defensive rebound", "(X steals)"...); the plays are added up and checked against his box-score
+// line, and the chart says so if they don't match rather than showing a wrong picture.
+const tmLogo=t=>`https://a.espncdn.com/i/teamlogos/nba/500/${String(t||"").toLowerCase()}.png`;
+const logoImg=(t,cl="")=>`<img class="tlg ${cl}" src="${tmLogo(t)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
+// Value of a line on tonight's scale (the Box tab's pool), punts applied: the same math as a card's Value.
+function nightVal(l){const Z=S.zst;if(!Z)return 0;const act=SCATS.filter(c=>!S.punt.has(c.k));if(!act.length)return 0;
+  const v={...l,fgi:(l.fgm||0)-Z.lgFG*(l.fga||0),fti:(l.ftm||0)-Z.lgFT*(l.fta||0)};
+  return act.reduce((a,c)=>{const[k,m,sd]=Z.st[c.k];return a+(c.k==="to"?-1:1)*((v[k]||0)-m)/sd},0)/act.length}
+function gameOf(q,tn){if(tn)return S.events.find(e=>e.id===tn.game)||null;
+  if(q&&S.date===etToday())return S.events.find(e=>e.home===q.t||e.away===q.t)||null;return null}
+// His plays in one game, oldest first: [{t (game minutes), lab ("Q2 2:37"), txt, d:{stat deltas}}].
+function playsOf(tn){const P=S.plays&&S.plays[tn.game];if(!P||!P.length)return null;
+  const N=tn.name,esc2=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),n=esc2(N),out=[];
+  const R={make:new RegExp("^"+n+" makes"),miss:new RegExp("^"+n+" misses"),ast:new RegExp("\\("+n+" assists\\)"),
+    blk:new RegExp("^"+n+" blocks"),reb:new RegExp("^"+n+" (offensive |defensive )?rebound"),stl:new RegExp("\\("+n+" steals\\)"),
+    to:new RegExp("^"+n+" (bad pass|lost ball|traveling|.*turnover)")};
+  for(const p of P){const txt=String(p.text||""),per=(p.period&&p.period.number)||1,clk=String((p.clock&&p.clock.displayValue)||"0:00");
+    if(!txt.includes(N))continue;
+    const [mm,ss]=clk.includes(":")?clk.split(":").map(Number):[0,parseFloat(clk)||0],len=per<=4?12:5,left=(mm||0)+(ss||0)/60;
+    const t=(per<=4?(per-1)*12:48+(per-5)*5)+(len-left),d={};
+    if(R.make.test(txt)){if(/free throw/i.test(txt)){d.ftm=1;d.fta=1;d.pts=1}else if(/three point/i.test(txt)){d.fgm=1;d.fga=1;d.tpm=1;d.pts=3}else{d.fgm=1;d.fga=1;d.pts=2}}
+    else if(R.miss.test(txt)){if(/free throw/i.test(txt))d.fta=1;else d.fga=1}
+    if(R.ast.test(txt))d.ast=1;if(R.blk.test(txt))d.blk=1;if(R.reb.test(txt))d.reb=1;if(R.stl.test(txt))d.stl=1;if(R.to.test(txt)&&!R.make.test(txt)&&!R.miss.test(txt))d.to=1;
+    if(Object.keys(d).length)out.push({t,lab:`${per<=4?"Q"+per:"OT"+(per-4)} ${clk}`,txt,d})}
+  return out}
+function psTonightGame(id,q,tn){const g=gameOf(q,tn),h=[];
+  const fp=(k,v)=>k==="fg"||k==="ft"?(v==null?"–":v.toFixed(3).replace(/^0/,"")):f1(v);
+  const pv=(l,k)=>k==="fg"?(l.fga?l.fgm/l.fga:null):k==="ft"?(l.fta?l.ftm/l.fta:null):l[k];
+  const pj=psTonightProj(id,q,tn);
+  // scoreboard
+  if(g){const st=g.state==="pre"?esc(g.detail||"Tonight"):g.state==="in"?esc(g.detail):"Final",me=tn?tn.team:q.t;
+    h.push(`<div class="tsb"><div class="tsbt${g.away===me?" me":""}">${logoImg(g.away,"big")}<b>${g.away}</b>${g.state!=="pre"?`<i>${g.as}</i>`:""}</div>
+      <div class="tsbm"><span class="${g.state==="in"?"live":""}">${g.state==="in"?"● ":""}${st}</span><em>@</em></div>
+      <div class="tsbt${g.home===me?" me":""}">${g.state!=="pre"?`<i>${g.hs}</i>`:""}<b>${g.home}</b>${logoImg(g.home,"big")}</div></div>`)}
+  else if(q&&!tn){const o=opp(q.t,etToday()),ot=o.replace(/^(vs|@) /,"");
+    h.push(`<div class="tsb"><div class="tsbt me">${logoImg(q.t,"big")}<b>${q.t}</b></div><div class="tsbm"><span>Tonight</span><em>${o.startsWith("@")?"@":"vs"}</em></div><div class="tsbt"><b>${ot}</b>${logoImg(ot,"big")}</div></div>`)}
+  // his categories tonight, projected underneath
+  const L=tn?{min:tn.min,pts:tn.pts,reb:tn.reb,ast:tn.ast,tpm:tn.tpm,stl:tn.stl,blk:tn.blk,to:tn.to,fgm:tn.fgm,fga:tn.fga,ftm:tn.ftm,fta:tn.fta}:null;
+  h.push(`<section class="blk"><h3>${tn?"His categories tonight":"Projected tonight"} <span>${tn?"projected underneath":pj?pj.src:""}</span></h3><div class="tcg">${CATS.map(c=>{const k=c.k,a=L?pv(L,k):null,p=pj?pv(pj.l,k):null;
+      const shown=L?(k==="fg"?`${L.fgm}-${L.fga}`:k==="ft"?`${L.ftm}-${L.fta}`:a):fp(k,p);
+      const cl=L?hl(k,tn):nh(k);
+      return`<div class="${cl.trim()}${!L&&pj&&pj.mk[k]?" mk":""}"><b>${shown}</b><i>${c.l}</i>${L&&p!=null?`<em>proj ${fp(k,p)}</em>`:""}</div>`}).join("")}
+    <div class="role"><b>${L?Math.round(L.min):pj?Math.round(pj.l.min):"–"}</b><i>MIN</i>${L&&pj?`<em>proj ${Math.round(pj.l.min)}</em>`:""}</div></div>
+    ${!L&&q?nmNote(id,q,[etToday()],pj?pj.l.min:q.xp[0])+ijNote(id):""}</section>`);
+  // value over the game + scoring updates
+  if(tn&&S.zst){const ev=playsOf(tn);
+    if(ev&&ev.length){const tot={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0,fgm:0,fga:0,ftm:0,fta:0};const pts=[{t:0,v:nightVal(tot),ev:null}];
+      for(const e of ev){for(const k in e.d)tot[k]+=e.d[k];pts.push({t:e.t,v:nightVal(tot),ev:e,dv:0})}
+      for(let i=1;i<pts.length;i++)pts[i].dv=pts[i].v-pts[i-1].v;
+      const miss=["pts","reb","ast","stl","blk","tpm","to","fgm","fga","ftm","fta"].filter(k=>tot[k]!==tn[k]);
+      const end=Math.max(48,Math.ceil(ev[ev.length-1].t/1)),g0=pts[0].v,gP=pj?nightVal(pj.l):null,now=pts[pts.length-1];
+      const elapsed=g&&g.state==="in"?Math.max(now.t,1):48,pace=g&&g.state==="in"&&now.t>4?nightVal(Object.fromEntries(Object.entries(tot).map(([k,v])=>[k,v*48/elapsed]))):null;
+      const vs=[...pts.map(p=>p.v),gP??0,pace??0],lo=Math.min(...vs,g0)-.1,hi=Math.max(...vs)+.1,W=isDesk()?900:360,H=isDesk()?230:190,X=t=>Math.round(40+(W-50)*t/end),Y=v=>Math.round(10+(H-30)*(hi-v)/(hi-lo||1));
+      const step=pts.map((p,i)=>i?`H${X(p.t)}V${Y(p.v)}`:`M${X(0)} ${Y(p.v)}`).join("")+(g&&g.state==="in"?`H${X(now.t)}`:`H${X(end)}`);
+      const qs=[12,24,36,...(end>48?[48]:[])].map(m=>`<line x1="${X(m)}" x2="${X(m)}" y1="10" y2="${H-20}" class="gq"/><text x="${X(m)}" y="${H-6}" class="gx">${m===48?"OT":"Q"+(m/12+1)}</text>`).join("");
+      const ytk=[...new Set([Math.ceil(lo*2)/2,0,Math.floor(hi*2)/2])].filter(v=>v>=lo&&v<=hi),zero=ytk.map(v=>`<line x1="40" x2="${W-10}" y1="${Y(v)}" y2="${Y(v)}" class="g0"/><text x="20" y="${Y(v)+3}" class="gy">${v>0?"+":v<0?"−":""}${Math.abs(v)}</text>`).join("");
+      h.push(`<section class="blk"><h3>Value over the game <span>${g&&g.state==="in"?"live · ":""}on tonight's scale, punts applied</span></h3>
+        <div class="vch"><b class="vl ${vcls(now.v)}">${sgn(now.v)}</b> so far${gP!=null?` · projected <b>${sgn(gP)}</b>`:""}${pace!=null?` · on pace for <b class="vl ${vcls(pace)}">${sgn(pace)}</b>`:""}</div>
+        <svg id="psChart" viewBox="0 0 ${W} ${H}" class="vchart" data-pts='${JSON.stringify(pts.map(p=>[X(p.t),Y(p.v),p.ev?p.ev.lab+": "+p.ev.txt.replace(/'/g,"’"):"Tip-off",sgn(p.v)]))}'>
+          ${qs}${zero}${gP!=null?`<line x1="${X(0)}" y1="${Y(g0)}" x2="${X(48)}" y2="${Y(gP)}" class="gpace"/>`:""}<path d="${step}" class="gline"/>
+          <circle id="psDot" r="4" cx="${X(now.t)}" cy="${Y(now.v)}" class="gdot"/></svg>
+        <div class="vtip" id="psTip">Hover or drag along the chart to see his value at any moment and the play behind it.</div>
+        <p class="stkn">Solid: his value as the game went. Dashed: the pace to reach his projection by the final buzzer.${miss.length?` <b class="dn">The play-by-play doesn't match his box score in ${miss.join(", ").toUpperCase()}, so this chart is approximate.</b>`:""}</p></section>`);
+      h.push(`<section class="blk"><h3>Scoring updates <span>newest first${g&&g.state==="in"?" · refreshes every minute":""}</span></h3><div class="tup">${pts.slice(1).reverse().map(p=>`<div><i>${p.ev.lab}</i><span>${esc(p.ev.txt)}</span><b class="${p.dv>=0?"up":"dn"}">${p.dv>=0?"+":"−"}${Math.abs(p.dv).toFixed(2)}</b></div>`).join("")}</div></section>`)}
+    else if(g&&g.state!=="pre")h.push(`<p class="lgk">No play-by-play for this game yet.</p>`)}
+  return h.join("")}
+// chart hover: nearest play to the pointer
+function psChartBind(){const s=$("psChart");if(!s)return;const P=JSON.parse(s.dataset.pts||"[]"),dot=$("psDot"),tip=$("psTip");
+  const mv=e=>{const r=s.getBoundingClientRect(),x=((e.touches?e.touches[0].clientX:e.clientX)-r.left)*(s.viewBox.baseVal.width/r.width);
+    let b=P[0];for(const p of P)if(Math.abs(p[0]-x)<Math.abs(b[0]-x))b=p;dot.setAttribute("cx",b[0]);dot.setAttribute("cy",b[1]);tip.textContent=`${b[2]}  ·  his value then ${b[3]}`};
+  s.addEventListener("mousemove",mv);s.addEventListener("touchmove",mv,{passive:true});s.addEventListener("touchstart",mv,{passive:true})}
 function renderSheet(){
   if(!S.ps)return;
   const{id,tn}=S.ps,q=G&&G.players[id],rq=R&&R.players[id],B=S.bs,nm=psName(id,tn);
@@ -2795,7 +2888,7 @@ function renderSheet(){
     <div class="pstabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" data-pst="${k}" aria-selected="${k===T}">${l}</button>`).join("")}</div></div>`);
   if(S.punt.size){const pl=CATS.filter(c=>S.punt.has(c.k)).map(c=>c.l);
     h.push(`<div class="ptb">Punting <b>${pl.join(", ")}</b>: every rank, Value, projection and the read on this page leave ${pl.length>1?"them":"it"} out.</div>`)}
-  if(T==="tonight")h.push(psTonight(id,q,tn));
+  if(T==="tonight")h.push(psTonightGame(id,q,tn));
   if(T==="overview"){
     {const nl=newsLine(id);if(nl)h.push(nl)}
     if(rq&&S.rk){const m=S.mv[id];
@@ -2823,7 +2916,7 @@ function renderSheet(){
   if(T==="log")h.push(psLogHTML());
   if(T==="role")h.push(psRole(id,q,rq));
   if(T==="news")h.push(psNews(id,q,nm));
-  const sc=$("psPanel").scrollTop;$("psBody").innerHTML=h.join("");$("psPanel").scrollTop=sc;
+  const sc=$("psPanel").scrollTop;$("psBody").innerHTML=h.join("");$("psPanel").scrollTop=sc;psChartBind();
 }
 // The analyst note split into labeled parts so it scans like a write-up: the call first, then
 // role, shooting, per-36, upside, outlook, fit and price. Same sentences as the note, nothing cut.
