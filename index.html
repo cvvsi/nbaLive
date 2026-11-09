@@ -820,7 +820,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .vch{font:500 13px/1.3 var(--name);color:var(--dim);margin-bottom:6px}.vch b{font-family:var(--num);color:var(--ink)}
 .vchart{width:100%;height:auto;background:var(--panel);border:1px solid var(--rule);border-radius:10px;touch-action:pan-y;cursor:crosshair}
 .vchart .gline{fill:none;stroke:var(--ball);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}.vchart .gpace{stroke:var(--dim);stroke-width:1.5;stroke-dasharray:5 4}.vchart .gq{stroke:var(--rule)}.vchart .g0{stroke:var(--rule);stroke-dasharray:2 3}
-.vchart .gx,.vchart .gy{font:500 10px var(--num);fill:var(--dim);text-anchor:middle}.vchart .gdot{fill:var(--ball);stroke:var(--panel);stroke-width:2}
+.vchart .gx,.vchart .gy{font:500 10px var(--num);fill:var(--dim);text-anchor:middle}.gonk{display:inline-block;width:14px;height:4px;border-radius:2px;background:var(--ball);vertical-align:2px}.vchart .gtrk{fill:var(--cell)}.vchart .gstr{fill:var(--ball)}.vchart .gdot{fill:var(--ball);stroke:var(--panel);stroke-width:2}
 .vtip{font:500 12.5px/1.35 var(--name);color:var(--ink);min-height:18px;margin-top:6px}
 .tup{max-height:320px;overflow:auto;border:1px solid var(--rule);border-radius:10px;background:var(--panel)}.tup>div{display:grid;grid-template-columns:70px 1fr auto;gap:8px;padding:7px 10px;border-top:1px solid var(--rule);font:500 12.5px/1.3 var(--name)}.tup>div:first-child{border-top:0}
 .tup i{font:500 11px/1.3 var(--num);font-style:normal;color:var(--dim)}.tup b{font:600 12px/1.3 var(--num)}.tup b.up{color:var(--pos)}.tup b.dn{color:var(--neg)}
@@ -2855,6 +2855,22 @@ function playsOf(tn){const P=S.plays&&S.plays[tn.game];if(!P||!P.length)return n
     if(/turnover|traveling|bad pass|lost ball/i.test(T)&&me2&&/ steals\)/.test(txt))d.stl=1;
     if(Object.keys(d).length)out.push({t,lab:`${per<=4?"Q"+per:"OT"+(per-4)} ${clk}`,txt,d})}
   return out}
+// His time on the floor, as [start, end] game minutes, from ESPN's substitutions ("A enters the game for B":
+// participants [A, B]). Quarter starts aren't logged, so each period he's on at the start if his first
+// substitution in it is going out, or (with none) if he shows up in any play of it.
+function stintsOf(tn,P,now){const id=String(tn.eid||"");if(!id||!P||!P.length)return null;
+  const T=p=>{const per=(p.period&&p.period.number)||1,clk=String((p.clock&&p.clock.displayValue)||"0:00"),[mm,ss]=clk.includes(":")?clk.split(":").map(Number):[0,parseFloat(clk)||0];
+    return{per,t:(per<=4?(per-1)*12:48+(per-5)*5)+((per<=4?12:5)-((mm||0)+(ss||0)/60))}};
+  const byPer={};for(const p of P){const per=(p.period&&p.period.number)||1;(byPer[per]=byPer[per]||[]).push(p)}
+  const out=[];
+  for(const per of Object.keys(byPer).map(Number).sort((a,b)=>a-b)){const L=byPer[per],st=per<=4?(per-1)*12:48+(per-5)*5,len=per<=4?12:5;
+    const ids=p=>(p.participants||[]).map(x=>String((x.athlete&&x.athlete.id)||""));
+    const subs=L.filter(p=>/substitution/i.test((p.type&&p.type.text)||"")&&ids(p).includes(id));
+    let on=subs.length?ids(subs[0])[1]===id:L.some(p=>ids(p).includes(id)),from=st;
+    for(const s of subs){const t=T(s).t,inn=ids(s)[0]===id;if(inn&&!on){on=true;from=t}else if(!inn&&on){on=false;if(t>from)out.push([from,t])}}
+    const ended=L.some(p=>/end period/i.test((p.type&&p.type.text)||"")),end=ended?st+len:Math.min(st+len,now!=null?now:T(L[L.length-1]).t);
+    if(on&&end>from)out.push([from,end])}
+  return out}
 function psTonightGame(id,q,tn){const g=gameOf(q,tn),h=[];
   const fp=(k,v)=>k==="fg"||k==="ft"?(v==null?"–":v.toFixed(3).replace(/^0/,"")):f1(v);
   const pv=(l,k)=>k==="fg"?(l.fga?l.fgm/l.fga:null):k==="ft"?(l.fta?l.ftm/l.fta:null):l[k];
@@ -2880,13 +2896,15 @@ function psTonightGame(id,q,tn){const g=gameOf(q,tn),h=[];
       const step=smoothPath(pts.map(p=>[X(p.t),Y(p.v)]))+(g&&g.state==="in"?"":`L${X(end)} ${Y(now.v)}`);
       const qs=[12,24,36,...(end>48?[48]:[])].map(m=>`<line x1="${X(m)}" x2="${X(m)}" y1="10" y2="${H-20}" class="gq"/><text x="${X(m)}" y="${H-6}" class="gx">${m===48?"OT":"Q"+(m/12+1)}</text>`).join("");
       const ytk=[...new Set([Math.ceil(lo*2)/2,0,Math.floor(hi*2)/2])].filter(v=>v>=lo&&v<=hi),zero=ytk.map(v=>`<line x1="40" x2="${W-10}" y1="${Y(v)}" y2="${Y(v)}" class="g0"/><text x="20" y="${Y(v)+3}" class="gy">${v>0?"+":v<0?"−":""}${Math.abs(v)}</text>`).join("");
+      const sts=stintsOf(tn,S.plays[tn.game]),stM=sts?sts.reduce((x,[f,e])=>x+e-f,0):0,useSt=sts&&sts.length&&Math.abs(stM-tn.min)<=3;
+      const bands=useSt?`<rect x="${X(0)}" y="${H-24}" width="${X(end)-X(0)}" height="4" rx="2" class="gtrk"/>`+sts.map(([f,e])=>`<rect x="${X(f)}" y="${H-24}" width="${Math.max(2,X(e)-X(f))}" height="4" rx="2" class="gstr"/>`).join(""):"";
       h.push(`<section class="blk"><h3>Value over the game <span>${g&&g.state==="in"?"live · ":""}on tonight's scale, punts applied</span></h3>
         <div class="vch"><b class="vl ${vcls(now.v)}">${sgn(now.v)}</b> so far${gP!=null?` · projected <b>${sgn(gP)}</b>`:""}${pace!=null?` · on pace for <b class="vl ${vcls(pace)}">${sgn(pace)}</b>`:""}</div>
         <svg id="psChart" viewBox="0 0 ${W} ${H}" class="vchart" data-pts='${JSON.stringify(pts.map(p=>[X(p.t),Y(p.v),p.ev?p.ev.lab+": "+p.ev.txt.replace(/'/g,"’"):"Tip-off",sgn(p.v)]))}'>
-          ${qs}${zero}${gP!=null?`<line x1="${X(0)}" y1="${Y(g0)}" x2="${X(48)}" y2="${Y(gP)}" class="gpace"/>`:""}<path d="${step}" class="gline"/>
+          ${bands}${qs}${zero}${gP!=null?`<line x1="${X(0)}" y1="${Y(g0)}" x2="${X(48)}" y2="${Y(gP)}" class="gpace"/>`:""}<path d="${step}" class="gline"/>
           <circle id="psDot" r="4" cx="${X(now.t)}" cy="${Y(now.v)}" class="gdot"/></svg>
         <div class="vtip" id="psTip">Hover or drag along the chart to see his value at any moment and the play behind it.</div>
-        <p class="stkn">Solid: his value as the game went. Dashed: the pace to reach his projection by the final buzzer.${miss.length?` <b class="dn">The play-by-play doesn't match his box score in ${miss.join(", ").toUpperCase()}, so this chart is approximate.</b>`:""}</p></section>`);
+        <p class="stkn">${useSt?`<span class="gonk"></span> Strip along the bottom: on the floor (${Math.round(stM)} min, from the substitutions). `:""}Solid: his value as the game went. Dashed: the pace to reach his projection by the final buzzer.${miss.length?` <b class="dn">The play-by-play doesn't match his box score in ${miss.join(", ").toUpperCase()}, so this chart is approximate.</b>`:""}</p></section>`);
       h.push(`<section class="blk"><h3>Scoring updates <span>newest first${g&&g.state==="in"?" · refreshes every minute":""}</span></h3><div class="tup">${pts.slice(1).reverse().map(p=>`<div><i>${p.ev.lab}</i><span>${esc(p.ev.txt)}</span><b class="${p.dv>=0?"up":"dn"}">${p.dv>=0?"+":"−"}${Math.abs(p.dv).toFixed(2)}</b></div>`).join("")}</div></section>`)}
     else if(g&&g.state!=="pre")h.push(`<p class="lgk">No play-by-play for this game yet.</p>`)}
   h.push(rest);return h.join("")}
