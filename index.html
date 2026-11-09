@@ -167,7 +167,8 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .mval i{display:block;font:500 10px/1.1 var(--num);font-style:normal;color:var(--dim);margin-top:3px;white-space:nowrap}.mval i.up{color:var(--pos)}.mval i.dn{color:var(--neg)}
 .mb{width:28px;height:28px;border-radius:50%;border:1px solid var(--rule);background:var(--bg);color:var(--ink);font:600 17px/1 var(--num);cursor:pointer;padding:0;display:grid;place-items:center}
 .mr[data-id] .mb[data-mu="add"]{border-color:var(--pos);color:var(--pos)}.mr .mb[data-mu="drop"],.mr .mb[data-mu="undrop"]{color:var(--neg)}
-.mr.il,.mr.gone{opacity:.5}.msl{display:inline-block;min-width:26px;margin-right:5px;padding:1px 3px;border-radius:4px;font:600 9.5px/1.3 var(--num);text-align:center;vertical-align:1px;border:1px solid var(--ink)}.msl.a{background:var(--ink);color:var(--panel)}.msl.b{color:var(--dim);border-color:var(--dim)}.msl.i{color:var(--neg);border-color:var(--neg);border-style:dashed}.mr.gone .mn b{text-decoration:line-through}.mr.nw .mn b{color:var(--ball)}
+.mr.gone{opacity:.5}.mr.il .mn b{color:var(--dim)}.ilb{font-style:normal;color:var(--neg)}
+.milh{margin-top:10px;padding:6px 0 4px;border-top:2px solid var(--rule);font:700 11px/1 var(--name);letter-spacing:.06em;color:var(--neg)}.milh span{font-weight:500;letter-spacing:0;color:var(--dim);margin-left:6px}
 .mmore{display:block;width:100%;margin-top:8px;padding:9px;border:1px solid var(--rule);border-radius:8px;background:none;color:var(--ink);font:600 13px/1 var(--name);cursor:pointer}
 .mtop{margin-top:6px}
 .mwk{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--panel);border-radius:10px;padding:4px}
@@ -2367,13 +2368,14 @@ const muOff=m=>new Set(S.punt);
 const muFocus=m=>{const off=muOff(m),t=[...m.tg].filter(k=>!off.has(k));return t.length?t:CATS.map(c=>c.k).filter(k=>!off.has(k))};
 const muFz=(z,F)=>F.length?F.reduce((a,k)=>a+z[k],0)/F.length:0;
 function muLine(id,q,d,C){const k=id+"|"+d;return C[k]||(C[k]=(l=>({l,z:pjZ(l)}))(lineAt(q,minAt(id,q,d))))}
-// A roster over some days: on each day, everyone not on IL whose team plays and who isn't listed
+// A roster over some days: on each day, everyone (an IL player too, taken as activated once the
+// injury report has him back) whose team plays and who isn't listed
 // out; games forced in count first, then the best by the sort categories up to the team's active
 // spots. Cell state per id and day: 1 counts, 2 sits for lack of spots, 3 forced in, 4 forced out.
 function muSim(ps,days,cap,F,set,C){
   const tot={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0,fgm:0,fga:0,ftm:0,fta:0},vr={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0},g={},st={};
   for(const d of days){
-    const on=ps.filter(o=>!o.il&&plays(o.q.t,d)&&avail(o.id,d)).map(o=>{const e=muLine(o.id,o.q,d,C);return{o,l:e.l,v:muFz(e.z,F),f:set&&set[o.id+"|"+d]}});
+    const on=ps.filter(o=>plays(o.q.t,d)&&avail(o.id,d)).map(o=>{const e=muLine(o.id,o.q,d,C);return{o,l:e.l,v:muFz(e.z,F),f:set&&set[o.id+"|"+d]}});
     const forced=on.filter(e=>e.f===1).slice(0,cap),auto=on.filter(e=>e.f!==1&&e.f!==0).sort((a,b)=>b.v-a.v),use=new Set([...forced,...auto.slice(0,cap-forced.length)]);
     for(const e of on){const u=use.has(e);(st[e.o.id]||(st[e.o.id]={}))[d]=u?(e.f===1?3:1):(e.f===0?4:2);if(!u)continue;
       g[e.o.id]=(g[e.o.id]||0)+1;for(const k in tot)tot[k]+=e.l[k];for(const k in vr)vr[k]+=(MUPHI[k]||1)*e.l[k]}}
@@ -2469,7 +2471,7 @@ function renderMU(){
   const fa=Object.keys(G.players).filter(id=>x.own[id]==null&&!m.add.has(id)&&G.players[id].xp&&G.players[id].xp[0]>=12).map(P)
     .map(o=>{o.g=myDs(o).length;o.v=pv(o);o.w=o.g*(o.v+zo);return o}).filter(o=>o.g).sort((a,b)=>b.w-a.w);
   const faShow=fa.slice(0,m.fa);for(const o of faShow)o.d=dExp([...mine,o]);
-  for(const o of mine){o.v=pv(o);o.d=o.il?0:dExp(mine.filter(p=>p!==o))}
+  for(const o of mine){o.v=pv(o);o.d=dExp(mine.filter(p=>p!==o))}
   const dropped=base.filter(o=>m.drop.has(o.id));for(const o of dropped)o.v=pv(o);
   const fv=(k,v)=>k==="fg"||k==="ft"?v.toFixed(3).replace(/^0/,""):Math.round(v);
   const pc=p=>{const v=Math.round(100*p);return v>=99.5?">99":v<=.5?"<1":v};
@@ -2494,12 +2496,15 @@ function renderMU(){
     if(s===5&&full&&full.has(d))s=6;
     const v=muFz(muLine(o.id,o.q,d,C).z,F);
     return`<span class="dc s${s}"${tap?` data-mu="day" data-x="${o.id}|${d}"`:""} title="${dl(d)} ${opp(o.q.t,d)}"><b>${oppS(o.q.t,d)}</b><i class="${v>=.5?"up":v<=-.5?"dn":""}">${sg(v).replace(/^\+/,"")}</i></span>`}).join("");
-  const row=(o,T,act,full)=>{const dl2=o.d!=null&&!o.il&&act!=="undo"?`<i class="${o.d>=.05?"up":o.d<=-.05?"dn":""}">${Math.abs(o.d)<.05?"0.0":(o.d>0?"+":"−")+Math.abs(o.d).toFixed(1)}</i>`:"";
-    return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${o.sl&&!o.nw?`<span class="msl ${o.il?"i":o.bn?"b":"a"}" title="${o.il?"Injured list: doesn't count":o.bn?"Fantasy bench":"Active fantasy slot"}">${esc(o.sl)}</span>`:""}${esc(nm(o.q.n))}</b><i>${esc(o.q.t)} · ${esc(posOf(o.id)||"–")}${o.nw?` <em>what-if add</em>`:""}${act==="undo"?` <em>what-if drop</em>`:""}</i></div>
+  const row=(o,T,act,full)=>{const dl2=o.d!=null&&act!=="undo"?`<i class="${o.d>=.05?"up":o.d<=-.05?"dn":""}">${Math.abs(o.d)<.05?"0.0":(o.d>0?"+":"−")+Math.abs(o.d).toFixed(1)}</i>`:"";
+    return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${esc(nm(o.q.n))}</b><i>${esc(o.q.t)} · ${o.il?(b=>`<em class="ilb">${b?"back "+dl(b):"out all wk"}</em>`)(rest.find(d=>plays(o.q.t,d)&&avail(o.id,d))):esc(posOf(o.id)||"–")}${o.nw?` <em>what-if add</em>`:""}${act==="undo"?` <em>what-if drop</em>`:""}</i></div>
       <div class="md">${act==="undo"?"":cells(o,T,act==="drop"||act==="undrop",full)}</div>
       <div class="mval"><b class="${o.v>=1?"up":o.v<=-1?"dn":""}">${sg(o.v)}</b>${dl2}</div>
       ${act?`<button class="mb" data-mu="${act}" data-x="${o.id}" aria-label="${act}">${act==="add"?"+":act==="undo"?"↺":"−"}</button>`:"<span></span>"}</div>`};
-  const sortR=a=>a.sort((p,q)=>(p.il?2:p.bn?1:0)-(q.il?2:q.bn?1:0)||q.v-p.v);
+  const sortR=a=>a.sort((p,q)=>q.v-p.v);
+  // the team by value, then its IL players apart: listed to plan for a return, counted only once back
+  const grp=(a,f)=>{const r=sortR(a.filter(o=>!o.il)),il=sortR(a.filter(o=>o.il));
+    return r.map(f).join("")+(il.length?`<div class="milh">IL <span>not counted unless he's back this week</span></div>`+il.map(f).join(""):"")};
   const fullDays=new Set(rest.filter(d=>dayN(A,d).c>=capA));
   const canPrev=off0>Math.min(0,sOff??0),canNext=weekDates(off0+1)[0]<=lastWk;
   const cmp=r=>{const d=r.a-r.b,good=r.k==="to"?d<0:d>0,s=(r.k==="fg"||r.k==="ft")?(d>=0?"+":"−")+Math.abs(d).toFixed(3).replace(/^0/,""):(d>=0?"+":"−")+Math.abs(Math.round(d));
@@ -2529,16 +2534,16 @@ function renderMU(){
     <div class="mfs"><div class="msw"><div><b>${esc(nameB)}</b>${scout(opId)}</div><div><b>${esc(nameA)}</b>${scout(me)}</div></div>
     <p class="mhint">${isS?"Projected finals: Yahoo's totals so far (small gray \"now\", as of your sync) plus Proj for the days left.":"Projected finals for the whole week (Proj only)."} G = games that count. Small ranks mark where a team is top or bottom 3 of the ${nT} teams this week. Tick categories to <b>target</b> them: the lineup, sort and Cats then go by those only (ticking all but 3PM = punting 3PM). <b>Swing</b> (underlined) = still in play, 30–70%: where a pickup can flip the result; the Target these button ticks just those. The score always counts all 9.</p></div></div>
     <div class="msec mme"><div class="msh"><b>${esc(nameA)}</b><span>${gA} games left · by ${esc(lab)}</span></div>${hd(A,capA,"me")}
-      ${sortR(mine).map(o=>row(o,A,o.nw?"undrop":"drop")).join("")}${dropped.map(o=>row(o,A,"undo")).join("")}
+      ${grp(mine,o=>row(o,A,o.nw?"undrop":"drop"))}${dropped.map(o=>row(o,A,"undo")).join("")}
       <p class="mhint">Tap a game to start or sit him. <span class="dc s1"></span> counts · <span class="dc s2"></span> sits (no spot) · <span class="dc s3"></span> you started him · <span class="dc s4"></span> you sat him · <span class="dc ot"></span> out (injury report).</p></div>
     <div class="mcols">
     <div class="msec"><div class="msh"><b>Free agents</b><span>best for ${esc(lab)} · value × games</span></div>${hd(A,capA,"fa")}
       ${faShow.map(o=>row(o,{st:{[o.id]:Object.fromEntries(myDs(o).map(d=>[d,5]))}},"add",fullDays)).join("")||`<div class="empty">No free agents playing the days left.</div>`}
       ${fa.length>m.fa?`<button class="mmore" data-mu="more">Show more</button>`:""}</div>
     <div class="msec mopp${m.oo?" open":""}"><div class="msh" data-mu="opp"><b>${esc(nameB)}</b><span>${gB} games left</span></div><div class="mob">${hd(B,capB,"op")}
-      ${sortR(oppR.map(o=>(o.v=pv(o),o))).map(o=>row(o,B,"")).join("")}</div></div>
+      ${grp(oppR.map(o=>(o.v=pv(o),o)),o=>row(o,B,""))}</div></div>
     </div>
-    <p class="bzcap">${isS?`Yahoo's totals so far (synced ${at.toLocaleString([],{weekday:"short",hour:"numeric",minute:"2-digit"})}) plus`:"No Yahoo totals yet for this week, so it's"} Proj for the days left (${rest.length?sh(rest[0])+"–"+sh(rest[rest.length-1]):"none"}): everyone not on IL, on days his team plays and he isn't listed out, at most each team's active spots a day, best first by your targets. Each game shows the opponent and his value that night. Free agents' games are dimmed on days your spots are full (he'd sit). Per g = his per-game value on your targets; <b>Cats</b> = how many more (or fewer) of your targeted categories you'd expect to win with him added, or without him. Rosters are as of your last sync; picks stay on this device, per week. Yahoo slot by each name: <span class="msl a">PG</span> active, <span class="msl b">BN</span> bench (moved in on days he plays and there's an open spot), <span class="msl i">IL</span> injured list (shown, never counted).</p></div>`;
+    <p class="bzcap">${isS?`Yahoo's totals so far (synced ${at.toLocaleString([],{weekday:"short",hour:"numeric",minute:"2-digit"})}) plus`:"No Yahoo totals yet for this week, so it's"} Proj for the days left (${rest.length?sh(rest[0])+"–"+sh(rest[rest.length-1]):"none"}): everyone on the roster (IL players only once the injury report has them back), on days his team plays and he isn't listed out, at most each team's active spots a day, best first by your targets. Each game shows the opponent and his value that night. Free agents' games are dimmed on days your spots are full (he'd sit). Per g = his per-game value on your targets; <b>Cats</b> = how many more (or fewer) of your targeted categories you'd expect to win with him added, or without him. Rosters are as of your last sync; picks stay on this device, per week.</p></div>`;
 }
 function muClick(e){const b=e.target.closest("[data-mu]");if(!b||!S.mus)return;if(b.tagName==="SELECT")return;e.stopPropagation();e.preventDefault();
   const m=S.mus,k=b.dataset.x,a=b.dataset.mu;
