@@ -839,6 +839,10 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .pdd>summary::-webkit-details-marker{display:none}.pdd>summary span{font:500 12px/1.2 var(--name);color:var(--dim)}.pdd>summary::after{content:"▾";margin-left:auto;color:var(--dim);transition:transform .15s}.pdd:not([open])>summary::after{transform:rotate(-90deg)}
 .pdd .ddb{padding:0 14px 12px}.pdd .ddb>section.blk{margin-top:0}.pdd .ddb>section.blk>h3{display:none}
 .pwk{display:flex;gap:22px;margin:2px 0 10px}.pwk b{display:block;font:600 22px/1.1 var(--num)}.pwk i{display:block;margin-top:3px;font:600 10px/1.2 var(--name);letter-spacing:.06em;font-style:normal;color:var(--dim)}.pwk em{font-style:normal;color:var(--neg)}
+.pswk span[data-wd]{cursor:pointer}.pswk span.sel{border-color:var(--ink)!important;opacity:1!important}.pswk span.td.sel{box-shadow:0 0 0 2px var(--ball)}
+.pwop{white-space:nowrap}.pwop .tlg{display:inline-block;width:16px;height:16px;vertical-align:-3px;margin-right:5px}
+.pwkt tr.hit td,.glr.hit{background:color-mix(in srgb,var(--ball) 12%,transparent)}.glr.hit{border-radius:8px}
+@keyframes flash{0%{background:color-mix(in srgb,var(--ball) 40%,transparent)}100%{background:color-mix(in srgb,var(--ball) 12%,transparent)}}.pwkt tr.flash td,.glr.flash{animation:flash .9s ease-out}
 .pwkt td em{font-style:normal;color:var(--ball);font-size:10px}.pwkt .pwo td{color:var(--neg)}.pwkt .pwt td{font-weight:700;border-top:1px solid var(--rule)}
 .mwhy{display:grid;gap:6px;font:500 13px/1.4 var(--name)}.mwhy>div{color:var(--ink)}
 .vchart .gfl rect{fill:var(--dim)}.vchart .gfl text{font:700 8px var(--num);fill:var(--dim);text-anchor:middle}.vchart .gfl.tr rect{fill:var(--neg)}.vchart .gfl.tr text{fill:var(--neg)}.vchart .gfsat{fill:color-mix(in srgb,var(--neg) 70%,var(--cell))}
@@ -2837,7 +2841,7 @@ function psWeek(id,q){if(!q||!SC)return"";const t=etToday(),W=SC.wk||{};
   const og=(d)=>{for(const[a,h]of W[d]||[]){if(a===q.t)return"@"+h;if(h===q.t)return a}return""},ds=weekDates(0).filter(d=>d<t?!!og(d):plays(q.t,d));if(!ds.length)return"";
   const left=ds.filter(d=>d>=t),outN=left.filter(d=>!avail(id,d)).length;
   return`<div class="pswk"><em>${ds.length} game${ds.length>1?"s":""} this week${ds.length>left.length?` · ${left.length} left`:""}${outN?` · <b>out ${outN}</b>`:""}</em>${ds.map(d=>{const past=d<t,o=past?og(d):opp(q.t,d).replace("vs ","").replace("@ ","@"),out=!past&&!avail(id,d);
-    return`<span class="${out?"out":""}${d===t?" td":""}${past?" pst":""}">${logoImg(o.replace("@",""))}<b>${d===t?"Tonight":new Date(d+"T12:00:00Z").toLocaleDateString("en-US",{weekday:"short",timeZone:"UTC"})}</b><i>${esc(o)}${out?" · out":""}</i></span>`}).join("")}</div>`}
+    return`<span class="${out?"out":""}${d===t?" td":""}${past?" pst":""}${S.ps&&S.ps.sel===d?" sel":""}" data-wd="${d}" role="button" title="${past?"See this game in the log":d===t?"Tonight's game":"See this game's projection"}">${logoImg(o.replace("@",""))}<b>${d===t?"Tonight":new Date(d+"T12:00:00Z").toLocaleDateString("en-US",{weekday:"short",timeZone:"UTC"})}</b><i>${esc(o)}${out?" · out":""}</i></span>`}).join("")}</div>`}
 // Tonight on the player page: ours (Proj at tonight's minutes, against tonight's opponent: the same
 // line as Today, Week, Schedule and the Matchup tool) is the projection; the books are shown beside it
 // for awareness (bk = our line with the priced stats swapped in, mk = which ones), never in its place.
@@ -2876,7 +2880,8 @@ function psLogHTML(){const L=S.ps&&S.ps.log;if(!L)return`<p class="lgk">${S.ps&&
     return`<tr><td>${l}</td><td>${f1(avg(gs,"min"))}</td>${["pts","reb","ast","tpm","stl","blk","to"].map(k=>`<td class="${nh(k).trim()}">${f1(avg(gs,k))}</td>`).join("")}<td>${fga?(avg(gs,"fgm")/fga).toFixed(3).replace(/^0/,""):"–"}</td><td>${fta?(avg(gs,"ftm")/fta).toFixed(3).replace(/^0/,""):"–"}</td><td class="vl ${vcls(gs.reduce((a,g)=>a+V(g),0)/gs.length)}">${sgn(gs.reduce((a,g)=>a+V(g),0)/gs.length)}</td></tr>`}).join("");
   const rows=L.slice(0,10).map(g=>{const v=V(g),cats=["tpm","stl","blk","to"].map(k=>`<span class="sm${nh(k)}"><b>${g[k]}</b><i>${CL[k]}</i></span>`).join("")
       +`<span class="sm${nh("fg")}"><b>${g.fgm}/${g.fga}</b><i>fg</i></span><span class="sm${nh("ft")}"><b>${g.ftm}/${g.fta}</b><i>ft</i></span>`;
-    return`<div class="glr"><div class="gd"><b>${md(g.date)}</b><i>${g.at==="@"?"@":"vs"} ${esc(g.opp)}</i><i>${Math.round(g.min)} min</i></div>
+    const et=(x=>isNaN(x)?"":new Intl.DateTimeFormat("en-CA",{timeZone:"America/New_York"}).format(x))(new Date(g.date));
+    return`<div class="glr${S.ps&&S.ps.sel===et?" hit":""}" data-gd="${et}"><div class="gd"><b>${md(g.date)}</b><i>${g.at==="@"?"@":"vs"} ${esc(g.opp)}</i><i>${Math.round(g.min)} min</i></div>
       <div class="gs"><div class="c2" style="margin:0"><div class="bigs">${BIG.map(k=>`<span class="bg${nh(k)}"><b>${g[k]}</b><i>${CL[k]}</i></span>`).join("")}</div><span class="vl ${vcls(v)}" style="margin-left:auto">${sgn(v)}</span></div><div class="c3">${cats}</div></div></div>`}).join("");
   return`<section class="blk"><h3>Averages <span>per game, from ESPN's game log</span></h3><div class="psavw"><table class="cmp psav"><tr><th></th><th>MIN</th><th>PTS</th><th>REB</th><th>AST</th><th>3PM</th><th>STL</th><th>BLK</th><th>TO</th><th>FG%</th><th>FT%</th><th>Val</th></tr>${win}</table></div></section>
     <section class="blk"><h3>Last ${Math.min(10,L.length)} games <span>newest first</span></h3><div class="gl">${rows}</div><p class="lgk">Value per game is on a fixed league scale, punts applied. <a href="${$("psLink").href}" style="color:var(--ball)">Full game log ›</a></p></section>`}
@@ -3118,8 +3123,9 @@ function psWeekProj(id,q){if(!SC||!q.xp)return null;const t=etToday(),ds=weekDat
   const K=["pts","reb","ast","tpm","stl","blk","to","fg","ft"],tot={};for(const{l}of lines)for(const k in l)tot[k]=(tot[k]||0)+l[k];
   const tr=r=>!r?"":r<=TOP?"up":r<=ROST?"":"dn";
   const head=`<div class="pwk"><div><b class="${tr(wr)}">${wr?"#"+wr:"–"}</b><i>WEEK RANK${R.n?` of ${R.n}`:""}</i></div><div><b>${pl.length}</b><i>GAMES LEFT${out.length?` <em>out ${out.length}</em>`:""}</i></div><div><b class="${tr(szn)}">${szn?"#"+szn:"–"}</b><i>PROJ RANK · PER GAME</i></div></div>`;
-  const rows=lines.map(({d,l})=>{const v=pjVal(pjZ(l));return`<tr><td>${DL(d)}${d===t?" <em>tonight</em>":""}</td><td>${esc(opp(q.t,d).replace("vs ","").replace("@ ","@"))}</td><td>${Math.round(l.min)}</td>${K.map(k=>`<td class="${S.punt.has(k)?"off":""}">${fp(k,l)}</td>`).join("")}<td class="vl ${vcls(v)}">${sgn(v)}</td></tr>`}).join("")
-    +out.map(d=>`<tr class="pwo"><td>${DL(d)}</td><td>${esc(opp(q.t,d).replace("vs ","").replace("@ ","@"))}</td><td colspan="${K.length+2}">out (injury report)</td></tr>`).join("");
+  const EZ=easeScore(),oc=d=>{const o=oppT(q.t,d),v=EZ&&EZ[o];return`<td class="pwop">${logoImg(o)}<span class="${v!=null&&Math.abs(v)>=.5?v>0?"ezp":"ezn":""}">${esc(opp(q.t,d).replace("vs ","").replace("@ ","@"))}</span></td>`};
+  const rows=lines.map(({d,l})=>{const v=pjVal(pjZ(l));return`<tr data-wr="${d}" class="${S.ps&&S.ps.sel===d?"hit":""}"><td>${DL(d)}${d===t?" <em>tonight</em>":""}</td>${oc(d)}<td>${Math.round(l.min)}</td>${K.map(k=>`<td class="${S.punt.has(k)?"off":""}">${fp(k,l)}</td>`).join("")}<td class="vl ${vcls(v)}">${sgn(v)}</td></tr>`}).join("")
+    +out.map(d=>`<tr class="pwo" data-wr="${d}"><td>${DL(d)}</td>${oc(d)}<td colspan="${K.length+2}">out (injury report)</td></tr>`).join("");
   const sum=lines.length>1?`<tr class="pwt"><td>Week</td><td></td><td>${Math.round(tot.min||0)}</td>${K.map(k=>`<td>${k==="fg"||k==="ft"?fp(k,tot):f1(tot[k]||0)}</td>`).join("")}<td></td></tr>`:"";
   const html=live.length?`${head}<div class="psavw"><table class="cmp psav pwkt"><tr><th></th><th></th><th>MIN</th>${K.map(k=>`<th>${CATS.find(c=>c.k===k).l}</th>`).join("")}<th>Val</th></tr>${rows}${sum}</table></div>
     <p class="stkn">Each game is his projection that night: minutes with teammates in or out, against that opponent (the same line as Today, Week, Schedule and the Matchup tool). Week rank = the Week view's (games × per-game value), among everyone playing this week; Proj rank = per game, rest of season.</p>`
@@ -3267,7 +3273,17 @@ for(const l of ["list","bsList","bzList","pjList","rkList"]){
   $(l).onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();cardOpen(e,l)}};
 }
 // player card tabs, and names inside it (teammates) open their own card
-$("psBody").addEventListener("click",e=>{const t=e.target.closest("[data-pst]");if(t){S.ps.tab=t.dataset.pst;renderSheet();$("psPanel").scrollTop=0;return}
+$("psBody").addEventListener("click",e=>{
+  // a game tile in the header: played -> its line in the Game log, tonight -> the Tonight tab, later
+  // -> its row in the Projection tab's This week. The tile stays outlined and the row is highlighted.
+  const wd=e.target.closest("[data-wd]");if(wd&&S.ps){const d=wd.dataset.wd,t=etToday();S.ps.sel=S.ps.sel===d&&S.ps.tab!=="tonight"?null:d;
+    const has=k=>!!document.querySelector(`#psBody [data-pst="${k}"]`);
+    if(S.ps.sel){if(d<t)S.ps.tab="log";else if(d===t&&has("tonight"))S.ps.tab="tonight";else{S.ps.tab="proj";PSDD.week=true}}
+    renderSheet();
+    const tgt=S.ps.sel&&document.querySelector(`#psBody [data-gd="${d}"],#psBody [data-wr="${d}"]`);
+    if(tgt){tgt.scrollIntoView({block:"center",behavior:"smooth"});tgt.classList.remove("flash");void tgt.offsetWidth;tgt.classList.add("flash")}else if(S.ps.tab==="tonight")$("psPanel").scrollTop=0;
+    return}
+  const t=e.target.closest("[data-pst]");if(t){S.ps.tab=t.dataset.pst;S.ps.sel=null;renderSheet();$("psPanel").scrollTop=0;return}
   const rw=e.target.closest("[data-rwin]");if(rw){S.roleWin=rw.dataset.rwin;store.set("roleWin",S.roleWin);renderSheet();return}
   const p=e.target.closest(".wwo [data-id]");if(p)openSheet(p.dataset.id,null)});
 $("psClose").onclick=()=>closeSheet();
