@@ -828,7 +828,11 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .rgrid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}.rch{background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:14px 14px 10px;margin:0!important}
 .rchh h4{margin:0;font:600 12px/1 var(--name);letter-spacing:.04em;text-transform:uppercase;color:var(--dim)}.rbig{display:block;font:600 28px/1.1 var(--num);margin-top:8px}.rsub{margin:2px 0 8px;font:500 12px/1.3 var(--name);color:var(--dim)}
 .rft{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--rule);margin-top:8px;padding-top:8px;font:500 11.5px/1.3 var(--name);color:var(--dim)}.rft b{font:600 12px/1.3 var(--num);color:var(--ink);white-space:nowrap}
-.gchart{border:0;background:transparent;cursor:default}.vchart .groll{fill:none;stroke:var(--ink);stroke-width:1.4;stroke-dasharray:4 3;opacity:.7}.vchart .gpt{fill:var(--ball)}.gfa{stop-color:var(--ball);stop-opacity:.22}.gfb{stop-color:var(--ball);stop-opacity:0}
+.gchart{border:0;background:transparent;cursor:default}.vchart .groll{fill:none;stroke:var(--ink);stroke-width:1.4;stroke-dasharray:4 3;opacity:.7}.vchart .gpt{fill:var(--ball)}.vchart .gpf{fill:var(--panel);stroke:var(--ink);stroke-width:1.6}.vchart .gpb{fill:var(--panel);stroke:var(--dim);stroke-width:1.6}.vchart .gpx{fill:var(--neg)}
+.vchart .gmk{font:700 10px var(--num);text-anchor:middle;cursor:default}.gmk{font:700 11px var(--num);display:inline-block;min-width:14px;text-align:center}.gmkf{fill:var(--ink);color:var(--ink)}.gmkb{fill:var(--dim);color:var(--dim)}.gmkx{fill:var(--neg);color:var(--neg)}
+.mwhy{display:grid;gap:6px;font:500 13px/1.4 var(--name)}.mwhy>div{color:var(--ink)}
+.vchart .gfl rect{fill:var(--dim)}.vchart .gfl text{font:700 8px var(--num);fill:var(--dim);text-anchor:middle}.vchart .gfl.tr rect{fill:var(--neg)}.vchart .gfl.tr text{fill:var(--neg)}.vchart .gfsat{fill:color-mix(in srgb,var(--neg) 70%,var(--cell))}
+.gfk{display:inline-block;width:2px;height:10px;background:var(--neg);vertical-align:-1px;margin:0 3px}.gsk{display:inline-block;width:14px;height:4px;border-radius:2px;background:color-mix(in srgb,var(--neg) 70%,var(--cell));vertical-align:2px}.gfa{stop-color:var(--ball);stop-opacity:.22}.gfb{stop-color:var(--ball);stop-opacity:0}
 @media (min-width:1100px){.rgrid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -2809,28 +2813,49 @@ function usgFrom(j,pid){for(const t of (j.boxscore&&j.boxscore.players)||[]){con
     const T=rows.reduce((o,r)=>(o.min+=r.min,o.fga+=r.fga,o.fta+=r.fta,o.to+=r.to,o),{min:0,fga:0,fta:0,to:0}),tp=T.fga+.44*T.fta+T.to;
     return tp?100*((me.fga+.44*me.fta+me.to)*(T.min/5))/(me.min*tp):null}return null}
 async function loadUsg(id,gs){const todo=gs.filter(g=>g.eid&&g.usg===undefined);if(!todo.length)return;for(const g of todo)g.usg=null;
-  const q=[...todo],work=async()=>{while(q.length){const g=q.shift();try{g.usg=usgFrom(await getJSON(`${API}/summary?event=${encodeURIComponent(g.eid)}`),id)}catch(e){g.usg=null}}};
+  const q=[...todo],work=async()=>{while(q.length){const g=q.shift();try{const j=await getJSON(`${API}/summary?event=${encodeURIComponent(g.eid)}`);g.usg=usgFrom(j,id);g.fr=foulRead(j.plays,id,null,g.pf)}catch(e){g.usg=null;g.fr=null}}};
   await Promise.all([...Array(Math.min(5,todo.length))].map(work));if(S.ps&&S.ps.id===id&&S.ps.tab==="role")renderSheet()}
 // One stat by game: a smooth line with a soft fill, a dot per game and a dashed rolling 5-game average.
-function gameChart(gs,val,o){const W=isDesk()?440:360,H=150,n=gs.length,v=gs.map(val);if(n<2)return"";
+function gameChart(gs,val,o){const W=isDesk()?440:360,mk=o.mk,H=mk?166:150,n=gs.length,v=gs.map(val);if(n<2)return"";
   const ok=v.filter(x=>x!=null),hi=o.max!=null?Math.max(o.max,...ok):Math.ceil(Math.max(...ok)*1.15/8)*8,lo=0;
-  const X=i=>Math.round(30+(W-40)*i/(n-1)),Y=x=>Math.round(10+(H-36)*(hi-x)/(hi-lo||1));
+  const X=i=>Math.round(30+(W-40)*i/(n-1)),Y=x=>Math.round(10+(H-(mk?50:36))*(hi-x)/(hi-lo||1));
   const P=v.map((x,i)=>x==null?null:[X(i),Y(x)]).filter(Boolean),roll=v.map((_,i)=>{const w=v.slice(Math.max(0,i-4),i+1).filter(x=>x!=null);return w.length?w.reduce((a,b)=>a+b,0)/w.length:null});
   const R=roll.map((x,i)=>x==null?null:[X(i),Y(x)]).filter(Boolean),line=smoothPath(P),g="gc"+o.k;
   const ticks=[0,hi/4,hi/2,hi*3/4,hi].map(t=>`<line x1="30" x2="${W-10}" y1="${Y(t)}" y2="${Y(t)}" class="g0"/><text x="16" y="${Y(t)+3}" class="gy">${Math.round(t)}</text>`).join("");
   const step=Math.ceil(n/(isDesk()?8:5)),xl=gs.map((gm,i)=>i%step&&i!==n-1?"":`<text x="${X(i)}" y="${H-8}" class="gx"${i===n-1?' style="text-anchor:end"':""}>${(d=>isNaN(d)?"":(d.getMonth()+1)+"/"+d.getDate())(new Date(gm.date))}</text>`).join("");
+  // marks under each game: F foul trouble, B blowout, ▼ minutes down with neither
+  const ML={f:"F",b:"B",x:"▼"},marks=mk?gs.map((_,i)=>mk[i]?`<text x="${X(i)}" y="${H-24}" class="gmk gmk${mk[i].c}"><title>${esc(mk[i].t)}</title>${ML[mk[i].c]}</text>`:"").join(""):"";
   return`<svg viewBox="0 0 ${W} ${H}" class="vchart gchart"><defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="gfa"/><stop offset="1" class="gfb"/></linearGradient></defs>
     ${ticks}<path d="${line}L${P[P.length-1][0]} ${Y(0)}L${P[0][0]} ${Y(0)}Z" fill="url(#${g})"/><path d="${smoothPath(R)}" class="groll"/><path d="${line}" class="gline"/>
-    ${P.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="2.6" class="gpt"><title>${o.fmt(v.filter(x=>x!=null)[i])}</title></circle>`).join("")}${xl}</svg>`}
+    ${v.map((x,i)=>x==null?"":`<circle cx="${X(i)}" cy="${Y(x)}" r="${mk&&mk[i]?3.4:2.6}" class="gpt${mk&&mk[i]?" gp"+mk[i].c:""}"><title>${o.fmt(x)}${mk&&mk[i]?" · "+esc(mk[i].t):""}</title></circle>`).join("")}${marks}${xl}</svg>`}
+// Why a game's minutes moved: foul trouble (from the play-by-play once loaded, else 5+ fouls in the log),
+// a blowout (20+), or neither: minutes 6+ under his previous 5 games with no excuse, the kind to worry about.
+function gameMarks(L,gs){return gs.map(g=>{const i=L.indexOf(g),d=(x=>isNaN(x)?"":(x.getMonth()+1)+"/"+x.getDate())(new Date(g.date)),vs=`${d} ${g.at==="@"?"@":"vs"} ${g.opp}`;
+  const fr=g.fr,ft=fr?fr.tr:g.pf>=5;
+  if(ft)return{c:"f",t:`${vs}: foul trouble · ${fr?fr.txt:g.pf+" fouls"}`};
+  if(g.margin>=20)return{c:"b",t:`${vs}: blowout, decided by ${g.margin}`};
+  const pv=L.slice(i+1,i+6).map(x=>x.min);if(pv.length>=3){const a=pv.reduce((x,y)=>x+y,0)/pv.length;
+    if(g.min<=a-6)return{c:"x",t:`${vs}: ${Math.round(g.min)} min, ${Math.round(a-g.min)} under his previous ${pv.length} with no foul trouble or blowout`}}
+  return null})}
 function psRole(id,q,rq){const h=[],L=S.ps&&S.ps.log;
   if(L&&L.length){const gs=L.slice(0,15).reverse(),avg=(f,n)=>{const s=L.slice(0,n).map(f).filter(x=>x!=null);return s.length?s.reduce((a,b)=>a+b,0)/s.length:null};
     loadUsg(id,gs);
     const uw=(n)=>{const s=L.slice(0,n).filter(g=>g.usg!=null);const m=s.reduce((a,g)=>a+g.min,0);return m?s.reduce((a,g)=>a+g.usg*g.min,0)/m:null};
     const card=(k,title,big,sub,chart,foot,right)=>`<section class="blk rch"><div class="rchh"><h4>${title}</h4></div><b class="rbig">${big}</b><p class="rsub">${sub}</p>${chart}<div class="rft"><span>${foot}</span><b>${right}</b></div></section>`;
     const uAll=uw(L.length),u5=uw(5);
-    const uc=gs.some(g=>g.usg!=null)?gameChart(gs,g=>g.usg,{k:"u",fmt:x=>Math.round(x)+"%"}):`<p class="lgk">Loading usage from each game's box score…</p>`;
+    const mk=gameMarks(L,gs),mz=mk.some(Boolean)?mk:null;
+    const uc=gs.some(g=>g.usg!=null)?gameChart(gs,g=>g.usg,{k:"u",mk:mz,fmt:x=>Math.round(x)+"%"}):`<p class="lgk">Loading usage from each game's box score…</p>`;
     h.push(`<div class="rgrid">`+card("u","Usage",uAll!=null?uAll.toFixed(1)+"%":"–",`share of the team's plays while he's on the floor · last ${gs.length} games`,uc,"each game from its box score, oldest to newest · dashed: rolling 5",u5!=null?`last 5: ${u5.toFixed(1)}%`:"")
-      +card("m","Minutes",avg(g=>g.min,L.length).toFixed(1),`a game · ${L.length} games${q&&q.xp?` · Proj ${f1(q.xp[0])}`:""}`,gameChart(gs,g=>g.min,{k:"m",max:40,fmt:x=>Math.round(x)+" min"}),"more minutes, more of everything",`last 5: ${avg(g=>g.min,5).toFixed(1)}`)+`</div>`)}
+      +card("m","Minutes",avg(g=>g.min,L.length).toFixed(1),`a game · ${L.length} games${q&&q.xp?` · Proj ${f1(q.xp[0])}`:""}`,gameChart(gs,g=>g.min,{k:"m",max:40,mk:mz,fmt:x=>Math.round(x)+" min"}),"more minutes, more of everything",`last 5: ${avg(g=>g.min,5).toFixed(1)}`)+`</div>`);
+    // the forest: which dips have an excuse (fouls, blowouts) and which don't
+    const dl=g=>(d=>isNaN(d)?"":(d.getMonth()+1)+"/"+d.getDate())(new Date(g.date)),of=c=>gs.filter((g,i)=>mk[i]&&mk[i].c===c);
+    const F=of("f"),Bo=of("b"),Xd=of("x"),cl=L.slice(0,5).filter(g=>{const m=mk[gs.indexOf(g)];return!m||m.c==="x"}),fs=g=>g.fr?(g.fr.satM>=1?` (sat ${Math.round(g.fr.satM)})`:""):` (${g.pf} PF)`;
+    if(mz)h.push(`<section class="blk"><h3>Why the minutes moved <span>last ${gs.length} games · marks under both charts</span></h3><div class="mwhy">
+      ${F.length?`<div><b class="gmk gmkf">F</b> Foul trouble in ${F.length}: ${F.map(g=>dl(g)+fs(g)).join(", ")}. Treat those dips as noise.</div>`:""}
+      ${Bo.length?`<div><b class="gmk gmkb">B</b> Blowouts (20+) in ${Bo.length}: ${Bo.map(g=>`${dl(g)} by ${g.margin}`).join(", ")}. Bench time, not a role change.</div>`:""}
+      ${Xd.length?`<div><b class="gmk gmkx">▼</b> Minutes down with no foul trouble or blowout in ${Xd.length}: ${Xd.map(g=>`${dl(g)} (${Math.round(g.min)})`).join(", ")}. That's the kind to worry about: a smaller role, a matchup the coach doesn't like, or an injury (check the news).</div>`:""}
+      ${(F.length||Bo.length)&&cl.length&&cl.length<Math.min(5,L.length)?`<div class="lgk">Last 5 without the foul-trouble and blowout games: <b>${f1(cl.reduce((a,g)=>a+g.min,0)/cl.length)} min</b> over ${cl.length}.</div>`:""}
+      ${gs.some(g=>g.fr===undefined&&g.eid)?`<div class="lgk">Reading each game's fouls from its play-by-play…</div>`:""}</div></section>`)}
   if(q&&G.rates){const F=G.rates,r=k=>q.r[F.indexOf(k)],b=k=>q.b?q.b[F.indexOf(k)]:null;
     h.push(`<section class="blk"><h3>Role <span>this season${q.b?" vs "+baseName(q):""}</span></h3><div class="sg">
       <div class="role"><b>${Math.round(r("usg"))}%</b><i>USAGE${b("usg")!=null?` <em>${Math.round(b("usg"))}% before</em>`:""}</i></div>
@@ -2889,6 +2914,33 @@ function playsOf(tn){const P=S.plays&&S.plays[tn.game];if(!P||!P.length)return n
     if(/turnover|traveling|bad pass|lost ball/i.test(T)&&me2&&/ steals\)/.test(txt))d.stl=1;
     if(Object.keys(d).length)out.push({t,lab:`${per<=4?"Q"+per:"OT"+(per-4)} ${clk}`,txt,d})}
   return out}
+// Game minute of a play (0-48, overtimes after) and its "Q2 3:41" label.
+function ptT(p){const per=(p.period&&p.period.number)||1,clk=String((p.clock&&p.clock.displayValue)||"0:00"),[mm,ss]=clk.includes(":")?clk.split(":").map(Number):[0,parseFloat(clk)||0];
+  return{t:(per<=4?(per-1)*12:48+(per-5)*5)+((per<=4?12:5)-((mm||0)+(ss||0)/60)),lab:`${per<=4?"Q"+per:"OT"+(per-4)} ${clk}`}}
+// Foul trouble the way coaches sit players: 2 in the 1st quarter, 3 in the first half, 4 through the 3rd,
+// 5 with 4+ minutes left, 6 = fouled out.
+const fTr=(n,t)=>(n>=2&&t<12)||(n>=3&&t<24)||(n>=4&&t<36)||(n>=5&&t<44)||n>=6;
+const ordn=n=>n+(["th","st","nd","rd"][n]||"th");
+// His personal fouls in one game, oldest first: [{t, n, lab, tr}]. ESPN lists the fouler first; technicals
+// and the turnover logged with an offensive foul aren't personal fouls.
+function foulsOf(P,id,name){const out=[];id=String(id||"");if(!P||!id)return out;
+  for(const p of P){const ty=String((p.type&&p.type.text)||""),txt=String(p.text||"");
+    if(!/foul|charge/i.test(ty)||/technical|turnover|delay/i.test(ty))continue;
+    const pa=(p.participants||[]).map(x=>String((x.athlete&&x.athlete.id)||""));
+    if(pa.length?pa[0]!==id:!(name&&txt.startsWith(name)))continue;
+    const{t,lab}=ptT(p),n=out.length+1;out.push({t,n,lab,tr:fTr(n,t)})}
+  return out}
+// Fouls + substitutions = the stretches he sat because of fouls: a bench stretch that starts right after a
+// foul that put him in trouble (or the rest of the game after the 6th). null if the plays don't add up to
+// his box-score fouls.
+function foulRead(P,id,name,pf,now){const fl=foulsOf(P,id,name);if(!P||!P.length||(pf!=null&&fl.length!==pf))return null;
+  const sts=stintsOf({eid:id},P,now)||[],last=P.length?ptT(P[P.length-1]).t:48,over=P.some(p=>/end game/i.test((p.type&&p.type.text)||""))||last>=48,sat=[];
+  const gaps=sts.slice(0,-1).map((x,i)=>[x[1],sts[i+1][0]]);if(sts.length&&over&&sts[sts.length-1][1]<last-.2)gaps.push([sts[sts.length-1][1],last]);
+  for(const[a,b]of gaps){const f=fl.filter(x=>x.t<=a+.05&&x.t>=a-1).pop();if(f&&f.tr&&b-a>=1)sat.push({a,b,f})}
+  const first=fl.find(x=>x.tr),satM=sat.reduce((x,o)=>x+o.b-o.a,0);
+  const txt=[first&&first.n<6?`${ordn(first.n)} foul in ${first.lab.split(" ")[0]}`:"",fl.length>=6?"fouled out":"",
+    satM>=1?`sat ${Math.round(satM)} min with fouls`:"",`${fl.length} fouls`].filter(Boolean).join(" · ");
+  return{fl,sat,satM,tr:!!first||fl.length>=5,txt}}
 // His time on the floor, as [start, end] game minutes, from ESPN's substitutions ("A enters the game for B":
 // participants [A, B]). Quarter starts aren't logged, so each period he's on at the start if his first
 // substitution in it is going out, or (with none) if he shows up in any play of it.
@@ -2931,14 +2983,19 @@ function psTonightGame(id,q,tn){const g=gameOf(q,tn),h=[];
       const qs=[12,24,36,...(end>48?[48]:[])].map(m=>`<line x1="${X(m)}" x2="${X(m)}" y1="10" y2="${H-20}" class="gq"/><text x="${X(m)}" y="${H-6}" class="gx">${m===48?"OT":"Q"+(m/12+1)}</text>`).join("");
       const ytk=[...new Set([Math.ceil(lo*2)/2,0,Math.floor(hi*2)/2])].filter(v=>v>=lo&&v<=hi),zero=ytk.map(v=>`<line x1="40" x2="${W-10}" y1="${Y(v)}" y2="${Y(v)}" class="g0"/><text x="20" y="${Y(v)+3}" class="gy">${v>0?"+":v<0?"−":""}${Math.abs(v)}</text>`).join("");
       const sts=stintsOf(tn,S.plays[tn.game]),stM=sts?sts.reduce((x,[f,e])=>x+e-f,0):0,useSt=sts&&sts.length&&Math.abs(stM-tn.min)<=3;
-      const bands=useSt?`<rect x="${X(0)}" y="${H-24}" width="${X(end)-X(0)}" height="4" rx="2" class="gtrk"/>`+sts.map(([f,e])=>`<rect x="${X(f)}" y="${H-24}" width="${Math.max(2,X(e)-X(f))}" height="4" rx="2" class="gstr"/>`).join(""):"";
+      const fr=foulRead(S.plays[tn.game],tn.eid,tn.name,tn.pf,g&&g.state==="in"?now.t:null);
+      const bands=(useSt||fr&&fr.fl.length?`<rect x="${X(0)}" y="${H-24}" width="${X(end)-X(0)}" height="4" rx="2" class="gtrk"/>`:"")
+        +(useSt?sts.map(([f,e])=>`<rect x="${X(f)}" y="${H-24}" width="${Math.max(2,X(e)-X(f))}" height="4" rx="2" class="gstr"/>`).join(""):"")
+        +(fr&&useSt?fr.sat.map(o=>`<rect x="${X(o.a)}" y="${H-24}" width="${Math.max(2,X(o.b)-X(o.a))}" height="4" rx="2" class="gfsat"><title>Sat ${Math.round(o.b-o.a)} min after his ${ordn(o.f.n)} foul (${o.f.lab})</title></rect>`).join(""):"")
+        +(fr?fr.fl.map(f=>`<g class="gfl${f.tr?" tr":""}"><title>${ordn(f.n)} foul · ${f.lab}${f.tr?" · foul trouble":""}</title><rect x="${X(f.t)-1}" y="${H-29}" width="2" height="14" rx="1"/><text x="${X(f.t)}" y="${H-31}">${f.n}</text></g>`).join(""):"");
+      const fnote=fr&&fr.fl.length?` <span class="gfk"></span> Ticks: his fouls (${fr.fl.map(f=>f.lab).join(", ")}).${fr.sat.length&&useSt?` <span class="gsk"></span> Red on the strip: sat with fouls (${fr.sat.map(o=>`${Math.round(o.b-o.a)} min after the ${ordn(o.f.n)}`).join(", ")}).`:fr.tr?" Foul trouble.":""}`:"";
       h.push(`<section class="blk"><h3>Value over the game <span>${g&&g.state==="in"?"live · ":""}on tonight's scale, punts applied</span></h3>
         <div class="vch"><b class="vl ${vcls(now.v)}">${sgn(now.v)}</b> so far${gP!=null?` · projected <b>${sgn(gP)}</b>`:""}${pace!=null?` · on pace for <b class="vl ${vcls(pace)}">${sgn(pace)}</b>`:""}</div>
         <svg id="psChart" viewBox="0 0 ${W} ${H}" class="vchart" data-pts='${JSON.stringify(pts.map(p=>[X(p.t),Y(p.v),p.ev?p.ev.lab+": "+p.ev.txt.replace(/'/g,"’"):"Tip-off",sgn(p.v)]))}'>
           ${bands}${qs}${zero}${gP!=null?`<line x1="${X(0)}" y1="${Y(g0)}" x2="${X(48)}" y2="${Y(gP)}" class="gpace"/>`:""}<path d="${step}" class="gline"/>
           <circle id="psDot" r="4" cx="${X(now.t)}" cy="${Y(now.v)}" class="gdot"/></svg>
         <div class="vtip" id="psTip">Hover or drag along the chart to see his value at any moment and the play behind it.</div>
-        <p class="stkn">${useSt?`<span class="gonk"></span> Strip along the bottom: on the floor (${Math.round(stM)} min, from the substitutions). `:""}Solid: his value as the game went. Dashed: the pace to reach his projection by the final buzzer.${miss.length?` <b class="dn">The play-by-play doesn't match his box score in ${miss.join(", ").toUpperCase()}, so this chart is approximate.</b>`:""}</p></section>`);
+        <p class="stkn">${useSt?`<span class="gonk"></span> Strip along the bottom: on the floor (${Math.round(stM)} min, from the substitutions).`:""}${fnote} Solid: his value as the game went. Dashed: the pace to reach his projection by the final buzzer.${miss.length?` <b class="dn">The play-by-play doesn't match his box score in ${miss.join(", ").toUpperCase()}, so this chart is approximate.</b>`:""}</p></section>`);
       h.push(`<section class="blk"><h3>Scoring updates <span>newest first${g&&g.state==="in"?" · refreshes every minute":""}</span></h3><div class="tup">${pts.slice(1).reverse().map(p=>`<div><i>${p.ev.lab}</i><span>${esc(p.ev.txt)}</span><b class="${p.dv>=0?"up":"dn"}">${p.dv>=0?"+":"−"}${Math.abs(p.dv).toFixed(2)}</b></div>`).join("")}</div></section>`)}
     else if(g&&g.state!=="pre")h.push(`<p class="lgk">No play-by-play for this game yet.</p>`)}
   h.push(rest);return h.join("")}
@@ -3062,7 +3119,7 @@ async function loadLog(id){
 function parseLog(j){
   const names=j.names||[],out=[],ix=n=>names.indexOf(n);
   const I={min:ix("minutes"),fg:ix("fieldGoalsMade-fieldGoalsAttempted"),tp:ix("threePointFieldGoalsMade-threePointFieldGoalsAttempted"),
-    ft:ix("freeThrowsMade-freeThrowsAttempted"),reb:ix("totalRebounds"),ast:ix("assists"),blk:ix("blocks"),stl:ix("steals"),to:ix("turnovers"),pts:ix("points")};
+    ft:ix("freeThrowsMade-freeThrowsAttempted"),reb:ix("totalRebounds"),ast:ix("assists"),blk:ix("blocks"),stl:ix("steals"),to:ix("turnovers"),pts:ix("points"),pf:ix("fouls")};
   for(const st of j.seasonTypes||[]){
     if(!/Regular Season/i.test(st.displayName)||/Preseason/i.test(st.displayName))continue;
     for(const cat of st.categories||[])for(const ev of cat.events||[]){
@@ -3070,7 +3127,7 @@ function parseLog(j){
       const [fgm,fga]=split(s[I.fg]),[tpm]=split(s[I.tp]),[ftm,fta]=split(s[I.ft]);
       out.push({eid:String(ev.eventId||""),date:meta.gameDate||"",opp:(meta.opponent||{}).abbreviation||"",at:meta.atVs||"vs",
         min:parseFloat(s[I.min])||0,pts:+s[I.pts]||0,reb:+s[I.reb]||0,ast:+s[I.ast]||0,stl:+s[I.stl]||0,
-        blk:+s[I.blk]||0,to:+s[I.to]||0,fgm,fga,tpm,ftm,fta})}
+        blk:+s[I.blk]||0,to:+s[I.to]||0,pf:+s[I.pf]||0,margin:Math.abs((+meta.homeTeamScore||0)-(+meta.awayTeamScore||0)),fgm,fga,tpm,ftm,fta})}
   }
   out.sort((a,b)=>(b.date>a.date?1:b.date<a.date?-1:0));
   const src={pts:"pts",tpm:"tpm",reb:"reb",ast:"ast",stl:"stl",blk:"blk",fg:"fgi",ft:"fti",to:"to"};
