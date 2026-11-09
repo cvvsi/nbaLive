@@ -825,6 +825,11 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .tup{max-height:320px;overflow:auto;border:1px solid var(--rule);border-radius:10px;background:var(--panel)}.tup>div{display:grid;grid-template-columns:70px 1fr auto;gap:8px;padding:7px 10px;border-top:1px solid var(--rule);font:500 12.5px/1.3 var(--name)}.tup>div:first-child{border-top:0}
 .tup i{font:500 11px/1.3 var(--num);font-style:normal;color:var(--dim)}.tup b{font:600 12px/1.3 var(--num)}.tup b.up{color:var(--pos)}.tup b.dn{color:var(--neg)}
 @media (max-width:600px){.tcg{grid-template-columns:repeat(5,1fr);gap:4px}.tcg>div{padding:8px 2px}.tcg b{font-size:15px}.tcg em{font-size:9.5px}.tsbt i{font-size:24px}.tlg.big{width:36px;height:36px}}
+.rgrid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}.rch{background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:14px 14px 10px;margin:0!important}
+.rchh h4{margin:0;font:600 12px/1 var(--name);letter-spacing:.04em;text-transform:uppercase;color:var(--dim)}.rbig{display:block;font:600 28px/1.1 var(--num);margin-top:8px}.rsub{margin:2px 0 8px;font:500 12px/1.3 var(--name);color:var(--dim)}
+.rft{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--rule);margin-top:8px;padding-top:8px;font:500 11.5px/1.3 var(--name);color:var(--dim)}.rft b{font:600 12px/1.3 var(--num);color:var(--ink);white-space:nowrap}
+.gchart{border:0;background:transparent;cursor:default}.vchart .groll{fill:none;stroke:var(--ink);stroke-width:1.4;stroke-dasharray:4 3;opacity:.7}.vchart .gpt{fill:var(--ball)}.gfa{stop-color:var(--ball);stop-opacity:.22}.gfb{stop-color:var(--ball);stop-opacity:0}
+@media (min-width:1100px){.rgrid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -2793,10 +2798,37 @@ function psLogHTML(){const L=S.ps&&S.ps.log;if(!L)return`<p class="lgk">${S.ps&&
       <div class="gs"><div class="c2" style="margin:0"><div class="bigs">${BIG.map(k=>`<span class="bg${nh(k)}"><b>${g[k]}</b><i>${CL[k]}</i></span>`).join("")}</div><span class="vl ${vcls(v)}" style="margin-left:auto">${sgn(v)}</span></div><div class="c3">${cats}</div></div></div>`}).join("");
   return`<section class="blk"><h3>Averages <span>per game, from ESPN's game log</span></h3><div class="psavw"><table class="cmp psav"><tr><th></th><th>MIN</th><th>PTS</th><th>REB</th><th>AST</th><th>3PM</th><th>STL</th><th>BLK</th><th>TO</th><th>FG%</th><th>FT%</th><th>Val</th></tr>${win}</table></div></section>
     <section class="blk"><h3>Last ${Math.min(10,L.length)} games <span>newest first</span></h3><div class="gl">${rows}</div><p class="lgk">Value per game is on a fixed league scale, punts applied. <a href="${$("psLink").href}" style="color:var(--ball)">Full game log ›</a></p></section>`}
+// Usage by game needs the team's totals, which the game log doesn't have: each shown game's box
+// score is fetched once (5 at a time) and run through the same formula as the Box tab.
+function usgFrom(j,pid){for(const t of (j.boxscore&&j.boxscore.players)||[]){const st=t.statistics&&t.statistics[0];if(!st)continue;
+    const ix=n=>st.keys.indexOf(n),I={min:ix("minutes"),fg:ix("fieldGoalsMade-fieldGoalsAttempted"),ft:ix("freeThrowsMade-freeThrowsAttempted"),to:ix("turnovers")};
+    const rows=st.athletes.filter(a=>!a.didNotPlay&&a.stats&&a.stats.length).map(a=>{const x=a.stats;return{id:String((a.athlete||{}).id||""),min:parseFloat(x[I.min])||0,fga:split(x[I.fg])[1],fta:split(x[I.ft])[1],to:+x[I.to]||0}}).filter(r=>r.min>0);
+    const me=rows.find(r=>r.id===String(pid));if(!me)continue;
+    const T=rows.reduce((o,r)=>(o.min+=r.min,o.fga+=r.fga,o.fta+=r.fta,o.to+=r.to,o),{min:0,fga:0,fta:0,to:0}),tp=T.fga+.44*T.fta+T.to;
+    return tp?100*((me.fga+.44*me.fta+me.to)*(T.min/5))/(me.min*tp):null}return null}
+async function loadUsg(id,gs){const todo=gs.filter(g=>g.eid&&g.usg===undefined);if(!todo.length)return;for(const g of todo)g.usg=null;
+  const q=[...todo],work=async()=>{while(q.length){const g=q.shift();try{g.usg=usgFrom(await getJSON(`${API}/summary?event=${encodeURIComponent(g.eid)}`),id)}catch(e){g.usg=null}}};
+  await Promise.all([...Array(Math.min(5,todo.length))].map(work));if(S.ps&&S.ps.id===id&&S.ps.tab==="role")renderSheet()}
+// One stat by game: a smooth line with a soft fill, a dot per game and a dashed rolling 5-game average.
+function gameChart(gs,val,o){const W=isDesk()?440:360,H=150,n=gs.length,v=gs.map(val);if(n<2)return"";
+  const ok=v.filter(x=>x!=null),hi=o.max!=null?Math.max(o.max,...ok):Math.ceil(Math.max(...ok)*1.15/8)*8,lo=0;
+  const X=i=>Math.round(30+(W-40)*i/(n-1)),Y=x=>Math.round(10+(H-36)*(hi-x)/(hi-lo||1));
+  const P=v.map((x,i)=>x==null?null:[X(i),Y(x)]).filter(Boolean),roll=v.map((_,i)=>{const w=v.slice(Math.max(0,i-4),i+1).filter(x=>x!=null);return w.length?w.reduce((a,b)=>a+b,0)/w.length:null});
+  const R=roll.map((x,i)=>x==null?null:[X(i),Y(x)]).filter(Boolean),line=smoothPath(P),g="gc"+o.k;
+  const ticks=[0,hi/4,hi/2,hi*3/4,hi].map(t=>`<line x1="30" x2="${W-10}" y1="${Y(t)}" y2="${Y(t)}" class="g0"/><text x="16" y="${Y(t)+3}" class="gy">${Math.round(t)}</text>`).join("");
+  const step=Math.ceil(n/(isDesk()?8:5)),xl=gs.map((gm,i)=>i%step&&i!==n-1?"":`<text x="${X(i)}" y="${H-8}" class="gx"${i===n-1?' style="text-anchor:end"':""}>${(d=>isNaN(d)?"":(d.getMonth()+1)+"/"+d.getDate())(new Date(gm.date))}</text>`).join("");
+  return`<svg viewBox="0 0 ${W} ${H}" class="vchart gchart"><defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="gfa"/><stop offset="1" class="gfb"/></linearGradient></defs>
+    ${ticks}<path d="${line}L${P[P.length-1][0]} ${Y(0)}L${P[0][0]} ${Y(0)}Z" fill="url(#${g})"/><path d="${smoothPath(R)}" class="groll"/><path d="${line}" class="gline"/>
+    ${P.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="2.6" class="gpt"><title>${o.fmt(v.filter(x=>x!=null)[i])}</title></circle>`).join("")}${xl}</svg>`}
 function psRole(id,q,rq){const h=[],L=S.ps&&S.ps.log;
-  if(L&&L.length){const gs=L.slice(0,15).reverse(),mx=Math.max(40,...gs.map(g=>g.min)),a=(n)=>{const s=L.slice(0,n);return s.reduce((x,g)=>x+g.min,0)/s.length};
-    h.push(`<section class="blk"><h3>Minutes <span>last ${gs.length} games, oldest to newest</span></h3><div class="mbars">${gs.map(g=>`<i style="height:${Math.round(100*g.min/mx)}%" title="${Math.round(g.min)} min ${g.at==="@"?"@":"vs"} ${esc(g.opp)}"><em>${Math.round(g.min)}</em></i>`).join("")}</div>
-      <div class="sg" style="margin-top:8px"><div class="role"><b>${f1(a(Math.min(3,L.length)))}</b><i>LAST 3</i></div><div class="role"><b>${f1(a(Math.min(10,L.length)))}</b><i>LAST 10</i></div><div class="role"><b>${f1(a(L.length))}</b><i>SEASON</i></div>${q&&q.xp?`<div class="role"><b>${f1(q.xp[0])}</b><i>PROJ</i></div>`:""}</div></section>`)}
+  if(L&&L.length){const gs=L.slice(0,15).reverse(),avg=(f,n)=>{const s=L.slice(0,n).map(f).filter(x=>x!=null);return s.length?s.reduce((a,b)=>a+b,0)/s.length:null};
+    loadUsg(id,gs);
+    const uw=(n)=>{const s=L.slice(0,n).filter(g=>g.usg!=null);const m=s.reduce((a,g)=>a+g.min,0);return m?s.reduce((a,g)=>a+g.usg*g.min,0)/m:null};
+    const card=(k,title,big,sub,chart,foot,right)=>`<section class="blk rch"><div class="rchh"><h4>${title}</h4></div><b class="rbig">${big}</b><p class="rsub">${sub}</p>${chart}<div class="rft"><span>${foot}</span><b>${right}</b></div></section>`;
+    const uAll=uw(L.length),u5=uw(5);
+    const uc=gs.some(g=>g.usg!=null)?gameChart(gs,g=>g.usg,{k:"u",fmt:x=>Math.round(x)+"%"}):`<p class="lgk">Loading usage from each game's box score…</p>`;
+    h.push(`<div class="rgrid">`+card("u","Usage",uAll!=null?uAll.toFixed(1)+"%":"–",`share of the team's plays while he's on the floor · last ${gs.length} games`,uc,"each game from its box score, oldest to newest · dashed: rolling 5",u5!=null?`last 5: ${u5.toFixed(1)}%`:"")
+      +card("m","Minutes",avg(g=>g.min,L.length).toFixed(1),`a game · ${L.length} games${q&&q.xp?` · Proj ${f1(q.xp[0])}`:""}`,gameChart(gs,g=>g.min,{k:"m",max:40,fmt:x=>Math.round(x)+" min"}),"more minutes, more of everything",`last 5: ${avg(g=>g.min,5).toFixed(1)}`)+`</div>`)}
   if(q&&G.rates){const F=G.rates,r=k=>q.r[F.indexOf(k)],b=k=>q.b?q.b[F.indexOf(k)]:null;
     h.push(`<section class="blk"><h3>Role <span>this season${q.b?" vs "+baseName(q):""}</span></h3><div class="sg">
       <div class="role"><b>${Math.round(r("usg"))}%</b><i>USAGE${b("usg")!=null?` <em>${Math.round(b("usg"))}% before</em>`:""}</i></div>
@@ -3034,7 +3066,7 @@ function parseLog(j){
     for(const cat of st.categories||[])for(const ev of cat.events||[]){
       const s=ev.stats||[],meta=(j.events||{})[ev.eventId]||{};
       const [fgm,fga]=split(s[I.fg]),[tpm]=split(s[I.tp]),[ftm,fta]=split(s[I.ft]);
-      out.push({date:meta.gameDate||"",opp:(meta.opponent||{}).abbreviation||"",at:meta.atVs||"vs",
+      out.push({eid:String(ev.eventId||""),date:meta.gameDate||"",opp:(meta.opponent||{}).abbreviation||"",at:meta.atVs||"vs",
         min:parseFloat(s[I.min])||0,pts:+s[I.pts]||0,reb:+s[I.reb]||0,ast:+s[I.ast]||0,stl:+s[I.stl]||0,
         blk:+s[I.blk]||0,to:+s[I.to]||0,fgm,fga,tpm,ftm,fta})}
   }
