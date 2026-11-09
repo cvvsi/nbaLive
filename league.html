@@ -55,7 +55,7 @@ a{color:var(--ball)}
   <div class="card">
     <h2>iPhone (Safari)</h2>
     <ol>
-      <li>Tap <button id="cp">Copy bookmark code</button> <span class="dim" id="cpd"></span> <span class="dim">· bookmark v3</span></li>
+      <li>Tap <button id="cp">Copy bookmark code</button> <span class="dim" id="cpd"></span> <span class="dim">· bookmark v4</span></li>
       <li>Bookmark any page (Share → Add Bookmark), name it <b>Sync to Sixth Man</b>, save.</li>
       <li>Open Bookmarks, tap Edit, tap the new bookmark, replace its address with the copied code, Done.</li>
       <li>To sync: open your league at basketball.fantasysports.yahoo.com in Safari (signed in), tap the address bar, type <b>Sync</b> and pick the bookmark (or open it from Bookmarks).</li>
@@ -87,11 +87,12 @@ const home=await get("/nba/"+lid),re=new RegExp("/nba/"+lid+"/(\\\\d+)/?$"),ids=
 for(const a of home.querySelectorAll("a[href]")){const x=(a.getAttribute("href")||"").match(re);if(x)ids.add(x[1])}
 let me=null;for(const a of home.querySelectorAll('a[data-ylk*="slk:My Team"]')){const x=(a.getAttribute("href")||"").match(/\\/nba\\/\\d+\\/(\\d+)/);if(x){me=x[1];break}}
 const teams={},p=[],act={};
+const SL=/^(PG|SG|G|SF|PF|F|C|UTIL|BN|IL\\+?|IR\\+?)$/i,slotOf=tr=>{if(!tr)return"";const c=[tr.getAttribute("data-pos"),...[...tr.querySelectorAll("td")].slice(0,2).map(e=>(e.textContent||"").trim().split(/\\s+/)[0]),...[...tr.querySelectorAll("[data-pos]")].map(e=>e.getAttribute("data-pos"))];for(const x of c){const v=String(x||"").trim();if(SL.test(v))return v.toUpperCase().replace("UTIL","Util")}return""};
 for(const t of [...ids].sort((a,b)=>a-b)){const d=await get("/nba/"+lid+"/"+t);
   const tt=(d.title||"").split(" | ")[0],k=tt.indexOf(" - ");teams[t]=k>0?tt.slice(k+3).trim():"Team "+t;
-  act[t]=[...d.querySelectorAll("tr[data-pos]")].filter(r=>!/^(BN|IL\\+?)$/.test(r.getAttribute("data-pos"))).length;
+  let n=0;for(const tr of d.querySelectorAll("tr")){const sl=slotOf(tr);if(sl&&!/^(BN|IL|IR)/.test(sl))n++}act[t]=n||null;
   for(const a of d.querySelectorAll("a.name[data-ys-playerid]")){const tr=a.closest("tr"),td=a.closest("td"),s=td&&td.querySelector(".Fz-xxs"),x=((s&&s.textContent)||"").match(/^\\s*([A-Za-z]+)\\s*-/);
-    p.push([a.getAttribute("data-ys-playerid"),a.getAttribute("title")||a.textContent.trim(),x?x[1].toUpperCase():"",t,(tr&&tr.getAttribute("data-pos"))||""])}}
+    p.push([a.getAttribute("data-ys-playerid"),a.getAttribute("title")||a.textContent.trim(),x?x[1].toUpperCase():"",t,slotOf(tr)])}}
 if(!p.length){alert("Couldn't read any rosters. Make sure you're signed in to Yahoo on this browser.");return}
 const readMu=d=>{const tb=[...d.querySelectorAll("table")].find(t=>/Score/.test((t.querySelector("thead")||{}).textContent||""));if(!tb)return null;
   const lab=[...tb.querySelectorAll("thead th")].map(x=>x.textContent.trim()),rows=[...tb.querySelectorAll("tbody tr")].map(tr=>{const a=tr.querySelector("a[href]"),id=a&&((a.getAttribute("href")||"").match(/\\/nba\\/\\d+\\/(\\d+)/)||[])[1];return{id,v:[...tr.querySelectorAll("td")].slice(1).map(x=>x.textContent.trim())}});
@@ -105,9 +106,9 @@ if(!mu)try{mu=await viaFrame("/nba/"+lid+"/matchup")}catch(e){}
 const readSched=d=>{const o={},tb=[...d.querySelectorAll("table")].find(t=>{const h=(t.querySelector("thead")||{}).textContent||"";return /\\bWk\\b/.test(h)&&/Opponent/.test(h)});if(!tb)return o;for(const tr of tb.querySelectorAll("tbody tr")){const w=parseInt((tr.querySelector("td")||{}).textContent),a=[...tr.querySelectorAll("a[href]")].map(a=>(a.getAttribute("href")||"").match(/\\/nba\\/\\d+\\/(\\d+)\\/?$/)).find(Boolean);if(w&&a)o[w]=a[1]}return o};
 let sched={};if(me)try{sched=readSched(await get("/nba/"+lid+"/?module=standings&lhst=sched&sctype=team&scmid="+me))}catch(e){}
 if(!Object.keys(sched).length)sched=readSched(home);
-if(!mu)alert("(v3) Rosters synced, but this week's matchup couldn't be read. Open your Matchup page on Yahoo and run this again from there.");
+if(!mu)alert("(v4) Rosters synced, but this week's matchup couldn't be read. Open your Matchup page on Yahoo and run this again from there.");
 location.href=${JSON.stringify(target)}+"#league="+encodeURIComponent(JSON.stringify({v:1,lid,at:new Date().toISOString(),me,teams,p,act,mu,sched}))
-}catch(e){alert("Sixth Man sync (v3) failed: "+e.message)}})()`;
+}catch(e){alert("Sixth Man sync (v4) failed: "+e.message)}})()`;
   return "javascript:"+encodeURIComponent(src.replace(/\n/g,""));
 }
 const target=new URL("./",location.href).href,code=bookmarklet(target);
@@ -121,7 +122,13 @@ function paint(){const L=store.get("league",null),el=document.getElementById("st
   const d=new Date(L.at),n=Object.keys(L.teams||{}).length,mine=(L.teams||{})[L.me]||"–";
   const op=L.mu&&L.mu.rows&&L.mu.rows.find(r=>r.id!==String(L.me)),opn=op&&L.teams&&L.teams[op.id];
   el.innerHTML=`<p>Synced <b>${d.toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</b> · ${n} teams · ${L.p.length} players · your team: <b>${mine.replace(/[<>&]/g,"")}</b></p>`
-    +`<p>Matchup: ${L.mu?`<b>week ${L.mu.week||"?"} vs ${String(opn||"opponent").replace(/[<>&]/g,"")}</b>`:`<b>not saved</b>. Run the bookmark from your Yahoo Matchup page to include it.`}</p>`}
+    +slotLine(L)+`<p>Matchup: ${L.mu?`<b>week ${L.mu.week||"?"} vs ${String(opn||"opponent").replace(/[<>&]/g,"")}</b>`:`<b>not saved</b>. Run the bookmark from your Yahoo Matchup page to include it.`}</p>`}
+// Lineup slots read per team: active / bench / IL, so a sync that missed them shows it.
+function slotLine(L){const by={};for(const[,,,t,sl]of L.p||[]){const o=by[t]||(by[t]={a:0,b:0,i:0,n:0});o.n++;if(/^(IL|IR)/.test(sl||""))o.i++;else if(sl==="BN")o.b++;else if(sl)o.a++}
+  const op=L.mu&&L.mu.rows&&(L.mu.rows.find(r=>r.id!==String(L.me))||{}).id,show=[L.me,op].filter(Boolean),nm=t=>String((L.teams||{})[t]||"Team "+t).replace(/[<>&]/g,"");
+  const any=Object.values(by).some(o=>o.a||o.b||o.i);
+  if(!any)return`<p><b>Lineup slots: not read.</b> Copy the bookmark again (v4) and re-sync, or IL players will count in the Matchup.</p>`;
+  return show.map(t=>{const o=by[t];return o?`<p>${nm(t)}: <b>${o.a}</b> active · <b>${o.b}</b> bench · <b>${o.i}</b> IL${o.n-o.a-o.b-o.i?` · ${o.n-o.a-o.b-o.i} unread`:""}</p>`:""}).join("")}
 paint();
 document.getElementById("forget").onclick=()=>{if(confirm("Remove your saved league from this device?")){store.del("league");store.del("lgF");paint()}};
 </script>
