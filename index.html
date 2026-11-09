@@ -2671,6 +2671,8 @@ S.ps=null;
 function psName(id,tn){const q=G&&G.players[id],rq=R&&R.players[id];return tn?tn.name:q?q.n:rq?rq.n:"Player"}
 function openSheet(id,tn){
   if(!id)return;
+  // opened from any other tab (Injuries, Schedule, Ranks, search...): use tonight's box line if he played
+  if(!tn&&S.date===etToday())tn=S.players.find(p=>String(p.id)===String(id)||String(p.eid)===String(id))||null;
   const was=!!S.ps;S.ps={id,tn};
   $("ps").hidden=false;document.body.style.overflow="hidden";
   if(!was)try{history.pushState({ps:1},"")}catch(e){}
