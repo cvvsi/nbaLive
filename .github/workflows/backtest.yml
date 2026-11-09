@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       script:
-        description: "backtest.js (Proj blend constants), backtest-injury.js (minutes when a regular is out) or backtest-absence.js (long absences) or backtest-return.js (ramp-up after a return) or backtest-rookie.js (players with no baseline) or study-breakout.js (breakout case study) or study-signs.js (every breakout and each sign's hit rate) or backtest-change.js (when a change is real: same player vs changed player) or backtest-tracking.js (tracking stats vs the box score; needs data/tracking-history.json from fetch-tracking.py) or backtest-minutes.js (recent games vs season vs last season for minutes)"
+        description: "backtest.js (Proj blend constants), backtest-injury.js (minutes when a regular is out) or backtest-absence.js (long absences) or backtest-return.js (ramp-up after a return) or backtest-rookie.js (players with no baseline) or study-breakout.js (breakout case study) or study-signs.js (every breakout and each sign's hit rate) or backtest-change.js (when a change is real: same player vs changed player) or backtest-tracking.js (tracking stats vs the box score; needs data/tracking-history.json from fetch-tracking.py) or backtest-minutes.js (recent games vs season vs last season for minutes) or backtest-ease.js (matchup ease: how much of each opponent effect to believe)"
         default: backtest.js
         required: true
 

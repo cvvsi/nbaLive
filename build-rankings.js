@@ -554,7 +554,23 @@ async function main() {
   fs.writeFileSync(OUT, JSON.stringify({ asOf, cats: CATS, fields: ['gp', 'mpg', ...CATS], lf: LF, windows, players }));
   console.log(`${OUT}: ${Object.keys(players).length} players through ${asOf}`, JSON.stringify(windows));
   buildRegression(games, asOf, players);
+  addEase(games, asOf);
   breakouts(games, players, asOf);
+}
+
+// Matchup ease (ease.js): this season's effect per team and category, and how far to believe it
+// (data/backtest-ease.json once backtest-ease.js has run, else the provisional EASE_K), added to
+// regression.json as ease = { asOf, s: {cat: {K, a}}, cats, t: {team: [games, ...pct per cat]} }.
+function addEase(games, asOf) {
+  const { EK, EASE_K, easeTable } = require('./ease.js');
+  let reg; try { reg = JSON.parse(fs.readFileSync(REG, 'utf8')); } catch (e) { return; }
+  let s = EASE_K, fit = false;
+  try { const b = JSON.parse(fs.readFileSync('data/backtest-ease.json', 'utf8')); if (b.pick) { s = b.pick; fit = true; } } catch (e) {}
+  const T = easeTable(games), t = {};
+  for (const [o, x] of Object.entries(T)) t[o] = [x.g, ...EK.map(k => Math.round(x.pct[k] * 1000) / 1000)];
+  reg.ease = { asOf, fit, cats: EK, s, t };
+  fs.writeFileSync(REG, JSON.stringify(reg));
+  console.log(`ease: ${Object.keys(t).length} teams${fit ? '' : ' (provisional K)'}`);
 }
 
 module.exports = { loadGames, totals, rankWindow, nextMan, expectedLine, rookiePriors, ROOKIE_K, STATS, CATS, r2 };
