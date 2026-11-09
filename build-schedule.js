@@ -51,11 +51,16 @@ async function injuries() {
   try { cache = JSON.parse(fs.readFileSync(CACHE, 'utf8')); } catch (e) {}
   const sb = await J(`${API}/scoreboard?dates=${today.replace(/-/g, '')}`);
   const dates = [...new Set((sb.leagues[0].calendar || []).map(d => d.slice(0, 10)))].filter(d => d >= today).sort();
+  // This week's days already played (Monday to yesterday), kept apart in `wk` so nothing that counts
+  // games left picks them up; the player card shows the whole week from them.
+  const dow = new Date(today + 'T12:00:00Z').getUTCDay(), past = [];
+  for (let d = shift(today, -((dow + 6) % 7)); d < today; d = shift(d, 1)) past.push(d);
   const out = {};
   let fetched = 0;
-  for (const d of dates) {
+  const wk = {};
+  for (const d of [...past, ...dates]) {
     const c = cache[d];
-    if (!c || d <= near || now - c.at > 7 * 864e5) {
+    if (!c || (d <= near && !(d < today && c.at > Date.parse(d + 'T12:00:00Z') + 864e5)) || now - c.at > 7 * 864e5) {
       const day = await J(`${API}/scoreboard?dates=${d.replace(/-/g, '')}`);
       const g = [];
       for (const e of day.events || []) {
@@ -65,11 +70,11 @@ async function injuries() {
       }
       cache[d] = { at: now, g }; fetched++;
     }
-    if (cache[d].g.length) out[d] = cache[d].g;
+    if (cache[d].g.length) (d < today ? wk : out)[d] = cache[d].g;
   }
   fs.mkdirSync('.cache', { recursive: true }); fs.writeFileSync(CACHE, JSON.stringify(cache));
   fs.mkdirSync('data', { recursive: true });
-  fs.writeFileSync(OUT, JSON.stringify({ built: new Date().toISOString(), from: today, dates: out }));
+  fs.writeFileSync(OUT, JSON.stringify({ built: new Date().toISOString(), from: today, dates: out, wk }));
   const n = Object.values(out).reduce((a, g) => a + g.length, 0);
   console.log(`${OUT}: ${Object.keys(out).length} game days, ${n} games from ${today} (${fetched} days fetched)`);
   if (!n && dates.length) throw new Error('No regular-season games found');

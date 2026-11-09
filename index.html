@@ -809,8 +809,8 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
   .ov2{grid-template-columns:1fr 1fr}
 }
 .tlg{width:22px;height:22px;object-fit:contain;display:block}.tlg.big{width:46px;height:46px}
-.pswk span{display:flex!important;flex-direction:column;align-items:center;gap:3px;padding:6px 8px!important;min-width:58px}.pswk span b{font:600 11px/1 var(--name)}.pswk span i{font:500 10.5px/1 var(--name);font-style:normal;opacity:.8}
-.pswk span.td{background:var(--ink)}.pswk span.td .tlg{background:var(--panel);border-radius:50%;padding:2px}
+.pswk span{border:1.5px solid transparent;display:flex!important;flex-direction:column;align-items:center;gap:3px;padding:6px 8px!important;min-width:58px}.pswk span b{font:600 11px/1 var(--name)}.pswk span i{font:500 10.5px/1 var(--name);font-style:normal;opacity:.8}
+.pswk span.td{background:transparent!important;color:var(--ink)!important;border:1.5px solid var(--ball)!important}.pswk span.td b{color:var(--ball)}.pswk span.pst{opacity:.45}.pswk>em{flex-basis:100%;font:600 11px/1 var(--name);font-style:normal;letter-spacing:.04em;text-transform:uppercase;color:var(--dim);margin-bottom:2px}.pswk>em b{color:var(--neg)}
 .tsb{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:14px 18px;margin:12px 0 4px}
 .tsbt{display:flex;align-items:center;gap:10px}.tsbt:last-child{justify-content:flex-end}.tsbt b{font:700 17px/1 var(--name);color:var(--dim)}.tsbt.me b{color:var(--ink)}.tsbt i{font:600 30px/1 var(--num);font-style:normal;color:var(--ink)}
 .tsbm{display:flex;flex-direction:column;align-items:center;gap:4px}.tsbm span{font:600 12px/1 var(--name);color:var(--dim);white-space:nowrap}.tsbm span.live{color:var(--neg)}.tsbm em{font:500 11px/1 var(--name);font-style:normal;color:var(--dim)}
@@ -2752,9 +2752,12 @@ function psDaily(id,q){if(!q||!q.xp||!SC)return"";const t=etToday();if(!plays(q.
     <table class="cmp dly"><tr><th></th><th>Ours</th><th>Book line</th><th>Book avg</th></tr>${rows}</table>
     <div class="dlyv"><span>Value, ours <b class="vl ${vcls(vo)}">${sgn(vo)}</b></span>${pp?`<span>with book lines <b class="vl ${vcls(vt)}">${sgn(vt)}</b></span>`:""}</div>
     <p class="stkn">${pp?`Book avg is the average the odds imply (vig removed, median across US books), colored where it's well above or below ours. The card uses the books where they priced a stat and ours for the rest.`:`No sportsbook lines for him yet (they're pulled around 4 and 6pm ET). Ours is Proj at tonight's minutes${Math.abs(m-q.xp[0])>=1?` (${Math.round(m)}, Proj ${Math.round(q.xp[0])}, with teammates out)`:""}.`}</p></section>`}
-function psWeek(id,q){if(!q||!SC)return"";const t=etToday(),ds=weekDates(0).filter(d=>d>=t&&plays(q.t,d));if(!ds.length)return"";
-  return`<div class="pswk">${ds.map(d=>{const o=opp(q.t,d).replace("vs ","").replace("@ ","@"),out=!avail(id,d);
-    return`<span class="${out?"out":""}${d===t?" td":""}">${logoImg(o.replace("@",""))}<b>${d===t?"Tonight":fmtDate(d).replace(/,.*$/,"")}</b><i>${esc(o)}${out?" · out":""}</i></span>`}).join("")}</div>`}
+function psWeek(id,q){if(!q||!SC)return"";const t=etToday(),W=SC.wk||{};
+  // the whole week, Mon-Sun: days already played (from the schedule's `wk`) dimmed, tonight outlined
+  const og=(d)=>{for(const[a,h]of W[d]||[]){if(a===q.t)return"@"+h;if(h===q.t)return a}return""},ds=weekDates(0).filter(d=>d<t?!!og(d):plays(q.t,d));if(!ds.length)return"";
+  const left=ds.filter(d=>d>=t),outN=left.filter(d=>!avail(id,d)).length;
+  return`<div class="pswk"><em>${ds.length} game${ds.length>1?"s":""} this week${ds.length>left.length?` · ${left.length} left`:""}${outN?` · <b>out ${outN}</b>`:""}</em>${ds.map(d=>{const past=d<t,o=past?og(d):opp(q.t,d).replace("vs ","").replace("@ ","@"),out=!past&&!avail(id,d);
+    return`<span class="${out?"out":""}${d===t?" td":""}${past?" pst":""}">${logoImg(o.replace("@",""))}<b>${d===t?"Tonight":new Date(d+"T12:00:00Z").toLocaleDateString("en-US",{weekday:"short",timeZone:"UTC"})}</b><i>${esc(o)}${out?" · out":""}</i></span>`}).join("")}</div>`}
 function psTonightProj(id,q,tn){if(!q||!q.xp)return null;const t=etToday();
   if(tn&&S.date!==t)return{l:xpLine(q),mk:{},src:"Proj per game"};
   const P=prIx(),pp=propsFor(P,q),tl=tonightLine(q,pp,minAt(id,q,t));return{l:tl.l,mk:tl.mk,src:pp?"Proj, sportsbook lines underlined":"Proj for tonight"}}
