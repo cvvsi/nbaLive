@@ -2735,9 +2735,9 @@ function psPct(id,q){if(!q||!q.xp||!G.zp)return"";const B=S.bs;
     const now=k==="fg"?r("fg")/100:k==="ft"?(r("ft")||0)/100:q.pg[G.pgf.indexOf(so[k])];
     const cl=rank<=25?"up":rank>N-25?"dn":"";
     return`<div class="pcr${S.punt.has(k)?" off":""}"><b>${c.l}</b><span class="pcb"><i class="${cl}" style="width:${Math.max(3,Math.round(100*share))}%"></i></span><em class="${cl}">${rank>N?N+"+":"#"+rank}</em><span class="pcv">${fv(k,pv)}</span><span class="pcs">${fv(k,now)}</span></div>`}).join("");
-  return`<section class="blk"><h3>His categories <span>rank among the top ${ROST} rostered players</span></h3>
-    <div class="pct"><div class="pcr pch"><b></b><span>vs the top ${ROST}</span><em>Rank</em><span class="pcv">Proj</span><span class="pcs">Now</span></div>${rows}</div>
-    <p class="stkn">Ranked on Proj per game among the ${N} players projected inside the top ${ROST}, the ones on rosters in a 10-team league (TO: fewer is better). Green = top 25 in the category, red = bottom 25. Proj is his projected average; Now is this season's.</p></section>`}
+  return`<section class="blk"><h3>His categories <span>projected per game, ranked among the top ${ROST}</span></h3>
+    <div class="pct"><div class="pcr pch"><b></b><span>Projected · vs the top ${ROST}</span><em>Rank</em><span class="pcv">Proj</span><span class="pcs">Now</span></div>${rows}</div>
+    <p class="stkn">Ranked on Proj per game among the ${N} players projected inside the top ${ROST}, the ones on rosters in a 10-team league (TO: fewer is better). The bar and rank are on his projection, not this season so far. Green = top 25 in the category, red = bottom 25. Now is this season's average, for comparison.</p></section>`}
 // Tonight's projection, ours against the sportsbooks: each stat's book line and the average it implies,
 // next to Proj at tonight's minutes, and what the card uses (the books where they priced it, Proj otherwise).
 function psDaily(id,q){if(!q||!q.xp||!SC)return"";const t=etToday();if(!plays(q.t,t))return"";
