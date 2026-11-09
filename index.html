@@ -2038,7 +2038,10 @@ function easeNote(t,d){const o=oppT(t,d),f=easeF(o);if(!f)return"";const CLx={pt
 // Average minutes over the dates he plays (z-scores are linear in minutes, so the line at the
 // average minutes is the average game).
 const sznDs=(id,q)=>{if(!SC)return[];const t=etToday();return Object.keys(SC.dates).filter(d=>d>=t&&plays(q.t,d)&&avail(id,d))};
-function sznVals(all){const o={};for(const[id,q]of all){const ds=sznDs(id,q),l=ds.length?avgLine(id,q,ds):xpLine(q),m=l.min,z=ds.length?pjZ(l):zx(q);o[id]={ds,m,l,z,v:pjVal(z)}}return o}
+// Rest of season: no matchup adjustment. Over ~70 games the schedule mostly evens out, a 10-game read
+// on a defense doesn't hold all season, and this number is the player's quality everywhere (tiers,
+// the Week view's ▲/▼, Proj ranks), which the opponent shouldn't move.
+function sznVals(all){const o={};for(const[id,q]of all){const ds=sznDs(id,q),m=avgMin(id,q,ds),z=zAt(q,m);o[id]={ds,m,l:lineAt(q,m),z,v:pjVal(z)}}return o}
 const avgMin=(id,q,ds)=>ds.length?ds.reduce((a,d)=>a+minAt(id,q,d),0)/ds.length:q.xp[0];
 // Who moved a player's minutes on these dates, for the card's note.
 function nmNote(id,q,ds,m){if(Math.abs(m-q.xp[0])<1.5)return"";const C=nmC(),who=[];
