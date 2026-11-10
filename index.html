@@ -316,9 +316,12 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .rfbtn:active{background:var(--cell)}
 .rfbtn.go svg{animation:rfspin .7s linear infinite}
 @keyframes rfspin{to{transform:rotate(360deg)}}
-/* player search: full screen over the tabs, under the player page (.ps, z 50), so back from a
-   player returns to the results */
-.sr{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column}
+/* player search: type in the bar, matches drop down under it as you type (renderSearch()). On a
+   phone the top bar turns into the search field; on desktop it's a box in the bar. The page stays
+   visible; tap outside, Esc or Cancel closes. Under the player page (.ps, z 50), so back from a
+   player returns to the results. */
+.srph,.srbtn kbd{display:none}
+.sr{position:fixed;top:0;left:0;right:0;z-index:40;display:block}
 .sr[hidden]{display:none}
 .srbar{flex:none;display:flex;gap:8px;align-items:center;background:var(--panel);border-bottom:1px solid var(--rule);
   padding-top:calc(env(safe-area-inset-top,0px) + 7px);padding-bottom:7px}
@@ -326,7 +329,20 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
   border-radius:8px;padding:9px 11px;-webkit-appearance:none;appearance:none}
 .srbar input::placeholder{color:var(--dim)}
 .srbar button{font:600 14px/1 var(--name);color:var(--ball);padding:8px 2px}
-.srl{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 16px)}
+.srl{max-height:min(62vh,520px);overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--panel);border-bottom:1px solid var(--rule);
+  box-shadow:0 10px 24px rgb(0 0 0/.14);padding-top:2px;padding-bottom:4px}
+.srl:empty{display:none}
+.srr.on{background:var(--cell)}
+@media (min-width:1100px){
+  .srbtn{width:230px;justify-content:start;grid-auto-flow:column;gap:8px;padding:0 10px;background:var(--cell);border:1px solid var(--rule);border-radius:8px}
+  .srbtn .srph{display:block;font:500 13.5px/1 var(--name);color:var(--dim)}
+  .srbtn kbd{display:block;margin-left:auto;font:500 11px/1 var(--num);color:var(--dim);border:1px solid var(--rule);border-radius:4px;padding:2px 5px}
+  .sr{right:auto}
+  .sr .srbar{background:none;border:0;padding:0;height:34px}
+  .sr .srbar input{padding:7px 11px;font-size:14px;border-color:var(--ink)}
+  .sr #srX{display:none}
+  .sr .srl{margin-top:6px;border:1px solid var(--rule);border-radius:10px;padding:2px 10px 4px}
+}
 .srr{display:grid;grid-template-columns:var(--mug) 1fr auto;gap:10px;align-items:center;width:100%;text-align:left;
   padding:8px 0;border-bottom:1px solid var(--rule)}
 .srr .mug{padding:0}.srr .mug .pos{display:none}
@@ -936,7 +952,7 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
   </div>
   <button class="dens" id="densBtn" hidden aria-label="Switch between cards and list" title="Cards / List"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
   <button class="rfbtn" id="rfBtn" aria-label="Refresh" title="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v4.5h-4.5"/></svg></button>
-  <button class="srbtn" id="srBtn" aria-label="Search players" title="Search players (/)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button>
+  <button class="srbtn" id="srBtn" aria-label="Search players" title="Search players (/)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg><span class="srph">Search players</span><kbd>/</kbd></button>
   <button class="gear" id="gear" aria-expanded="false" aria-controls="sheet">Punt</button>
 </div>
 
@@ -2943,25 +2959,32 @@ function srPool(){
 }
 const srKey=s=>String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z ]/g,"");
 function renderSearch(){
-  const qs=srKey($("srIn").value).trim(),L=$("srList");
-  if(!qs){L.innerHTML=`<p class="srh">Type a name (\u201cjok\u201d, \u201cshai\u201d) or a team (\u201cbos\u201d).${R?"":" Ranks are still loading."}</p>`;return}
+  const qs=srKey($("srIn").value).trim(),L=$("srList");S.srI=0;
+  if(!qs){L.innerHTML="";return}
   const words=qs.split(/\s+/),rk=id=>S.rk&&S.rk.season[id]||9999;
   const hits=srPool().map(o=>{
     const nk=srKey(o.n),nw=nk.split(/\s+/);
     const team=words.length===1&&o.t&&o.t.toLowerCase()===words[0];
     const ok=team||words.every(w=>nw.some(x=>x.startsWith(w))||(w.length>2&&nk.includes(w)));
     return ok?{o,s:(team?2:0)+(nk.startsWith(qs)?0:1),r:rk(o.id)}:null;
-  }).filter(Boolean).sort((a,b)=>a.s-b.s||a.r-b.r||a.o.n.localeCompare(b.o.n)).slice(0,40);
-  if(!hits.length){L.innerHTML=`<p class="srh">No player matches \u201c${esc($("srIn").value.trim())}\u201d.</p>`;return}
-  L.innerHTML=hits.map(({o,r})=>{
+  }).filter(Boolean).sort((a,b)=>a.s-b.s||a.r-b.r||a.o.n.localeCompare(b.o.n)).slice(0,team1(words)?15:8);
+  if(!hits.length){L.innerHTML=`<p class="srh">No player matches “${esc($("srIn").value.trim())}”.</p>`;return}
+  L.innerHTML=hits.map(({o,r},i)=>{
     const p=o.tn,line=p?`<span class="tn">${fmtDate(S.date).replace(/^\w+, /,"")}: ${p.pts}p ${p.reb}r ${p.ast}a · ${p.min}m</span>`:"";
-    return`<button class="srr" data-id="${esc(o.id)}">${mug({eid:/^\d+$/.test(o.id)?o.id:""})}
+    return`<button class="srr${i?"":" on"}" data-id="${esc(o.id)}">${mug({eid:/^\d+$/.test(o.id)?o.id:""})}
       <div><b>${esc(o.n)}</b><span>${esc(o.t||"")}${o.pos?" · "+esc(o.pos):""}</span>${line}</div>
       <div class="num">${r<9999?`Szn <b class="${r<=TOP?"top":""}">#${r}</b>`:"–"}</div></button>`;
   }).join("");
 }
+const team1=w=>w.length===1&&w[0].length<=4&&srPool().some(o=>o.t&&o.t.toLowerCase()===w[0]);
+// On desktop the box sits where the bar's search button is; on a phone it covers the top bar.
+function srPlace(){const sr=$("sr");if(!isDesk()){sr.style.left=sr.style.width=sr.style.top="";return}
+  const r=$("srBtn").getBoundingClientRect(),W=Math.max(r.width,380),x=Math.min(r.left,innerWidth-W-12);
+  sr.style.left=x+"px";sr.style.width=W+"px";sr.style.top=r.top+"px"}
+function srMove(d){const bs=[...$("srList").querySelectorAll(".srr")];if(!bs.length)return;
+  S.srI=(S.srI+d+bs.length)%bs.length;bs.forEach((b,i)=>b.classList.toggle("on",i===S.srI));bs[S.srI].scrollIntoView({block:"nearest"})}
 function openSearch(){
-  if(S.sr)return;S.sr=1;$("sr").hidden=false;document.body.style.overflow="hidden";
+  if(S.sr){$("srIn").focus();return}S.sr=1;srPlace();$("sr").hidden=false;
   try{history.pushState({sr:1},"")}catch(e){}
   $("srIn").focus();$("srIn").select();renderSearch();
 }
@@ -2969,6 +2992,9 @@ function closeSearch(fromPop){
   if(!S.sr)return;S.sr=0;$("sr").hidden=true;if(!S.ps)document.body.style.overflow="";
   if(!fromPop){S.skipPop=1;try{history.back()}catch(e){S.skipPop=0}}
 }
+// tap or click outside the search (and not on the player page above it) closes it
+document.addEventListener("pointerdown",e=>{if(S.sr&&!S.ps&&!e.target.closest("#sr,#srBtn"))closeSearch()});
+addEventListener("resize",()=>{if(S.sr)srPlace()});
 function tile(l,r,sub,cl=""){return`<div class="tl ${r?"":"na"} ${cl}"><i>${l}</i><b>${r?"#"+r:"–"}</b>${sub?`<small>${sub}</small>`:""}</div>`}
 // ---- Player card: a header that stays put (photo, name, team, Mine / FA, injury, his games this week)
 // over tabs: Tonight (when he plays on the day shown), Overview, Projection, Game log, Role, News.
@@ -3541,8 +3567,9 @@ $("srBtn").onclick=openSearch;
 $("srX").onclick=()=>closeSearch();
 $("srIn").oninput=renderSearch;
 $("srIn").onkeydown=e=>{if(e.key==="Escape")closeSearch();
+  if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();srMove(e.key==="ArrowDown"?1:-1)}
   // preventDefault: otherwise this Enter goes on to "click" the player page's close button
-  if(e.key==="Enter"){e.preventDefault();const b=$("srList").querySelector(".srr");if(b){$("srIn").blur();b.click()}}};
+  if(e.key==="Enter"){e.preventDefault();const b=$("srList").querySelectorAll(".srr")[S.srI||0];if(b){$("srIn").blur();b.click()}}};
 $("srList").onclick=e=>{const b=e.target.closest(".srr");if(!b)return;
   const id=b.dataset.id,p=S.players.find(x=>(x.eid||x.id)===id);$("srIn").blur();openSheet(id,p||null)};
 document.addEventListener("keydown",e=>{if(e.key==="/"&&!S.sr&&!S.ps&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();openSearch()}});
