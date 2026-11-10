@@ -409,7 +409,8 @@ function buildRegression(games, asOf, rankings) {
 //           at 30 minutes; FG%/FT% by impact, TO reversed), coldfg, newteam, startup / minup (last
 //           10 games vs before), yr1-2 (a rookie or second-year player)
 //   trig    the role is changing now: his last 3 games average 6+ more minutes than the up-to-10
-//           before (and 22+), or he started the last 2 after starting under 30% before. Flags:
+//           before (and 22+), he started the last 2 after starting under 30% before, or his usage
+//           is 5+ points up with 3+ more minutes (to 24+; kind 'usg', not in the five-season study yet). Flags:
 //           opening (a 24+ min teammate missed 2 of those 3; named), bigjump (10+ more), started;
 //           u3 / ub = usage % over the last 3 and the games before them.
 // since = the first night each sign (and the trigger) was lit, kept in data/breakouts-hist.json.
@@ -458,7 +459,10 @@ function breakouts(games, players, asOf) {
     if (prior.length >= 5 && recent) {
       const m3 = l3.reduce((a, r) => a + r.min, 0) / 3, mp = prior.reduce((a, r) => a + r.min, 0) / prior.length;
       const minT = m3 >= mp + 6 && m3 >= 22, stT = l3.slice(-2).every(r => r.st) && prior.filter(r => r.st).length < .3 * prior.length;
-      if (minT || stT) {
+      // a bigger share of the offense with the minutes up too: usage 5+ points over the games
+      // before, minutes 3+ up to 24+ (Daniss Jenkins, Nov 2026: +5 min, 18% -> 25% usage)
+      const uu = a => { const t = sum(a); return t.tpos ? t.use / t.tpos : 0; }, usgT = uu(l3) >= uu(prior) + .05 && m3 >= mp + 3 && m3 >= 24;
+      if (minT || stT || usgT) {
         const k = tg.findIndex(g => g.date === l3[0].date), pr = tg.slice(Math.max(0, k - 10), k), rec = tg.slice(k, k + 3);
         let opening = null;
         for (const oid of new Set(pr.flatMap(g => Object.keys(g.mins)))) { if (oid === id) continue;
@@ -466,7 +470,7 @@ function breakouts(games, players, asOf) {
           if (played >= Math.min(6, pr.length - 1) && m >= 24 && rec.filter(g => !g.mins[oid]).length >= 2) { opening = players[oid] ? players[oid].n : 'a teammate'; break; } }
         // usage over the same two spans (share of team plays while on the floor), for the Rise rows
         const us = a => { const t = sum(a); return t.tpos ? r1(100 * t.use / t.tpos) : null; };
-        trig = { kind: stT ? 'start' : 'min', m3: r1(m3), mp: r1(mp), u3: us(l3), ub: us(prior), opening, bigjump: m3 >= mp + 10 };
+        trig = { kind: stT ? 'start' : minT ? 'min' : 'usg', m3: r1(m3), mp: r1(mp), u3: us(l3), ub: us(prior), opening, bigjump: m3 >= mp + 10 };
       }
     }
     // first night each sign was lit (and the trigger)

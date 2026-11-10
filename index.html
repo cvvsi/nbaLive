@@ -638,6 +638,25 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .bsg span{display:block;margin-top:3px;font:500 13px/1.2 var(--num);color:var(--dim);white-space:nowrap}.bsg b{color:var(--ink);font-weight:600}.bsg s{text-decoration:none;font-size:11px}
 .bt{font:700 9.5px/1 var(--name);letter-spacing:.07em;text-transform:uppercase;color:var(--ink);border:1px solid var(--ink);border-radius:4px;padding:2px 4px;margin-left:4px;flex:none}
 .lr.bo .bow{margin:5px 0 0 26px;font:500 12.5px/1.3 var(--name);color:var(--dim)}.lr.bo .bow.fi{color:var(--neg)}
+/* Rise as a table: one header, one line per player, season -> last 3 in each cell */
+.bo2w{grid-column:1/-1;width:100%;max-width:760px}
+.bo2r{display:grid;grid-template-columns:minmax(0,1fr) 50px 50px 66px 40px;gap:0 6px;align-items:center}
+.bo2h{padding:8px 0 5px;border-bottom:1px solid var(--rule)}
+.bo2h span{font:600 9.5px/1 var(--name);letter-spacing:.07em;text-transform:uppercase;color:var(--dim);text-align:right}.bo2h span:first-child{text-align:left}
+.cd.bo2{display:block;padding:7px 0}
+.bo2 .b2n{display:flex;align-items:center;gap:7px;min-width:0}
+.bo2 .hs{width:28px;height:28px;border-radius:50%;background:var(--cell);flex:none;overflow:hidden}
+.bo2 .hs img{width:100%;height:100%;display:block;object-fit:cover;object-position:top center}.bo2 .hs img.bad{visibility:hidden}
+.bo2 .b2t{display:block;min-width:0}
+.bo2 .nm{display:block;font:600 14.5px/1.2 var(--name);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bo2 .b2t i{display:flex;align-items:center;gap:4px;font:500 11.5px/1.3 var(--name);font-style:normal;color:var(--dim);white-space:nowrap;overflow:hidden}
+.bo2 .b2t i>*{flex:none}
+.bo2 .b2c{text-align:right;font:500 12.5px/1 var(--num);color:var(--dim);white-space:nowrap}
+.bo2 .b2c s{text-decoration:none;font-size:10px;margin:0 1px}
+.bo2 .b2c b{color:var(--ink);font-weight:600}.bo2 .b2c b.up{color:var(--pos)}.bo2 .b2c b.dn{color:var(--neg)}
+.bo2 .b2p{text-align:right;font:600 14px/1 var(--num);color:var(--ink)}
+.bo2 .bow{margin:4px 0 0 35px;font:500 12px/1.3 var(--name);color:var(--dim)}.bo2 .bow.fi{color:var(--neg)}
+@media (min-width:720px){.bo2r{grid-template-columns:minmax(0,1fr) 72px 72px 96px 56px;gap:0 10px}.bo2 .b2c{font-size:13.5px}.bo2 .b2p{font-size:15px}}
 .stkn{margin:8px 0 0;font:500 12.5px/1.4 var(--name);color:var(--dim)}.stkn b{color:var(--ink)}
 .ups{margin-top:8px;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:9px;border:1px solid var(--ball)}
 .ups b{font:700 26px/1 var(--name);color:var(--ball)}.ups p{margin:0;font:500 13.5px/1.35 var(--name);color:var(--ink)}
@@ -1488,12 +1507,12 @@ Promise.all(["data/breakouts.json","data/breakout-rates.json"].map(u=>fetch(u,{c
   .then(([b,r])=>{BO=b;BOR=r;if(S.bsSort==="bo")renderBS()});
 const BOL={up30:"per-min top 100 at 30",up30top:"per-min top 60 at 30",lowmin:"under 24 min",lowusg:"efficient, low usage",hiusgev:"has carried 23%+ usage",
   coldfg:"shooting cold",newteam:"new team",startup:"moved into the starting 5",minup:"minutes rising","yr1-2":"1st–2nd year","yr3-4":"3rd–4th year",
-  c_pts:"PTS",c_reb:"REB",c_ast:"AST",c_stl:"STL",c_blk:"BLK",c_tpm:"3PM",c_fg:"FG%",c_ft:"FT%",c_to:"low TO",opening:"teammate out",bigjump:"10+ min spike",started:"moved into the starting 5"};
+  c_pts:"PTS",c_reb:"REB",c_ast:"AST",c_stl:"STL",c_blk:"BLK",c_tpm:"3PM",c_fg:"FG%",c_ft:"FT%",c_to:"low TO",opening:"teammate out",bigjump:"10+ min spike",started:"moved into the starting 5",usgup:"usage jump"};
 const BOK=20;
 function boScore(id,p){
   const tier=p.r>130?"deep":p.r>80?"fringe":"top80",ctx=p.trig?"trigger":"season",T=BOR&&BOR[ctx]&&BOR[ctx][tier];if(!T)return null;
   const base=T.hits/T.cases,lit=[...p.setup];
-  if(p.trig){if(p.trig.opening)lit.push("opening");if(p.trig.bigjump)lit.push("bigjump");if(p.trig.kind==="start")lit.push("started")}
+  if(p.trig){if(p.trig.opening)lit.push("opening");if(p.trig.bigjump)lit.push("bigjump");if(p.trig.kind==="start")lit.push("started");if(p.trig.kind==="usg")lit.push("usgup")}
   const has=k=>T.signs[k],shr=([n,h])=>(h+base*BOK)/(n+BOK);
   let best={rate:base,keys:[],n:0,h:0};
   const L=lit.filter(has);
@@ -1508,19 +1527,22 @@ function boScore(id,p){
 // single sign is mentioned only when it beat that average on 50+ players.
 const BO_MIN_N=50,BO_FLOOR=50;
 function boRow(o){
-  const q=G.players[o.id]||{n:o.id,t:""},p=o.p,t=p.trig,b=o.s.best,x=S.bs&&S.bs.x[o.id];
-  const rk=w=>S.rk&&S.rk[w]&&S.rk[w][o.id]?"#"+S.rk[w][o.id]:"–";
-  // season -> last 3 for each, side by side
-  const cell=(l,a,z)=>`<div><i>${l}</i><span>${a} <s>→</s> <b>${z}</b></span></div>`;
-  // a note only when it says something: injury minutes, or usage moving with the minutes
+  const q=G.players[o.id]||{n:o.id,t:""},p=o.p,t=p.trig,x=S.bs&&S.bs.x[o.id];
+  const rn=w=>S.rk&&S.rk[w]&&S.rk[w][o.id]||null,rs=rn("season")||p.r,r3=rn("g3");
+  // season -> last 3 in one cell; the last-3 number green when it moved up a real amount, red when down
+  const cell=(a,z,up,dn)=>`<span class="b2c">${a==null?"–":a}<s>→</s><b class="${up?"up":dn?"dn":""}">${z==null?"–":z}</b></span>`;
   const du=t.u3!=null&&p.usg!=null?t.u3-p.usg:0;
+  // a note only when it says something: injury minutes, or usage moving with the minutes
   const note=t.opening?`<div class="bow fi">Filling in for ${esc(t.opening)}: usually fades when he's back</div>`
     :du>=3?`<div class="bow">Bigger share of the offense too: the strongest sign of a real role</div>`
     :du<=-3?`<div class="bow">Smaller share of the offense: more minutes, less of the action</div>`:"";
-  return`<article class="cd lr bo" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(q.n)}: open details">
-    <div class="lr1"><span class="rk">${p.r}</span>${hs(o.id)}<b class="nm">${esc(q.n)}</b><span class="mt">${esc(q.t)}</span>${t.kind==="start"?`<span class="bt">Starter</span>`:""}${rkTagQ(q)}${typeof lgTagFA==="function"?lgTagFA(o.id):""}
-      <span class="bop"><b>${x?"#"+x:"–"}</b><i>proj</i></span></div>
-    <div class="bsg">${cell("Min",Math.round(p.mpg),Math.round(t.m3))}${cell("Usage",p.usg!=null?Math.round(p.usg)+"%":"–",t.u3!=null?Math.round(t.u3)+"%":"–")}${cell("Rank",rk("season"),rk("g3"))}</div>
+  const tags=[t.kind==="start"?`<span class="bt">Starter</span>`:"",rkTagQ(q),typeof lgTagFA==="function"?lgTagFA(o.id):""].join("");
+  return`<article class="cd bo2" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(q.n)}: open details">
+    <div class="bo2r"><span class="b2n">${hs(o.id)}<span class="b2t"><b class="nm">${esc(q.n)}</b><i>${esc(q.t)}${tags}</i></span></span>
+      ${cell(Math.round(p.mpg),Math.round(t.m3),t.m3-p.mpg>=4,t.m3-p.mpg<=-4)}
+      ${cell(p.usg!=null?Math.round(p.usg):null,t.u3!=null?Math.round(t.u3):null,du>=3,du<=-3)}
+      ${cell(rs,r3,r3&&rs&&r3<=rs*.6&&rs-r3>=20,r3&&rs&&r3>=rs/.6&&r3-rs>=20)}
+      <span class="b2p">${x?"#"+x:"–"}</span></div>
     ${note}</article>`}
 function renderBO(){
   $("bsSort").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k==="bo"));
@@ -1530,8 +1552,8 @@ function renderBO(){
   const T=BOR.trigger||{},pc=t=>T[t]?Math.round(100*T[t].hits/T[t].cases):null,one=v=>v?`about 1 in ${Math.max(2,Math.round(100/v))}`:"";
   $("bsStatus").textContent=`${rows.length} rising`;
   $("bsAsOf").textContent=`Thru ${fmtDate(BO.asOf).replace(/^\w+, /,"")}`;
-  $("bsList").innerHTML=`<p class="bzcap">Players outside the top ${BO_FLOOR} whose role just grew: 6+ more minutes a game over the last 3 (to 22+) or moved into the starting five. Sorted by <b>Proj</b>, which already counts the new minutes. Each row: minutes, usage and rank for the <b>season → last 3 games</b>. In past seasons, of players in this spot, ${pc("top80")}% from #${BO_FLOOR+1}–80, ${pc("fringe")}% from #81–${ROST} and ${pc("deep")}% from outside ${ROST} were top-${ROST} over their next 20 games (${one(pc("deep"))} for the deep ones): most role bumps fade, so check why the minutes came.</p>`
-    +(rows.length?rows.map(boRow).join(""):`<div class="empty">No one outside the top ${BO_FLOOR} has a growing role right now.</div>`);
+  $("bsList").innerHTML=`<p class="bzcap">Players outside the top ${BO_FLOOR} whose role just grew: 6+ more minutes a game over the last 3 (to 22+), moved into the starting five, or 5+ points more usage with 3+ more minutes (to 24+). Sorted by <b>Proj</b>, which already counts the new minutes. Min, Usg% and Rank read <b>season → last 3 games</b>. In past seasons, of players in this spot, ${pc("top80")}% from #${BO_FLOOR+1}–80, ${pc("fringe")}% from #81–${ROST} and ${pc("deep")}% from outside ${ROST} were top-${ROST} over their next 20 games (${one(pc("deep"))} for the deep ones): most role bumps fade, so check why the minutes came.</p>`
+    +(rows.length?`<div class="bo2w"><div class="bo2r bo2h"><span>Player</span><span>Min</span><span>Usg%</span><span>Rank</span><span>Proj</span></div>${rows.map(boRow).join("")}</div>`:`<div class="empty">No one outside the top ${BO_FLOOR} has a growing role right now.</div>`);
 }
 // The two biggest changes from last season, labeled with what they mean: minutes and usage
 // are the role (sticks); everything else is a rate that drifts back (hot cools, cold returns).

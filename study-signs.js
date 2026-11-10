@@ -36,7 +36,7 @@ const ROST = 130, MOVE = .6, MIN_JUMP = 20;
 const label = y => `${y - 1}-${String(y).slice(2)}`;
 const ALLSTAR = new Set(['STARS', 'WORLD', 'USA', 'STRIPES', 'EAST', 'WEST', 'LEBRON', 'GIANNIS', 'DURANT', 'CANDACE', 'CHUCK', 'KENNY', 'SHAQ']);
 const S_SEASON = ['up30', 'up30top', 'lowmin', 'minup', 'startup', 'lowusg', 'hiusgev', 'c_pts', 'c_reb', 'c_ast', 'c_stl', 'c_blk', 'c_tpm', 'c_fg', 'c_ft', 'c_to', 'coldfg', 'newteam', 'yr1-2', 'yr3-4'];
-const S_TRIG = ['up30', 'up30top', 'lowmin', 'lowusg', 'hiusgev', 'c_pts', 'c_reb', 'c_ast', 'c_stl', 'c_blk', 'c_tpm', 'c_fg', 'c_ft', 'c_to', 'coldfg', 'newteam', 'opening', 'bigjump', 'started', 'yr1-2', 'yr3-4'];
+const S_TRIG = ['up30', 'up30top', 'lowmin', 'lowusg', 'hiusgev', 'c_pts', 'c_reb', 'c_ast', 'c_stl', 'c_blk', 'c_tpm', 'c_fg', 'c_ft', 'c_to', 'coldfg', 'newteam', 'opening', 'bigjump', 'started', 'usgup', 'yr1-2', 'yr3-4'];
 const CHECK = ['Josh Hart', 'Cameron Johnson', 'Jalen Williams', 'Ivica Zubac', 'John Collins', 'Jordan Poole', 'Franz Wagner', 'Christian Braun',
   'Dennis Schroder', 'Scotty Pippen Jr.', 'Kevin Porter Jr.', 'Jalen Johnson', 'Ryan Rollins', 'Dyson Daniels', 'Nickeil Alexander-Walker',
   'Austin Reaves', 'Mikal Bridges', 'Jalen Duren', 'Alex Sarr', 'Norman Powell', 'Kyshawn George', 'Ty Jerome'];
@@ -174,13 +174,14 @@ const pct = v => (100 * v).toFixed(1) + '%';
         const last3 = rs.slice(i - 3, i), prior = rs.slice(Math.max(0, i - 13), i - 3);
         const m3 = last3.reduce((a, r) => a + r.min, 0) / 3, mp = prior.reduce((a, r) => a + r.min, 0) / prior.length;
         const minT = m3 >= mp + 6 && m3 >= 22, stT = last3.slice(-2).every(r => r.st) && prior.filter(r => r.st).length < .3 * prior.length;
-        if (!minT && !stT) continue;
+        const uu = a => { const t = sumRows(a); return t.tpos ? t.use / t.tpos : 0; }, usgT = uu(last3) >= uu(prior) + .05 && m3 >= mp + 3 && m3 >= 24;
+        if (!minT && !stT && !usgT) continue;
         const soFar = rs.slice(0, i), next = rs.slice(i, i + 20);
         const b = baseSigns(id, y, soFar, [y]), before = rankOn(y, valOf(perGame(b.t), SV[y].pool));
         const after = rankOn(y, valOf(perGame(sumRows(next)), SV[y].pool));
         const prevTeam = (ROWS[y - 1] && ROWS[y - 1][id]) ? ROWS[y - 1][id][ROWS[y - 1][id].length - 1].team : null;
         const s = { ...b.s, newteam: (prevTeam && prevTeam !== rs[i - 1].team) || new Set(soFar.map(r => r.team)).size > 1,
-          opening: opening(rs[i - 1].team, last3.map(r => r.date), id), bigjump: m3 >= mp + 10, started: stT };
+          opening: opening(rs[i - 1].team, last3.map(r => r.date), id), bigjump: m3 >= mp + 10, started: stT, usgup: usgT };
         TC.push({ y: label(y), id, n: nameOf(id), date: rs[i - 1].date, gp: i, before, after, m3: +m3.toFixed(1), mp: +mp.toFixed(1),
           tier: before > ROST ? 'deep' : before > 80 ? 'fringe' : 'top80', rostered: before <= ROST, hit: after <= ROST, big: after <= 80,
           // the same breakout rule as season to season: 40%+ better, 20+ spots, inside 130
