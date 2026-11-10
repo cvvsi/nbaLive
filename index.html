@@ -636,7 +636,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .lr.bo .bsg{display:grid;grid-template-columns:1fr 1.15fr 1.35fr;gap:4px 8px;margin:6px 0 0 26px}
 .bsg i{display:block;font:600 9.5px/1 var(--name);letter-spacing:.07em;text-transform:uppercase;font-style:normal;color:var(--dim)}
 .bsg span{display:block;margin-top:3px;font:500 13px/1.2 var(--num);color:var(--dim);white-space:nowrap}.bsg b{color:var(--ink);font-weight:600}.bsg s{text-decoration:none;font-size:11px}
-.bt{font:700 9.5px/1 var(--name);letter-spacing:.07em;text-transform:uppercase;color:var(--ink);border:1px solid var(--ink);border-radius:4px;padding:2px 4px;margin-left:4px;flex:none}
+.bt{font:700 9.5px/1 var(--name);letter-spacing:.07em;text-transform:uppercase;color:var(--ink);border:1px solid var(--ink);border-radius:4px;padding:2px 4px;margin-left:4px;flex:none}.bt.cau{color:var(--neg);border-color:var(--neg)}
 .lr.bo .bow{margin:5px 0 0 26px;font:500 12.5px/1.3 var(--name);color:var(--dim)}.lr.bo .bow.fi{color:var(--neg)}
 /* Rise as a table: one header, one line per player, season -> last 3 in each cell */
 .bo2w{grid-column:1/-1;width:100%;max-width:760px}
@@ -649,7 +649,7 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .bo2 .hs img{width:100%;height:100%;display:block;object-fit:cover;object-position:top center}.bo2 .hs img.bad{visibility:hidden}
 .bo2 .b2t{display:block;min-width:0}
 .bo2 .nm{display:block;font:600 14.5px/1.2 var(--name);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bo2 .b2t i{display:flex;align-items:center;gap:4px;font:500 11.5px/1.3 var(--name);font-style:normal;color:var(--dim);white-space:nowrap;overflow:hidden}
+.bo2 .b2t i{display:flex;flex-wrap:wrap;align-items:center;gap:3px 4px;font:500 11.5px/1.3 var(--name);font-style:normal;color:var(--dim);white-space:nowrap}.bo2 .b2t i .bt{margin-left:0}
 .bo2 .b2t i>*{flex:none}
 .bo2 .b2c{text-align:right;font:500 12.5px/1 var(--num);color:var(--dim);white-space:nowrap}
 .bo2 .b2c s{text-decoration:none;font-size:10px;margin:0 1px}
@@ -1535,8 +1535,11 @@ function boRow(o){
   // a note only when it says something: injury minutes, or usage moving with the minutes
   const note=t.opening?`<div class="bow fi">Filling in for ${esc(t.opening)}: usually fades when he's back</div>`
     :du>=3?`<div class="bow">Bigger share of the offense too: the strongest sign of a real role</div>`
-    :du<=-3?`<div class="bow">Smaller share of the offense: more minutes, less of the action</div>`:"";
-  const tags=[t.kind==="start"?`<span class="bt">Starter</span>`:"",rkTagQ(q),typeof lgTagFA==="function"?lgTagFA(o.id):""].join("");
+    :du<=-3?`<div class="bow">Smaller share of the offense: more minutes, less of the action</div>`
+    :t.bigjump?`<div class="bow fi">10+ minute spike: these held up about half as often as smaller bumps</div>`:"";
+  // a 10+ minute spike held up about half as often as other role changes (study-signs.js, five seasons)
+  const bj=BOR&&BOR.trigger&&BOR.trigger[o.s.tier]&&BOR.trigger[o.s.tier].signs.bigjump,bjr=bj&&bj[0]>=15?Math.round(100*bj[1]/bj[0]):null;
+  const tags=[t.kind==="start"?`<span class="bt">Starter</span>`:"",t.bigjump?`<span class="bt cau" title="10+ more minutes a game: in past seasons ${bjr!=null?bjr+"% of these":"few of these"} were top-${ROST} over their next 20 games, about half the usual rate. Usually an injury fill-in.">Spike</span>`:"",rkTagQ(q),typeof lgTagFA==="function"?lgTagFA(o.id):""].join("");
   return`<article class="cd bo2" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(q.n)}: open details">
     <div class="bo2r"><span class="b2n">${hs(o.id)}<span class="b2t"><b class="nm">${esc(q.n)}</b><i>${esc(q.t)}${tags}</i></span></span>
       ${cell(Math.round(p.mpg),Math.round(t.m3),t.m3-p.mpg>=4,t.m3-p.mpg<=-4)}
@@ -1552,7 +1555,7 @@ function renderBO(){
   const T=BOR.trigger||{},pc=t=>T[t]?Math.round(100*T[t].hits/T[t].cases):null,one=v=>v?`about 1 in ${Math.max(2,Math.round(100/v))}`:"";
   $("bsStatus").textContent=`${rows.length} rising`;
   $("bsAsOf").textContent=`Thru ${fmtDate(BO.asOf).replace(/^\w+, /,"")}`;
-  $("bsList").innerHTML=`<p class="bzcap">Players outside the top ${BO_FLOOR} whose role just grew: 6+ more minutes a game over the last 3 (to 22+), moved into the starting five, or 5+ points more usage with 3+ more minutes (to 24+). Sorted by <b>Proj</b>, which already counts the new minutes. Min, Usg% and Rank read <b>season → last 3 games</b>. In past seasons, of players in this spot, ${pc("top80")}% from #${BO_FLOOR+1}–80, ${pc("fringe")}% from #81–${ROST} and ${pc("deep")}% from outside ${ROST} were top-${ROST} over their next 20 games (${one(pc("deep"))} for the deep ones): most role bumps fade, so check why the minutes came.</p>`
+  $("bsList").innerHTML=`<p class="bzcap">Players outside the top ${BO_FLOOR} whose role just grew: 6+ more minutes a game over the last 3 (to 22+), moved into the starting five, or 5+ points more usage with 3+ more minutes (to 24+). Sorted by <b>Proj</b>, which already counts the new minutes. Min, Usg% and Rank read <b>season → last 3 games</b>. <b>Spike</b> = 10+ more minutes, which held up about half as often (mostly injury fill-ins). In past seasons, of players in this spot, ${pc("top80")}% from #${BO_FLOOR+1}–80, ${pc("fringe")}% from #81–${ROST} and ${pc("deep")}% from outside ${ROST} were top-${ROST} over their next 20 games (${one(pc("deep"))} for the deep ones): most role bumps fade, so check why the minutes came.</p>`
     +(rows.length?`<div class="bo2w"><div class="bo2r bo2h"><span>Player</span><span>Min</span><span>Usg%</span><span>Rank</span><span>Proj</span></div>${rows.map(boRow).join("")}</div>`:`<div class="empty">No one outside the top ${BO_FLOOR} has a growing role right now.</div>`);
 }
 // The two biggest changes from last season, labeled with what they mean: minutes and usage
