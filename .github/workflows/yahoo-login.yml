@@ -1,7 +1,8 @@
 # One-time Yahoo connection. Open the login URL from yahoo-auth.js, click Agree, copy the code
 # from the localhost address bar, then run this with it (within a few minutes; codes expire).
 # It saves the refresh token encrypted (key = YAHOO_CLIENT_SECRET) to data/yahoo-token.enc,
-# then pulls the league once so you can see it worked.
+# then checks access (status codes only: the repo and its logs are public, and the Yahoo
+# agreement forbids sharing league data).
 name: Yahoo login
 
 on:
@@ -41,18 +42,9 @@ jobs:
           YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
         run: node yahoo-check.js
 
-      - name: Pull the league once
-        continue-on-error: true
-        env:
-          YAHOO_CLIENT_ID: ${{ secrets.YAHOO_CLIENT_ID }}
-          YAHOO_CLIENT_SECRET: ${{ secrets.YAHOO_CLIENT_SECRET }}
-          YAHOO_LEAGUE_ID: ${{ secrets.YAHOO_LEAGUE_ID }}
-        run: node fetch-yahoo.js
-
       - name: Commit
         run: |
           git add data/yahoo-token.enc
-          for f in data/yahoo.json data/yahoo-owned.json; do [ -f "$f" ] && git add "$f"; done; true
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
           if git diff --cached --quiet; then echo "No change"; exit 0; fi

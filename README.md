@@ -135,7 +135,9 @@ Headers on each: `Authorization: Bearer <token>`, `Accept: application/vnd.githu
 
 ## Yahoo league data
 
-**Paused:** since July 2026 Yahoo's Fantasy API answers 403 until the developer account is approved (apply at sports.yahoo.com/developer/access/). Sign-in works; data calls don't.
+**Approved for personal use (Nov 2026, effective Nov 16).** Yahoo approved API access under an agreement that allows personal use only: no displaying, sharing or storing Yahoo league data, attribution ("Fantasy data provided by Yahoo Fantasy") wherever it's shown, and inputs/outputs of any AI tool deleted within 30 days. Access needed a **new** app (existing apps don't get the Fantasy Sports permission) whose Client ID was submitted on Yahoo's confirmation form. Because this repo and its Action logs are public, the nightly Rankings job no longer runs `fetch-yahoo.js`, nothing commits `yahoo.json` / `yahoo-owned.json`, and `yahoo-check.js` prints only status codes and a league count. **Check access:** put the new app's ID and secret in the `YAHOO_CLIENT_ID` / `YAHOO_CLIENT_SECRET` repo secrets, run `node yahoo-auth.js <client_id>`, click Agree, then run *Actions → Yahoo login* with the code: 200 on the league lines = approved, 403 = not on yet. The plan is an MCP server for Claude Code sessions that reads the league live and keeps nothing.
+
+The text below describes the original design, from before the agreement.
 
 
 `fetch-yahoo.js` runs in the same Action and writes `data/yahoo.json`: every team's roster (mine flagged), the best free agents by season rank and by last week's rank, recent league adds/drops/trades, and Yahoo-wide **most added / most dropped** (change in percent owned over 1 and 7 days, from snapshots kept in `data/yahoo-owned.json`). The morning report reads it. The page doesn't use it yet.

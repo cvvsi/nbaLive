@@ -11,9 +11,11 @@ const { YAHOO_CLIENT_ID: ID, YAHOO_CLIENT_SECRET: SECRET } = process.env;
     body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: refresh, redirect_uri: 'https://localhost:8080' }),
   });
   const j = await r.json();
-  console.log('token response keys:', Object.keys(j).join(', '), '| scope:', j.scope || '(none)', '| token_type:', j.token_type);
+  console.log(j.access_token ? 'token: OK' : 'token: FAILED (' + (j.error || 'no access token') + ')', '| scope:', j.scope || '(none)');
   for (const p of ['/game/nba', '/users;use_login=1', '/users;use_login=1/games', '/users;use_login=1/games;game_keys=nba/leagues']) {
     const x = await fetch('https://fantasysports.yahooapis.com/fantasy/v2' + p + '?format=json', { headers: { Authorization: 'Bearer ' + j.access_token } });
-    console.log(x.status, p, (await x.text()).replace(/\s+/g, ' ').slice(0, 300));
+    // status only, plus a league count: Action logs are public and league data can't be shared
+    const t = await x.text(), n = (t.match(/"league_key"/g) || []).length;
+    console.log(x.status, x.status === 200 ? 'OK' : x.status === 403 ? 'FORBIDDEN (access not on yet, or the app lacks Fantasy Sports)' : '', p, n ? `(${n} league${n > 1 ? 's' : ''})` : '');
   }
 })();
