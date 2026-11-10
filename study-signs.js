@@ -36,7 +36,7 @@ const ROST = 130, MOVE = .6, MIN_JUMP = 20;
 const label = y => `${y - 1}-${String(y).slice(2)}`;
 const ALLSTAR = new Set(['STARS', 'WORLD', 'USA', 'STRIPES', 'EAST', 'WEST', 'LEBRON', 'GIANNIS', 'DURANT', 'CANDACE', 'CHUCK', 'KENNY', 'SHAQ']);
 const S_SEASON = ['up30', 'up30top', 'lowmin', 'minup', 'startup', 'lowusg', 'hiusgev', 'c_pts', 'c_reb', 'c_ast', 'c_stl', 'c_blk', 'c_tpm', 'c_fg', 'c_ft', 'c_to', 'coldfg', 'newteam', 'yr1-2', 'yr3-4'];
-const S_TRIG = ['up30', 'up30top', 'lowmin', 'lowusg', 'hiusgev', 'c_pts', 'c_reb', 'c_ast', 'c_stl', 'c_blk', 'c_tpm', 'c_fg', 'c_ft', 'c_to', 'coldfg', 'newteam', 'opening', 'bigjump', 'started', 'usgup', 'yr1-2', 'yr3-4'];
+const S_TRIG = ['up30', 'up30top', 'lowmin', 'lowusg', 'hiusgev', 'c_pts', 'c_reb', 'c_ast', 'c_stl', 'c_blk', 'c_tpm', 'c_fg', 'c_ft', 'c_to', 'coldfg', 'newteam', 'opening', 'bigjump', 'started', 'usgup', 'usgonly', 'yr1-2', 'yr3-4'];
 const CHECK = ['Josh Hart', 'Cameron Johnson', 'Jalen Williams', 'Ivica Zubac', 'John Collins', 'Jordan Poole', 'Franz Wagner', 'Christian Braun',
   'Dennis Schroder', 'Scotty Pippen Jr.', 'Kevin Porter Jr.', 'Jalen Johnson', 'Ryan Rollins', 'Dyson Daniels', 'Nickeil Alexander-Walker',
   'Austin Reaves', 'Mikal Bridges', 'Jalen Duren', 'Alex Sarr', 'Norman Powell', 'Kyshawn George', 'Ty Jerome'];
@@ -181,7 +181,7 @@ const pct = v => (100 * v).toFixed(1) + '%';
         const after = rankOn(y, valOf(perGame(sumRows(next)), SV[y].pool));
         const prevTeam = (ROWS[y - 1] && ROWS[y - 1][id]) ? ROWS[y - 1][id][ROWS[y - 1][id].length - 1].team : null;
         const s = { ...b.s, newteam: (prevTeam && prevTeam !== rs[i - 1].team) || new Set(soFar.map(r => r.team)).size > 1,
-          opening: opening(rs[i - 1].team, last3.map(r => r.date), id), bigjump: m3 >= mp + 10, started: stT, usgup: usgT };
+          opening: opening(rs[i - 1].team, last3.map(r => r.date), id), bigjump: m3 >= mp + 10, started: stT, usgup: usgT, usgonly: usgT && !minT && !stT };
         TC.push({ y: label(y), id, n: nameOf(id), date: rs[i - 1].date, gp: i, before, after, m3: +m3.toFixed(1), mp: +mp.toFixed(1),
           tier: before > ROST ? 'deep' : before > 80 ? 'fringe' : 'top80', rostered: before <= ROST, hit: after <= ROST, big: after <= 80,
           // the same breakout rule as season to season: 40%+ better, 20+ spots, inside 130
