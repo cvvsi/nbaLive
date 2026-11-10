@@ -638,10 +638,12 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .bsg span{display:block;margin-top:3px;font:500 13px/1.2 var(--num);color:var(--dim);white-space:nowrap}.bsg b{color:var(--ink);font-weight:600}.bsg s{text-decoration:none;font-size:11px}
 .bt{font:700 9.5px/1 var(--name);letter-spacing:.07em;text-transform:uppercase;color:var(--ink);border:1px solid var(--ink);border-radius:4px;padding:2px 4px;margin-left:4px;flex:none}.bt.cau{color:var(--neg);border-color:var(--neg)}.bt.good{color:var(--pos);border-color:var(--pos)}.bt.bad{color:var(--neg);border-color:var(--neg)}.bt.warn{color:var(--ball);border-color:var(--ball)}
 .bo2r.lbr{grid-template-columns:minmax(0,1fr) 46px 46px 46px}
+.bo2 .ij{font:700 9.5px/1 var(--name);letter-spacing:.07em;color:var(--neg);border:1px solid var(--neg);border-radius:4px;padding:2px 4px;flex:none}.bo2 .ij.dtd{color:var(--ball);border-color:var(--ball)}
 .bo2 .b2p.good{color:var(--pos)}.bo2 .b2p.bad{color:var(--neg)}
 .lb .lbw{margin:4px 0 0 35px;font:500 12px/1.35 var(--name);color:var(--dim)}.lb .lbw b{color:var(--ink);font-weight:600}.lb .lbw b.good{color:var(--pos)}.lb .lbw b.bad{color:var(--neg)}
 .pjh span{text-transform:none;letter-spacing:0;font-weight:500}
 @media (min-width:720px){.bo2r.lbr{grid-template-columns:minmax(0,1fr) 64px 64px 64px}}
+@media (min-width:1100px){.bo2w:has(.lbcols){max-width:1240px}.lbcols{display:grid;grid-template-columns:1fr 1fr;gap:0 40px;align-items:start}.lbcols>div>.pjh:first-child{padding-top:8px}}
 .lr.bo .bow{margin:5px 0 0 26px;font:500 12.5px/1.3 var(--name);color:var(--dim)}.lr.bo .bow.fi{color:var(--neg)}
 /* Rise as a table: one header, one line per player, season -> last 3 in each cell */
 .bo2w{grid-column:1/-1;width:100%;max-width:760px}
@@ -1486,8 +1488,11 @@ function rankBS(){
 const f1=v=>v==null?"–":v>=10?String(Math.round(v)):v.toFixed(1);
 function renderBS(){
   if(!G)return;
-  $("bsSort").querySelectorAll(".lgonly").forEach(b=>b.hidden=!ML);
+  // with a synced league the tab is Mine / Waivers / Rise; the all-league Buy / Sell / Proj / Now
+  // lists stay for devices without one
+  $("bsSort").querySelectorAll("button").forEach(b=>b.hidden=b.classList.contains("lgonly")?!ML:!!ML&&b.dataset.k!=="bo");
   if(!ML&&(S.bsSort==="mine"||S.bsSort==="fa"))S.bsSort="buy";
+  if(ML&&S.bsSort!=="mine"&&S.bsSort!=="fa"&&S.bsSort!=="bo")S.bsSort="mine";
   $("bsRow2").hidden=$("bsCats").hidden=S.bsSort==="bo"||S.bsSort==="mine"||S.bsSort==="fa";
   if(S.bsSort==="bo")return renderBO();
   if(S.bsSort==="mine"||S.bsSort==="fa")return renderLgBS(S.bsSort);
@@ -1520,8 +1525,9 @@ function renderLgBS(st){
   const B=S.bs,me=String(ML.me),ids=Object.keys(G.players);
   $("bsAsOf").textContent=`Season thru ${fmtDate(G.asOf).replace(/^\w+, /,"")}`;
   if(st==="mine"){
-    const mine=ids.filter(id=>lgOf(id)===me),grp={drop:[],hot:[],slump:[],steady:[]};
+    const mine=ids.filter(id=>lgOf(id)===me),grp={inj:[],drop:[],hot:[],slump:[],steady:[]};
     for(const id of mine){const a=analyst(id),v=B.v[id],q=G.players[id],x=B.x[id];
+      if(ijOut(ijOf(id))){grp.inj.push([id,x<=ROST?"Hold":"Drop?",x<=ROST?"good":"bad",injWhy(id)]);continue}
       const why=firstSent(bsBlurb(q,v));
       const cap=t=>t.replace(/^./,c=>c.toUpperCase());
       if(a.tag==="Drop"||((a.tag==="Pass"||a.tag==="Watch")&&x>ROST))grp.drop.push([id,a.tag==="Watch"?"Watch":"Drop?",a.tag==="Watch"?"warn":"bad",a.parts&&a.parts[0]?cap(a.parts[0].replace(/^Drop in 10-team leagues: |^Pass in 10-team leagues: |^Watch: /,"")):""]);
@@ -1532,21 +1538,30 @@ function renderLgBS(st){
     $("bsStatus").textContent=`${mine.length} players`;
     const sec=(t,sub,a)=>a.length?lgBsHead(t,sub)+by(a).map(r=>lgBsRow(...r)).join(""):"";
     $("bsList").innerHTML=`<div class="bo2w"><p class="bzcap">Your roster, by what to do. <b>Now</b> = season rank, <b>Last 3</b> = the team's last 3 games, <b>Proj</b> = where the numbers say he's headed (minutes stay, shooting and per-minute luck drift back).</p>`
+      +`<div class="lbcols"><div>`+sec("Injured","Out on the injury report: ranked on the games he played",grp.inj)
       +sec("On the bubble","Proj outside "+ROST+": drop, or watch if the role is growing",grp.drop)
       +sec("Running hot","Enjoy it, don't count on it",grp.hot)
       +sec("Slumping","Hold: the numbers say he comes back",grp.slump)
-      +sec("Steady","Ranked about where he should be",grp.steady)+`</div>`;
+      +`</div><div>`+sec("Steady","Ranked about where he should be",grp.steady)+`</div></div></div>`;
     return}
   // Waivers: free agents worth a look
   const fa=ids.filter(id=>lgOf(id)==null&&hasPj(G.players[id])&&G.players[id].now[0]>=BSMIN_GP&&(B.x[id]<=170||(BO&&BO.players[id]&&BO.players[id].trig)))
     .sort((a,b)=>B.x[a]-B.x[b]).slice(0,40);
+  const hurt=fa.filter(id=>ijOut(ijOf(id))),fit=fa.filter(id=>!ijOut(ijOf(id)));
   $("bsStatus").textContent=`${fa.length} FAs`;
   $("bsList").innerHTML=`<div class="bo2w"><p class="bzcap">Free agents in your league, best <b>Proj</b> first: Proj inside 170, or a role that just grew. <b>Real</b> = Proj backs the hot start, <b>Fluke</b> = it's mostly shooting luck, <b>Undervalued</b> = his rank is hiding a better player.</p>`
-    +lgBsHead("Waiver wire","")+fa.map(id=>{const v=B.v[id],q=G.players[id],now=B.now[id],x=B.x[id],r3=S.rk&&S.rk.g3&&S.rk.g3[id];
+    +`<div class="lbcols"><div>`+lgBsHead("Waiver wire","Healthy")+fit.map(id=>{const v=B.v[id],q=G.players[id],now=B.now[id],x=B.x[id],r3=S.rk&&S.rk.g3&&S.rk.g3[id];
       const why=firstSent(bsBlurb(q,v));
       const [c,k]=v==="buy"?["Undervalued","good"]:v==="sell"?["Fluke","bad"]:r3&&r3<=ROST&&x<=ROST?["Real","good"]:["",""];
-      return lgBsRow(id,c,k,why)}).join("")+`</div>`;
+      return lgBsRow(id,c,k,why)}).join("")
+    +`</div><div>`+(hurt.length?lgBsHead("Injured","Stash only if you have an IL spot or a dead bench slot")
+      +hurt.map(id=>lgBsRow(id,B.x[id]<=ROST?"Stash":"",B.x[id]<=ROST?"good":"",injWhy(id))).join(""):"")+`</div></div></div>`;
 }
+// An injured player's Now rank is the few games he played (often hurt or rusty), so lead with
+// the return and Proj, which is his line once healthy.
+function injWhy(id){const i=ijOf(id),q=G.players[id],B=S.bs,sh=d=>fmtDate(d).replace(/^\w+, /,"");
+  const back=i&&i[1]?`Out until ~${sh(i[1])}`:"Out, no return date";
+  return`${back}. Ranked #${B.now[id]} off ${plural(q.now[0],"game")}; healthy he projects <b>#${B.x[id]}</b>.`}
 // ---- Breakouts (Buy/Sell > Rise): who's showing the signs that came before real breakouts.
 // data/breakouts.json (nightly, build-rankings.js): each player's signs tonight and, if his role is
 // changing now, the trigger. data/breakout-rates.json (study-signs.js, five seasons): for players
