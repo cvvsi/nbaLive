@@ -688,7 +688,7 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .pln td:first-child{text-align:left;white-space:normal}.pln td:first-child b{display:block;font:600 13.5px/1.15 var(--name)}
 .pln td:first-child i{display:block;font:500 10.5px/1.25 var(--name);font-style:normal;color:var(--dim)}
 .pln td.g{color:var(--pos);font-weight:600}.pln td.b{color:var(--neg);font-weight:600}
-.pln td.rk{font-weight:600;padding-left:8px}.pln td.rk.up{color:var(--pos)}.pln td.rk.dn{color:var(--dim)}
+.pln td.rk{font-weight:600;padding-left:8px}.pln td.rk .rof{display:block;font:500 9.5px/1.2 var(--name);font-style:normal;color:var(--dim)}.pln td.rk.up{color:var(--pos)}.pln td.rk.dn{color:var(--dim)}
 .pln tr.sel td{background:color-mix(in oklab,var(--ball) 7%,var(--panel))}.pln tr.wi td:first-child b{font-style:italic}
 .pln.lk td:first-child b{font-size:13px}
 @media (max-width:480px){table.pln{font-size:11px}.pln td{padding:8px 1px}.pln th{padding:0 1px 6px;font-size:8.5px}.pln td:first-child{max-width:70px}.pln td:first-child b{font-size:12.5px}.pln td.rk{padding-left:4px}}
@@ -3326,10 +3326,10 @@ function psDD(k,title,sub,body,def){const open=PSDD[k]!=null?PSDD[k]:def;
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.classList&&d.classList.contains("pdd")){PSDD[d.dataset.dd]=d.open;store.set("psDD",PSDD)}},true);
 // Every player's value for the rest of this week (the Week view's number: games x per-game value
 // from zero, each game against its opponent), for his week rank. Cached until the data or punts change.
-function weekRanks(){const t=etToday(),key=[G&&G.asOf,IJ&&IJ.built,SC&&SC.built,[...S.punt].join(),t].join("|");
-  if(S.wkR&&S.wkR.key===key)return S.wkR;const live=weekDates(0).filter(d=>d>=t),v={},rk={};
+function weekRanks(off=0){const t=etToday(),key=[G&&G.asOf,IJ&&IJ.built,SC&&SC.built,[...S.punt].join(),t,off].join("|"),C=S.wkRC||(S.wkRC={});
+  if(C[off]&&C[off].key===key)return C[off];const live=weekDates(off).filter(d=>d>=t),v={},rk={};
   for(const[id,q]of Object.entries(G.players)){if(!q.xp||q.xp[0]<8)continue;const wd=live.filter(d=>plays(q.t,d)&&avail(id,d));if(!wd.length)continue;v[id]=wd.length*val0(pjZ(avgLine(id,q,wd)),G.zp)}
-  Object.entries(v).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>rk[id]=i+1);return S.wkR={key,rk,n:Object.keys(rk).length}}
+  Object.entries(v).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>rk[id]=i+1);return C[off]={key,rk,n:Object.keys(rk).length}}
 // The player page's week: rank, games left, and each game against its opponent (the same daily line
 // as Today, Week, Schedule and the Matchup tool).
 function psWeekProj(id,q){if(!SC||!q.xp)return null;const t=etToday(),ds=weekDates(0),live=ds.filter(d=>d>=t&&plays(q.t,d)),R=weekRanks();
@@ -3434,12 +3434,15 @@ function linesHTML(id,q,rq){
   if(S.psLn==="proj"&&q&&q.xp){
     const fut=SC?Object.keys(SC.dates).filter(d=>d>=t&&plays(q.t,d)&&avail(id,d)).sort():[];
     if(fut.length){const d=fut[0];rows.push({lab:"Next game",sub:`${d===t?"Tonight":DL(d)} ${opp(q.t,d).replace("@ ","@").replace("vs ","")}`,g:1,l:lineOn(id,q,d)})}
+    // the weeks as totals (games x his line that night), ranked against everyone playing that week:
+    // per game a week barely differs from the season, the number of games is what moves it
     for(const[off,lab]of[[0,"This week"],[1,"Next week"]]){const ds=weekDates(off).filter(d=>d>=t&&plays(q.t,d)&&avail(id,d));
-      if(ds.length)rows.push({lab,sub:ds.map(d=>opp(q.t,d).replace("@ ","@").replace("vs ","")).join(" "),g:ds.length,l:avgLine(id,q,ds)})}
+      if(ds.length){const a=avgLine(id,q,ds),W=weekRanks(off);
+        rows.push({lab,sub:ds.map(d=>opp(q.t,d).replace("@ ","@").replace("vs ","")).join(" "),g:ds.length,l:a,tot:ds.length,z:pjZ(a),r:W.rk[id]||null,of:W.n})}}
     const sd=sznDs(id,q),m=avgMin(id,q,sd);
     rows.push({lab:"Rest of season",sub:sd.length?"":"no games listed",g:sd.length||null,l:lineAt(q,m),r:B&&B.x?B.x[id]:null,sel:1});
     if(Math.abs(m-30)>=1.5)rows.push({lab:"At 30 minutes",sub:"what-if: same rates",g:null,l:lineAt(q,30),wi:1});
-    for(const x of rows){x.z=pjZ(x.l);if(x.r==null)x.r=xr(x.l)}}
+    for(const x of rows){if(!x.z)x.z=pjZ(x.l);if(x.r==null&&!x.tot)x.r=xr(x.l)}}
   if(S.psLn==="act"){
     const lf=R&&R.lf,ci=k=>2+R.cats.indexOf(k);
     for(const[w,lab,sub]of[["season","Season",""],["d14","Last 14 days",""],["d7","Last 7 days",""],["g3","Last 3","team's last 3, a missed game = 0"]]){
@@ -3450,13 +3453,13 @@ function linesHTML(id,q,rq){
       rows.push({lab:"Last season",sub:q.bs===G.seasons[0]?"":q.bs,g:q.bgp,l,z:Object.fromEntries(LNK.map(k=>[k,ly[2+G.cats.indexOf(k)]])),r:B&&B.ly?B.ly[id]:null})}}
   const sw=`<div class="seg lnsw">${[["proj","Projected"],["act","Actual"]].map(([k,l])=>`<button data-psln="${k}" aria-pressed="${S.psLn===k}">${l}</button>`).join("")}</div>`;
   if(!rows.length)return`<section class="blk"><h3>Lines ${sw}</h3><p class="lgk">${S.psLn==="proj"?"No projection for him yet.":"No games this season yet."}</p></section>`;
-  const cv=(l,k)=>k==="fg"?(l.fga?Math.round(100*l.fgm/l.fga):"–"):k==="ft"?(l.fta?Math.round(100*l.ftm/l.fta):"–"):f1(l[k]);
+  const cv=(l,k,n)=>k==="fg"?(l.fga?Math.round(100*l.fgm/l.fga):"–"):k==="ft"?(l.fta?Math.round(100*l.ftm/l.fta):"–"):f1(l[k]*(n||1));
   const cc=(z,k)=>S.punt.has(k)?"off":z==null?"":z>=.75?"g":z<=-.75?"b":"";
   const tr=r=>!r?"":r<=TOP?"up":r<=ROST?"":"dn";
   return`<section class="blk"><h3>Lines${sw}</h3><div class="plnw"><table class="pln"><tr><th></th>${LNK.map(k=>`<th class="${S.punt.has(k)?"off":""}">${LNL[k]}</th>`).join("")}<th>Rank</th></tr>
-    ${rows.map(x=>`<tr class="${x.sel?"sel":""}${x.wi?" wi":""}"><td><b>${x.lab}</b><i>${[x.g!=null?x.g+"g":"",Math.round(x.l.min)+" min",x.sub].filter(Boolean).map(esc).join(" · ")}</i></td>${LNK.map(k=>`<td class="${cc(x.z&&x.z[k],k)}">${cv(x.l,k)}</td>`).join("")}<td class="rk ${tr(x.r)}">${x.r||"–"}</td></tr>`).join("")}</table></div>
-    <p class="stkn">${S.psLn==="proj"?"Each game at that night's minutes (teammates in or out) and opponent, the same line as Today, Week and Schedule. Rank = where that per-game line would rank on the season scale; Rest of season is his Proj rank. <i>At 30 minutes</i> is a what-if: the same per-minute numbers, 30 minutes a game."
-      :"What he's done, per game. Rank = his rank in that window, as on the Ranks tab."} All per game. Green / red = a real strength or weakness in that line.</p></section>`}
+    ${rows.map(x=>`<tr class="${x.sel?"sel":""}${x.wi?" wi":""}"><td><b>${x.lab}</b><i>${[x.g!=null?x.g+"g":"",x.tot?"totals":Math.round(x.l.min)+" min",x.sub].filter(Boolean).map(esc).join(" · ")}</i></td>${LNK.map(k=>`<td class="${cc(x.z&&x.z[k],k)}">${cv(x.l,k,x.tot)}</td>`).join("")}<td class="rk ${tr(x.r)}">${x.r||"–"}${x.of?`<i class="rof">of ${x.of}</i>`:""}</td></tr>`).join("")}</table></div>
+    <p class="stkn">${S.psLn==="proj"?"Each game at that night's minutes (teammates in or out) and opponent, the same line as Today, Week and Schedule. <b>This week</b> and <b>Next week</b> are week totals (games left × his line each night; FG% and FT% stay percentages), ranked against everyone playing that week, so a 4-game week beats a 2-game one. The other rows are per game, ranked where that line would sit on the season scale; Rest of season is his Proj rank. <i>At 30 minutes</i> is a what-if: the same per-minute numbers, 30 minutes a game."
+      :"What he's done, per game. Rank = his rank in that window, as on the Ranks tab."} Green / red = a real strength or weakness in that line (per game).</p></section>`}
 // Luck check: what his season would be at the minutes he's played if he'd played to his projection,
 // against what he did. Proj already leans partly on this season, so the gap understates the luck a bit.
 function luckHTML(id,q,rq){
