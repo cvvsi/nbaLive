@@ -636,6 +636,36 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .lr.bo .bsg{display:grid;grid-template-columns:1fr 1.15fr 1.35fr;gap:4px 8px;margin:6px 0 0 26px}
 .bsg i{display:block;font:600 9.5px/1 var(--name);letter-spacing:.07em;text-transform:uppercase;font-style:normal;color:var(--dim)}
 .bsg span{display:block;margin-top:3px;font:500 13px/1.2 var(--num);color:var(--dim);white-space:nowrap}.bsg b{color:var(--ink);font-weight:600}.bsg s{text-decoration:none;font-size:11px}
+/* Game log: Start / Bench tags and the minutes bar (minBar()) */
+.gst{display:inline-block;font:700 9px/1 var(--name);letter-spacing:.06em;text-transform:uppercase;padding:2px 4px;border-radius:4px;margin-top:4px}
+.gst.s{background:var(--ink);color:var(--panel)}.gst.b{color:var(--dim);box-shadow:inset 0 0 0 1px var(--rule)}.gst.bl{color:var(--ball);box-shadow:inset 0 0 0 1px var(--ball);margin-left:3px}
+.sm.pf5 b{color:var(--neg)}
+.mbar{margin:10px 0 2px;padding-top:11px}
+.mbt{position:relative;height:9px;background:var(--cell);border-radius:2px}
+.mbt .mon{position:absolute;top:0;bottom:0;background:color-mix(in oklab,var(--ball) 72%,var(--panel));border-radius:1px}
+.mbt .msat{position:absolute;top:0;bottom:0;background:color-mix(in oklab,var(--neg) 25%,var(--cell))}
+.mbt .mq{position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--panel)}
+.mbt .mfl{position:absolute;top:-1px;bottom:-1px;width:2px;margin-left:-1px;background:var(--ink)}
+.mbt .mfl i{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font:600 9px/1 var(--num);font-style:normal;color:var(--dim);padding-bottom:1px}
+.mbt .mfl.tr{background:var(--neg)}.mbt .mfl.tr i{color:var(--neg)}
+.mbl{position:relative;height:12px}.mbl span{position:absolute;top:2px;font:500 9.5px/1 var(--name);color:var(--dim)}
+.mleg{display:flex;flex-wrap:wrap;gap:3px 12px;font:500 11px/1.3 var(--name);color:var(--dim);margin:0 0 6px}
+.mleg i{display:inline-block;width:12px;height:7px;border-radius:1px;margin-right:4px;vertical-align:0}
+.mleg i.lo{background:color-mix(in oklab,var(--ball) 72%,var(--panel))}.mleg i.lf{width:2px;background:var(--ink)}.mleg i.lt{width:2px;background:var(--neg)}.mleg i.ls{background:color-mix(in oklab,var(--neg) 25%,var(--cell))}
+/* Lines / Luck check (player page > Projection): one per-game line per window, like a box score */
+.blk h3 .lnsw{margin-left:auto;float:right;margin-top:-4px}
+.plnw{overflow-x:auto}
+table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
+.pln th{font:600 9.5px/1 var(--name);letter-spacing:.05em;color:var(--dim);text-align:right;padding:0 3px 6px}
+.pln th:first-child{text-align:left}.pln th.off,.pln td.off{opacity:.35}
+.pln td{text-align:right;padding:8px 3px;border-top:1px solid var(--rule);white-space:nowrap}
+.pln td:first-child{text-align:left;white-space:normal}.pln td:first-child b{display:block;font:600 13.5px/1.15 var(--name)}
+.pln td:first-child i{display:block;font:500 10.5px/1.25 var(--name);font-style:normal;color:var(--dim)}
+.pln td.g{color:var(--pos);font-weight:600}.pln td.b{color:var(--neg);font-weight:600}
+.pln td.rk{font-weight:600;padding-left:8px}.pln td.rk.up{color:var(--pos)}.pln td.rk.dn{color:var(--dim)}
+.pln tr.sel td{background:color-mix(in oklab,var(--ball) 7%,var(--panel))}.pln tr.wi td:first-child b{font-style:italic}
+.pln.lk td:first-child b{font-size:13px}
+@media (max-width:480px){table.pln{font-size:11px}.pln td{padding:8px 1px}.pln th{padding:0 1px 6px;font-size:8.5px}.pln td:first-child{max-width:70px}.pln td:first-child b{font-size:12.5px}.pln td.rk{padding-left:4px}}
 .bt{font:700 9.5px/1 var(--name);letter-spacing:.07em;text-transform:uppercase;color:var(--ink);border:1px solid var(--ink);border-radius:4px;padding:2px 4px;margin-left:4px;flex:none}.bt.cau{color:var(--neg);border-color:var(--neg)}.bt.good{color:var(--pos);border-color:var(--pos)}.bt.bad{color:var(--neg);border-color:var(--neg)}.bt.warn{color:var(--ball);border-color:var(--ball)}
 .bo2r.lbr{grid-template-columns:minmax(0,1fr) 46px 46px 46px}
 .bo2 .ij{font:700 9.5px/1 var(--name);letter-spacing:.07em;color:var(--neg);border:1px solid var(--neg);border-radius:4px;padding:2px 4px;flex:none}.bo2 .ij.dtd{color:var(--ball);border-color:var(--ball)}
@@ -2977,13 +3007,16 @@ function psLogHTML(){const L=S.ps&&S.ps.log;if(!L)return`<p class="lgk">${S.ps&&
   const avg=(gs,k)=>gs.reduce((a,g)=>a+g[k],0)/gs.length;
   const win=[[5,"Last 5"],[10,"Last 10"],[20,"Last 20"],[L.length,"Season"]].filter(([n],i,a)=>n<=L.length&&(i===a.length-1||n<L.length)).map(([n,l])=>{const gs=L.slice(0,n),fga=avg(gs,"fga"),fta=avg(gs,"fta");
     return`<tr><td>${l}</td><td>${f1(avg(gs,"min"))}</td>${["pts","reb","ast","tpm","stl","blk","to"].map(k=>`<td class="${nh(k).trim()}">${f1(avg(gs,k))}</td>`).join("")}<td>${fga?(avg(gs,"fgm")/fga).toFixed(3).replace(/^0/,""):"–"}</td><td>${fta?(avg(gs,"ftm")/fta).toFixed(3).replace(/^0/,""):"–"}</td><td class="vl ${vcls(gs.reduce((a,g)=>a+V(g),0)/gs.length)}">${sgn(gs.reduce((a,g)=>a+V(g),0)/gs.length)}</td></tr>`}).join("");
+  loadUsg(S.ps.id,L.slice(0,10));
   const rows=L.slice(0,10).map(g=>{const v=V(g),cats=["tpm","stl","blk","to"].map(k=>`<span class="sm${nh(k)}"><b>${g[k]}</b><i>${CL[k]}</i></span>`).join("")
       +`<span class="sm${nh("fg")}"><b>${g.fgm}/${g.fga}</b><i>fg</i></span><span class="sm${nh("ft")}"><b>${g.ftm}/${g.fta}</b><i>ft</i></span>`;
     const et=(x=>isNaN(x)?"":new Intl.DateTimeFormat("en-CA",{timeZone:"America/New_York"}).format(x))(new Date(g.date));
-    return`<div class="glr${S.ps&&S.ps.sel===et?" hit":""}" data-gd="${et}"><div class="gd"><b>${md(g.date)}</b><i>${g.at==="@"?"@":"vs"} ${esc(g.opp)}</i><i>${Math.round(g.min)} min</i></div>
-      <div class="gs"><div class="c2" style="margin:0"><div class="bigs">${BIG.map(k=>`<span class="bg${nh(k)}"><b>${g[k]}</b><i>${CL[k]}</i></span>`).join("")}</div><span class="vl ${vcls(v)}" style="margin-left:auto">${sgn(v)}</span></div><div class="c3">${cats}</div></div></div>`}).join("");
+    const tags=(g.st==null?"":`<span class="gst ${g.st?"s":"b"}">${g.st?"Start":"Bench"}</span>`)+(g.margin>=20?`<span class="gst bl">Blowout</span>`:"");
+    return`<div class="glr${S.ps&&S.ps.sel===et?" hit":""}" data-gd="${et}"><div class="gd"><b>${md(g.date)}</b><i>${g.at==="@"?"@":"vs"} ${esc(g.opp)}</i><i>${Math.round(g.min)} min</i>${tags}</div>
+      <div class="gs"><div class="c2" style="margin:0"><div class="bigs">${BIG.map(k=>`<span class="bg${nh(k)}"><b>${g[k]}</b><i>${CL[k]}</i></span>`).join("")}</div><span class="vl ${vcls(v)}" style="margin-left:auto">${sgn(v)}</span></div><div class="c3">${cats}<span class="sm${g.pf>=5?" pf5":""}"><b>${g.pf}</b><i>pf</i></span></div>${minBar(g.mb)}</div></div>`}).join("");
+  const leg=L.slice(0,10).some(g=>g.mb)?`<p class="mleg"><span><i class="lo"></i>on the floor</span><span><i class="lf"></i>foul (its number)</span><span><i class="lt"></i>foul trouble</span><span><i class="ls"></i>sat with fouls</span></p>`:"";
   return`<section class="blk"><h3>Averages <span>per game, from ESPN's game log</span></h3><div class="psavw"><table class="cmp psav"><tr><th></th><th>MIN</th><th>PTS</th><th>REB</th><th>AST</th><th>3PM</th><th>STL</th><th>BLK</th><th>TO</th><th>FG%</th><th>FT%</th><th>Val</th></tr>${win}</table></div></section>
-    <section class="blk"><h3>Last ${Math.min(10,L.length)} games <span>newest first</span></h3><div class="gl">${rows}</div><p class="lgk">Value per game is on a fixed league scale, punts applied. <a href="${$("psLink").href}" style="color:var(--ball)">Full game log ›</a></p></section>`}
+    <section class="blk"><h3>Last ${Math.min(10,L.length)} games <span>newest first</span></h3>${leg}<div class="gl">${rows}</div><p class="lgk">Value per game is on a fixed league scale, punts applied. <a href="${$("psLink").href}" style="color:var(--ball)">Full game log ›</a></p></section>`}
 // Usage by game needs the team's totals, which the game log doesn't have: each shown game's box
 // score is fetched once (5 at a time) and run through the same formula as the Box tab.
 function usgFrom(j,pid){for(const t of (j.boxscore&&j.boxscore.players)||[]){const st=t.statistics&&t.statistics[0];if(!st)continue;
@@ -2995,14 +3028,33 @@ function usgFrom(j,pid){for(const t of (j.boxscore&&j.boxscore.players)||[]){con
 // A finished game's usage and fouls never change, so they're kept on the device (a few numbers a game,
 // "rlc": "event|player" -> [usage, foul trouble, minutes sat with fouls, text]) and only new games are fetched.
 const RLC=store.get("rlc",{});
+// Also kept per game for the Game log: whether he started, and his minutes bar (stints on the floor,
+// fouls with their time and trouble flag, the stretches he sat with fouls), all in game minutes.
+// Entries from before the bar (4 fields) are fetched once more.
+const r1=x=>Math.round(x*10)/10;
+function starterFrom(j,pid){for(const t of (j.boxscore&&j.boxscore.players)||[]){const st=t.statistics&&t.statistics[0];if(!st)continue;
+  const a=(st.athletes||[]).find(a=>String((a.athlete||{}).id||"")===String(pid));if(a)return a.starter?1:0}return null}
+function rlcSet(g,c){g.usg=c[0];g.fr=c[1]==null?null:{tr:!!c[1],satM:c[2],txt:c[3]};g.st=c[4];g.mb=c[5]||null}
 async function loadUsg(id,gs){
-  for(const g of gs){if(!g.eid||g.usg!==undefined)continue;const c=RLC[g.eid+"|"+id];if(c){g.usg=c[0];g.fr=c[1]==null?null:{tr:!!c[1],satM:c[2],txt:c[3]}}}
+  for(const g of gs){if(!g.eid||g.usg!==undefined)continue;const c=RLC[g.eid+"|"+id];if(c&&c.length>=6)rlcSet(g,c)}
   const todo=gs.filter(g=>g.eid&&g.usg===undefined);if(!todo.length)return;for(const g of todo)g.usg=null;
-  const q=[...todo],work=async()=>{while(q.length){const g=q.shift();try{const j=await getJSON(`${API}/summary?event=${encodeURIComponent(g.eid)}`);g.usg=usgFrom(j,id);g.fr=foulRead(j.plays,id,null,g.pf);
-      RLC[g.eid+"|"+id]=[g.usg==null?null:Math.round(g.usg*10)/10,...(g.fr?[g.fr.tr?1:0,Math.round(g.fr.satM*10)/10,g.fr.txt]:[null])]}catch(e){g.usg=null;g.fr=null}}};
+  const q=[...todo],work=async()=>{while(q.length){const g=q.shift();try{const j=await getJSON(`${API}/summary?event=${encodeURIComponent(g.eid)}`);
+      const u=usgFrom(j,id),fr=foulRead(j.plays,id,null,g.pf),sts=stintsOf({eid:id},j.plays||[]),fl=foulsOf(j.plays||[],id,null);
+      const on=sts?sts.reduce((a,x)=>a+x[1]-x[0],0):0,end=(j.plays||[]).length?Math.max(48,ptT(j.plays[j.plays.length-1]).t):48;
+      // the bar only when the substitutions add up to his box-score minutes (within 3)
+      const mb=sts&&sts.length&&Math.abs(on-g.min)<3?[r1(end),sts.map(x=>[r1(x[0]),r1(x[1])]),fl.map(f=>[r1(f.t),f.tr?1:0]),fr?fr.sat.map(x=>[r1(x.a),r1(x.b)]):[]]:0;
+      const c=[u==null?null:r1(u),...(fr?[fr.tr?1:0,r1(fr.satM),fr.txt]:[null,null,null]),starterFrom(j,id),mb];
+      rlcSet(g,c);RLC[g.eid+"|"+id]=c}catch(e){g.usg=null;g.fr=null}}};
   await Promise.all([...Array(Math.min(5,todo.length))].map(work));
-  {const ks=Object.keys(RLC);if(ks.length>6000)for(const k of ks.slice(0,ks.length-5000))delete RLC[k];store.set("rlc",RLC)}
-  if(S.ps&&S.ps.id===id&&S.ps.tab==="role")renderSheet()}
+  {const ks=Object.keys(RLC);if(ks.length>4000)for(const k of ks.slice(0,ks.length-3000))delete RLC[k];store.set("rlc",RLC)}
+  if(S.ps&&S.ps.id===id&&(S.ps.tab==="role"||S.ps.tab==="log"))renderSheet()}
+// His minutes in one game as a bar: on the floor in orange, fouls as numbered ticks (red once in
+// trouble), the time he sat with fouls tinted red, quarters marked.
+function minBar(mb){if(!mb)return"";const[end,sts,fl,sat]=mb,P=t=>(100*t/end).toFixed(2)+"%";
+  const qs=[12,24,36,...(end>48?[48]:[])];
+  return`<div class="mbar"><div class="mbt">${sat.map(([a,b])=>`<span class="msat" style="left:${P(a)};width:${P(b-a)}"></span>`).join("")}${sts.map(([a,b])=>`<span class="mon" style="left:${P(a)};width:${P(b-a)}"></span>`).join("")}
+    ${qs.map(m=>`<span class="mq" style="left:${P(m)}"></span>`).join("")}${fl.map(([t,tr],i)=>`<span class="mfl${tr?" tr":""}" style="left:${P(t)}"><i>${i+1}</i></span>`).join("")}</div>
+    <div class="mbl">${["Q1","Q2","Q3","Q4"].map((q,i)=>`<span style="left:${P(i*12)}">${q}</span>`).join("")}${end>48?`<span style="left:${P(48)}">OT</span>`:""}</div></div>`}
 // One stat by game: a smooth line with a soft fill, a dot per game and a dashed rolling 5-game average.
 function gameChart(gs,val,o){const W=isDesk()?440:360,mk=o.mk,H=mk?166:150,n=gs.length,v=gs.map(val);if(n<2)return"";
   const ok=v.filter(x=>x!=null),hi=o.max!=null?Math.max(o.max,...ok):Math.ceil(Math.max(...ok)*1.15/8)*8,lo=0;
@@ -3277,6 +3329,7 @@ function renderSheet(){
           const att=k==="fg"?` <em>${f1(q.att[0]/q.now[0])} att</em>`:k==="ft"?` <em>${f1(q.att[2]/q.now[0])} att</em>`:"";
           return`<div class="${nh(k).trim()}"><b>${v}</b><i>${CL[k].toUpperCase()}${att}</i></div>`}).join("")}
           <div class="role"><b>${f1(r("mpg"))}</b><i>MIN</i></div><div class="role"><b>${Math.round(r("usg"))}%</b><i>USAGE</i></div></div></section>`)}
+    h.push(linesHTML(id,q,rq));h.push(luckHTML(id,q,rq));
     if(q){const wk=psWeekProj(id,q);
       if(wk)h.push(psDD("week","This week",wk.sub,wk.html,true));
       h.push(psDD("proj","Proj vs this season","per game · rest of season",stickHTML(q,B,id),false));
@@ -3301,6 +3354,60 @@ function readHTML(a){
     if(g&&g.l===l)g.t.push(t);else groups.push({l,t:[t]})}
   return`<div class="rd"><p class="lead">${lead}</p>${groups.map(g=>`<div class="rp"><i>${g.l}</i><p>${g.t.join(" ")}</p></div>`).join("")}</div>`;
 }
+// ---- Lines (player page > Projection): every window as one per-game line, like a box score.
+// Projected: next game, this week, next week (each game at that night's minutes and opponent:
+// lineOn()), rest of season (Proj) and at 30 minutes (same rates, a what-if). Actual: season, 14 and
+// 7 days, the team's last 3 (a missed game = 0) and last season. Rank = where that per-game line
+// ranks on the Proj scale (projected rows) or in that window (actual rows), punts applied. A number is
+// green or red only when the category is a real strength or weakness in that line (|z| >= 0.75).
+// Projected / Actual is remembered per device (psLn).
+S.psLn=store.get("psLn","proj");
+const LNK=["pts","reb","ast","tpm","stl","blk","to","fg","ft"],LNL={pts:"PTS",reb:"REB",ast:"AST",tpm:"3PM",stl:"STL",blk:"BLK",to:"TO",fg:"FG%",ft:"FT%"};
+function linesHTML(id,q,rq){
+  const B=S.bs,rows=[],DL=d=>new Date(d+"T12:00:00Z").toLocaleDateString("en-US",{weekday:"short",timeZone:"UTC"}),t=etToday();
+  const xr=l=>{const v=pjVal(pjZ(l));return B&&B.xs?1+B.xs.filter(x=>x>v).length:null};
+  if(S.psLn==="proj"&&q&&q.xp){
+    const fut=SC?Object.keys(SC.dates).filter(d=>d>=t&&plays(q.t,d)&&avail(id,d)).sort():[];
+    if(fut.length){const d=fut[0];rows.push({lab:"Next game",sub:`${d===t?"Tonight":DL(d)} ${opp(q.t,d).replace("@ ","@").replace("vs ","")}`,g:1,l:lineOn(id,q,d)})}
+    for(const[off,lab]of[[0,"This week"],[1,"Next week"]]){const ds=weekDates(off).filter(d=>d>=t&&plays(q.t,d)&&avail(id,d));
+      if(ds.length)rows.push({lab,sub:ds.map(d=>opp(q.t,d).replace("@ ","@").replace("vs ","")).join(" "),g:ds.length,l:avgLine(id,q,ds)})}
+    const sd=sznDs(id,q),m=avgMin(id,q,sd);
+    rows.push({lab:"Rest of season",sub:sd.length?"":"no games listed",g:sd.length||null,l:lineAt(q,m),r:B&&B.x?B.x[id]:null,sel:1});
+    if(Math.abs(m-30)>=1.5)rows.push({lab:"At 30 minutes",sub:"what-if: same rates",g:null,l:lineAt(q,30),wi:1});
+    for(const x of rows){x.z=pjZ(x.l);if(x.r==null)x.r=xr(x.l)}}
+  if(S.psLn==="act"){
+    const lf=R&&R.lf,ci=k=>2+R.cats.indexOf(k);
+    for(const[w,lab,sub]of[["season","Season",""],["d14","Last 14 days",""],["d7","Last 7 days",""],["g3","Last 3","team's last 3, a missed game = 0"]]){
+      const a=rq&&rq.w[w],L=rq&&rq.l&&rq.l[w];if(!a||!L||!lf)continue;const l={min:a[1]};lf.forEach((k,i)=>l[k]=L[i]);
+      rows.push({lab,sub,g:w==="g3"?a[0]+"/3":a[0],l,z:Object.fromEntries(LNK.map(k=>[k,a[ci(k)]])),r:S.rk&&S.rk[w]&&S.rk[w][id],sel:w==="season"})}
+    if(q&&q.b&&G.ly&&G.ly[id]){const F=G.rates,b=k=>q.b[F.indexOf(k)],mp=b("mpg"),pg=k=>b(k)*mp/36,ly=G.ly[id];
+      const l={min:mp,pts:pg("pts"),reb:pg("reb"),ast:pg("ast"),tpm:pg("tpm"),stl:pg("stl"),blk:pg("blk"),to:pg("to"),fga:pg("fga"),fgm:pg("fga")*b("fg")/100,fta:pg("fta"),ftm:pg("fta")*b("ft")/100};
+      rows.push({lab:"Last season",sub:q.bs===G.seasons[0]?"":q.bs,g:q.bgp,l,z:Object.fromEntries(LNK.map(k=>[k,ly[2+G.cats.indexOf(k)]])),r:B&&B.ly?B.ly[id]:null})}}
+  const sw=`<div class="seg lnsw">${[["proj","Projected"],["act","Actual"]].map(([k,l])=>`<button data-psln="${k}" aria-pressed="${S.psLn===k}">${l}</button>`).join("")}</div>`;
+  if(!rows.length)return`<section class="blk"><h3>Lines ${sw}</h3><p class="lgk">${S.psLn==="proj"?"No projection for him yet.":"No games this season yet."}</p></section>`;
+  const cv=(l,k)=>k==="fg"?(l.fga?Math.round(100*l.fgm/l.fga):"–"):k==="ft"?(l.fta?Math.round(100*l.ftm/l.fta):"–"):f1(l[k]);
+  const cc=(z,k)=>S.punt.has(k)?"off":z==null?"":z>=.75?"g":z<=-.75?"b":"";
+  const tr=r=>!r?"":r<=TOP?"up":r<=ROST?"":"dn";
+  return`<section class="blk"><h3>Lines <span>per game</span>${sw}</h3><div class="plnw"><table class="pln"><tr><th></th>${LNK.map(k=>`<th class="${S.punt.has(k)?"off":""}">${LNL[k]}</th>`).join("")}<th>Rank</th></tr>
+    ${rows.map(x=>`<tr class="${x.sel?"sel":""}${x.wi?" wi":""}"><td><b>${x.lab}</b><i>${[x.g!=null?x.g+"g":"",Math.round(x.l.min)+" min",x.sub].filter(Boolean).map(esc).join(" · ")}</i></td>${LNK.map(k=>`<td class="${cc(x.z&&x.z[k],k)}">${cv(x.l,k)}</td>`).join("")}<td class="rk ${tr(x.r)}">${x.r||"–"}</td></tr>`).join("")}</table></div>
+    <p class="stkn">${S.psLn==="proj"?"Each game at that night's minutes (teammates in or out) and opponent, the same line as Today, Week and Schedule. Rank = where that per-game line would rank on the season scale; Rest of season is his Proj rank. <i>At 30 minutes</i> is a what-if: the same per-minute numbers, 30 minutes a game."
+      :"What he's done, per game. Rank = his rank in that window, as on the Ranks tab."} Green / red = a real strength or weakness in that line.</p></section>`}
+// Luck check: what his season would be at the minutes he's played if he'd played to his projection,
+// against what he did. Proj already leans partly on this season, so the gap understates the luck a bit.
+function luckHTML(id,q,rq){
+  const a=rq&&rq.w.season,L=rq&&rq.l&&rq.l.season,lf=R&&R.lf;if(!q||!q.xp||!a||!L||!lf||a[0]<3)return"";
+  const A={min:a[1]};lf.forEach((k,i)=>A[k]=L[i]);const E=lineAt(q,a[1]);
+  const pc=(l,k)=>l[k+"a"]?100*l[k+"m"]/l[k+"a"]:null,v=(l,k)=>k==="fg"?pc(l,"fg"):k==="ft"?pc(l,"ft"):l[k];
+  const rows=LNK.filter(k=>!S.punt.has(k)).map(k=>{const e=v(E,k),x=v(A,k);if(e==null||x==null)return null;const d=x-e,pct=k==="fg"||k==="ft";
+    const big=pct?Math.abs(d)>=4&&(k==="fg"?A.fga:A.fta)>=2:Math.abs(d)>=Math.max(.25*e,.3);return{k,e,x,d,pct,big,good:(k==="to"?-d:d)>0}}).filter(Boolean);
+  const hot=rows.filter(r=>r.big&&r.good).map(r=>LNL[r.k]),cold=rows.filter(r=>r.big&&!r.good).map(r=>LNL[r.k]);
+  const fm=(r,x)=>r.pct?Math.round(x):f1(x);
+  const read=hot.length||cold.length?[hot.length?`running <b>hot in ${hot.join(", ")}</b> (expect it to cool)`:"",cold.length?`running <b>cold in ${cold.join(", ")}</b> (expect it back)`:""].filter(Boolean).join("; "):"close to what we'd expect everywhere";
+  return`<section class="blk"><h3>Luck check <span>${a[0]} games · ${Math.round(a[1])} min</span></h3>
+    <p class="stkn" style="margin:0 0 8px">His projection at the minutes he's played, against what he did. The gap is mostly luck: ${read}.</p>
+    <div class="plnw"><table class="pln lk"><tr><th></th>${rows.map(r=>`<th>${LNL[r.k]}</th>`).join("")}</tr>
+    <tr><td><b>Expected</b></td>${rows.map(r=>`<td>${fm(r,r.e)}</td>`).join("")}</tr>
+    <tr><td><b>Actual</b></td>${rows.map(r=>`<td class="${r.big?r.good?"g":"b":""}">${fm(r,r.x)}</td>`).join("")}</tr></table></div></section>`}
 // Proj vs this season, per game: before (last season), now and Proj for minutes, then all 9 cats
 // in the site's fixed order. Proj is colored only where it differs from now by a real amount (the
 // Buy/Sell heat scale, 0.75+; minutes 2+): green = expected to improve, red = to cool off.
@@ -3387,6 +3494,7 @@ $("psBody").addEventListener("click",e=>{
     return}
   const t=e.target.closest("[data-pst]");if(t){S.ps.tab=t.dataset.pst;S.ps.sel=null;renderSheet();$("psPanel").scrollTop=0;return}
   const rw=e.target.closest("[data-rwin]");if(rw){S.roleWin=rw.dataset.rwin;store.set("roleWin",S.roleWin);renderSheet();return}
+  const ln=e.target.closest("[data-psln]");if(ln){S.psLn=ln.dataset.psln;store.set("psLn",S.psLn);renderSheet();return}
   const p=e.target.closest(".wwo [data-id]");if(p)openSheet(p.dataset.id,null)});
 $("psClose").onclick=()=>closeSheet();
 $("srBtn").onclick=openSearch;
