@@ -203,6 +203,8 @@ To test the phone layout on desktop, use Chrome DevTools → device toolbar → 
 
 ## Conventions
 
+- **Explanations go behind an ⓘ, not on screen.** Write any how-it-works note as `<p class="stkn">` inside its section (or `<p class="bzcap">` atop a list): `foldNote()` in `index.html` turns every one, on every render, into the same small ⓘ beside the section's heading (a list caption keeps its first phrase visible), shown on hover or tap in one floating tip. Status and warnings stay visible as plain text.
+
 - **Keep it one file with no build step.** It must keep working when opened from GitHub Pages as-is.
 - **Phone first.** It must fit 390 px wide with no sideways page scroll, and the 9-cell strip must stay on one line.
 - **Every color is a token in `:root`,** with a matching dark value. Don't hard-code colors in rules or JS (the heat colors use `color-mix` on `--pos` / `--neg` / `--cell`).

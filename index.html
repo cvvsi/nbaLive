@@ -636,6 +636,16 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .lr.bo .bsg{display:grid;grid-template-columns:1fr 1.15fr 1.35fr;gap:4px 8px;margin:6px 0 0 26px}
 .bsg i{display:block;font:600 9.5px/1 var(--name);letter-spacing:.07em;text-transform:uppercase;font-style:normal;color:var(--dim)}
 .bsg span{display:block;margin-top:3px;font:500 13px/1.2 var(--num);color:var(--dim);white-space:nowrap}.bsg b{color:var(--ink);font-weight:600}.bsg s{text-decoration:none;font-size:11px}
+/* ⓘ notes (foldNote()): one small standard icon; the text shows in #nfoTip on hover or tap */
+.nfo{display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--dim);color:var(--dim);
+  font:italic 700 10px/1 Georgia,"Times New Roman",serif;margin-left:6px;vertical-align:1px;cursor:help;flex:none;text-transform:none;letter-spacing:0}
+.nfo:hover,.nfo:focus-visible{color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);outline:none}
+#nfoTip{position:fixed;z-index:100;background:var(--panel);color:var(--ink);border:1px solid var(--rule);border-radius:10px;padding:10px 12px;
+  font:500 12.5px/1.45 var(--name);box-shadow:0 6px 24px rgb(0 0 0/.18)}
+#nfoTip b{font-weight:600}#nfoTip .dn,#nfoTip b.bad{color:var(--neg)}#nfoTip .up,#nfoTip b.good{color:var(--pos)}
+h3 .nfo,h4 .nfo{margin-right:auto}summary .nfo{margin-right:0}
+p.capl{display:flex;align-items:center;flex-wrap:wrap;gap:0}p.nfol{margin:4px 0;text-align:right}
+.lkr{font:500 12.5px/1.4 var(--name);color:var(--dim);margin:0 0 8px}.lkr b{color:var(--ink);font-weight:600}.lkr.dn{color:var(--neg);margin-top:6px}
 /* Game log: Start / Bench tags and the minutes bar (minBar()) */
 .gst{display:inline-block;font:700 9px/1 var(--name);letter-spacing:.06em;text-transform:uppercase;padding:2px 4px;border-radius:4px;margin-top:4px}
 .gst.s{background:var(--ink);color:var(--panel)}.gst.b{color:var(--dim);box-shadow:inset 0 0 0 1px var(--rule)}.gst.bl{color:var(--ball);box-shadow:inset 0 0 0 1px var(--ball);margin-left:3px}
@@ -1100,6 +1110,35 @@ function paintLg(){
 }
 const $=id=>document.getElementById(id);
 
+// ---- Notes behind a small ⓘ. Explanations (p.stkn in a section, p.bzcap atop a list) aren't shown
+// as paragraphs: each becomes a standard ⓘ, beside its section's heading (or, for a list caption,
+// after the caption's first phrase, which stays visible). Hover on desktop, tap on a phone; one
+// floating tip, kept inside the screen. Done for every render by a MutationObserver, so new notes
+// get the same treatment by just using those classes.
+function foldNote(p){if(p.dataset.nf)return;p.dataset.nf=1;
+  const ic=document.createElement("span");ic.className="nfo";ic.tabIndex=0;ic.setAttribute("role","button");ic.setAttribute("aria-label","More info");ic.textContent="i";
+  const body=document.createElement("span");body.className="nfob";body.hidden=true;body.innerHTML=p.innerHTML;ic.appendChild(body);
+  if(p.classList.contains("bzcap")){const h=p.innerHTML,m=h.match(/^([\s\S]*?)(?:[.:](?=\s|$)|<br)/),t=m&&m[1].replace(/<[^>]+>/g,"").length<=90?m[1]:"";
+    p.innerHTML=t||"";p.classList.add("capl");p.appendChild(ic);return}
+  // inside a dropdown the section's own heading is hidden, so the icon goes on the dropdown's title
+  const dd=p.closest("details"),sec=p.closest("section,.blk,.card"),hd=(dd&&dd.querySelector(":scope > summary > b"))||(sec&&sec.querySelector(":scope > h3, :scope > h4, :scope > .rchh > h4"));
+  if(hd){const after=[...hd.childNodes].find(n=>n.nodeType===1&&!n.classList.contains("nfo"));hd.insertBefore(ic,after||null);p.remove()}else{p.innerHTML="";p.classList.add("nfol");p.appendChild(ic)}}
+new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes){if(n.nodeType!==1)continue;
+  if(n.matches&&n.matches("p.stkn,p.bzcap"))foldNote(n);n.querySelectorAll&&n.querySelectorAll("p.stkn,p.bzcap").forEach(foldNote)}}).observe(document.documentElement,{childList:true,subtree:true});
+const nfoTip=document.createElement("div");nfoTip.id="nfoTip";nfoTip.hidden=true;nfoTip.setAttribute("role","tooltip");
+document.addEventListener("DOMContentLoaded",()=>document.body.appendChild(nfoTip));
+let nfoOn=null;
+function nfoShow(ic){const b=ic.querySelector(".nfob");if(!b)return;if(!nfoTip.isConnected)document.body.appendChild(nfoTip);
+  nfoTip.innerHTML=b.innerHTML;nfoTip.hidden=false;nfoOn=ic;const r=ic.getBoundingClientRect(),W=Math.min(300,innerWidth-24);
+  nfoTip.style.width=W+"px";const x=Math.max(12,Math.min(innerWidth-W-12,r.left+r.width/2-W/2)),h=nfoTip.offsetHeight;
+  const below=r.bottom+8+h<=innerHeight-8||r.top-8-h<8;nfoTip.style.left=x+"px";nfoTip.style.top=(below?r.bottom+8:r.top-8-h)+"px"}
+function nfoHide(){nfoTip.hidden=true;nfoOn=null}
+document.addEventListener("click",e=>{const ic=e.target.closest(".nfo");if(ic){e.preventDefault();e.stopPropagation();nfoOn===ic?nfoHide():nfoShow(ic);return}
+  if(nfoOn&&!e.target.closest("#nfoTip"))nfoHide()},true);
+document.addEventListener("mouseover",e=>{const ic=e.target.closest&&e.target.closest(".nfo");if(ic&&matchMedia("(hover:hover)").matches)nfoShow(ic)});
+document.addEventListener("mouseout",e=>{const ic=e.target.closest&&e.target.closest(".nfo");if(ic&&matchMedia("(hover:hover)").matches&&!(e.relatedTarget&&ic.contains(e.relatedTarget)))nfoHide()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")nfoHide();const ic=e.target.closest&&e.target.closest(".nfo");if(ic&&(e.key==="Enter"||e.key===" ")){e.preventDefault();nfoOn===ic?nfoHide():nfoShow(ic)}});
+addEventListener("scroll",()=>nfoOn&&nfoHide(),true);addEventListener("resize",()=>nfoOn&&nfoHide());
 // ---- dates (US Eastern, which is how ESPN buckets the NBA slate)
 function etToday(){return new Intl.DateTimeFormat("en-CA",{timeZone:"America/New_York"}).format(new Date())}
 function shift(d,n){const t=new Date(d+"T12:00:00Z");t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10)}
@@ -3239,7 +3278,7 @@ function psTonightGame(id,q,tn){const g=gameOf(q,tn),h=[];
           ${bands}${qs}${zero}${gP!=null?`<line x1="${X(0)}" y1="${Y(g0)}" x2="${X(48)}" y2="${Y(gP)}" class="gpace"/>`:""}<path d="${step}" class="gline"/>
           <circle id="psDot" r="4" cx="${X(now.t)}" cy="${Y(now.v)}" class="gdot"/></svg>
         <div class="vtip" id="psTip">Hover or drag along the chart to see his value at any moment and the play behind it.</div>
-        <p class="stkn">${useSt?`<span class="gonk"></span> Strip along the bottom: on the floor (${Math.round(stM)} min, from the substitutions).`:""}${fnote} Solid: his value as the game went. Dashed: the pace to reach his projection by the final buzzer.${miss.length?` <b class="dn">The play-by-play doesn't match his box score in ${miss.join(", ").toUpperCase()}, so this chart is approximate.</b>`:""}</p></section>`);
+        <p class="stkn">${useSt?`<span class="gonk"></span> Strip along the bottom: on the floor (${Math.round(stM)} min, from the substitutions).`:""}${fnote} Solid: his value as the game went. Dashed: the pace to reach his projection by the final buzzer.</p>${miss.length?`<p class="lkr dn">Approximate: the play-by-play doesn't match his box score in ${miss.join(", ").toUpperCase()}.</p>`:""}</section>`);
       h.push(`<section class="blk"><h3>Scoring updates <span>newest first${g&&g.state==="in"?" · refreshes every minute":""}</span></h3><div class="tup">${pts.slice(1).reverse().map(p=>`<div><i>${p.ev.lab}</i><span>${esc(p.ev.txt)}</span><b class="${p.dv>=0?"up":"dn"}">${p.dv>=0?"+":"−"}${Math.abs(p.dv).toFixed(2)}</b></div>`).join("")}</div></section>`)}
     else if(g&&g.state!=="pre")h.push(`<p class="lgk">No play-by-play for this game yet.</p>`)}
   h.push(rest);return h.join("")}
@@ -3388,10 +3427,10 @@ function linesHTML(id,q,rq){
   const cv=(l,k)=>k==="fg"?(l.fga?Math.round(100*l.fgm/l.fga):"–"):k==="ft"?(l.fta?Math.round(100*l.ftm/l.fta):"–"):f1(l[k]);
   const cc=(z,k)=>S.punt.has(k)?"off":z==null?"":z>=.75?"g":z<=-.75?"b":"";
   const tr=r=>!r?"":r<=TOP?"up":r<=ROST?"":"dn";
-  return`<section class="blk"><h3>Lines <span>per game</span>${sw}</h3><div class="plnw"><table class="pln"><tr><th></th>${LNK.map(k=>`<th class="${S.punt.has(k)?"off":""}">${LNL[k]}</th>`).join("")}<th>Rank</th></tr>
+  return`<section class="blk"><h3>Lines${sw}</h3><div class="plnw"><table class="pln"><tr><th></th>${LNK.map(k=>`<th class="${S.punt.has(k)?"off":""}">${LNL[k]}</th>`).join("")}<th>Rank</th></tr>
     ${rows.map(x=>`<tr class="${x.sel?"sel":""}${x.wi?" wi":""}"><td><b>${x.lab}</b><i>${[x.g!=null?x.g+"g":"",Math.round(x.l.min)+" min",x.sub].filter(Boolean).map(esc).join(" · ")}</i></td>${LNK.map(k=>`<td class="${cc(x.z&&x.z[k],k)}">${cv(x.l,k)}</td>`).join("")}<td class="rk ${tr(x.r)}">${x.r||"–"}</td></tr>`).join("")}</table></div>
     <p class="stkn">${S.psLn==="proj"?"Each game at that night's minutes (teammates in or out) and opponent, the same line as Today, Week and Schedule. Rank = where that per-game line would rank on the season scale; Rest of season is his Proj rank. <i>At 30 minutes</i> is a what-if: the same per-minute numbers, 30 minutes a game."
-      :"What he's done, per game. Rank = his rank in that window, as on the Ranks tab."} Green / red = a real strength or weakness in that line.</p></section>`}
+      :"What he's done, per game. Rank = his rank in that window, as on the Ranks tab."} All per game. Green / red = a real strength or weakness in that line.</p></section>`}
 // Luck check: what his season would be at the minutes he's played if he'd played to his projection,
 // against what he did. Proj already leans partly on this season, so the gap understates the luck a bit.
 function luckHTML(id,q,rq){
@@ -3404,7 +3443,8 @@ function luckHTML(id,q,rq){
   const fm=(r,x)=>r.pct?Math.round(x):f1(x);
   const read=hot.length||cold.length?[hot.length?`running <b>hot in ${hot.join(", ")}</b> (expect it to cool)`:"",cold.length?`running <b>cold in ${cold.join(", ")}</b> (expect it back)`:""].filter(Boolean).join("; "):"close to what we'd expect everywhere";
   return`<section class="blk"><h3>Luck check <span>${a[0]} games · ${Math.round(a[1])} min</span></h3>
-    <p class="stkn" style="margin:0 0 8px">His projection at the minutes he's played, against what he did. The gap is mostly luck: ${read}.</p>
+    <p class="stkn">His projection at the minutes he's played (Expected), against what he did (Actual). The gap is mostly luck. Proj already leans partly on this season, so it understates the luck a little.</p>
+    <p class="lkr">${read.replace(/^./,c=>c.toUpperCase())}.</p>
     <div class="plnw"><table class="pln lk"><tr><th></th>${rows.map(r=>`<th>${LNL[r.k]}</th>`).join("")}</tr>
     <tr><td><b>Expected</b></td>${rows.map(r=>`<td>${fm(r,r.e)}</td>`).join("")}</tr>
     <tr><td><b>Actual</b></td>${rows.map(r=>`<td class="${r.big?r.good?"g":"b":""}">${fm(r,r.x)}</td>`).join("")}</tr></table></div></section>`}
