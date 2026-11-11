@@ -736,6 +736,12 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .tbn small{display:block;font:400 11px/1.4 var(--num);color:var(--dim)}
 .tbn s{text-decoration:none;color:var(--dim)}
 .tbtg{font:500 12px/1 var(--num);color:var(--dim);border:1px solid var(--rule);border-radius:6px;padding:5px 8px;min-width:68px;text-align:center}
+.tbro{grid-template-columns:minmax(0,1fr) auto auto;cursor:default}
+.tbro .tbtg{min-width:0;width:62px}.tbro .tbtg[data-d]{width:78px}
+.tbro.il{opacity:.5}
+.tbro.on{background:color-mix(in srgb,var(--ball) 9%,transparent);box-shadow:inset 3px 0 0 var(--ball)}
+.tbtg[data-d][aria-pressed="true"]{color:var(--ball);border-color:var(--ball)}
+.tbkp[aria-pressed="true"]{color:var(--panel);background:var(--ink);border-color:var(--ink)}
 .tbrow[aria-pressed="true"] .tbtg{color:var(--ball);border-color:var(--ball)}
 .tbfa,.tbth{grid-template-columns:20px minmax(0,1fr) auto}
 .tbth{display:grid;gap:10px;padding:0 6px 4px;font:500 11px/1 var(--num);color:var(--dim)}
@@ -1767,8 +1773,10 @@ function renderBuild(){
   if(after)bar.push(`<span>Drop <b>${tbList(drops)}</b>, add <b>${tbList(adds)}</b></span><button class="tbgo" id="tbMk">Make this move</button><button class="tblk" id="tbCx">Cancel</button>`);
   if(T.done.length)bar.push(`<span class="tbml">Moves made</span>${T.done.map(mv=>{const nm=id=>esc(tbShort((G.players[id]||{n:id}).n));return`<span>−${mv.d.map(nm).join(", −")} +${mv.a.map(nm).join(", +")}</span>`}).join(" · ")}<button class="tblk" id="tbUn">Undo</button><button class="tblk" id="tbRs">Start over</button>`);
   const pv=o=>-(S.bs.x[o.id]||1e4);
-  const roRows=ros.slice().sort((a,b)=>pv(b)-pv(a)).map(o=>{const on=drops.includes(o);
-    return`<button class="tbrow" data-d="${esc(o.id)}" aria-pressed="${on}" ${o.il?"disabled":""}><span class="tbn">${esc(o.q.n)}${ijTag(o.id)}<small>${tbSub(ctx,o)}</small></span><span class="tbtg">${o.il?"IL":on?"Dropping":"Drop"}</span></button>`}).join("");
+  const keep=tbKeep();
+  const roRows=ros.slice().sort((a,b)=>pv(b)-pv(a)).map(o=>{const on=drops.includes(o),kp=keep.has(o.id);
+    return`<div class="tbrow tbro${on?" on":""}${o.il?" il":""}"><span class="tbn">${esc(o.q.n)}${ijTag(o.id)}<small>${tbSub(ctx,o)}</small></span>`
+      +(o.il?`<span class="tbtg">IL</span>`:`<button class="tbtg tbkp" data-kp="${esc(o.id)}" aria-pressed="${kp}" title="Keep: leave him out of Best combos">${kp?"Kept":"Keep"}</button><button class="tbtg" data-d="${esc(o.id)}" aria-pressed="${on}">${on?"Dropping":"Drop"}</button>`)+`</div>`}).join("");
   const seg=(id,opts,v)=>`<div class="seg" id="${id}">${opts.map(([k,l])=>`<button data-v="${k}" aria-pressed="${k===v}">${l}</button>`).join("")}</div>`;
   el.innerHTML=`<div class="tb">
     <div class="tbctl">${seg("tbH",Object.entries(TBH),T.h)}<div class="tbpn"><span class="tbml">Punt</span>${CATS.map(c=>`<button data-k="${c.k}" aria-pressed="${S.punt.has(c.k)}">${c.l}</button>`).join("")}</div></div>
@@ -1776,12 +1784,13 @@ function renderBuild(){
       <div class="tbstrip">${strip}</div>
       <p class="stkn">Your rank among the ${ctx.opp.length+1} teams in each category, with your per-game line, over ${TBH[T.h].toLowerCase()}. <b>Win%</b> = the share of categories you'd win in a week against every other team (BBM's Win%, on our Proj), punted ones left out. <b>Matchup win</b> = your chance to take 5+ of 9 against an average opponent. Every synced roster is played out day by day at its active spots, with next-man-up minutes, the injury report and matchups. What-if only: nothing changes on Yahoo, and the next sync clears the moves.</p>
       ${bar.length?`<div class="tbbar">${bar.join("")}</div>`:""}</section>
-    <div class="tbcols"><section><div class="tbh"><span class="tbst">1</span>Who would you drop?</div><div class="tbhint">Tap one or two players. Best Proj first.</div>${roRows}</section>
+    <div class="tbcols"><section><div class="tbh"><span class="tbst">1</span>Who would you drop?</div><div class="tbhint">Tap Drop on one or two players. Keep leaves a player out of Best combos (a stash, a breakout you're waiting on). Best Proj first.</div>${roRows}</section>
       <section id="tbAddS"><div class="tbh" id="tbAddH"></div><div id="tbAdd"></div></section></div>
     <details class="tbpc" id="tbPc"><summary>Punt check</summary><p class="tbhint">Your Win% if you gave up each category, counting only the rest. Higher than now means that category costs you more than it gives.</p><div id="tbPu"></div></details>
   </div>`;
   el.querySelectorAll("#tbH button").forEach(b=>b.onclick=()=>{T.h=b.dataset.v;store.set("tbH",T.h);T.pick=null;renderBuild()});
   el.querySelectorAll(".tbpn button").forEach(b=>b.onclick=()=>togglePunt(b.dataset.k));
+  el.querySelectorAll("[data-kp]").forEach(b=>b.onclick=()=>{tbKeepFlip(b.dataset.kp);T.drops=[];T.pick=null;renderBuild()});
   el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{const id=b.dataset.d;
     T.drops=T.drops.includes(id)?T.drops.filter(r=>r!==id):T.drops.concat([id]).slice(-2);T.pick=null;T.tab=T.drops.length?"drop":"combo";renderBuild();
     if(T.drops.length&&matchMedia("(max-width:1099px)").matches)$("tbAddS").scrollIntoView({behavior:"smooth",block:"start"})});
@@ -1799,10 +1808,10 @@ function renderBuild(){
 // and horizon, and the work is split into small steps so the page stays responsive.
 const TBBEAM=5,TBADDS=12;
 function tbCombos(ctx,ros,P,k,run,done){
-  const base=[ctx.key,ros.map(o=>o.id).join(),P.length].join("|"),C=S.tbCo||(S.tbCo={});
+  const keep=tbKeep(),base=[ctx.key,ros.map(o=>o.id).join(),P.length,[...keep].sort().join()].join("|"),C=S.tbCo||(S.tbCo={});
   if(C.base!==base){S.tbCo={base};return tbCombos(ctx,ros,P,k,run,done)}
   if(C[k])return done(C[k]);
-  const drops0=ros.filter(o=>!o.il),score=(d,a)=>tbScore(ctx,ros.filter(o=>!d.includes(o)).concat(a));
+  const drops0=ros.filter(o=>!o.il&&!keep.has(o.id)),score=(d,a)=>tbScore(ctx,ros.filter(o=>!d.includes(o)).concat(a));
   const key=(d,a)=>d.map(o=>o.id).sort().join()+">"+a.map(o=>o.id).sort().join();
   const prog=t=>{const e=$("tbProg");if(e)e.textContent=t};
   const level1=()=>{if(!C[1]){const l=[];for(const d of drops0)for(const a of P)l.push({d:[d],a:[a],s:score([d],[a])});C[1]=l.sort((x,y)=>y.s.cats-x.s.cats)}return C[1]};
@@ -1821,6 +1830,10 @@ function tbCombos(ctx,ros,P,k,run,done){
       one()};
     step()},30);
 }
+// Keep: players you're holding no matter what the numbers say (a stash, a breakout you're waiting
+// on). Left out of Best combos; still droppable by hand. Per league, on this device (tbKeep).
+function tbKeep(){const a=store.get("tbKeep",{});return new Set(a[ML.lid||"-"]||[])}
+function tbKeepFlip(id){const a=store.get("tbKeep",{}),k=ML.lid||"-",s=new Set(a[k]||[]);s.has(id)?s.delete(id):s.add(id);a[k]=[...s];store.set("tbKeep",a)}
 function tbRenderAdd(ctx,ros,cur,drops){
   const T=S.tb,n=drops.length,tabs=`<div class="seg tbtab" id="tbTab"><button data-v="drop" aria-pressed="${T.tab==="drop"}">For your drop</button><button data-v="combo" aria-pressed="${T.tab==="combo"}">Best combos</button></div>`;
   const pick=k=>T.pick&&(T.pick.join(",")===k||T.drops.join(",")+">"+T.pick.join(",")===k);
@@ -1834,14 +1847,15 @@ function tbRenderAdd(ctx,ros,cur,drops){
       :`The best ${k} drops and ${k} adds made together, found step by step from the strongest single moves (top ${TBADDS} free agents). Tap one to preview it.`;
     const wire=()=>{$("tbTab").querySelectorAll("button").forEach(b=>b.onclick=()=>{T.tab=b.dataset.v;renderBuild()});
       $("tbNk").querySelectorAll("button").forEach(b=>b.onclick=()=>{T.nk=+b.dataset.v;store.set("tbNk",T.nk);T.drops=[];T.pick=null;renderBuild()})};
-    $("tbAdd").innerHTML=tabs+nk+`<div class="tbhint">${hint}</div><div class="tbhint" id="tbProg">Trying every combo…</div>`;wire();
+    const kept=ros.filter(o=>tbKeep().has(o.id)),kl=kept.length?`<div class="tbhint">Kept, left out: ${kept.map(o=>esc(tbShort(o.q.n))).join(", ")}.</div>`:"";
+    $("tbAdd").innerHTML=tabs+nk+`<div class="tbhint">${hint}</div>${kl}<div class="tbhint" id="tbProg">Trying every combo…</div>`;wire();
     const run=S.tbRun=(S.tbRun||0)+1;
     tbCombos(ctx,ros,P,k,run,top=>{
       if(run!==S.tbRun)return;top=top.filter(x=>x.s.cats>cur.cats+.0005).slice(0,10);
       // a k-th move that doesn't add anything: say so, with the best smaller set
       const prev=k>1&&S.tbCo[k-1]&&S.tbCo[k-1][0],less=prev&&top[0]&&prev.s.cats>=top[0].s.cats-.0005?`<div class="tbhint">Move ${k} doesn't add anything: the best ${k-1}-move set is ${tbPct(prev.s.cats)}.</div>`:"";
       const nm=a=>a.map(o=>esc(o.q.n)),rk=a=>a.map(o=>"#"+(S.bs.x[o.id]||"–")).join(" ");
-      $("tbAdd").innerHTML=tabs+nk+`<div class="tbhint">${hint}</div>`+less+(top.length?head(k===1?"Move":`${k} moves`)+top.map((x,i)=>
+      $("tbAdd").innerHTML=tabs+nk+`<div class="tbhint">${hint}</div>`+kl+less+(top.length?head(k===1?"Move":`${k} moves`)+top.map((x,i)=>
         row(i+1,x.d.map(o=>o.id).join(",")+">"+x.a.map(o=>o.id).join(","),`−${nm(x.d).join(", −")} <s>→</s> +${nm(x.a).join(", +")}`,`Proj ${rk(x.d)} → ${rk(x.a)}`,x.s,tbWhy(cur,x.s))).join("")
         :`<div class="tbhint">No ${k===1?"single drop and add":`set of ${k} moves`} beats your current team right now.</div>`);
       $("tbAdd").querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const[d,a]=b.dataset.k.split(">");T.drops=d.split(",");T.pick=a.split(",");if(k===1)T.tab="drop";renderBuild()});
