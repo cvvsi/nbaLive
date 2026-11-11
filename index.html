@@ -699,6 +699,23 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .lb .lbw{margin:4px 0 0 35px;font:500 12px/1.35 var(--name);color:var(--dim)}.lb .lbw b{color:var(--ink);font-weight:600}.lb .lbw b.good{color:var(--pos)}.lb .lbw b.bad{color:var(--neg)}
 .pjh span{text-transform:none;letter-spacing:0;font-weight:500}
 @media (min-width:720px){.bo2r.lbr{grid-template-columns:minmax(0,1fr) 64px 64px 64px}}
+/* Usage (Ranks > Usage): one table, the name column pinned while the numbers scroll on a phone. */
+.usbar{display:flex;align-items:center;padding:4px 0 8px}
+.usw{overflow-x:auto;margin:0 -2px}
+.ust{display:grid;min-width:calc(150px + var(--usc) * 58px)}
+.ustr{display:grid;grid-template-columns:150px repeat(var(--usc),minmax(52px,1fr));align-items:center;border-top:1px solid var(--rule);cursor:pointer}
+.ustr>*{padding:7px 4px;text-align:right;font:500 13px/1.2 var(--num)}
+.ustr>.usn{text-align:left;position:sticky;left:0;background:var(--bg);display:grid;min-width:0}
+.usn b{font:600 14px/1.2 var(--name);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.usn i{font:500 11px/1.3 var(--num);font-style:normal;color:var(--dim)}
+.ustr>.on{font-weight:600;color:var(--ink)}
+.ush>span:first-child{text-align:left}
+.usn .ij{margin-left:5px}
+.ustr .usup{color:var(--pos)}.ustr .usdn{color:var(--neg)}
+.ush{position:sticky;top:0;cursor:default;border-top:0}
+.ush>*{font:500 11px/1.2 var(--num);color:var(--dim);background:var(--bg)}
+.ush button[aria-pressed="true"]{color:var(--ink)}
+@media (min-width:1100px){.ustr{grid-template-columns:220px repeat(var(--usc),minmax(64px,1fr))}.ust{min-width:0}.ustr>*{font-size:13.5px}}
 /* Build (Buy/Sell > Build): quiet on purpose. Ink and grey; orange marks only what you picked; green/red only on +/- numbers. */
 .tb{display:grid;gap:12px;padding:10px 0 24px;max-width:1240px;width:100%;margin:0 auto;grid-column:1/-1;min-width:0}
 .tbctl{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
@@ -1110,7 +1127,7 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
   <div>
     <div class="meta">
       <span id="rkStatus" class="num">Loading</span>
-      <div class="sorts"><div class="sort" id="rkSz"><button data-k="pg">Per g</button><button data-k="tot">Total</button></div>
+      <div class="sorts"><div class="sort" id="rkSz"><button data-k="pg">Per g</button><button data-k="tot">Total</button><button data-k="usg">Usage</button></div>
       <div class="sort" id="rkWin"><button data-k="season">Szn</button><button data-k="d14">14D</button><button data-k="d7">7D</button><button data-k="g3">L3</button></div></div>
     </div>
     <div class="meta lgrow" id="rkLgRow" hidden><span class="lgs"></span><div class="sort lgf"><button data-k="all">All</button><button data-k="avail">Available</button><button data-k="mine">Mine</button></div></div>
@@ -3126,9 +3143,10 @@ Promise.all(["data/schedule.json","data/props.json","data/injuries.json"].map(u=
 S.rkWin=store.get("rkWin","season");S.rkSz=store.get("rkSz","pg");
 function renderRK(){
   $("rkWin").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.rkWin));
-  $("rkSz").hidden=S.rkWin==="g3";
+  $("rkSz").querySelector('[data-k="tot"]').hidden=S.rkWin==="g3";
   $("rkSz").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.rkSz));
   if(!R)return;
+  if(S.rkSz==="usg")return renderUS();
   $("rkAsOf").textContent=`Thru ${fmtDate(R.asOf).replace(/^\w+, /,"")}`;
   if(!R.lf){$("rkList").innerHTML=`<div class="empty">Stat lines arrive with the next rankings build.</div>`;$("rkStatus").textContent="";return}
   const w=S.rkWin,tot=S.rkSz==="tot"&&w!=="g3",W=R.windows[w]||{},sh=d=>d?fmtDate(d).replace(/^\w+, /,""):"";
@@ -3146,6 +3164,42 @@ function renderRK(){
     +(top.length?listHTML(top,"G"):`<div class="empty">Nobody here.</div>`);
 }
 
+// ---- Usage (Ranks > Usage): Basketball Monster's Usage Monster, league-wide instead of one team.
+// Everyone above a minutes floor (a 3-minute stint can carry a 40% usage that means nothing), with
+// usage over the window (u in rankings.json: possessions used over team possessions while on the
+// floor, from the box scores), the change against his season, minutes, his per-game value rank in
+// the window and the per-36 line behind the role. Sorted by any column; tap a row for the player.
+const USMIN=[10,15,20,25],USCOL=[["min","MIN"],["usg","USG"],["d","±SZN"],["rk","Rank"],["pts","PTS/36"],["fga","FGA/36"],["ast","AST/36"],["reb","REB/36"],["to","TO/36"],["fg","FG%"]];
+S.usMin=store.get("usMin",20);S.usSort=store.get("usSort","usg");S.usDir=1;
+function renderUS(){
+  const w=S.rkWin,W=R.windows[w]||{},sh=d=>d?fmtDate(d).replace(/^\w+, /,""):"";
+  if(!Object.values(R.players).some(q=>q.u)){$("rkList").innerHTML=`<div class="empty">Usage arrives with the next rankings build.</div>`;$("rkStatus").textContent="";return}
+  // per-game value rank in this window, same as Per g
+  const rk={};Object.entries(R.players).filter(([,q])=>q.w[w]).map(([id,q])=>[id,pjVal(Object.fromEntries(R.cats.map((c,i)=>[c,q.w[w][2+i]])))]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>rk[id]=i+1);
+  const gMin=w==="season"?3:2,rows=[];
+  for(const[id,q]of Object.entries(R.players)){const a=q.w[w],u=q.u&&q.u[w],lv=q.l&&q.l[w];
+    if(!a||u==null||!lv||a[0]<gMin||a[1]<S.usMin)continue;
+    const l={};R.lf.forEach((k,i)=>l[k]=lv[i]);const f=a[1]>0?36/a[1]:0;
+    rows.push({id,q,min:a[1],gp:a[0],usg:u,d:w!=="season"&&q.u.season!=null?u-q.u.season:null,rk:rk[id],
+      pts:l.pts*f,fga:l.fga*f,ast:l.ast*f,reb:l.reb*f,to:l.to*f,fg:l.fga?l.fgm/l.fga:null})}
+  const k=S.usSort==="d"&&w==="season"?"usg":S.usSort,low=k==="rk"||k==="to",dir=(low?-1:1)*S.usDir;
+  rows.sort((a,b)=>((b[k]??-1e9)-(a[k]??-1e9))*dir);
+  const shown=lgFilter(rows).slice(0,300);paintLg();
+  const span=w==="season"?"this season":w==="g3"?"each team's last 3 games":`${sh(W.from)}–${sh(W.to)}`;
+  $("rkStatus").textContent=`${rows.length} · ${S.usMin}+ min`;
+  const cols=USCOL.filter(([c])=>c!=="d"||w!=="season");
+  const fmt=(c,o)=>{const v=o[c];if(v==null)return"–";
+    if(c==="usg")return v.toFixed(1);if(c==="d")return`<span class="${v>=3?"usup":v<=-3?"usdn":""}">${v>0?"+":v<0?"−":""}${Math.abs(v).toFixed(1)}</span>`;
+    if(c==="rk")return"#"+v;if(c==="fg")return v.toFixed(3).slice(1);if(c==="min")return v.toFixed(1);return v.toFixed(1)};
+  const head=`<div class="ustr ush"><span>Player</span>${cols.map(([c,l])=>`<button data-us="${c}" aria-pressed="${c===k}">${l}${c===k?(S.usDir>0?" ↓":" ↑"):""}</button>`).join("")}</div>`;
+  $("rkList").innerHTML=`<p class="bzcap">Usage ${span}: the share of his team's possessions he uses while he's on the floor (shots, free throws, turnovers). Only players at ${S.usMin}+ minutes a game${w==="season"?" and 3+ games":" and 2+ games"}, since a few minutes can carry a usage that means nothing. ${w!=="season"?"<b>±SZN</b> = against his season usage (green at +3 or more, red at −3). ":""}<b>Rank</b> = his per-game value in this window. The /36 columns are per 36 minutes.</p>`
+    +`<div class="usbar"><span class="tbml">Min</span><div class="seg" id="usMin">${USMIN.map(v=>`<button data-v="${v}" aria-pressed="${v===S.usMin}">${v}+</button>`).join("")}</div></div>`
+    +(shown.length?`<div class="usw"><div class="ust" style="--usc:${cols.length}">${head}${shown.map(o=>`<div class="ustr dtr" data-id="${esc(o.id)}" tabindex="0"><span class="usn"><b>${esc(o.q.n)}</b><i>${esc(o.q.t)}${ijTag(o.id)}${lgTagFA(o.id)}</i></span>${cols.map(([c])=>`<span class="${c===k?"on":""}">${fmt(c,o)}</span>`).join("")}</div>`).join("")}</div></div>`
+      :`<div class="empty">Nobody at ${S.usMin}+ minutes here.</div>`);
+  $("usMin").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.usMin=+b.dataset.v;store.set("usMin",S.usMin);renderRK()});
+  $("rkList").querySelectorAll("[data-us]").forEach(b=>b.onclick=e=>{e.stopPropagation();const c=b.dataset.us;
+    if(S.usSort===c)S.usDir=-S.usDir;else{S.usSort=c;S.usDir=1}store.set("usSort",S.usSort);renderRK()});
+}
 function bsMsg(m){$("bsList").innerHTML=`<div class="empty">${esc(m)}</div>`;$("bsStatus").textContent=""}
 function setView(v){if(v==="in")setTimeout(()=>{try{renderTN()}catch(e){}},0);
   document.body.dataset.view=v;document.body.classList.remove("hidebars");if(typeof paintDens==="function")paintDens();

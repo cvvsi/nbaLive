@@ -505,6 +505,8 @@ async function main() {
     for (const p of scored) {
       players[p.id].w[w] = [p.gp, Math.round(p.min * 10) / 10, ...CATS.map(c => r2(p.z[c]))];
       (players[p.id].l || (players[p.id].l = {}))[w] = LF.map(k => r2(p[k]));
+      // u: usage % over the window (possessions used / team possessions while on the floor)
+      if (p.tpos) (players[p.id].u || (players[p.id].u = {}))[w] = Math.round(1000 * p.use / p.tpos) / 10;
     }
   }
   // g3: each team's last 3 games, per team game. Calendar windows hold 2-4 games depending
@@ -522,6 +524,7 @@ async function main() {
   for (const p of s3) {
     players[p.id].w.g3 = [p.gp, Math.round(p.min * 10) / 10, ...CATS.map(c => r2(p.z[c]))];
     (players[p.id].l || (players[p.id].l = {})).g3 = LF.map(k => r2(p[k]));
+    if (p.tpos) (players[p.id].u || (players[p.id].u = {})).g3 = Math.round(1000 * p.use / p.tpos) / 10;
   }
   // pm: minutes per game played BEFORE those 3, the baseline for the role-change flag.
   // (Comparing against the season would dilute the jump with the very games that show it.)
