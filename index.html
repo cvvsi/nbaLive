@@ -717,6 +717,8 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 /* column groups: role (Min, Usg) | rank by window + Proj | last-3 stats */
 .bo3r>:nth-child(4),.bo3r>:nth-child(10){border-left:1px solid var(--rule);padding-left:8px}
 .bo3r>*{padding-block:2px}
+/* EFB (Players > EFB): the summary line above the table */
+.efsum{display:flex;flex-wrap:wrap;gap:4px 16px;padding:2px 0 8px;font:500 12.5px/1.4 var(--name);color:var(--dim)}.efsum b{color:var(--ink);font:600 13px/1 var(--num)}
 /* Usage (Ranks > Usage): one table, the name column pinned while the numbers scroll on a phone. */
 .usbar{display:flex;align-items:center;padding:4px 0 8px}
 .usw{overflow-x:auto;margin:0 -2px}
@@ -742,7 +744,7 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .subnav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
 .subnav:empty,.subnav[hidden]{display:none!important}
 /* controls the new pages make redundant */
-#pjMuBtn,body[data-page="matchup"] #pjView,#rkSz [data-k="usg"],body[data-page="usage"] #rkSz,body:not([data-page="buysell"]) #bsSort{display:none!important}
+#pjMuBtn,body[data-page="matchup"] #pjView,#rkSz [data-k="usg"],body[data-page="usage"] #rkSz,body[data-page="efb"] #rkSz,body[data-page="efb"] #rkWin,body:not([data-page="buysell"]) #bsSort{display:none!important}
 .lgchip{flex:none;display:flex;align-items:center;gap:6px;height:30px;padding:0 7px;border:1px solid var(--rule);border-radius:7px;color:var(--dim);text-decoration:none;font:500 11px/1 var(--num);position:relative}
 .lgchip svg{width:16px;height:16px}
 .lgchip::after{content:"";position:absolute;top:4px;left:18px;width:6px;height:6px;border-radius:50%;background:var(--pos)}
@@ -1198,6 +1200,14 @@ const S={date:null,events:[],players:[],game:"all",punt:new Set(store.get("punt"
 // from Yahoo with the user's own login and opens the site with them in the URL hash (never sent to
 // a server); it's saved in localStorage and the hash is cleared. Nothing league-related shows on
 // a device without a saved league, so friends using the site never see it.
+// EFB projections (Elite Fantasy Basketball, the user's own subscription), read off EFB's page by
+// the bookmarklet on league.html in the user's browser and handed over in the URL hash. Kept on this
+// device only (efb, plus one snapshot a day in efbHist for scoring both projections later); never
+// sent anywhere or committed, since the repo is public and EFB is a paid site.
+(()=>{const h=location.hash;if(!h.startsWith("#efb="))return;
+  try{const o=JSON.parse(decodeURIComponent(h.slice(5)));if(o&&o.v===1&&Array.isArray(o.r)&&o.r.length){store.set("efb",o);
+    const day=String(o.at).slice(0,10),hist=store.get("efbHist",[]).filter(x=>String(x.at).slice(0,10)!==day);hist.push(o);store.set("efbHist",hist.slice(-12))}}catch(e){}
+  history.replaceState(null,"",location.pathname+location.search+"#efb")})();
 (()=>{const h=location.hash;if(!h.startsWith("#league="))return;
   try{const o=JSON.parse(decodeURIComponent(h.slice(8)));if(o&&o.v===1&&Array.isArray(o.p)&&o.p.length){store.set("league",o);store.set("lgF","avail");S.lgNew=1}}catch(e){}
   history.replaceState(null,"",location.pathname+location.search+"#matchup")})();
@@ -3193,6 +3203,7 @@ function renderRK(){
   $("rkSz").querySelector('[data-k="tot"]').hidden=S.rkWin==="g3";
   $("rkSz").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.rkSz));
   if(!R)return;
+  if(document.body.dataset.page==="efb")return renderEFB();
   if(S.rkSz==="usg")return renderUS();
   $("rkAsOf").textContent=`Thru ${fmtDate(R.asOf).replace(/^\w+, /,"")}`;
   if(!R.lf){$("rkList").innerHTML=`<div class="empty">Stat lines arrive with the next rankings build.</div>`;$("rkStatus").textContent="";return}
@@ -3247,6 +3258,55 @@ function renderUS(){
   $("rkList").querySelectorAll("[data-us]").forEach(b=>b.onclick=e=>{e.stopPropagation();const c=b.dataset.us;
     if(S.usSort===c)S.usDir=-S.usDir;else{S.usSort=c;S.usDir=1}store.set("usSort",S.usSort);renderRK()});
 }
+// ---- EFB (Players > EFB; only on a device that has run the EFB bookmark): Elite Fantasy
+// Basketball's rest-of-season projections next to ours. Both lines are scored on our scale (our
+// pool, your punts), so a gap in rank is a gap in the projection, not in how the sites value a line.
+// Show Diff (ours − EFB, a category green or red only when the gap is half a z-score or more), EFB's
+// line or ours; sort by any column. EFB's names are matched to ESPN ids by name, then team + last
+// name + first initial.
+S.efbMode=store.get("efbMode","diff");S.efbSort=store.get("efbSort","er");S.efbDir=1;
+const EFBK=["min","pts","tpm","reb","ast","stl","blk","to","fg","ft"],EFBL={min:"MIN",pts:"PTS",tpm:"3PM",reb:"REB",ast:"AST",stl:"STL",blk:"BLK",to:"TO",fg:"FG%",ft:"FT%"};
+function efbIx(){const E=store.get("efb",null);if(!E||!G)return null;if(S.efbC&&S.efbC.at===E.at&&S.efbC.g===G)return S.efbC;
+  const full={},tlf={};for(const[id,q]of Object.entries(G.players)){if(!q.n)continue;const k=lgKey(q.n),w=k.split(" ");(full[k]||(full[k]=[])).push(id);(tlf[`${q.t}|${w[w.length-1]}|${w[0][0]}`]||(tlf[`${q.t}|${w[w.length-1]}|${w[0][0]}`]=[])).push(id)}
+  const F=E.f,ix=k=>F.indexOf(k),rows=E.r.map(r=>{const v=k=>{const x=r[ix(k)];return x===""||x==null?null:+x};
+    const n=r[ix("name")],t=SRTEAM[String(r[ix("team")]||"").toLowerCase()]||r[ix("team")],k=lgKey(n),w=k.split(" ");
+    let c=full[k]||[];if(c.length!==1)c=c.filter(id=>G.players[id].t===t);if(!c.length)c=tlf[`${t}|${w[w.length-1]}|${w[0][0]}`]||[];
+    const mpg=v("mpg"),fga=v("fga"),fta=v("fta"),l={min:mpg,pts:v("pts"),tpm:v("tpm"),reb:v("reb"),ast:v("ast"),stl:v("stl"),blk:v("blk"),to:v("to"),fga,fta,fgm:fga*(v("fg")||0)/100,ftm:fta*(v("ft")||0)/100};
+    return{n,t,id:c[0]||null,inj:r[ix("inj")]||"",g:v("g"),own:v("rank"),l}}).filter(o=>o.l.min>0);
+  return S.efbC={at:E.at,g:G,rows,n:E.r.length}}
+function renderEFB(){
+  const X=efbIx(),E=store.get("efb",null);paintLg();
+  if(!X){$("rkList").innerHTML=`<div class="empty">${E?"Loading…":"No EFB projections on this device. Run the EFB bookmark from league.html."}</div>`;$("rkStatus").textContent="";return}
+  const val=l=>pjVal(pjZ(l)),line=id=>G.players[id]&&G.players[id].xp?xpLine(G.players[id]):null;
+  // EFB's line ranked on our scale, among EFB's own list
+  const ev=X.rows.map(o=>[o,val(o.l)]).sort((a,b)=>b[1]-a[1]);ev.forEach(([o],i)=>o.er=i+1);
+  const rows=X.rows.map(o=>{const ol=o.id&&line(o.id),or=o.id&&S.bs&&S.bs.x[o.id]||null,ez=pjZ(o.l),oz=ol?pjZ(ol):null;
+    const pc=(m,a)=>a>0?100*m/a:null,get=(l,k)=>k==="fg"?pc(l.fgm,l.fga):k==="ft"?pc(l.ftm,l.fta):l[k];
+    const c={};for(const k of EFBK){const e=get(o.l,k),u=ol?get(ol,k):null,zk=k==="fg"?"fg":k==="ft"?"ft":k;
+      c[k]={e,u,d:u!=null&&e!=null?u-e:null,dz:oz&&k!=="min"?oz[zk]-ez[zk]:null}}
+    return{...o,or,c,gap:or?o.er-or:null}}).filter(o=>Math.min(o.er,o.or||1e4)<=250);
+  const k=S.efbSort,dir=S.efbDir,key=o=>k==="er"?o.er:k==="or"?(o.or||1e4):k==="gap"?-(o.gap==null?-1e4:Math.abs(o.gap)):-(S.efbMode==="ours"?(o.c[k].u??-1e9):S.efbMode==="efb"?(o.c[k].e??-1e9):(o.c[k].d==null?-1e9:Math.abs(o.c[k].d)));
+  rows.sort((a,b)=>(key(a)-key(b))*dir);
+  const shown=lgFilter(rows);
+  // how close overall: top-130 overlap, median rank gap and minutes bias among EFB's top 130
+  const both=rows.filter(o=>o.or),t130=both.filter(o=>o.er<=ROST),ov=t130.filter(o=>o.or<=ROST).length,med=a=>{const s=[...a].sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:0};
+  const mg=med(t130.map(o=>Math.abs(o.gap))),mb=t130.length?t130.reduce((a,o)=>a+(o.c.min.d||0),0)/t130.length:0;
+  const d=new Date(E.at),sh=`${d.toLocaleDateString([],{month:"short",day:"numeric"})}, ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
+  $("rkStatus").textContent=`${shown.length} · EFB ${sh}`;$("rkAsOf").textContent=`EFB saved ${sh}`;
+  const f=(k,v)=>v==null?"–":k==="fg"||k==="ft"?v.toFixed(1):k==="min"?v.toFixed(1):v.toFixed(k==="pts"?1:2);
+  const cell=(k,c)=>{if(S.efbMode==="efb")return f(k,c.e);if(S.efbMode==="ours")return f(k,c.u);if(c.d==null)return"–";
+    const big=k==="min"?Math.abs(c.d)>=2:c.dz!=null&&Math.abs(c.dz)>=.5,good=(k==="to"?-c.d:c.d)>0;
+    return`<span class="${big?(good?"usup":"usdn"):""}">${c.d>0?"+":c.d<0?"−":""}${f(k,Math.abs(c.d))}</span>`};
+  const cols=[["er","EFB #"],["or","Ours #"],["gap","Gap"],...EFBK.map(x=>[x,EFBL[x]])];
+  const head=`<div class="ustr ush"><span>Player</span>${cols.map(([c,l])=>`<button data-ef="${c}" aria-pressed="${c===k}">${l}${c===k?(dir>0?" ↓":" ↑"):""}</button>`).join("")}</div>`;
+  $("rkList").innerHTML=`<p class="bzcap">EFB's rest-of-season projections next to ours. Both lines are scored on our scale with your punts, so a rank gap is a gap in the projection itself. <b>Gap</b> = how many spots higher we rank him (▲) or EFB does (▼). <b>Diff</b> shows ours minus EFB per game, green or red only when it's half a z-score or more (2+ for minutes). Kept on this device only; refresh it by running the EFB bookmark on their projections page.</p>`
+    +`<div class="efsum"><span><b>${ov}</b> of EFB's top ${ROST} are in ours</span><span>median gap <b>${mg}</b> spots</span><span>minutes: ours <b>${mb>=0?"+":"−"}${Math.abs(mb).toFixed(1)}</b> a game</span><span>${X.rows.length} EFB players, ${X.rows.filter(o=>o.id).length} matched</span></div>`
+    +`<div class="usbar"><span class="tbml">Show</span><div class="seg" id="efMode">${[["diff","Diff"],["efb","EFB"],["ours","Ours"]].map(([v,l])=>`<button data-v="${v}" aria-pressed="${v===S.efbMode}">${l}</button>`).join("")}</div></div>`
+    +`<div class="usw"><div class="ust" style="--usc:${cols.length}">${head}${shown.map(o=>`<div class="ustr ${o.id?"dtr":""}" ${o.id?`data-id="${esc(o.id)}" tabindex="0"`:""}><span class="usn"><b>${esc(o.n)}</b><i>${esc(o.t)}${o.id?ijTag(o.id)+lgTagFA(o.id):o.inj?` <span class="ij">${esc(o.inj.slice(0,3).toUpperCase())}</span>`:""}</i></span>`
+      +`<span class="${k==="er"?"on":""}">#${o.er}</span><span class="${k==="or"?"on":""}">${o.or?"#"+o.or:"–"}</span><span>${o.gap==null?"–":o.gap>0?"▲"+o.gap:o.gap<0?"▼"+(-o.gap):"="}</span>${EFBK.map(x=>`<span class="${x===k?"on":""}">${cell(x,o.c[x])}</span>`).join("")}</div>`).join("")}</div></div>`;
+  $("efMode").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.efbMode=b.dataset.v;store.set("efbMode",S.efbMode);renderRK()});
+  $("rkList").querySelectorAll("[data-ef]").forEach(b=>b.onclick=e=>{e.stopPropagation();const c=b.dataset.ef;if(S.efbSort===c)S.efbDir=-S.efbDir;else{S.efbSort=c;S.efbDir=1}store.set("efbSort",S.efbSort);renderRK()});
+}
 function bsMsg(m){$("bsList").innerHTML=`<div class="empty">${esc(m)}</div>`;$("bsStatus").textContent=""}
 // ---- Navigation (Nov 2026): five sections by what you're doing, each with one row of pages.
 // Box · Players (Ranks, Proj, Usage, Rise, Buy/Sell without a league, Buzz) · My League (only with
@@ -3262,7 +3322,8 @@ const NAV=[
     {k:"usage",l:"Usage",v:"rk",open:()=>{S.rkSz="usg"}},
     {k:"rise",l:"Rise",v:"bs",open:()=>{S.bsSort="bo"}},
     {k:"buysell",l:"Buy/Sell",v:"bs",nolg:1,open:()=>{if(!["buy","sell","x","now"].includes(S.bsSort))S.bsSort="buy"}},
-    {k:"buzz",l:"Buzz",v:"bz"}]},
+    {k:"buzz",l:"Buzz",v:"bz"},
+    {k:"efb",l:"EFB",v:"rk",efb:1,open:()=>{}}]},
   {k:"league",l:"My League",lg:1,pages:[
     {k:"matchup",l:"Matchup",v:"pj",open:()=>{S.pjView="mu"}},
     {k:"roster",l:"Roster",v:"bs",open:()=>{S.bsSort="mine"}},
@@ -3270,7 +3331,7 @@ const NAV=[
     {k:"build",l:"Build",v:"bs",open:()=>{S.bsSort="bld"}}]},
   {k:"sc",l:"Schedule",pages:[{k:"schedule",l:"Schedule",v:"sc"}]},
   {k:"in",l:"Injuries",pages:[{k:"injuries",l:"Injuries",v:"in"}]}];
-const navSecs=()=>NAV.filter(x=>!x.lg||ML).map(x=>({...x,pages:x.pages.filter(p=>!(p.nolg&&ML))}));
+const navSecs=()=>{const ef=!!store.get("efb",null);return NAV.filter(x=>!x.lg||ML).map(x=>({...x,pages:x.pages.filter(p=>!(p.nolg&&ML)&&!(p.efb&&!ef))}))};
 S.navLast=store.get("navLast",{});
 function navFromHash(h){const k=String(h||"").replace(/^#/,"");
   const old={buysell:ML?"roster":"buysell",schedule:"schedule",injuries:"injuries",mine:"roster",fa:"waivers"}[k]||k;
@@ -3305,7 +3366,7 @@ function setView(v){if(v==="in")setTimeout(()=>{try{renderTN()}catch(e){}},0);
 }
 fetch("data/regression.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
   .then(j=>{if(!j)return bsMsg("No Buy/Sell data yet: it's built each morning with the rankings.");
-    G=j;rankBS();renderBS();renderPJ();renderSC();if(S.players.length)render();if(BZ)renderBZ()})
+    G=j;rankBS();renderBS();renderPJ();renderSC();if(S.players.length)render();if(BZ)renderBZ();if(document.body.dataset.page==="efb")renderRK()})
   .catch(()=>bsMsg("Couldn't load the Buy/Sell data."));
 
 // ---- Player sheet: everything about one player, opened from any card. tn = that night's

@@ -64,6 +64,19 @@ a{color:var(--ball)}
     <textarea id="code" readonly></textarea>
   </div>
 
+  <div class="card" id="efbCard">
+    <h2>EFB projections (your subscription)</h2>
+    <p class="dim">Reads Elite Fantasy Basketball's Category League Projections with your own login and saves them on this device only, for the hidden Players › EFB page. Nothing is uploaded or stored anywhere else.</p>
+    <div class="st" id="efbSt"></div>
+    <ol>
+      <li>Computer: drag this button onto the bookmarks bar: <br><a class="bm" id="ebm" href="#">EFB to Sixth Man</a></li>
+      <li>iPhone: <button id="ecp">Copy EFB bookmark code</button> <span class="dim" id="ecpd"></span>, then save it as a bookmark the same way as above.</li>
+      <li>To update: open elitefantasybasketball.com/category-league-projections (signed in), wait for the table, then run the bookmark. Sixth Man opens on the EFB page.</li>
+    </ol>
+    <textarea id="ecode" readonly></textarea>
+    <button class="warn" id="eforget" style="margin-top:8px">Forget EFB projections on this device</button>
+  </div>
+
   <div class="card">
     <h2>Notes</h2>
     <p class="dim">Each device and browser keeps its own copy: sync on each one you use, on the same address (sixthmanhoops.app). Re-sync after waivers or trades. If Yahoo changes its pages the sync may stop working until it's updated.</p>
@@ -111,7 +124,24 @@ location.href=${JSON.stringify(target)}+"#league="+encodeURIComponent(JSON.strin
 }catch(e){alert("Sixth Man sync (v4) failed: "+e.message)}})()`;
   return "javascript:"+encodeURIComponent(src.replace(/\n/g,""));
 }
-const target=new URL("./",location.href).href,code=bookmarklet(target);
+// EFB bookmarklet: reads the projections table on EFB's page (the page or a same-site frame) by each
+// column's data-key, keeps only what Sixth Man compares (per-game line, games, rank, injury tag) and
+// opens Sixth Man with it in the URL hash. Runs in the user's browser on their own login.
+function efbBookmarklet(target){
+  const src=`(()=>{try{
+if(!/elitefantasybasketball\.com$/.test(location.hostname)){alert("Open EFB's Category League Projections page first, then run this again.");return}
+const docs=[document];for(const f of document.querySelectorAll("iframe")){try{if(f.contentDocument)docs.push(f.contentDocument)}catch(e){}}
+let tb=null;for(const d of docs){for(const t of d.querySelectorAll("table")){if(t.querySelector('th[data-key="mpg"]')&&t.querySelector('th[data-key="pts"]')){tb=t;break}}if(tb)break}
+if(!tb){alert("Couldn't find the projections table. Wait for it to load (signed in), then run this again.");return}
+const K={rank:"rank",player:"name",tag:"inj",team:"team",pos:"pos",gp:"g",mpg:"mpg",pts:"pts",tpm:"tpm",reb:"reb",ast:"ast",stl:"stl",blk:"blk",fgpct:"fg",fgpct_comp:"fga",ftpct:"ft",ftpct_comp:"fta",to:"to"};
+const hs=[...tb.querySelectorAll("thead th")].map(th=>K[th.getAttribute("data-key")]||null),f=Object.values(K);
+const r=[];for(const tr of tb.querySelectorAll("tbody tr")){const c=[...tr.children].map(td=>(td.textContent||"").trim()),o=Array(f.length).fill("");hs.forEach((k,i)=>{if(k)o[f.indexOf(k)]=k==="name"||k==="team"||k==="pos"||k==="inj"?c[i]:c[i].replace(/[^0-9.\-]/g,"")});if(o[1])r.push(o)}
+if(r.length<50){alert("Only "+r.length+" rows found. Show all players on EFB's page, then run this again.");return}
+location.href=${JSON.stringify(target)}+"#efb="+encodeURIComponent(JSON.stringify({v:1,at:new Date().toISOString(),f,r}))
+}catch(e){alert("EFB sync failed: "+e.message)}})()`;
+  return "javascript:"+encodeURIComponent(src.replace(/\n/g,""));
+}
+const target=new URL("./",location.href).href,code=bookmarklet(target),ecode=efbBookmarklet(target);
 document.getElementById("bm").href=code;
 document.getElementById("code").value=code;
 document.getElementById("bm").onclick=e=>{e.preventDefault();alert("Drag this button to your bookmarks bar, then click it while you're on your Yahoo league page.")};
@@ -130,6 +160,13 @@ function slotLine(L){const by={};for(const[,,,t,sl]of L.p||[]){const o=by[t]||(b
   if(!any)return`<p><b>Lineup slots: not read.</b> Copy the bookmark again (v4) and re-sync, or IL players will count in the Matchup.</p>`;
   return show.map(t=>{const o=by[t];return o?`<p>${nm(t)}: <b>${o.a}</b> active · <b>${o.b}</b> bench · <b>${o.i}</b> IL${o.n-o.a-o.b-o.i?` · ${o.n-o.a-o.b-o.i} unread`:""}</p>`:""}).join("")}
 paint();
+document.getElementById("ebm").href=ecode;document.getElementById("ecode").value=ecode;
+document.getElementById("ebm").onclick=e=>{e.preventDefault();alert("Drag this button to your bookmarks bar, then click it on EFB's projections page.")};
+document.getElementById("ecp").onclick=async()=>{try{await navigator.clipboard.writeText(ecode);document.getElementById("ecpd").textContent="Copied."}catch(e){document.getElementById("ecode").select();document.getElementById("ecpd").textContent="Select and copy it below."}};
+function paintEfb(){const E=store.get("efb",null),h=store.get("efbHist",[]),el=document.getElementById("efbSt");
+  el.innerHTML=E?`<p>Saved <b>${new Date(E.at).toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</b> · ${E.r.length} players · ${h.length} daily snapshot${h.length===1?"":"s"} kept for scoring later</p>`:`<p class="dim">No EFB projections saved on this device yet.</p>`}
+paintEfb();
+document.getElementById("eforget").onclick=()=>{if(confirm("Remove EFB projections from this device?")){store.del("efb");store.del("efbHist");paintEfb()}};
 document.getElementById("forget").onclick=()=>{if(confirm("Remove your saved league from this device?")){store.del("league");store.del("lgF");paint()}};
 </script>
 </body>
