@@ -709,8 +709,9 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .bo3r>*{text-align:right;font:500 13px/1 var(--num)}
 .bo3r>.b3p{text-align:left;min-width:0}
 .bo3 .b3k{font-weight:600}.bo3 .b3s{color:var(--ink)}.bo3 .b3d{color:var(--dim);font-size:12px}
-.bonf{margin-left:2px;display:inline-flex!important;align-items:center;justify-content:center;width:15px!important;height:15px!important;padding:0;align-self:center}.bonf.warn{color:var(--neg);box-shadow:inset 0 0 0 1px var(--neg);font:700 11px/1 var(--name);font-style:normal}
-.bonf.warn:hover,.bonf.warn:focus-visible{color:var(--neg);box-shadow:inset 0 0 0 1.5px var(--neg)}
+.b2nl{display:flex;align-items:center;justify-content:flex-start;gap:5px;min-width:0}.b2nl .nm{min-width:0;flex:0 1 auto}.b2nl .bonf{flex:none}
+.bonf{margin-left:0;display:inline-flex!important;align-items:center;justify-content:center;width:15px!important;height:15px!important;padding:0;align-self:center}.bonf.bwarn{color:var(--neg);box-shadow:inset 0 0 0 1px var(--neg);font:700 11px/1 var(--name);font-style:normal}
+.bonf.bwarn:hover,.bonf.bwarn:focus-visible{color:var(--neg);box-shadow:inset 0 0 0 1.5px var(--neg)}
 .bo3h{padding:8px 0 6px;border-bottom:1px solid var(--rule);position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--bar) + var(--rlh,0px));background:var(--bg);z-index:2}
 .bo3h>*{font:500 11px/1 var(--num);color:var(--dim)}.bo3h>span:first-child{text-align:left}
 /* column groups: role (Min, Usg) | rank by window + Proj | last-3 stats */
@@ -1377,7 +1378,7 @@ function rankWindows(){
     if(m.hot||m.cold||m.mup)S.mv[id]=m}
 }
 fetch("data/rankings.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
-  .then(j=>{if(!j)return;R=j;rankWindows();renderRK();$("rkh").hidden=false;$("moversBtn").hidden=false;if(S.players.length)render();if(BZ)renderBZ()}).catch(()=>{});
+  .then(j=>{if(!j)return;R=j;rankWindows();renderRK();$("rkh").hidden=false;$("moversBtn").hidden=false;if(S.players.length)render();if(BZ)renderBZ();renderBS()}).catch(()=>{});
 
 // ---- render
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -1979,14 +1980,15 @@ function boRow(o){
     :du>=3?["Bigger share of the offense too: the strongest sign of a real role",0]
     :du<=-3?["Smaller share of the offense: more minutes, less of the action",0]
     :t.bigjump?["10+ minute spike: these held up about half as often as smaller bumps",1]:["",0];
-  const note=nt?`<span class="nfo bonf${warn?" warn":""}" tabindex="0" role="button" aria-label="${warn?"Caution":"Note"}">${warn?'<svg viewBox="0 0 10 10" width="9" height="9" aria-hidden="true"><path d="M5 1.6v4.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/><circle cx="5" cy="8.3" r="1" fill="currentColor"/></svg>':"i"}<span class="nfob" hidden>${nt}</span></span>`:"";
+  const note=nt?`<span class="nfo bonf${warn?" bwarn":""}" tabindex="0" role="button" aria-label="${warn?"Caution":"Note"}">${warn?'<svg viewBox="0 0 10 10" width="9" height="9" aria-hidden="true"><path d="M5 1.6v4.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/><circle cx="5" cy="8.3" r="1" fill="currentColor"/></svg>':"i"}<span class="nfob" hidden>${nt}</span></span>`:"";
   // a 10+ minute spike held up about half as often as other role changes (study-signs.js, five seasons)
   const bj=BOR&&BOR.trigger&&BOR.trigger[o.s.tier]&&BOR.trigger[o.s.tier].signs.bigjump,bjr=bj&&bj[0]>=15?Math.round(100*bj[1]/bj[0]):null;
-  const tags=[t.kind==="start"?`<span class="bt">Starter</span>`:"",t.bigjump?`<span class="bt cau" title="10+ more minutes a game: in past seasons ${bjr!=null?bjr+"% of these":"few of these"} were top-${ROST} over their next 20 games, about half the usual rate. Usually an injury fill-in.">Spike</span>`:"",rkTagQ(q),typeof lgTagFA==="function"?lgTagFA(o.id):""].join("");
+  const tags=[t.kind==="start"?`<span class="bt">Starter</span>`:"",t.bigjump?`<span class="bt cau" title="10+ more minutes a game: in past seasons ${bjr!=null?bjr+"% of these":"few of these"} were top-${ROST} over their next 20 games, about half the usual rate. Usually an injury fill-in.">Spike</span>`:"",(q&&q.rk&&!q.b?`<span class="bt" title="Rookie estimate: no NBA history, so Proj leans on the average rookie at his position">R</span>`:""),typeof lgTagFA==="function"?lgTagFA(o.id):""].join("");
   // rank in each window, oldest to newest: Szn, 30D, 14D, 7D, L3 (green inside 100, plain to 130, dim beyond)
   const tier=r=>!r?"na":r<=TOP?"hi":r<=ROST?"":"lo",wr=[["season","Szn"],["d30","30D"],["d14","14D"],["d7","7D"],["g3","L3"]].map(([k,l])=>[l,rn(k)]);
   const minC=cell(Math.round(p.mpg),Math.round(t.m3),t.m3-p.mpg>=4,t.m3-p.mpg<=-4),usgC=cell(p.usg!=null?Math.round(p.usg):null,t.u3!=null?Math.round(t.u3):null,du>=3,du<=-3);
-  const head=`<span class="b2n">${hs(o.id)}<span class="b2t"><b class="nm">${esc(q.n)}</b><i>${esc(q.t)}${tags}${note}</i></span></span>`;
+  // the note icon rides on the name line, so a row with several tags (Starter, Spike, Rookie...) keeps its shape
+  const head=`<span class="b2n">${hs(o.id)}<span class="b2t"><span class="b2nl"><b class="nm">${esc(q.n)}</b>${note}</span><i>${esc(q.t)}${tags}</i></span></span>`;
   if(isDesk()){
     // the last-3 per-game line (per team game, a missed game counts as zero), the same window as the trigger
     const rq=R&&R.players[o.id],lv=rq&&rq.l&&rq.l.g3,l={};if(lv)R.lf.forEach((k,i)=>l[k]=lv[i]);
