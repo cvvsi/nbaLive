@@ -3345,16 +3345,30 @@ function srPool(){
   return[...m.values()];
 }
 const srKey=s=>String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z ]/g,"");
+// A team typed into search: ESPN's own code (UTAH, GS, NY, SA, NO, WSH, PHX), the usual codes
+// other sites use (UTA, GSW, NYK, SAS, NOP, WAS, PHO...), the city or the nickname ("jazz").
+const SRTEAM=(()=>{const T={ATL:"atl hawks atlanta",BKN:"brk bkn nets brooklyn",BOS:"bos celtics boston",CHA:"cha cho hornets charlotte",CHI:"chi bulls chicago",
+  CLE:"cle cavs cavaliers cleveland",DAL:"dal mavs mavericks dallas",DEN:"den nuggets denver",DET:"det pistons detroit",GS:"gs gsw warriors golden state",
+  HOU:"hou rockets houston",IND:"ind pacers indiana",LAC:"lac clippers",LAL:"lal lakers",MEM:"mem grizzlies memphis",MIA:"mia heat miami",MIL:"mil bucks milwaukee",
+  MIN:"min wolves timberwolves minnesota",NO:"no nop nor pelicans pels new orleans",NY:"ny nyk knicks new york",OKC:"okc thunder oklahoma city",ORL:"orl magic orlando",
+  PHI:"phi sixers 76ers philadelphia",PHX:"phx pho suns phoenix",POR:"por blazers trail blazers portland",SAC:"sac kings sacramento",SA:"sa sas spurs san antonio",
+  TOR:"tor raptors toronto",UTAH:"utah uta jazz",WSH:"wsh was wizards washington"},m={};
+  // every word, and every two-word run ("golden state", "trail blazers", "new york", "oklahoma city")
+  for(const[k,v]of Object.entries(T)){m[k.toLowerCase()]=k;const w=v.split(" ");w.forEach((x,i)=>{m[x]=k;if(w[i+1])m[x+" "+w[i+1]]=k})}
+  for(const x of["new","city","state"])delete m[x];   // halves of two-word names that point at more than one team
+  return m})();
+const srTeam=q=>SRTEAM[q]||null;
 function renderSearch(){
   const qs=srKey($("srIn").value).trim(),L=$("srList");S.srI=0;
   if(!qs){L.innerHTML="";return}
-  const words=qs.split(/\s+/),rk=id=>S.rk&&S.rk.season[id]||9999;
+  const words=qs.split(/\s+/),rk=id=>S.rk&&S.rk.season[id]||9999,tm=srTeam(qs)||srTeam($("srIn").value.toLowerCase().trim().replace(/\s+/g," "));
   const hits=srPool().map(o=>{
     const nk=srKey(o.n),nw=nk.split(/\s+/);
-    const team=words.length===1&&o.t&&o.t.toLowerCase()===words[0];
-    const ok=team||words.every(w=>nw.some(x=>x.startsWith(w))||(w.length>2&&nk.includes(w)));
-    return ok?{o,s:(team?2:0)+(nk.startsWith(qs)?0:1),r:rk(o.id)}:null;
-  }).filter(Boolean).sort((a,b)=>a.s-b.s||a.r-b.r||a.o.n.localeCompare(b.o.n)).slice(0,team1(words)?15:8);
+    const team=!!tm&&o.t===tm;
+    // a team name lists that team only (so "76ers" doesn't also pull in names with "ers")
+    const ok=tm?team:words.every(w=>nw.some(x=>x.startsWith(w))||(w.length>2&&nk.includes(w)));
+    return ok?{o,s:(team?0:1)+(nk.startsWith(qs)?0:1),r:rk(o.id)}:null;
+  }).filter(Boolean).sort((a,b)=>a.s-b.s||a.r-b.r||a.o.n.localeCompare(b.o.n)).slice(0,tm?30:8);
   if(!hits.length){L.innerHTML=`<p class="srh">No player matches “${esc($("srIn").value.trim())}”.</p>`;return}
   L.innerHTML=hits.map(({o,r},i)=>{
     const p=o.tn,line=p?`<span class="tn">${fmtDate(S.date).replace(/^\w+, /,"")}: ${p.pts}p ${p.reb}r ${p.ast}a · ${p.min}m</span>`:"";
@@ -3363,7 +3377,6 @@ function renderSearch(){
       <div class="num">${r<9999?`Szn <b class="${r<=TOP?"top":""}">#${r}</b>`:"–"}</div></button>`;
   }).join("");
 }
-const team1=w=>w.length===1&&w[0].length<=4&&srPool().some(o=>o.t&&o.t.toLowerCase()===w[0]);
 // On desktop the box sits where the bar's search button is; on a phone it covers the top bar.
 function srPlace(){const sr=$("sr");if(!isDesk()){sr.style.left=sr.style.width=sr.style.top="";return}
   const r=$("srBtn").getBoundingClientRect(),W=Math.max(r.width,380),x=Math.min(r.left,innerWidth-W-12);
