@@ -1707,7 +1707,7 @@ function renderLgBS(st){
 // our Proj); Matchup win = the chance to take 5+ of 9, averaged over the opponents. What-if only:
 // nothing is sent to Yahoo, and a new sync clears the moves.
 const TBNOISE=1.6,TBPOOL=60,TBH={wk:"This week",w2:"2 weeks",ros:"Rest of season"};
-S.tb={h:store.get("tbH","ros"),drops:[],pick:null,done:[],tab:"combo",fs:"w",at:null};
+S.tb={h:store.get("tbH","ros"),nk:store.get("tbNk",1),drops:[],pick:null,done:[],tab:"combo",fs:"w",at:null};
 function tbDays(h){if(!SC)return[];const t=etToday(),late=etHour(new Date())>=19;
   const all=Object.keys(SC.dates).filter(d=>d>t||(d===t&&!late)).sort();
   return h==="ros"?all:all.filter(d=>d<=weekDates(h==="wk"?0:1)[6])}
@@ -1740,6 +1740,7 @@ const tbOrd=n=>n+(n%10===1&&n!==11?"st":n%10===2&&n!==12?"nd":n%10===3&&n!==13?"
 const tbPct=x=>(100*x).toFixed(1);
 const tbSg=x=>Math.abs(x)<.0005?`<span class="tbz">±0</span>`:`<span class="${x>0?"up":"dn"}">${x>0?"+":"−"}${tbPct(Math.abs(x))}</span>`;
 const tbShort=n=>n.replace(/^(\S)\S*\s/,"$1. ");
+const tbList=a=>{const n=a.map(o=>esc(o.q.n));return n.length<3?n.join(" and "):n.slice(0,-1).join(", ")+" and "+n[n.length-1]};
 // Moves and picks are kept as player ids (the context is rebuilt when punts or the horizon change).
 function tbRoster(ctx){let r=ctx.mine.slice();for(const m of S.tb.done)r=r.filter(o=>!m.d.includes(o.id)).concat(m.a.map(ctx.P).filter(o=>o.q&&o.q.xp));return r}
 function tbPool(ctx){const r=new Set(tbRoster(ctx).map(o=>o.id));return ctx.fa.filter(o=>!r.has(o.id))}
@@ -1763,7 +1764,7 @@ function renderBuild(){
     const v=k==="fg"||k==="ft"?tbV(m,k).toFixed(3).slice(1):(m[k]/(m.g||1)).toFixed(k==="pts"?1:2);
     return`<div class="${S.punt.has(k)?"off":""}"><span class="l">${c.l}</span><span class="r">${tbOrd(r)}</span><span class="v">${v}</span><span class="ch ${after&&r!==r0?(r<r0?"up":"dn"):""}">${after&&r!==r0?"was "+tbOrd(r0):""}</span></div>`}).join("");
   const bar=[];
-  if(after)bar.push(`<span>Drop <b>${drops.map(o=>esc(o.q.n)).join(" and ")}</b>, add <b>${adds.map(o=>esc(o.q.n)).join(" and ")}</b></span><button class="tbgo" id="tbMk">Make this move</button><button class="tblk" id="tbCx">Cancel</button>`);
+  if(after)bar.push(`<span>Drop <b>${tbList(drops)}</b>, add <b>${tbList(adds)}</b></span><button class="tbgo" id="tbMk">Make this move</button><button class="tblk" id="tbCx">Cancel</button>`);
   if(T.done.length)bar.push(`<span class="tbml">Moves made</span>${T.done.map(mv=>{const nm=id=>esc(tbShort((G.players[id]||{n:id}).n));return`<span>−${mv.d.map(nm).join(", −")} +${mv.a.map(nm).join(", +")}</span>`}).join(" · ")}<button class="tblk" id="tbUn">Undo</button><button class="tblk" id="tbRs">Start over</button>`);
   const pv=o=>-(S.bs.x[o.id]||1e4);
   const roRows=ros.slice().sort((a,b)=>pv(b)-pv(a)).map(o=>{const on=drops.includes(o);
@@ -1790,26 +1791,64 @@ function renderBuild(){
   $("tbPc").ontoggle=()=>{if($("tbPc").open)tbPunts(ctx,ros,cur)};
   tbRenderAdd(ctx,ros,cur,drops);
 }
+// Best combos for k moves (k drops, k adds, made together). k = 1: every drop x free agent. For
+// k = 2-4 trying everything is out of reach (4 of 12 drops x 4 of 60 adds is ~10^11 rosters), so
+// it's a beam search: after each step the TBBEAM best rosters are kept and each gets one more swap,
+// with adds from the TBADDS free agents that did best as a single move. It can miss a set whose
+// parts are each weak alone (rare: categories mostly add up). Results are cached per roster, punts
+// and horizon, and the work is split into small steps so the page stays responsive.
+const TBBEAM=5,TBADDS=12;
+function tbCombos(ctx,ros,P,k,run,done){
+  const base=[ctx.key,ros.map(o=>o.id).join(),P.length].join("|"),C=S.tbCo||(S.tbCo={});
+  if(C.base!==base){S.tbCo={base};return tbCombos(ctx,ros,P,k,run,done)}
+  if(C[k])return done(C[k]);
+  const drops0=ros.filter(o=>!o.il),score=(d,a)=>tbScore(ctx,ros.filter(o=>!d.includes(o)).concat(a));
+  const key=(d,a)=>d.map(o=>o.id).sort().join()+">"+a.map(o=>o.id).sort().join();
+  const prog=t=>{const e=$("tbProg");if(e)e.textContent=t};
+  const level1=()=>{if(!C[1]){const l=[];for(const d of drops0)for(const a of P)l.push({d:[d],a:[a],s:score([d],[a])});C[1]=l.sort((x,y)=>y.s.cats-x.s.cats)}return C[1]};
+  setTimeout(()=>{if(run!==S.tbRun)return;const l1=level1();if(k===1)return done(l1);
+    const A=[...new Set(l1.map(x=>x.a[0]))].slice(0,TBADDS);
+    let beam=l1.slice(0,TBBEAM),lvl=2;
+    const step=()=>{if(run!==S.tbRun)return;prog(`Searching: move ${lvl} of ${k}…`);
+      const next=new Map(),queue=beam.slice();
+      const one=()=>{if(run!==S.tbRun)return;const st=queue.shift();
+        if(st){for(const d of drops0){if(st.d.includes(d))continue;for(const a of A){if(st.a.includes(a))continue;
+            const nd=st.d.concat([d]),na=st.a.concat([a]),kk=key(nd,na);if(!next.has(kk))next.set(kk,{d:nd,a:na,s:score(nd,na)})}}
+          return setTimeout(one,0)}
+        const all=[...next.values()].sort((x,y)=>y.s.cats-x.s.cats);
+        if(!C[lvl])C[lvl]=all;
+        if(lvl>=k)return done(all);beam=all.slice(0,TBBEAM);lvl++;setTimeout(step,0)};
+      one()};
+    step()},30);
+}
 function tbRenderAdd(ctx,ros,cur,drops){
   const T=S.tb,n=drops.length,tabs=`<div class="seg tbtab" id="tbTab"><button data-v="drop" aria-pressed="${T.tab==="drop"}">For your drop</button><button data-v="combo" aria-pressed="${T.tab==="combo"}">Best combos</button></div>`;
-  const pick=k=>T.pick&&T.pick.join(",")===k;
+  const pick=k=>T.pick&&(T.pick.join(",")===k||T.drops.join(",")+">"+T.pick.join(",")===k);
   const row=(i,k,name,sub,s,why)=>`<button class="tbrow tbfa" data-k="${esc(k)}" aria-pressed="${pick(k)}"><span class="tbi">${i}</span><span class="tbn">${name}<small>${sub}</small></span><span class="tbw">${tbPct(s.cats)}${tbSg(s.cats-cur.cats)}</span><span class="tbwy">${why}</span></button>`;
   const head=t=>`<div class="tbth"><span>#</span><span>${t}</span><span>Win%</span></div>`;
   $("tbAddH").innerHTML=`<span class="tbst">2</span>${T.tab==="drop"&&n?`Best pickups for ${drops.map(o=>esc(tbShort(o.q.n))).join(" + ")}`:"Best pickups"}`;
   const P=tbPool(ctx);
   if(T.tab==="combo"){
-    $("tbAdd").innerHTML=tabs+`<div class="tbhint">Every drop × free agent, best first. Tap one to try it.</div><div class="tbhint">Trying every combo…</div>`;
+    const k=T.nk,nk=`<div class="tbsort"><span class="tbml">Moves</span><div class="seg" id="tbNk">${[1,2,3,4].map(v=>`<button data-v="${v}" aria-pressed="${v===k}">${v}</button>`).join("")}</div></div>`;
+    const hint=k===1?`Every drop × free agent (top ${P.length} by Proj), best first. Tap one to try it.`
+      :`The best ${k} drops and ${k} adds made together, found step by step from the strongest single moves (top ${TBADDS} free agents). Tap one to preview it.`;
+    const wire=()=>{$("tbTab").querySelectorAll("button").forEach(b=>b.onclick=()=>{T.tab=b.dataset.v;renderBuild()});
+      $("tbNk").querySelectorAll("button").forEach(b=>b.onclick=()=>{T.nk=+b.dataset.v;store.set("tbNk",T.nk);T.drops=[];T.pick=null;renderBuild()})};
+    $("tbAdd").innerHTML=tabs+nk+`<div class="tbhint">${hint}</div><div class="tbhint" id="tbProg">Trying every combo…</div>`;wire();
     const run=S.tbRun=(S.tbRun||0)+1;
-    setTimeout(()=>{if(run!==S.tbRun)return;const out=[];
-      for(const d of ros.filter(o=>!o.il))for(const a of P){const s=tbScore(ctx,ros.filter(o=>o!==d).concat([a]));if(s.cats>cur.cats+.0005)out.push({d,a,s})}
-      const top=out.sort((a,b)=>b.s.cats-a.s.cats).slice(0,10);
-      $("tbAdd").innerHTML=tabs+`<div class="tbhint">Every drop × free agent (top ${P.length} free agents by Proj), best first. Tap one to try it.</div>`+(top.length?head("Move")+top.map((x,i)=>
-        row(i+1,x.d.id+">"+x.a.id,`−${esc(x.d.q.n)} <s>→</s> +${esc(x.a.q.n)}`,`Proj #${S.bs.x[x.d.id]||"–"} → #${S.bs.x[x.a.id]||"–"}`,x.s,tbWhy(cur,x.s))).join("")
-        :`<div class="tbhint">No single drop and add beats your current team right now.</div>`);
-      $("tbAdd").querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const[d,a]=b.dataset.k.split(">");T.drops=[d];T.pick=[a];T.tab="drop";renderBuild()});
-      $("tbTab").querySelectorAll("button").forEach(b=>b.onclick=()=>{T.tab=b.dataset.v;renderBuild()})},30);
+    tbCombos(ctx,ros,P,k,run,top=>{
+      if(run!==S.tbRun)return;top=top.filter(x=>x.s.cats>cur.cats+.0005).slice(0,10);
+      // a k-th move that doesn't add anything: say so, with the best smaller set
+      const prev=k>1&&S.tbCo[k-1]&&S.tbCo[k-1][0],less=prev&&top[0]&&prev.s.cats>=top[0].s.cats-.0005?`<div class="tbhint">Move ${k} doesn't add anything: the best ${k-1}-move set is ${tbPct(prev.s.cats)}.</div>`:"";
+      const nm=a=>a.map(o=>esc(o.q.n)),rk=a=>a.map(o=>"#"+(S.bs.x[o.id]||"–")).join(" ");
+      $("tbAdd").innerHTML=tabs+nk+`<div class="tbhint">${hint}</div>`+less+(top.length?head(k===1?"Move":`${k} moves`)+top.map((x,i)=>
+        row(i+1,x.d.map(o=>o.id).join(",")+">"+x.a.map(o=>o.id).join(","),`−${nm(x.d).join(", −")} <s>→</s> +${nm(x.a).join(", +")}`,`Proj ${rk(x.d)} → ${rk(x.a)}`,x.s,tbWhy(cur,x.s))).join("")
+        :`<div class="tbhint">No ${k===1?"single drop and add":`set of ${k} moves`} beats your current team right now.</div>`);
+      $("tbAdd").querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const[d,a]=b.dataset.k.split(">");T.drops=d.split(",");T.pick=a.split(",");if(k===1)T.tab="drop";renderBuild()});
+      wire()});
     return}
   if(!n){$("tbAdd").innerHTML=tabs+`<div class="tbhint">Pick a player to drop.</div>`}
+  else if(n>2){$("tbAdd").innerHTML=tabs+`<div class="tbhint">Sets of 3 or 4 moves come from Best combos. Here, pick 1 or 2 players to drop.</div>`}
   else{const base=ros.filter(o=>!drops.includes(o));
     let rows=P.map(a=>({adds:[a],s:tbScore(ctx,base.concat([a]))})).sort((a,b)=>b.s.cats-a.s.cats);
     if(n===2){const t=rows.slice(0,8).map(r=>r.adds[0]),pr=[];for(let i=0;i<t.length;i++)for(let j=i+1;j<t.length;j++)pr.push({adds:[t[i],t[j]],s:tbScore(ctx,base.concat([t[i],t[j]]))});rows=pr.sort((a,b)=>b.s.cats-a.s.cats).slice(0,15)}
