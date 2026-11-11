@@ -699,6 +699,57 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .lb .lbw{margin:4px 0 0 35px;font:500 12px/1.35 var(--name);color:var(--dim)}.lb .lbw b{color:var(--ink);font-weight:600}.lb .lbw b.good{color:var(--pos)}.lb .lbw b.bad{color:var(--neg)}
 .pjh span{text-transform:none;letter-spacing:0;font-weight:500}
 @media (min-width:720px){.bo2r.lbr{grid-template-columns:minmax(0,1fr) 64px 64px 64px}}
+/* Build (Buy/Sell > Build): quiet on purpose. Ink and grey; orange marks only what you picked; green/red only on +/- numbers. */
+.tb{display:grid;gap:12px;padding:10px 0 24px;max-width:1240px;width:100%;margin:0 auto;grid-column:1/-1;min-width:0}
+.tbctl{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+.tbml{font:500 11px/1 var(--num);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin-right:6px}
+.tbpn{display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+.tbpn button{font:500 12px/1 var(--num);color:var(--dim);border:1px solid var(--rule);border-radius:5px;padding:5px 6px}
+.tbpn button[aria-pressed="true"]{color:var(--ink);border-color:var(--ink);text-decoration:line-through}
+.tbteam{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:12px}
+.tbtop{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline;margin-bottom:8px}
+.tbtop b{font:600 22px/1 var(--num);margin-right:6px}
+.tbtop .up,.tbtop .dn,.tbtop .tbz{font:600 13px/1 var(--num)}
+.tbz{color:var(--dim)}
+.tbstrip{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));border-top:1px solid var(--rule)}
+.tbstrip>div{display:grid;gap:2px;text-align:center;padding:7px 1px 0}
+.tbstrip>div+div{border-left:1px solid var(--rule)}
+.tbstrip .l,.tbstrip .v{font:500 10.5px/1.2 var(--num);color:var(--dim)}
+.tbstrip .r{font:600 16px/1.1 var(--num)}
+.tbstrip .ch{font:600 10px/1.2 var(--num);min-height:12px}
+.tbstrip .off{opacity:.35}
+.tbbar{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;border-top:1px solid var(--rule);margin-top:10px;padding-top:10px;font:500 14px/1.3 var(--name)}
+.tbgo{background:var(--ink);color:var(--panel);border-radius:7px;padding:7px 12px;font:700 13px/1 var(--name)}
+.tblk{color:var(--dim);text-decoration:underline;font:500 13px/1 var(--name);padding:4px 2px}
+.tbcols{display:grid;gap:12px;align-items:start}
+.tbcols>section{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:12px;min-width:0;scroll-margin-top:calc(var(--bar) + 8px)}
+.tbh{font:700 16px/1.2 var(--name);margin-bottom:2px}
+.tbst{font:600 12px/1 var(--num);color:var(--ball);margin-right:6px}
+.tbhint{font:500 12.5px/1.4 var(--name);color:var(--dim);margin:2px 0 8px}
+.tbtab{margin:4px 0 6px}
+.tbsort{display:flex;align-items:center;margin:0 0 6px}
+.tbrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;width:100%;text-align:left;padding:8px 6px;border-top:1px solid var(--rule)}
+.tbrow[disabled]{opacity:.5;cursor:default}
+.tbrow[aria-pressed="true"]{background:color-mix(in srgb,var(--ball) 9%,transparent);box-shadow:inset 3px 0 0 var(--ball)}
+.tbn{font:600 15px/1.25 var(--name);min-width:0}
+.tbn .ij{margin-left:5px}
+.tbn small{display:block;font:400 11px/1.4 var(--num);color:var(--dim)}
+.tbn s{text-decoration:none;color:var(--dim)}
+.tbtg{font:500 12px/1 var(--num);color:var(--dim);border:1px solid var(--rule);border-radius:6px;padding:5px 8px;min-width:68px;text-align:center}
+.tbrow[aria-pressed="true"] .tbtg{color:var(--ball);border-color:var(--ball)}
+.tbfa,.tbth{grid-template-columns:20px minmax(0,1fr) auto}
+.tbth{display:grid;gap:10px;padding:0 6px 4px;font:500 11px/1 var(--num);color:var(--dim)}
+.tbth span:last-child{text-align:right}
+.tbi{font:500 12px/1 var(--num);color:var(--dim)}
+.tbw{font:600 15px/1 var(--num);text-align:right;white-space:nowrap}
+.tbw span{font-size:12px;margin-left:5px}
+.tbwy{grid-column:2/-1;font:400 11px/1.4 var(--num);color:var(--dim)}
+.tbpc{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:12px}
+.tbpc summary{cursor:pointer;font:700 16px/1.2 var(--name)}
+.tbpu,.tbpr{display:grid;grid-template-columns:minmax(0,1fr) 70px 70px 70px;gap:8px;text-align:right}
+.tbpu span:first-child,.tbpr span:first-child{text-align:left}
+.tbpr{padding:7px 0;border-top:1px solid var(--rule);font:500 13px/1 var(--num)}
+@media (min-width:1100px){.tbcols{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}.tbstrip .r{font-size:19px}.tbstrip .l,.tbstrip .v{font-size:11.5px}.tbtop b{font-size:26px}}
 @media (min-width:1100px){.bo2w:has(.lbcols){max-width:1240px}.lbcols{display:grid;grid-template-columns:1fr 1fr;gap:0 40px;align-items:start}.lbcols>div>.pjh:first-child{padding-top:8px}}
 .lr.bo .bow{margin:5px 0 0 26px;font:500 12.5px/1.3 var(--name);color:var(--dim)}.lr.bo .bow.fi{color:var(--neg)}
 /* Rise as a table: one header, one line per player, season -> last 3 in each cell */
@@ -996,7 +1047,7 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
     <div class="meta">
       <span class="bsmeta"><span id="bsStatus" class="num">Loading</span><button class="info" id="bsInfo" aria-expanded="false" aria-controls="bsHelp" aria-label="How Buy/Sell works">i</button></span>
       <div class="sort" id="bsSort">
-        <button data-k="mine" class="lgonly">Mine</button><button data-k="fa" class="lgonly">Waivers</button><button data-k="buy">Buy</button><button data-k="sell">Sell</button><button data-k="x">Proj</button><button data-k="now">Now</button><button data-k="bo">Rise</button>
+        <button data-k="mine" class="lgonly">Mine</button><button data-k="fa" class="lgonly">Waivers</button><button data-k="bld" class="lgonly">Build</button><button data-k="buy">Buy</button><button data-k="sell">Sell</button><button data-k="x">Proj</button><button data-k="now">Now</button><button data-k="bo">Rise</button>
       </div>
     </div>
     <div class="bsrow2" id="bsRow2"><div class="seg unit" id="bsUnit" role="group" aria-label="Counting stats per 36 minutes or per game"><button data-u="36">Per 36</button><button data-u="g">Per game</button></div>
@@ -1312,13 +1363,14 @@ function renderCats(){
     +CATS.map(c=>`<button data-k="${c.k}" class="${S.punt.has(c.k)?"punted":""}" aria-pressed="${S.sort===c.k}">${c.l}</button>`).join("");
   $("cats").querySelectorAll("button").forEach(b=>b.onclick=()=>setSort(S.sort===b.dataset.k?"value":b.dataset.k));
   $("toggles").innerHTML=SCATS.map(c=>`<button class="tog" data-k="${c.k}" aria-pressed="${S.punt.has(c.k)}">${c.l}</button>`).join("");
-  $("toggles").querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.k;
-    S.punt.has(k)?S.punt.delete(k):S.punt.add(k);store.set("punt",[...S.punt]);
-    $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
-    renderCats();rankWindows();rankBS();renderBS();renderBZ();paintDens();renderPJ();renderRK();renderSC();if(S.players.length){scoreValue();render()}renderSheet()});
+  $("toggles").querySelectorAll("button").forEach(b=>b.onclick=()=>togglePunt(b.dataset.k));
   $("bsCats").innerHTML=BSC.map(c=>`<span class="${c.c&&S.punt.has(c.c)?"punted":""}">${c.l}</span>`).join("");
   $("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.setAttribute("aria-pressed",S.sort===b.dataset.k));
 }
+// One punt toggle for the whole site (the Punt sheet and Build's punt row): everything re-ranks.
+function togglePunt(k){S.punt.has(k)?S.punt.delete(k):S.punt.add(k);store.set("punt",[...S.punt]);
+  $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
+  renderCats();rankWindows();rankBS();renderBS();renderBZ();paintDens();renderPJ();renderRK();renderSC();if(S.players.length){scoreValue();render()}renderSheet()}
 function setSort(k){S.sort=k;renderCats();render()}
 // Movers: only flagged players, biggest rank jumps first (a minutes jump counts as a riser
 // even before the production follows), fallers last.
@@ -1576,10 +1628,11 @@ function renderBS(){
   // with a synced league the tab is Mine / Waivers / Rise; the all-league Buy / Sell / Proj / Now
   // lists stay for devices without one
   $("bsSort").querySelectorAll("button").forEach(b=>b.hidden=b.classList.contains("lgonly")?!ML:!!ML&&b.dataset.k!=="bo");
-  if(!ML&&(S.bsSort==="mine"||S.bsSort==="fa"))S.bsSort="buy";
-  if(ML&&S.bsSort!=="mine"&&S.bsSort!=="fa"&&S.bsSort!=="bo")S.bsSort="mine";
-  $("bsRow2").hidden=$("bsCats").hidden=S.bsSort==="bo"||S.bsSort==="mine"||S.bsSort==="fa";
+  if(!ML&&(S.bsSort==="mine"||S.bsSort==="fa"||S.bsSort==="bld"))S.bsSort="buy";
+  if(ML&&S.bsSort!=="mine"&&S.bsSort!=="fa"&&S.bsSort!=="bo"&&S.bsSort!=="bld")S.bsSort="mine";
+  $("bsRow2").hidden=$("bsCats").hidden=S.bsSort==="bo"||S.bsSort==="mine"||S.bsSort==="fa"||S.bsSort==="bld";
   if(S.bsSort==="bo")return renderBO();
+  if(S.bsSort==="bld"){$("bsSort").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k==="bld"));return renderBuild()}
   if(S.bsSort==="mine"||S.bsSort==="fa")return renderLgBS(S.bsSort);
   const B=S.bs,st=S.bsSort,flag=st==="buy"||st==="sell";
   const key={buy:id=>Math.log(B.now[id]/B.x[id]),sell:id=>Math.log(B.x[id]/B.now[id]),x:id=>-B.x[id],now:id=>-B.now[id]}[st];
@@ -1642,6 +1695,137 @@ function renderLgBS(st){
     +`</div><div>`+(hurt.length?lgBsHead("Injured","Stash only if you have an IL spot or a dead bench slot")
       +hurt.map(id=>lgBsRow(id,B.x[id]<=ROST?"Stash":"",B.x[id]<=ROST?"good":"",injWhy(id))).join(""):"")+`</div></div></div>`;
 }
+// ---- Build (Buy/Sell > Build; synced league): BBM's add/drop finder on our numbers. Pick a player
+// to drop and every free agent is ranked by your Win% with him in that spot, or start from the best
+// drop x add combos across the roster. Every team's synced roster is played out over the horizon
+// with the Matchup tool's simulator (muSim: each day the best players up to the team's active
+// spots, at that day's minutes and opponent, out days from the injury report), scaled to a 7-day
+// week. Each category is then a weekly head-to-head against each of the other teams: a normal
+// approximation with variance PHI x mean (Poisson for the rest, binomial makes for FG%/FT%), times
+// TBNOISE for what a week adds beyond game-to-game noise (games, minutes, a rest night).
+// Win% = the categories you'd win across all 9 opponents, punted ones left out (BBM's Win% on
+// our Proj); Matchup win = the chance to take 5+ of 9, averaged over the opponents. What-if only:
+// nothing is sent to Yahoo, and a new sync clears the moves.
+const TBNOISE=1.6,TBPOOL=60,TBH={wk:"This week",w2:"2 weeks",ros:"Rest of season"};
+S.tb={h:store.get("tbH","ros"),drops:[],pick:null,done:[],tab:"combo",fs:"w",at:null};
+function tbDays(h){if(!SC)return[];const t=etToday(),late=etHour(new Date())>=19;
+  const all=Object.keys(SC.dates).filter(d=>d>t||(d===t&&!late)).sort();
+  return h==="ros"?all:all.filter(d=>d<=weekDates(h==="wk"?0:1)[6])}
+function tbCtx(){
+  const key=[ML.at,S.tb.h,[...S.punt].join(),G.asOf,SC&&SC.built,IJ&&IJ.built].join("|");
+  if(S.tbC&&S.tbC.key===key)return S.tbC;
+  const x=lgIx(),me=String(ML.me),days=tbDays(S.tb.h);if(!x||!days.length)return null;
+  const span=(new Date(days[days.length-1])-new Date(days[0]))/864e5+1,f=7/span;
+  const F=CATS.map(c=>c.k).filter(k=>!S.punt.has(k)),C={};
+  const P=id=>{const sl=x.slot[id]||"";return{id,q:G.players[id],il:/^(IL|IR)/.test(sl)}};
+  const roster=t=>Object.keys(x.own).filter(id=>x.own[id]===t).map(P).filter(o=>o.q&&o.q.xp);
+  const cap=t=>(ML.act&&ML.act[t])||10;
+  const wk=s=>{const o={g:0,vr:{}};for(const k in s.tot)o[k]=s.tot[k]*f;for(const k in s.vr)o.vr[k]=s.vr[k]*f;for(const id in s.g)o.g+=s.g[id]*f;return o};
+  const ctx={key,days,f,F,C,me,cap:cap(me),wk,P,mine:roster(me),
+    fa:Object.keys(G.players).filter(id=>x.own[id]==null&&G.players[id].xp&&G.players[id].xp[0]>=12&&S.bs.x[id]).sort((a,b)=>S.bs.x[a]-S.bs.x[b]).slice(0,TBPOOL).map(P)};
+  ctx.opp=Object.keys(ML.teams).filter(t=>t!==me).map(t=>({t,w:wk(muSim(roster(t),days,cap(t),F,null,C))})).filter(o=>o.w.g>0);
+  return S.tbC=ctx}
+// Weekly head-to-head: your chance to win category k against one opponent.
+function tbP(a,b,k){
+  if(k==="fg"||k==="ft"){const A=a[k+"a"],B=b[k+"a"];if(!(A>0&&B>0))return .5;const pa=a[k+"m"]/A,pb=b[k+"m"]/B,sd=Math.sqrt(TBNOISE*(pa*(1-pa)/A+pb*(1-pb)/B));return sd>0?muPhi((pa-pb)/sd):.5}
+  const sd=Math.sqrt(TBNOISE*(a.vr[k]+b.vr[k])),d=(a[k]-b[k])*(k==="to"?-1:1);return sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
+const tbV=(w,k)=>k==="fg"?w.fgm/w.fga:k==="ft"?w.ftm/w.fta:w[k];
+function tbScore(ctx,ps){
+  const me=ctx.wk(muSim(ps,ctx.days,ctx.cap,ctx.F,null,ctx.C)),on=CATS.map(c=>c.k).filter(k=>!S.punt.has(k));
+  let cats=0,mw=0;const rank={};
+  for(const o of ctx.opp){const rows=CATS.map(c=>({p:tbP(me,o.w,c.k)}));rows.forEach((r,i)=>{if(!S.punt.has(CATS[i].k))cats+=r.p});mw+=muDist(rows).win}
+  for(const c of CATS){const v=tbV(me,c.k);rank[c.k]=1+ctx.opp.filter(o=>{const u=tbV(o.w,c.k);return c.k==="to"?u<v:u>v}).length}
+  const n=ctx.opp.length||1;return{me,rank,cats:on.length?cats/(n*on.length):0,mw:mw/n}}
+const tbOrd=n=>n+(n%10===1&&n!==11?"st":n%10===2&&n!==12?"nd":n%10===3&&n!==13?"rd":"th");
+const tbPct=x=>(100*x).toFixed(1);
+const tbSg=x=>Math.abs(x)<.0005?`<span class="tbz">±0</span>`:`<span class="${x>0?"up":"dn"}">${x>0?"+":"−"}${tbPct(Math.abs(x))}</span>`;
+const tbShort=n=>n.replace(/^(\S)\S*\s/,"$1. ");
+// Moves and picks are kept as player ids (the context is rebuilt when punts or the horizon change).
+function tbRoster(ctx){let r=ctx.mine.slice();for(const m of S.tb.done)r=r.filter(o=>!m.d.includes(o.id)).concat(m.a.map(ctx.P).filter(o=>o.q&&o.q.xp));return r}
+function tbPool(ctx){const r=new Set(tbRoster(ctx).map(o=>o.id));return ctx.fa.filter(o=>!r.has(o.id))}
+// "REB 8th→5th · STL 3rd→4th": the category ranks that change, biggest first (punts left out)
+function tbWhy(a,b){return CATS.map(c=>c.k).filter(k=>!S.punt.has(k)&&a.rank[k]!==b.rank[k]).sort((x,y)=>Math.abs(b.rank[y]-a.rank[y])-Math.abs(b.rank[x]-a.rank[x]))
+  .map(k=>`${CATS.find(c=>c.k===k).l} ${tbOrd(a.rank[k])}→${tbOrd(b.rank[k])}`).join(" · ")||"Same ranks, small gains inside them"}
+const tbG=(ctx,o)=>ctx.days.filter(d=>plays(o.q.t,d)&&avail(o.id,d)).length;
+const tbSub=(ctx,o)=>`${esc(o.q.t)} · Proj #${S.bs.x[o.id]||"–"} · ${tbG(ctx,o)}g`;
+function renderBuild(){
+  const T=S.tb,el=$("bsList");
+  if(T.at!==ML.at){T.at=ML.at;T.done=[];T.drops=[];T.pick=null}
+  if(!SC||!S.bs){el.innerHTML=`<div class="empty">Loading…</div>`;return}
+  const ctx=tbCtx();
+  $("bsAsOf").textContent=`Proj thru ${fmtDate(G.asOf).replace(/^\w+, /,"")}`;
+  if(!ctx){el.innerHTML=`<div class="empty">No games left in this window. Try 2 weeks.</div>`;$("bsStatus").textContent="";return}
+  const ros=tbRoster(ctx),cur=tbScore(ctx,ros);T.drops=T.drops.filter(id=>ros.some(o=>o.id===id));
+  const drops=ros.filter(o=>T.drops.includes(o.id)),adds=T.pick&&drops.length?T.pick.map(ctx.P):null;
+  const after=adds?tbScore(ctx,ros.filter(o=>!drops.includes(o)).concat(adds)):null,x=after||cur,m=x.me;
+  $("bsStatus").textContent=`${ctx.opp.length+1} teams`;
+  const strip=CATS.map(c=>{const k=c.k,r=x.rank[k],r0=cur.rank[k];
+    const v=k==="fg"||k==="ft"?tbV(m,k).toFixed(3).slice(1):(m[k]/(m.g||1)).toFixed(k==="pts"?1:2);
+    return`<div class="${S.punt.has(k)?"off":""}"><span class="l">${c.l}</span><span class="r">${tbOrd(r)}</span><span class="v">${v}</span><span class="ch ${after&&r!==r0?(r<r0?"up":"dn"):""}">${after&&r!==r0?"was "+tbOrd(r0):""}</span></div>`}).join("");
+  const bar=[];
+  if(after)bar.push(`<span>Drop <b>${drops.map(o=>esc(o.q.n)).join(" and ")}</b>, add <b>${adds.map(o=>esc(o.q.n)).join(" and ")}</b></span><button class="tbgo" id="tbMk">Make this move</button><button class="tblk" id="tbCx">Cancel</button>`);
+  if(T.done.length)bar.push(`<span class="tbml">Moves made</span>${T.done.map(mv=>{const nm=id=>esc(tbShort((G.players[id]||{n:id}).n));return`<span>−${mv.d.map(nm).join(", −")} +${mv.a.map(nm).join(", +")}</span>`}).join(" · ")}<button class="tblk" id="tbUn">Undo</button><button class="tblk" id="tbRs">Start over</button>`);
+  const pv=o=>-(S.bs.x[o.id]||1e4);
+  const roRows=ros.slice().sort((a,b)=>pv(b)-pv(a)).map(o=>{const on=drops.includes(o);
+    return`<button class="tbrow" data-d="${esc(o.id)}" aria-pressed="${on}" ${o.il?"disabled":""}><span class="tbn">${esc(o.q.n)}${ijTag(o.id)}<small>${tbSub(ctx,o)}</small></span><span class="tbtg">${o.il?"IL":on?"Dropping":"Drop"}</span></button>`}).join("");
+  const seg=(id,opts,v)=>`<div class="seg" id="${id}">${opts.map(([k,l])=>`<button data-v="${k}" aria-pressed="${k===v}">${l}</button>`).join("")}</div>`;
+  el.innerHTML=`<div class="tb">
+    <div class="tbctl">${seg("tbH",Object.entries(TBH),T.h)}<div class="tbpn"><span class="tbml">Punt</span>${CATS.map(c=>`<button data-k="${c.k}" aria-pressed="${S.punt.has(c.k)}">${c.l}</button>`).join("")}</div></div>
+    <section class="tbteam"><div class="tbtop"><span><span class="tbml">Win%</span><b>${tbPct(x.cats)}</b>${after?tbSg(after.cats-cur.cats):""}</span><span><span class="tbml">Matchup win</span><b>${tbPct(x.mw)}%</b>${after?tbSg(after.mw-cur.mw):""}</span></div>
+      <div class="tbstrip">${strip}</div>
+      <p class="stkn">Your rank among the ${ctx.opp.length+1} teams in each category, with your per-game line, over ${TBH[T.h].toLowerCase()}. <b>Win%</b> = the share of categories you'd win in a week against every other team (BBM's Win%, on our Proj), punted ones left out. <b>Matchup win</b> = your chance to take 5+ of 9 against an average opponent. Every synced roster is played out day by day at its active spots, with next-man-up minutes, the injury report and matchups. What-if only: nothing changes on Yahoo, and the next sync clears the moves.</p>
+      ${bar.length?`<div class="tbbar">${bar.join("")}</div>`:""}</section>
+    <div class="tbcols"><section><div class="tbh"><span class="tbst">1</span>Who would you drop?</div><div class="tbhint">Tap one or two players. Best Proj first.</div>${roRows}</section>
+      <section id="tbAddS"><div class="tbh" id="tbAddH"></div><div id="tbAdd"></div></section></div>
+    <details class="tbpc" id="tbPc"><summary>Punt check</summary><p class="tbhint">Your Win% if you gave up each category, counting only the rest. Higher than now means that category costs you more than it gives.</p><div id="tbPu"></div></details>
+  </div>`;
+  el.querySelectorAll("#tbH button").forEach(b=>b.onclick=()=>{T.h=b.dataset.v;store.set("tbH",T.h);T.pick=null;renderBuild()});
+  el.querySelectorAll(".tbpn button").forEach(b=>b.onclick=()=>togglePunt(b.dataset.k));
+  el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{const id=b.dataset.d;
+    T.drops=T.drops.includes(id)?T.drops.filter(r=>r!==id):T.drops.concat([id]).slice(-2);T.pick=null;T.tab=T.drops.length?"drop":"combo";renderBuild();
+    if(T.drops.length&&matchMedia("(max-width:1099px)").matches)$("tbAddS").scrollIntoView({behavior:"smooth",block:"start"})});
+  const on=(id,fn)=>{const b=$(id);if(b)b.onclick=fn};
+  on("tbMk",()=>{T.done.push({d:T.drops.slice(),a:T.pick.slice()});T.drops=[];T.pick=null;T.tab="combo";renderBuild()});
+  on("tbCx",()=>{T.pick=null;renderBuild()});on("tbUn",()=>{T.done.pop();T.drops=[];T.pick=null;renderBuild()});on("tbRs",()=>{T.done=[];T.drops=[];T.pick=null;renderBuild()});
+  $("tbPc").ontoggle=()=>{if($("tbPc").open)tbPunts(ctx,ros,cur)};
+  tbRenderAdd(ctx,ros,cur,drops);
+}
+function tbRenderAdd(ctx,ros,cur,drops){
+  const T=S.tb,n=drops.length,tabs=`<div class="seg tbtab" id="tbTab"><button data-v="drop" aria-pressed="${T.tab==="drop"}">For your drop</button><button data-v="combo" aria-pressed="${T.tab==="combo"}">Best combos</button></div>`;
+  const pick=k=>T.pick&&T.pick.join(",")===k;
+  const row=(i,k,name,sub,s,why)=>`<button class="tbrow tbfa" data-k="${esc(k)}" aria-pressed="${pick(k)}"><span class="tbi">${i}</span><span class="tbn">${name}<small>${sub}</small></span><span class="tbw">${tbPct(s.cats)}${tbSg(s.cats-cur.cats)}</span><span class="tbwy">${why}</span></button>`;
+  const head=t=>`<div class="tbth"><span>#</span><span>${t}</span><span>Win%</span></div>`;
+  $("tbAddH").innerHTML=`<span class="tbst">2</span>${T.tab==="drop"&&n?`Best pickups for ${drops.map(o=>esc(tbShort(o.q.n))).join(" + ")}`:"Best pickups"}`;
+  const P=tbPool(ctx);
+  if(T.tab==="combo"){
+    $("tbAdd").innerHTML=tabs+`<div class="tbhint">Every drop × free agent, best first. Tap one to try it.</div><div class="tbhint">Trying every combo…</div>`;
+    const run=S.tbRun=(S.tbRun||0)+1;
+    setTimeout(()=>{if(run!==S.tbRun)return;const out=[];
+      for(const d of ros.filter(o=>!o.il))for(const a of P){const s=tbScore(ctx,ros.filter(o=>o!==d).concat([a]));if(s.cats>cur.cats+.0005)out.push({d,a,s})}
+      const top=out.sort((a,b)=>b.s.cats-a.s.cats).slice(0,10);
+      $("tbAdd").innerHTML=tabs+`<div class="tbhint">Every drop × free agent (top ${P.length} free agents by Proj), best first. Tap one to try it.</div>`+(top.length?head("Move")+top.map((x,i)=>
+        row(i+1,x.d.id+">"+x.a.id,`−${esc(x.d.q.n)} <s>→</s> +${esc(x.a.q.n)}`,`Proj #${S.bs.x[x.d.id]||"–"} → #${S.bs.x[x.a.id]||"–"}`,x.s,tbWhy(cur,x.s))).join("")
+        :`<div class="tbhint">No single drop and add beats your current team right now.</div>`);
+      $("tbAdd").querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const[d,a]=b.dataset.k.split(">");T.drops=[d];T.pick=[a];T.tab="drop";renderBuild()});
+      $("tbTab").querySelectorAll("button").forEach(b=>b.onclick=()=>{T.tab=b.dataset.v;renderBuild()})},30);
+    return}
+  if(!n){$("tbAdd").innerHTML=tabs+`<div class="tbhint">Pick a player to drop.</div>`}
+  else{const base=ros.filter(o=>!drops.includes(o));
+    let rows=P.map(a=>({adds:[a],s:tbScore(ctx,base.concat([a]))})).sort((a,b)=>b.s.cats-a.s.cats);
+    if(n===2){const t=rows.slice(0,8).map(r=>r.adds[0]),pr=[];for(let i=0;i<t.length;i++)for(let j=i+1;j<t.length;j++)pr.push({adds:[t[i],t[j]],s:tbScore(ctx,base.concat([t[i],t[j]]))});rows=pr.sort((a,b)=>b.s.cats-a.s.cats).slice(0,15)}
+    else if(T.fs==="p")rows.sort((a,b)=>(S.bs.x[a.adds[0].id]||1e4)-(S.bs.x[b.adds[0].id]||1e4));
+    $("tbAdd").innerHTML=tabs+`<div class="tbhint">Every free agent in his spot (top ${P.length} by Proj). Tap one to see your team with him.</div>`
+      +(n===1?`<div class="tbsort"><span class="tbml">Sort</span><div class="seg" id="tbFs"><button data-v="w" aria-pressed="${T.fs==="w"}">Win% after</button><button data-v="p" aria-pressed="${T.fs==="p"}">Proj</button></div></div>`:"")
+      +head(n===2?"Pair":"Player")+rows.map((r,i)=>row(i+1,r.adds.map(o=>o.id).join(","),r.adds.map(o=>esc(o.q.n)+ijTag(o.id)).join(" + "),r.adds.map(o=>tbSub(ctx,o)).join(" / "),r.s,tbWhy(cur,r.s))).join("");
+    $("tbAdd").querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{T.pick=b.dataset.k.split(",");renderBuild()});
+    const fs=$("tbFs");if(fs)fs.querySelectorAll("button").forEach(b=>b.onclick=()=>{T.fs=b.dataset.v;renderBuild()})}
+  $("tbTab").querySelectorAll("button").forEach(b=>b.onclick=()=>{T.tab=b.dataset.v;renderBuild()});
+}
+// Punt check: your Win% with each category left out (only the rest counted), best first.
+function tbPunts(ctx,ros,cur){
+  const keep=new Set(S.punt),rows=CATS.filter(c=>!keep.has(c.k)).map(c=>{S.punt=new Set([...keep,c.k]);const s=tbScore(ctx,ros);return{c,s}});S.punt=keep;
+  rows.sort((a,b)=>b.s.cats-a.s.cats);
+  $("tbPu").innerHTML=`<div class="tbth tbpu"><span>Give up</span><span>You rank</span><span>Win%</span><span>Change</span></div>`+rows.map(r=>`<div class="tbpr"><span>${r.c.l}</span><span>${tbOrd(cur.rank[r.c.k])}</span><span>${tbPct(r.s.cats)}</span><span>${tbSg(r.s.cats-cur.cats)}</span></div>`).join("")}
 // An injured player's Now rank is the few games he played (often hurt or rusty), so lead with
 // the return and Proj, which is his line once healthy.
 function injWhy(id){const i=ijOf(id),q=G.players[id],B=S.bs,sh=d=>fmtDate(d).replace(/^\w+, /,"");
