@@ -716,6 +716,20 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .ush>*{font:500 11px/1.2 var(--num);color:var(--dim);background:var(--bg)}
 .ush button[aria-pressed="true"]{color:var(--ink)}
 @media (min-width:1100px){.ustr{grid-template-columns:220px repeat(var(--usc),minmax(64px,1fr))}.ust{min-width:0}.ustr>*{font-size:13.5px}}
+/* Navigation: the page row under a section (Players, My League), at the top of the page's sticky
+   strip. Underlined text tabs so it reads as a level below the section pills. */
+.subnav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin:0 -2px;padding:2px 0 0;border-bottom:1px solid var(--rule)}
+.subnav::-webkit-scrollbar{display:none}
+.subnav button{flex:none;font:600 14px/1 var(--name);color:var(--dim);padding:10px 10px 9px;border-bottom:2px solid transparent;margin-bottom:-1px}
+.subnav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.subnav:empty,.subnav[hidden]{display:none!important}
+/* controls the new pages make redundant */
+#pjMuBtn,body[data-page="matchup"] #pjView,#rkSz [data-k="usg"],body[data-page="usage"] #rkSz,body:not([data-page="buysell"]) #bsSort{display:none!important}
+.lgchip{flex:none;display:flex;align-items:center;gap:6px;height:30px;padding:0 7px;border:1px solid var(--rule);border-radius:7px;color:var(--dim);text-decoration:none;font:500 11px/1 var(--num);position:relative}
+.lgchip svg{width:16px;height:16px}
+.lgchip::after{content:"";position:absolute;top:4px;left:18px;width:6px;height:6px;border-radius:50%;background:var(--pos)}
+.lgchip span{display:none}
+@media (min-width:1100px){.lgchip span{display:inline}.subnav button{font-size:14.5px}}
 /* Build (Buy/Sell > Build): quiet on purpose. Ink and grey; orange marks only what you picked; green/red only on +/- numbers. */
 .tb{display:grid;gap:12px;padding:10px 0 24px;max-width:1240px;width:100%;margin:0 auto;grid-column:1/-1;min-width:0}
 .tbctl{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
@@ -1025,6 +1039,7 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
     <button class="arrow" id="next" aria-label="Next day">›</button>
   </div>
   <button class="dens" id="densBtn" hidden aria-label="Switch between cards and list" title="Cards / List"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+  <a class="lgchip" id="lgChip" href="league.html" hidden title="Re-sync your league from Yahoo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M10 14h4v3h-4zM8 20h8"/></svg><span id="lgChipT"></span></a>
   <button class="rfbtn" id="rfBtn" aria-label="Refresh" title="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v4.5h-4.5"/></svg></button>
   <button class="srbtn" id="srBtn" aria-label="Search players" title="Search players (/)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg><span class="srph">Search players</span><kbd>/</kbd></button>
   <button class="gear" id="gear" aria-expanded="false" aria-controls="sheet">Punt</button>
@@ -1147,7 +1162,8 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
   </aside>
 </div>
 
-<nav class="tabbar" id="tabs" aria-label="Views"><button data-v="box">Box</button><button data-v="rk">Ranks</button><button data-v="pj">Proj</button><button data-v="sc">Schedule</button><button data-v="in">Injuries</button><button data-v="bs">Buy/Sell</button><button data-v="bz">Buzz</button></nav>
+<nav class="tabbar" id="tabs" aria-label="Sections"><button data-t="box">Box</button><button data-t="players">Players</button><button data-t="league" id="tabLeague" hidden>My League</button><button data-t="sc">Schedule</button><button data-t="in">Injuries</button></nav>
+<div class="subnav" id="subnav" role="tablist" aria-label="Pages"></div>
 <script>
 // Display order. All 9 are scoring categories, so every cell is heat-colored - the
 // percentage cells carry makes/attempts alongside the z on their second line rather
@@ -1166,7 +1182,7 @@ const S={date:null,events:[],players:[],game:"all",punt:new Set(store.get("punt"
 // a device without a saved league, so friends using the site never see it.
 (()=>{const h=location.hash;if(!h.startsWith("#league="))return;
   try{const o=JSON.parse(decodeURIComponent(h.slice(8)));if(o&&o.v===1&&Array.isArray(o.p)&&o.p.length){store.set("league",o);store.set("lgF","avail");S.lgNew=1}}catch(e){}
-  history.replaceState(null,"",location.pathname+location.search+"#ranks")})();
+  history.replaceState(null,"",location.pathname+location.search+"#matchup")})();
 let ML=store.get("league",null);S.lgF=ML?store.get("lgF","all"):"all";
 const YT={GSW:"GS",NOP:"NO",NYK:"NY",SAS:"SA",PHO:"PHX",UTA:"UTAH",WAS:"WSH",BRK:"BKN",CHO:"CHA"};
 const lgKey=n=>String(n).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z ]/g,"").replace(/\b(jr|sr|ii|iii|iv|v)\b/g,"").replace(/\s+/g," ").trim();
@@ -3201,10 +3217,59 @@ function renderUS(){
     if(S.usSort===c)S.usDir=-S.usDir;else{S.usSort=c;S.usDir=1}store.set("usSort",S.usSort);renderRK()});
 }
 function bsMsg(m){$("bsList").innerHTML=`<div class="empty">${esc(m)}</div>`;$("bsStatus").textContent=""}
+// ---- Navigation (Nov 2026): five sections by what you're doing, each with one row of pages.
+// Box · Players (Ranks, Proj, Usage, Rise, Buy/Sell without a league, Buzz) · My League (only with
+// a synced league: Matchup, Roster, Waivers, Build) · Schedule · Injuries. Each page is an existing
+// view in one of its modes (open()), so the pages themselves didn't change; the controls a page no
+// longer needs (Proj's Matchup button, Ranks' Usage switch, Buy/Sell's sort row) are hidden by
+// body[data-page] in the CSS. Old links (#ranks, #proj, #buzz, #buysell) open their new pages.
+const NAV=[
+  {k:"box",l:"Box",pages:[{k:"box",l:"Box",v:"box"}]},
+  {k:"players",l:"Players",pages:[
+    {k:"ranks",l:"Ranks",v:"rk",open:()=>{if(S.rkSz==="usg")S.rkSz="pg"}},
+    {k:"proj",l:"Proj",v:"pj",open:()=>{if(S.pjView==="mu")S.pjView="season"}},
+    {k:"usage",l:"Usage",v:"rk",open:()=>{S.rkSz="usg"}},
+    {k:"rise",l:"Rise",v:"bs",open:()=>{S.bsSort="bo"}},
+    {k:"buysell",l:"Buy/Sell",v:"bs",nolg:1,open:()=>{if(!["buy","sell","x","now"].includes(S.bsSort))S.bsSort="buy"}},
+    {k:"buzz",l:"Buzz",v:"bz"}]},
+  {k:"league",l:"My League",lg:1,pages:[
+    {k:"matchup",l:"Matchup",v:"pj",open:()=>{S.pjView="mu"}},
+    {k:"roster",l:"Roster",v:"bs",open:()=>{S.bsSort="mine"}},
+    {k:"waivers",l:"Waivers",v:"bs",open:()=>{S.bsSort="fa"}},
+    {k:"build",l:"Build",v:"bs",open:()=>{S.bsSort="bld"}}]},
+  {k:"sc",l:"Schedule",pages:[{k:"schedule",l:"Schedule",v:"sc"}]},
+  {k:"in",l:"Injuries",pages:[{k:"injuries",l:"Injuries",v:"in"}]}];
+const navSecs=()=>NAV.filter(x=>!x.lg||ML).map(x=>({...x,pages:x.pages.filter(p=>!(p.nolg&&ML))}));
+S.navLast=store.get("navLast",{});
+function navFromHash(h){const k=String(h||"").replace(/^#/,"");
+  const old={buysell:ML?"roster":"buysell",schedule:"schedule",injuries:"injuries",mine:"roster",fa:"waivers"}[k]||k;
+  for(const x of navSecs())for(const p of x.pages)if(p.k===old)return p.k;return"box"}
+function openSection(t){const x=navSecs().find(q=>q.k===t);if(!x)return;
+  const last=S.navLast[t];openPage(x.pages.some(p=>p.k===last)?last:x.pages[0].k)}
+function openPage(k,first){
+  let sec,pg;for(const x of navSecs())for(const p of x.pages)if(p.k===k){sec=x;pg=p}
+  if(!pg){sec=navSecs()[0];pg=sec.pages[0]}
+  S.navSec=sec.k;S.navPage=pg.k;S.navLast[sec.k]=pg.k;store.set("navLast",S.navLast);
+  if(pg.open)pg.open();document.body.dataset.page=pg.k;
+  setView(pg.v);
+  try{history.replaceState(null,"",pg.k==="box"?location.pathname+location.search:"#"+pg.k)}catch(e){}
+  // re-render the view in its new mode
+  if(!first){if(pg.v==="rk")renderRK();else if(pg.v==="pj")renderPJ();else if(pg.v==="bs")renderBS()}
+}
+function paintNav(){
+  $("tabLeague").hidden=!ML;
+  $("tabs").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.t===S.navSec));
+  const sec=navSecs().find(x=>x.k===S.navSec),el=$("subnav");if(!sec)return;
+  el.innerHTML=sec.pages.length>1?sec.pages.map(p=>`<button role="tab" data-p="${p.k}" aria-selected="${p.k===S.navPage}">${p.l}</button>`).join(""):"";
+  el.hidden=sec.pages.length<2;
+  // the row sits at the top of the page's sticky strip, so it stays in view with that page's controls
+  const host=document.querySelector(`.ruler.${document.body.dataset.view}v>div`);if(host&&!el.hidden&&el.parentNode!==host)host.prepend(el);
+  el.querySelectorAll("button").forEach(b=>b.onclick=()=>{openPage(b.dataset.p);window.scrollTo(0,0)});
+  const c=$("lgChip");c.hidden=!ML;if(ML){const d=new Date(ML.at);$("lgChipT").textContent=`Synced ${d.toLocaleDateString([],{month:"short",day:"numeric"})}, ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;c.title=`League synced ${$("lgChipT").textContent.replace(/^Synced /,"")}. Tap to re-sync from Yahoo.`}
+}
 function setView(v){if(v==="in")setTimeout(()=>{try{renderTN()}catch(e){}},0);
   document.body.dataset.view=v;document.body.classList.remove("hidebars");if(typeof paintDens==="function")paintDens();
-  $("tabs").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v));
-  try{history.replaceState(null,"",v==="bs"?"#buysell":v==="bz"?"#buzz":v==="pj"?"#proj":v==="rk"?"#ranks":v==="sc"?"#schedule":v==="in"?"#injuries":location.pathname+location.search)}catch(e){}
+  if(typeof paintNav==="function")paintNav();
   window.scrollTo(0,0);
 }
 fetch("data/regression.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
@@ -3871,7 +3936,7 @@ $("psBack").onclick=()=>closeSheet();
 $("ps").onkeydown=e=>{if(e.key==="Escape")closeSheet()};
 $("bsSort").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsSort=b.dataset.k;store.set("bsSort",S.bsSort);renderBS()});
 $("bsUnit").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bsUnit=b.dataset.u;store.set("bsUnit",S.bsUnit);renderBS();renderSheet()});
-$("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>setView(b.dataset.v));
+$("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>openSection(b.dataset.t));
 $("bsInfo").onclick=()=>toggleHelp($("bsHelp").hidden);
 $("pjList").addEventListener("click",muClick,true);$("pjList").addEventListener("change",muChange);
 $("pjView").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjView=b.dataset.k;store.set("pjView",S.pjView);renderPJ();window.scrollTo(0,0)});
@@ -3899,7 +3964,7 @@ $("inList").addEventListener("click",e=>{if(e.target.closest("a"))return;const b
 $("pjSz").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjSz=b.dataset.k;store.set("pjSz",S.pjSz);renderPJ()});
 $("bzDay").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bzDay=b.dataset.k;S.bzOpen.clear();renderBZ()});
 $("bzSort").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.bzSort=b.dataset.k;store.set("bzSort",S.bzSort);S.bzOpen.clear();renderBZ()});
-setView(location.hash==="#buysell"?"bs":location.hash==="#buzz"?"bz":location.hash==="#proj"?"pj":location.hash==="#ranks"?"rk":location.hash==="#schedule"?"sc":location.hash==="#injuries"?"in":"box");
+openPage(navFromHash(location.hash),true);
 $("prev").onclick=()=>loadDate(shift(S.date,-1));
 $("next").onclick=()=>loadDate(shift(S.date,1));
 $("date").onchange=e=>e.target.value&&loadDate(e.target.value);
