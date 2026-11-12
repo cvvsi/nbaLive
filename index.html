@@ -152,6 +152,29 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .mwi{margin:-2px 0 10px;padding:7px 10px;border:1px dashed var(--ball);border-radius:8px;font:500 12.5px/1.4 var(--name);color:var(--dim);text-align:center}.mwi b{color:var(--ball)}.mwi span{font-weight:600}
 .mus{margin:8px 0;padding:8px 10px;border:1px solid var(--ball);border-radius:8px;font:500 13px/1.35 var(--name)}
 .mhint{font:500 12px/1.45 var(--name);color:var(--dim);margin:8px 2px 0}.mhint b{color:var(--ink)}
+/* Today (My League): stacked panels, phone first; two columns on desktop */
+.my{grid-column:1/-1;max-width:1100px;width:100%;margin:0 auto;padding-bottom:24px}
+.my .msec{position:relative;padding:12px 12px 10px}
+.myh{margin:0;font:700 16px/1.2 var(--name);display:flex;align-items:center;gap:6px}.mysub{font:500 12px/1.3 var(--name);color:var(--dim);margin:2px 0 8px}
+.mysc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 10px}.mysc div{background:var(--cell);border-radius:8px;padding:9px 6px;text-align:center}
+.mysc b{display:block;font:600 20px/1 var(--num)}.mysc i{font:500 11px/1.2 var(--name);font-style:normal;color:var(--dim)}
+.myln{display:grid;gap:3px;font:500 13px/1.35 var(--name)}.myln i{font-style:normal;color:var(--dim);display:inline-block;min-width:52px}.myln b{font-weight:600;text-decoration:underline;text-decoration-color:var(--ball);text-underline-offset:3px}
+.mywarn{margin:8px 0 0;font:600 12.5px/1.3 var(--name);color:var(--neg)}
+.mylink{margin-top:10px;font:600 13px/1 var(--name);color:var(--ball)}
+.myr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1px 10px;padding:8px 0;border-top:1px solid var(--rule);cursor:pointer;align-items:baseline}
+.myn{min-width:0}.myn b{font:600 15px/1.2 var(--name)}.myn i{font:500 12px/1.2 var(--name);font-style:normal;color:var(--dim);margin-left:6px}.myn em{font-style:normal;color:var(--ball)}
+.myst{grid-column:1;font:400 12px/1.3 var(--num);color:var(--dim)}.myv{grid-row:1/3;grid-column:2;align-self:center;font:600 14px/1 var(--num)}.myv.good{color:var(--pos)}.myv.bad{color:var(--neg)}
+.myr.sit,.myr.out{opacity:.6}.myr.sit .myst{color:var(--ball)}.myr.out .myst{color:var(--neg)}
+.mye{padding:10px 0 4px;font:500 13.5px/1.35 var(--name);color:var(--dim);border-top:1px solid var(--rule)}
+.myadd{position:absolute;top:10px;right:12px;display:flex;align-items:center;gap:2px}.myadd b{font:600 16px/1 var(--num);min-width:22px;text-align:center}
+.myadd button{width:30px;height:30px;border:1px solid var(--rule);border-radius:6px;font:600 16px/1 var(--num)}
+.mym{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:8px;padding:9px 0;border-top:1px solid var(--rule);align-items:center}
+.myd{font:600 12px/1.2 var(--name);text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
+.mymv>div{font:500 14px/1.4 var(--name);cursor:pointer}.mymv b{font-weight:700}.mymv i{font:400 11.5px/1.3 var(--num);font-style:normal;color:var(--dim);margin-left:4px;white-space:nowrap}
+.mymv em{font:600 10.5px/1 var(--name);font-style:normal;text-transform:uppercase;letter-spacing:.06em;display:inline-block;min-width:34px}.mymv em.add{color:var(--pos)}.mymv em.drop{color:var(--neg)}
+.myg{font:600 15px/1 var(--num);color:var(--pos);text-align:right}.myg i{display:block;font:500 10.5px/1.3 var(--name);font-style:normal;color:var(--dim)}
+.mysum{padding:10px 0 2px;border-top:1px solid var(--rule);font:500 13.5px/1.4 var(--name)}.mysum b{font:600 13.5px/1 var(--num)}
+@media (min-width:1100px){.my{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-items:start}.my .mytop{grid-column:1/-1}}
 .msec{margin-top:14px;background:var(--panel);border-radius:12px;padding:4px 10px 10px}
 .msh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:10px 0 6px;list-style:none;cursor:default}.msh::-webkit-details-marker{display:none}
 .msh b{font:700 15px/1.2 var(--name)}.msh span{font:500 12px/1.2 var(--name);color:var(--dim)}
@@ -762,7 +785,7 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .subnav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
 .subnav:empty,.subnav[hidden]{display:none!important}
 /* controls the new pages make redundant */
-#pjMuBtn,body[data-page="matchup"] #pjView,#rkSz [data-k="usg"],body[data-page="usage"] #rkSz,body[data-page="efb"] #rkSz,body[data-page="efb"] #rkWin,body:not([data-page="buysell"]) #bsSort{display:none!important}
+#pjMuBtn,body[data-page="matchup"] #pjView,body[data-page="today"] #pjView,body[data-page="today"] #pjLgRow,#rkSz [data-k="usg"],body[data-page="usage"] #rkSz,body[data-page="efb"] #rkSz,body[data-page="efb"] #rkWin,body:not([data-page="buysell"]) #bsSort{display:none!important}
 .lgchip{flex:none;display:flex;align-items:center;gap:6px;height:30px;padding:0 7px;border:1px solid var(--rule);border-radius:7px;color:var(--dim);text-decoration:none;font:500 11px/1 var(--num);position:relative}
 .lgchip svg{width:16px;height:16px}
 .lgchip::after{content:"";position:absolute;top:4px;left:18px;width:6px;height:6px;border-radius:50%;background:var(--pos)}
@@ -2955,6 +2978,111 @@ function renderSC(){
   renderGrid(ds,live,Object.entries(G.players).filter(([,q])=>q.xp&&q.xp[0]>=8),today);
 }
 function pjMsg(m){$("pjList").innerHTML=`<div class="empty">${m}</div>`;$("pjStatus").textContent=""}
+// ---- Today (My League > Today; only with a synced league): one screen of what to do. The
+// matchup at a glance, tonight's lineup (who counts, who sits for lack of spots), news on your
+// players since yesterday, and a streaming plan for the adds you have left this week. Everything
+// is the Matchup tool's math (muSim, muOdds) on the synced week, with no what-if moves.
+const MYADDS=4,MYSPOTS=3,MYFA=18,MYBEAM=5;
+function myCtx(){
+  const mu=ML&&ML.mu,x=ML&&lgIx();if(!x||!ML.teams||!G||!SC)return null;
+  const me=String(ML.me),at=new Date(ML.at),syncDay=new Intl.DateTimeFormat("en-CA",{timeZone:"America/New_York"}).format(at),today=etToday(),now=new Date();
+  const ok=mu&&mu.rows&&mu.rows.length===2,sD=ok&&mu.dates&&mu.dates.length?mu.dates:null;
+  // the synced week while it's still on (Yahoo's own days); otherwise this calendar week, projection only
+  const isS=!!(ok&&(sD||weekDates(0)).some(d=>d>=today)&&(sD||weekDates(0))[0]<=today),dates=isS&&sD?sD:weekDates(0);
+  const teams=Object.keys(ML.teams).filter(t=>t!==me),R0=isS?mu.rows.find(r=>r.id===me)||mu.rows[0]:null,R1=isS?mu.rows.find(r=>r!==R0):null;
+  const opId=isS?String(R1.id):teams[0];
+  const cur=r=>{const o={};CATS.forEach(c=>o[c.k]=0);if(r)mu.lab.forEach((l,i)=>{const k=muKey(l);if(k){const v=parseFloat(String(r.v[i]).replace(/^\./,"0."));o[k]=Number.isFinite(v)?v:0}});return o};
+  const cA=cur(R0),cB=cur(R1);
+  const rest=isS?dates.filter(d=>d>syncDay||(d===syncDay&&etHour(at)<19)).filter(d=>d>today||(d===today&&etHour(now)<19)||d===syncDay):dates.filter(d=>d>today||(d===today&&etHour(now)<19));
+  const cap=t=>(ML.act&&ML.act[t])||10,P=id=>{const sl=x.slot[id]||"";return{id,q:G.players[id],sl,il:/^(IL|IR)/.test(sl)}};
+  const roster=t=>Object.keys(x.own).filter(id=>x.own[id]===t).map(P).filter(o=>o.q&&o.q.xp);
+  const base=roster(me),oppR=roster(opId),F=CATS.map(c=>c.k).filter(k=>!S.punt.has(k)),C={},off=new Set(S.punt);
+  const pA=isS?muPast(base.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cA):{fga:0,fta:0,g:0},pB=isS?muPast(oppR.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cB):{fga:0,fta:0,g:0};
+  const B=muSim(oppR,rest,cap(opId),F,null,C),A=muSim(base,rest,cap(me),F,null,C),O=muOdds(cA,cB,pA,pB,A,B,off);
+  return{x,me,opId,isS,dates,rest,today,cA,cB,pA,pB,base,oppR,F,C,off,capA:cap(me),A,B,O,DS:muDist(O.rows),P,wk:isS&&mu.week?mu.week:null}}
+// A plan = moves [{d, drop, add}] in day order. Each day is simulated with the roster as it stands
+// that day (a move counts from its day on), and the week is scored like the Matchup tool: the
+// expected categories won, all 9.
+function myEval(ctx,moves){
+  const tot={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0,fgm:0,fga:0,ftm:0,fta:0},vr={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0};let ros=ctx.base,i=0;
+  for(const d of ctx.rest){
+    while(i<moves.length&&moves[i].d<=d){const m=moves[i++];ros=[...ros.filter(o=>o.id!==m.drop),ctx.P(m.add)]}
+    const s=muSim(ros,[d],ctx.capA,ctx.F,null,ctx.C);for(const k in tot)tot[k]+=s.tot[k];for(const k in vr)vr[k]+=s.vr[k]}
+  const O=muOdds(ctx.cA,ctx.cB,ctx.pA,ctx.pB,{tot,vr},ctx.B,ctx.off);return{exp:O.exp,win:muDist(O.rows).win,O}}
+// The streaming spots: your MYSPOTS weakest players by rest-of-season Proj rank (not on IL, not
+// marked Keep in Build). Only they, and streamers the plan itself added, can be dropped, so the
+// plan never trades a core player for one week. Free agents: the best MYFA by value x games over
+// the days left, 12+ minutes. A beam search: after each move the MYBEAM best plans get one more,
+// each add on a day he plays; it stops when another move adds under 0.03 of a category.
+function myPlan(ctx,n){
+  const B=S.bs,keep=tbKeep(),rk=id=>(B&&B.x&&B.x[id])||999;
+  const spots=ctx.base.filter(o=>!o.il&&!keep.has(o.id)).sort((a,b)=>rk(b.id)-rk(a.id)).slice(0,MYSPOTS).map(o=>o.id);
+  const gd=(q,id)=>ctx.rest.filter(d=>plays(q.t,d)&&avail(id,d));
+  const fa=Object.entries(G.players).filter(([id,q])=>ctx.x.own[id]==null&&q.xp&&q.xp[0]>=12).map(([id,q])=>{const ds=gd(q,id);return{id,ds,v:ds.reduce((a,d)=>a+val0(muLine(id,q,d,ctx.C).z,G.zp),0)}})
+    .filter(o=>o.ds.length).sort((a,b)=>b.v-a.v).slice(0,MYFA);
+  const s0=myEval(ctx,[]);let beam=[{moves:[],...s0}],best=beam[0];
+  for(let step=0;step<n;step++){const next=[];
+    for(const st of beam){const lastD=st.moves.length?st.moves[st.moves.length-1].d:"",gone=new Set(st.moves.map(m=>m.drop)),on=new Set(st.moves.map(m=>m.add));
+      const can=[...spots.filter(id=>!gone.has(id)),...[...on].filter(id=>!gone.has(id))];
+      for(const a of fa){if(on.has(a.id)||gone.has(a.id))continue;
+        for(const d of a.ds){if(d<lastD)continue;
+          for(const dr of can){const moves=[...st.moves,{d,drop:dr,add:a.id}],e=myEval(ctx,moves);if(e.exp>st.exp+.005)next.push({moves,...e})}}}}
+    if(!next.length)break;next.sort((a,b)=>b.exp-a.exp);
+    const seen=new Set();beam=next.filter(s=>{const k=s.moves.map(m=>m.d+m.drop+m.add).sort().join();if(seen.has(k))return false;seen.add(k);return true}).slice(0,MYBEAM);
+    if(beam[0].exp>best.exp+.03)best=beam[0];else break}
+  return{s0,best,spots}}
+function myAddsLeft(ctx){const o=store.get("myAdds",{}),k=`${ML.lid||""}|${ctx.dates[0]}`;return o[k]==null?MYADDS:o[k]}
+function myAddsSet(ctx,v){const k=`${ML.lid||""}|${ctx.dates[0]}`;store.set("myAdds",{[k]:Math.max(0,Math.min(MYADDS,v))})}
+function renderMy(){
+  const el=$("pjList");$("pjStatus").textContent="";$("pjAsOf").textContent="";
+  const ctx=myCtx();if(!ctx)return pjMsg(ML?"Loading…":"Sync your league from Yahoo to see your day.");
+  const{x,me,opId,O,DS,today}=ctx,nm=id=>esc(G.players[id]?G.players[id].n:id),sh=d=>d===today?"Today":fmtDate(d).split(",")[0];
+  const hrs=(Date.now()-new Date(ML.at))/36e5,age=hrs<1?"just now":hrs<24?Math.round(hrs)+"h ago":Math.round(hrs/24)+"d ago";
+  // 1 the matchup at a glance
+  const ahead=O.rows.filter(r=>r.p!=null&&r.p>=.7).map(r=>r.l),behind=O.rows.filter(r=>r.p!=null&&r.p<=.3).map(r=>r.l),swing=O.rows.filter(r=>r.p!=null&&r.p>.3&&r.p<.7).map(r=>r.l);
+  const top=`<section class="msec mytop"><h3 class="myh">${ctx.wk?`Week ${ctx.wk} `:""}vs ${esc(ML.teams[opId]||"opponent")}</h3><div class="mysub">synced ${age}</div>
+    <div class="mysc"><div><b>${O.won}–${O.lost}</b><i>projected</i></div><div><b>${Math.round(DS.win*100)}%</b><i>to win the week</i></div><div><b>${O.exp.toFixed(1)}</b><i>expected cats</i></div></div>
+    <div class="myln">${ahead.length?`<span><i>Ahead</i> ${ahead.join(" · ")}</span>`:""}${swing.length?`<span><i>In play</i> <b>${swing.join(" · ")}</b></span>`:""}${behind.length?`<span><i>Behind</i> ${behind.join(" · ")}</span>`:""}</div>
+    ${hrs>=20?`<p class="mywarn">Rosters are from ${age}: re-sync after any move.</p>`:""}
+    <button class="mylink" data-go="matchup">Open matchup ›</button></section>`;
+  // 2 tonight
+  const playsT=ctx.rest.includes(today),sim=playsT?muSim(ctx.base,[today],ctx.capA,ctx.F,null,ctx.C):null;
+  const mineT=ctx.base.filter(o=>plays(o.q.t,today)),outT=mineT.filter(o=>!avail(o.id,today)||(o.il&&!(sim&&sim.st[o.id]))),on=mineT.filter(o=>sim&&sim.st[o.id]&&sim.st[o.id][today]===1),sit=mineT.filter(o=>sim&&sim.st[o.id]&&sim.st[o.id][today]===2);
+  const trow=(o,cls,tag)=>{const e=muLine(o.id,o.q,today,ctx.C),l=e.l,i=ijOf(o.id),lu=luAdj(o.id,o.q,today);
+    return`<div class="myr ${cls}" data-id="${o.id}"><div class="myn"><b>${esc(o.q.n)}</b><i>${esc(opp(o.q.t,today))}${i&&!ijOut(i)?` · <em class="dtd">${esc(i[0])}</em>`:""}${lu>0?" · starting":lu<0?" · off the bench":""}</i></div>
+      <div class="myst">${tag||`${Math.round(l.min)} min · ${f1(l.pts)} pts · ${f1(l.reb)} reb · ${f1(l.ast)} ast`}</div><div class="myv ${vcls(pjVal(e.z))}">${tag?"":sgn(pjVal(e.z))}</div></div>`};
+  const open=ctx.capA-on.length;
+  const ton=`<section class="msec"><h3 class="myh">Tonight</h3><div class="mysub">${!mineT.length?"none of your players play":`${on.length} of your players count${sit.length?`, ${sit.length} sit${sit.length>1?"":"s"} for lack of spots`:open>0?` · ${open} open spot${open>1?"s":""}`:""}`}</div>
+    <p class="stkn">Your players with a game tonight, best first by tonight's projected Value (tonight's minutes and opponent). A team can only start as many as it has active spots (${ctx.capA}); anyone past that sits. Positions aren't checked yet, so make sure Yahoo lets you slot them.</p>
+    ${on.map(o=>trow(o,"")).join("")}${sit.map(o=>trow(o,"sit","no spot left tonight")).join("")}${outT.map(o=>trow(o,"out",ijOf(o.id)?esc(ijOf(o.id)[0]):"IL")).join("")}
+    ${!playsT&&mineT.length?`<div class="mye">Tonight's games are already counted in Yahoo's totals.</div>`:""}</section>`;
+  // 3 news on mine, last 36 hours
+  const its=NW&&NW.items?NW.items.filter(i=>!i.q&&!i.x&&i.id&&lgOf(i.id)===me&&Date.now()-new Date(i.t)<36*36e5).slice(0,4):[];
+  const news=`<section class="msec"><h3 class="myh">News on your players</h3><div class="mysub">${its.length?"last 36 hours":"nothing new since yesterday"}</div>${its.map(nwCard).join("")}</section>`;
+  // 4 streaming plan
+  const n=myAddsLeft(ctx),key=[ctx.dates[0],ML.at,n,[...S.punt].join(),G.asOf,IJ&&IJ.built,today,[...tbKeep()].join()].join("|");
+  const pl=S.myPl&&S.myPl.key===key?S.myPl.v:null;
+  if(!pl&&n>0&&ctx.rest.length)setTimeout(()=>{S.myPl={key,v:myPlan(ctx,n)};if(S.pjView==="my"&&document.body.dataset.view==="pj")renderMy()},30);
+  const rk=id=>S.bs&&S.bs.x&&S.bs.x[id]?"#"+S.bs.x[id]:"–",g=(id,d)=>ctx.rest.filter(t=>t>=d&&plays(G.players[id].t,t)&&avail(id,t)).length;
+  let body;
+  if(!ctx.rest.length)body=`<div class="mye">No days left in this week.</div>`;
+  else if(n<=0)body=`<div class="mye">No adds left this week.</div>`;
+  else if(!pl)body=`<div class="mye">Working out the best moves…</div>`;
+  else if(!pl.best.moves.length)body=`<div class="mye">No pickup improves this week by a real amount. Hold your adds.</div>`;
+  else{const b=pl.best,d=b.exp-pl.s0.exp;
+    body=b.moves.map((m,i)=>{const prev=i?myEval(ctx,b.moves.slice(0,i)).exp:pl.s0.exp,stp=myEval(ctx,b.moves.slice(0,i+1)).exp-prev;
+      return`<div class="mym"><div class="myd">${sh(m.d)}</div><div class="mymv"><div data-id="${m.add}"><em class="add">Add</em> <b>${nm(m.add)}</b> <i>${esc(G.players[m.add].t)} · ${g(m.add,m.d)} game${g(m.add,m.d)>1?"s":""} left · Proj ${rk(m.add)}</i></div>
+        <div data-id="${m.drop}"><em class="drop">Drop</em> ${nm(m.drop)} <i>Proj ${rk(m.drop)}</i></div></div><div class="myg">+${stp.toFixed(2)}<i>cats</i></div></div>`}).join("")
+      +`<div class="mysum">With ${b.moves.length===1?"this move":`these ${b.moves.length} moves`}: expected categories <b>${pl.s0.exp.toFixed(1)} → ${b.exp.toFixed(1)}</b>, chance to win the week <b>${Math.round(pl.s0.win*100)}% → ${Math.round(b.win*100)}%</b>${b.moves.length<n?`. Another add gains under 0.03 of a category, so it keeps ${n-b.moves.length} in hand.`:"."}</div>`}
+  const spots=pl?pl.spots:[];
+  const plan=`<section class="msec"><h3 class="myh">Streaming plan</h3><div class="mysub">adds left this week</div><div class="myadd"><button data-add="-1" aria-label="One fewer">−</button><b>${n}</b><button data-add="1" aria-label="One more">+</button></div>
+    <p class="stkn">The best use of the adds you have left this week (your league allows ${MYADDS}; set how many remain). Each move counts from its day: a streamer can be added for his games and dropped later for someone else's. Only your streaming spots can be dropped: your ${MYSPOTS} weakest players by rest-of-season Proj who aren't on IL or marked Keep in Build, plus any streamer the plan added. Scored like the Matchup tool: expected categories won this week against your opponent, on our projections; a what-if only. Positions aren't checked yet.</p>
+    ${body}${spots.length?`<div class="lgk">Streaming spots: ${spots.map(id=>`${nm(id)} (${rk(id)})`).join(" · ")}. Mark a player Keep in Build to protect him.</div>`:""}</section>`;
+  el.innerHTML=`<div class="my">${top}${ton}${plan}${news}</div>`;
+  el.querySelectorAll(".my [data-id]").forEach(r=>r.onclick=()=>openSheet(r.dataset.id));
+  el.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{myAddsSet(ctx,n+ +b.dataset.add);renderMy()});
+  el.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{openPage(b.dataset.go);paintNav()});
+}
 // ---- Matchup (Proj > Matchup; only with a synced league that has this week's matchup, ML.mu).
 // Yahoo's matchup totals so far + our projection for the rest of the week, per category, with a
 // win chance. The rest of the week: every rostered player not in an IL slot, on each remaining day
@@ -3184,7 +3312,7 @@ function muClick(e){const b=e.target.closest("[data-mu]");if(!b||!S.mus)return;i
   const y=scrollY;muSave();renderMU();scrollTo(0,y)}
 function muChange(e){if(!e.target.matches("[data-mu-opp]")||!S.mus)return;S.mus.opp=e.target.value;muSave();const y=scrollY;renderMU();scrollTo(0,y)}
 function renderPJ(){
-  $("pjMuBtn").hidden=!ML;if(S.pjView==="mu"&&!ML)S.pjView="season";
+  $("pjMuBtn").hidden=!ML;if((S.pjView==="mu"||S.pjView==="my")&&!ML)S.pjView="season";
   $("pjView").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.pjView));
   $("pjWk").hidden=S.pjView!=="week";$("pjRow2").hidden=S.pjView!=="week";
   $("pjTot").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.pjTot));
@@ -3194,6 +3322,7 @@ $("pjSz").hidden=S.pjView!=="season";
   if(!G)return;
   if(!G.zp||!G.xpf)return pjMsg("Projected lines arrive with the next rankings build.");
   $("pjList").classList.toggle("muw",S.pjView==="mu");
+  if(S.pjView==="my")return renderMy();
   if(S.pjView==="mu"){$("pjAsOf").textContent="";return renderMU()}
   const today=etToday(),all=Object.entries(G.players).filter(([,q])=>q.xp&&q.xp[0]>=8);
   const sh=d=>fmtDate(d).replace(/^\w+, /,"");
@@ -3468,13 +3597,14 @@ const NAV=[
   {k:"box",l:"Box",pages:[{k:"box",l:"Box",v:"box"}]},
   {k:"players",l:"Players",pages:[
     {k:"ranks",l:"Ranks",v:"rk",open:()=>{if(S.rkSz==="usg")S.rkSz="pg"}},
-    {k:"proj",l:"Proj",v:"pj",open:()=>{if(S.pjView==="mu")S.pjView="season"}},
+    {k:"proj",l:"Proj",v:"pj",open:()=>{if(S.pjView==="mu"||S.pjView==="my")S.pjView="season"}},
     {k:"usage",l:"Usage",v:"rk",open:()=>{S.rkSz="usg"}},
     {k:"rise",l:"Rise",v:"bs",open:()=>{S.bsSort="bo"}},
     {k:"buysell",l:"Buy/Sell",v:"bs",nolg:1,open:()=>{if(!["buy","sell","x","now"].includes(S.bsSort))S.bsSort="buy"}},
     {k:"buzz",l:"Buzz",v:"bz"},
     {k:"efb",l:"EFB",v:"rk",efb:1,open:()=>{}}]},
   {k:"league",l:"My League",lg:1,pages:[
+    {k:"today",l:"Today",v:"pj",open:()=>{S.pjView="my"}},
     {k:"matchup",l:"Matchup",v:"pj",open:()=>{S.pjView="mu"}},
     {k:"roster",l:"Roster",v:"bs",open:()=>{S.bsSort="mine"}},
     {k:"waivers",l:"Waivers",v:"bs",open:()=>{S.bsSort="fa"}},
