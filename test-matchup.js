@@ -26,7 +26,7 @@ const zero = () => ({ pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0, to: 0, fgm
 const now = o => Object.assign({ fg: 0, ft: 0, pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0, to: 0 }, o);
 // the rest of the week for one team: per-game line x games, with the variance muSim would add
 function rest(games, line) {
-  const tot = zero(), vr = { pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0, to: 0 }, PHI = { pts: 2.2, reb: 1.3, ast: 1.4 };
+  const tot = zero(), vr = { pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0, to: 0 }, PHI = { pts: 3.8, reb: 1.65, ast: 1.6, tpm: 1.35, stl: 1.2, blk: 1.15, to: 1.1 };
   for (const k in tot) tot[k] = (line[k] || 0) * games;
   for (const k in vr) vr[k] = (PHI[k] || 1) * tot[k];
   return { tot, vr };

@@ -1776,12 +1776,13 @@ function renderLgBS(st){
 // with the Matchup tool's simulator (muSim: each day the best players up to the team's active
 // spots, at that day's minutes and opponent, out days from the injury report), scaled to a 7-day
 // week. Each category is then a weekly head-to-head against each of the other teams: a normal
-// approximation with variance PHI x mean (Poisson for the rest, binomial makes for FG%/FT%), times
-// TBNOISE for what a week adds beyond game-to-game noise (games, minutes, a rest night).
+// approximation with the Matchup tool's measured spread (MUPHI x mean per category, binomial makes
+// x MUPCT for FG%/FT%). TBNOISE, a flat 1.6 on top for every category, was a guess from before
+// that was measured: it made points about right and the other eight too wide (Nov 2026).
 // Win% = the categories you'd win across all 9 opponents, punted ones left out (BBM's Win% on
 // our Proj); Matchup win = the chance to take 5+ of 9, averaged over the opponents. What-if only:
 // nothing is sent to Yahoo, and a new sync clears the moves.
-const TBNOISE=1.6,TBPOOL=60,TBH={wk:"This week",w2:"2 weeks",ros:"Rest of season"};
+const TBPOOL=60,TBH={wk:"This week",w2:"2 weeks",ros:"Rest of season"};
 S.tb={h:store.get("tbH","ros"),nk:store.get("tbNk",1),drops:[],pick:null,done:[],tab:"combo",fs:"w",at:null};
 function tbDays(h){if(!SC)return[];const t=etToday(),late=etHour(new Date())>=19;
   const all=Object.keys(SC.dates).filter(d=>d>t||(d===t&&!late)).sort();
@@ -1802,8 +1803,8 @@ function tbCtx(){
   return S.tbC=ctx}
 // Weekly head-to-head: your chance to win category k against one opponent.
 function tbP(a,b,k){
-  if(k==="fg"||k==="ft"){const A=a[k+"a"],B=b[k+"a"];if(!(A>0&&B>0))return .5;const pa=a[k+"m"]/A,pb=b[k+"m"]/B,sd=Math.sqrt(TBNOISE*(pa*(1-pa)/A+pb*(1-pb)/B));return sd>0?muPhi((pa-pb)/sd):.5}
-  const sd=Math.sqrt(TBNOISE*(a.vr[k]+b.vr[k])),d=(a[k]-b[k])*(k==="to"?-1:1);return sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
+  if(k==="fg"||k==="ft"){const A=a[k+"a"],B=b[k+"a"];if(!(A>0&&B>0))return .5;const pa=a[k+"m"]/A,pb=b[k+"m"]/B,sd=Math.sqrt(MUPCT[k]*(pa*(1-pa)/A+pb*(1-pb)/B));return sd>0?muPhi((pa-pb)/sd):.5}
+  const sd=Math.sqrt(a.vr[k]+b.vr[k]),d=(a[k]-b[k])*(k==="to"?-1:1);return sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
 const tbV=(w,k)=>k==="fg"?w.fgm/w.fga:k==="ft"?w.ftm/w.fta:w[k];
 function tbScore(ctx,ps){
   const me=ctx.wk(muSim(ps,ctx.days,ctx.cap,ctx.F,null,ctx.C)),on=CATS.map(c=>c.k).filter(k=>!S.punt.has(k));
@@ -2911,13 +2912,19 @@ function pjMsg(m){$("pjList").innerHTML=`<div class="empty">${m}</div>`;$("pjSta
 // his team plays and the injury report has him available, at that day's minutes (minAt); each day
 // counts at most as many players as the team has active lineup spots (ML.act), the best by value.
 // Win chance: normal approximation, from the projected final gap and how much the rest of the week
-// can swing it (per game: variance = PHI x mean for points / rebounds / assists, like the props;
-// a Poisson for the rest; FG%/FT% as binomial makes on the projected attempts). Turnovers: fewer wins.
+// can swing it: variance = MUPHI x the projected total per category, and FG%/FT% as binomial makes
+// on the projected attempts x MUPCT. Measured, not assumed (backtest-daily.js, `calib.week` in
+// data/backtest-daily.json, Nov 2026): three seasons replayed a date at a time, each player-week's
+// total against our lines for the games he played, squared, over the lines. It counts projection
+// error as well as game-to-game luck, and came out the same in every season. Before that the tool
+// took 2.2 / 1.3 / 1.4 for points / rebounds / assists and a Poisson (1) for the rest, which made
+// every win % too sure of itself, points most (its spread was a third too narrow). Games a player
+// misses without notice come on top. Turnovers: fewer wins.
 // Yahoo's column header -> our category key. Matched exactly, else by the end of the header (a
 // header like "Team FG%" still reads as FG%); longer keys first so AST never reads as ST.
 const MUKS=[["3PTM","tpm"],["FG%","fg"],["FT%","ft"],["PTS","pts"],["REB","reb"],["AST","ast"],["STL","stl"],["BLK","blk"],["3PM","tpm"],["ST","stl"],["TO","to"]];
 function muKey(l){const u=String(l||"").toUpperCase().replace(/[^A-Z0-9%]/g,"");for(const[k,v]of MUKS)if(u===k)return v;for(const[k,v]of MUKS)if(u.endsWith(k))return v;return null}
-const MUPHI={pts:2.2,reb:1.3,ast:1.4};
+const MUPHI={pts:3.8,reb:1.65,ast:1.6,tpm:1.35,stl:1.2,blk:1.15,to:1.1},MUPCT={fg:1,ft:1.1};
 const muPhi=x=>{const t=1/(1+.2316419*Math.abs(x)),d=.3989423*Math.exp(-x*x/2),p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return x>0?1-p:p};
 const etHour=d=>+new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",hour:"numeric",hourCycle:"h23"}).format(d);
 // Your picks for this matchup, kept per league + week on this device: target / punt categories,
@@ -2960,7 +2967,7 @@ function muPast(L,c){const sum=k=>L.reduce((a,l)=>a+(l[k]||0),0),pts=sum("pts")|
 function muOdds(cA,cB,pA,pB,A,B,off){
   const fin=(c,p,t,k)=>{if(k==="fg"||k==="ft"){const a=p[k+"a"]+t[k+"a"],m=c[k]*p[k+"a"]+t[k+"m"];return{v:a?m/a:c[k],a,ra:t[k+"a"]}}return{v:c[k]+t[k]}};
   const rows=CATS.map(cc=>{const k=cc.k,fa=fin(cA,pA,A.tot,k),fb=fin(cB,pB,B.tot,k);let p;
-    if(k==="fg"||k==="ft"){const va=fa.a?fa.v*(1-fa.v)*fa.ra/fa.a**2:0,vb=fb.a?fb.v*(1-fb.v)*fb.ra/fb.a**2:0,sd=Math.sqrt(va+vb),d=fa.v-fb.v;p=sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
+    if(k==="fg"||k==="ft"){const va=fa.a?fa.v*(1-fa.v)*fa.ra/fa.a**2:0,vb=fb.a?fb.v*(1-fb.v)*fb.ra/fb.a**2:0,sd=Math.sqrt(MUPCT[k]*(va+vb)),d=fa.v-fb.v;p=sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
     else{const sd=Math.sqrt(A.vr[k]+B.vr[k]),d=(fa.v-fb.v)*(k==="to"?-1:1);p=sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
     // a % so far with no attempts behind it can't be weighed against the days left: no win % then
     const bad=(k==="fg"||k==="ft")&&((cA[k]>0&&!(pA[k+"a"]>0))||(cB[k]>0&&!(pB[k+"a"]>0)));
