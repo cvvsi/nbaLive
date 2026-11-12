@@ -580,5 +580,5 @@ function addEase(games, asOf) {
   console.log(`ease: ${Object.keys(t).length} teams${fit ? '' : ' (provisional K)'}`);
 }
 
-module.exports = { loadGames, totals, rankWindow, nextMan, expectedLine, rookiePriors, ROOKIE_K, STATS, CATS, r2 };
+module.exports = { loadGames, totals, rankWindow, nextMan, expectedLine, baseline, fadeMpg, rookiePriors, ROOKIE_K, STATS, CATS, r2 };
 if (require.main === module) main();
