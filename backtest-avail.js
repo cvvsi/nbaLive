@@ -25,20 +25,21 @@
 const fs = require('fs');
 const MOCK = process.argv.includes('--mock');
 const API = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba';
-const CPS = [10, 20, 30, 40, 50, 60], MPG = 15, MINGP = 5, BS = [0, .25, .5, 1], KSS = [5, 10, 20, 40, 80, 160];
+const CPS = [10, 20, 30, 40, 50, 60], MPG = 15, MINGP = 5, BS = [0, .25, .5, 1], KSS = [5, 10, 20, 40, 80, 160, 320, 640];
 const label = y => `${y - 1}-${String(y).slice(2)}`;
 const mean = a => a.length ? a.reduce((s, v) => s + v, 0) / a.length : 0;
 
 function teamGames(games) {
   const by = {};
-  for (const g of [...games].sort((a, b) => a.date < b.date ? -1 : 1)) for (const t of new Set(g.rows.map(r => r.team))) (by[t] || (by[t] = [])).push(new Map(g.rows.filter(r => r.team === t).map(r => [r.id, r.min])));
+  for (const g of [...games].sort((a, b) => a.date < b.date ? -1 : 1)) for (const t of new Set(g.rows.map(r => r.team))) (by[t] || (by[t] = [])).push(Object.assign(new Map(g.rows.filter(r => r.team === t).map(r => [r.id, r.min])), { date: g.date }));
   return by;
 }
 function samples(games, prev) {
   const by = teamGames(games), lastGp = {}, lastTg = {};
   const pb = teamGames(prev); let ptg = 0;
   for (const gs of Object.values(pb)) { ptg = Math.max(ptg, gs.length); for (const g of gs) for (const id of g.keys()) lastGp[id] = (lastGp[id] || 0) + 1; }
-  const S = [];
+  const S = [], dates = {};
+  for (const g of games) for (const r of g.rows) (dates[r.id] || (dates[r.id] = [])).push(g.date);
   for (const [t, gs] of Object.entries(by)) for (const cp of CPS) {
     if (gs.length < cp + 10) continue;
     const gp = {}, mn = {};
@@ -46,9 +47,9 @@ function samples(games, prev) {
     const rest = gs.slice(cp), recent = new Set([...gs[cp - 1].keys(), ...gs[cp - 2].keys()]);
     for (const id of recent) {
       if (gp[id] < MINGP || mn[id] / gp[id] < MPG) continue;
-      // a player traded away later would look hurt: keep only those who appear again for this team, or never again anywhere
-      const played = rest.filter(g => g.has(id)).length;
-      S.push({ cp, gp: gp[id], tg: cp, mpg: mn[id] / gp[id], lg: lastGp[id] >= 10 ? lastGp[id] : null, ltg: ptg, y: played / rest.length, n: rest.length });
+      // games he played for any team after this date, so a trade doesn't look like an injury
+      const d0 = gs[cp - 1].date, played = dates[id].filter(d => d > d0).length;
+      S.push({ cp, gp: gp[id], tg: cp, mpg: mn[id] / gp[id], lg: lastGp[id] >= 10 ? lastGp[id] : null, ltg: ptg, y: Math.min(1, played / rest.length), n: rest.length });
     }
   }
   return S;
