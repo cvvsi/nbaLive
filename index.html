@@ -2524,6 +2524,16 @@ function nmPh(R,e){const C=nmC();if(C.ph[R])return C.ph[R];
     if(streak>=len)k=0;streak=0;
     if(k!=null){k++;ph[d]=k<=NMRET.length?k:0;if(k>NMRET.length)k=null}else ph[d]=0}
   return C.ph[R]=ph}
+// Games he's likely to play: a healthy rotation player goes on to play about 76% of his team's
+// remaining games, at any point of the season (backtest-avail.js, 2023-24 to 2025-26, trades
+// counted). His own record moves that a little: (games this season + AVB x last season's games +
+// AVK x AVMU) / (team games + AVB x 82 + AVK), fitted out of sample; a 40-game player last season
+// comes out near 70%, a 78-game one near 80%. Used for the rest-of-season Total only.
+const AVMU=.76,AVB=.5,AVK=160;
+function availP(id,q){const c=S.avC&&S.avC.g===G?S.avC:(S.avC={g:G,tg:{}});
+  if(!c.tg[q.t]){let m=0;for(const p of Object.values(G.players))if(p.t===q.t&&p.now&&p.now[0]>m)m=p.now[0];c.tg[q.t]=m||1}
+  const tg=c.tg[q.t],gp=q.now?Math.min(q.now[0],tg):0,ly=G.ly&&G.ly[id]&&G.ly[id][0]>=10?G.ly[id][0]:null;
+  return(gp+(ly!=null?AVB*ly:0)+AVK*AVMU)/(tg+(ly!=null?AVB*82:0)+AVK)}
 // Tonight's starting five (NBA.com's lineups, Expected then Confirmed): a starter who started 2 or
 // fewer of his team's last 5 games gets at least LUUP more minutes than Proj (a next-man-up gain
 // counts toward it: the bonus tops it up, it doesn't stack), a regular starter (3+ of 5) left out
@@ -3182,10 +3192,10 @@ $("pjSz").hidden=S.pjView!=="season";
     const SV=sznVals(all),left=id=>{if(!SC)return null;const i=ijOf(id);if(ijOut(i)&&!i[1])return"?";return SV[id].ds.length};
     const tot=S.pjSz==="tot"&&SC;
     rows=all.map(([id,q])=>{const g=left(id),sv=SV[id];
-      return{id,q,l:sv.l,min:sv.m,v:tot?val0(sv.z,G.zp)*(g==="?"?0:g):sv.v,hi:1,foot:nmNote(id,q,sv.ds,sv.m)+ijNote(id),sdl:g!=null?g+"g":"",z:sv.z,ctx:g!=null?`<b>${g}</b> g left`:"",
+      return{id,q,l:sv.l,min:sv.m,v:tot?val0(sv.z,G.zp)*(g==="?"?0:g)*availP(id,q):sv.v,hi:1,foot:nmNote(id,q,sv.ds,sv.m)+ijNote(id),sdl:g!=null?g+"g":"",z:sv.z,ctx:g!=null?`<b>${g}</b> g left`:"",
         side:g!=null?`<div class="pjside"><b>${g}</b><i>games left</i></div>`:""}}).sort((a,b)=>b.v-a.v).slice(0,250);
     stat=`${rows.length} · ${tot?"total":"per game"}`;
-    cap=`Rest of season, per game: Proj's line (this season's minutes, rates blended toward a two-season baseline), with minutes shifted while a teammate is out and eased back when he returns. ${tot?"<b>Total</b>: per-game value × games left, so time missed counts.":"<b>Per g</b>: value per game, which ranks quality."} Games left are on the right, counted from any expected return on ESPN's injury report. Proj through ${sh(G.asOf)}; tap the ⓘ on Buy/Sell for how it's built.`;
+    cap=`Rest of season, per game: Proj's line (this season's minutes, rates blended toward a two-season baseline), with minutes shifted while a teammate is out and eased back when he returns. ${tot?"<b>Total</b>: per-game value × games left × the share of them he's likely to play (about 76% for anyone healthy, a little less after a season of missed games, a little more after a full one), so time missed counts.":"<b>Per g</b>: value per game, which ranks quality."} Games left are on the right, counted from any expected return on ESPN's injury report. Proj through ${sh(G.asOf)}; tap the ⓘ on Buy/Sell for how it's built.`;
   }else if(S.pjView==="week"){
     if(!SC)return pjMsg("No schedule yet: it's built with the nightly rankings.");
     const ds=weekDates(S.pjWk),live=ds.filter(d=>d>=today);
