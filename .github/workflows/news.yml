@@ -1,7 +1,9 @@
-# RotoWire's NBA news RSS (fetch-news.js -> data/news.json). The feed holds only the newest few
-# items, so this checks every 15 minutes through the NBA day and keeps everything it has seen for
-# 3 days. Each item is also read as a status and applied to data/injuries.json, so the news moves
-# availability and minutes everywhere. A run with nothing new commits nothing. The push redeploys Pages.
+# Player news (fetch-news.js -> data/news.json): RotoWire's NBA news RSS, plus Rotoworld's and
+# Basketball Monster's alerts from Bluesky's public API (no key). RotoWire's feed holds only the
+# newest few items, so this checks every 15 minutes through the NBA day and keeps everything it has
+# seen for 3 days. Each item is also read as a status and applied to data/injuries.json, so the news
+# moves availability and minutes everywhere. A run with nothing new commits nothing. The push
+# redeploys Pages.
 name: News
 
 on:
