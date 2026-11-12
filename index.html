@@ -152,6 +152,37 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .mwi{margin:-2px 0 10px;padding:7px 10px;border:1px dashed var(--ball);border-radius:8px;font:500 12.5px/1.4 var(--name);color:var(--dim);text-align:center}.mwi b{color:var(--ball)}.mwi span{font-weight:600}
 .mus{margin:8px 0;padding:8px 10px;border:1px solid var(--ball);border-radius:8px;font:500 13px/1.35 var(--name)}
 .mhint{font:500 12px/1.45 var(--name);color:var(--dim);margin:8px 2px 0}.mhint b{color:var(--ink)}
+/* Today (My League): stacked panels, phone first; two columns on desktop */
+.my{grid-column:1/-1;max-width:1100px;width:100%;margin:0 auto;padding-bottom:24px}
+.my .msec{position:relative;padding:12px 12px 10px}
+.myh{margin:0;font:700 16px/1.2 var(--name);display:flex;align-items:center;gap:6px}.mysub{font:500 12px/1.3 var(--name);color:var(--dim);margin:2px 0 8px}
+.mysc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 10px}.mysc div{background:var(--cell);border-radius:8px;padding:9px 6px;text-align:center}
+.mysc b{display:block;font:600 20px/1 var(--num)}.mysc i{font:500 11px/1.2 var(--name);font-style:normal;color:var(--dim)}
+.myln{display:grid;gap:3px;font:500 13px/1.35 var(--name)}.myln i{font-style:normal;color:var(--dim);display:inline-block;min-width:52px}.myln b{font-weight:600;text-decoration:underline;text-decoration-color:var(--ball);text-underline-offset:3px}
+.mywarn{margin:8px 0 0;font:600 12.5px/1.3 var(--name);color:var(--neg)}
+.mylink{margin-top:10px;font:600 13px/1 var(--name);color:var(--ball)}
+.myr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1px 10px;padding:8px 0;border-top:1px solid var(--rule);cursor:pointer;align-items:baseline}
+.myn{min-width:0}.myn b{font:600 15px/1.2 var(--name)}.myn i{font:500 12px/1.2 var(--name);font-style:normal;color:var(--dim);margin-left:6px}.myn em{font-style:normal;color:var(--ball)}
+.myst{grid-column:1;font:400 12px/1.3 var(--num);color:var(--dim)}.myv{grid-row:1/3;grid-column:2;align-self:center;font:600 14px/1 var(--num)}.myv.good{color:var(--pos)}.myv.bad{color:var(--neg)}
+.myr.sit,.myr.out{opacity:.6}.myr.sit .myst{color:var(--ball)}.myr.out .myst{color:var(--neg)}
+.mye{padding:10px 0 4px;font:500 13.5px/1.35 var(--name);color:var(--dim);border-top:1px solid var(--rule)}
+.myadd{position:absolute;top:10px;right:12px;display:flex;align-items:center;gap:2px}.myadd b{font:600 16px/1 var(--num);min-width:22px;text-align:center}
+.myadd button{width:30px;height:30px;border:1px solid var(--rule);border-radius:6px;font:600 16px/1 var(--num)}
+.mym{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:8px;padding:9px 0;border-top:1px solid var(--rule);align-items:center}
+.myd{font:600 12px/1.2 var(--name);text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
+.mymv>div{font:500 14px/1.4 var(--name);cursor:pointer}.mymv b{font-weight:700}.mymv i{font:400 11.5px/1.3 var(--num);font-style:normal;color:var(--dim);margin-left:4px;white-space:nowrap}
+.mymv em{font:600 10.5px/1 var(--name);font-style:normal;text-transform:uppercase;letter-spacing:.06em;display:inline-block;min-width:34px}.mymv em.add{color:var(--pos)}.mymv em.drop{color:var(--neg)}
+.myg{font:600 15px/1 var(--num);color:var(--pos);text-align:right}.myg i{display:block;font:500 10.5px/1.3 var(--name);font-style:normal;color:var(--dim)}
+.myopt{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px}.mysg button{font-size:12px;padding:7px 9px}
+.mychk{font:600 12px/1 var(--name);padding:7px 9px;border:1px solid var(--rule);border-radius:6px}.mychk[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.mypl{padding:8px 0 2px;border-top:1px solid var(--rule);font:600 11px/1 var(--name);text-transform:uppercase;letter-spacing:.08em;color:var(--dim)}.mypl+.mym{border-top:0}
+.myalt{border-top:1px solid var(--rule)}.myalt summary{padding:10px 0;font:500 13.5px/1.3 var(--name);cursor:pointer}.myalt summary b{font:600 11px/1 var(--name);text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-right:6px}.myalt summary i{font:400 12px/1 var(--num);font-style:normal;color:var(--dim);margin-left:6px}
+.mydd{border-top:1px solid var(--rule);margin-top:6px}.mydd summary{padding:10px 0 6px;font:600 13px/1.2 var(--name);cursor:pointer}.mydd summary i{font:500 12px/1 var(--name);font-style:normal;color:var(--dim);margin-left:6px}
+.mydr{display:grid;grid-template-columns:22px minmax(0,1fr) 30px 76px;gap:6px;align-items:center;padding:7px 0;border-top:1px solid var(--rule);font:500 14px/1.2 var(--name);cursor:pointer}
+.mydr b{font-weight:600}.mydr i{font:500 11.5px/1 var(--name);font-style:normal;color:var(--dim);margin-left:4px}.mydr em{font:400 12px/1 var(--num);font-style:normal;color:var(--dim);text-align:right}.mydr.il{opacity:.55}
+.mydr input{width:18px;height:18px;accent-color:var(--ink)}
+.mysum{padding:10px 0 2px;border-top:1px solid var(--rule);font:500 13.5px/1.4 var(--name)}.mysum b{font:600 13.5px/1 var(--num)}
+@media (min-width:1100px){.my{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-items:start}.my .mytop{grid-column:1/-1}}
 .msec{margin-top:14px;background:var(--panel);border-radius:12px;padding:4px 10px 10px}
 .msh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:10px 0 6px;list-style:none;cursor:default}.msh::-webkit-details-marker{display:none}
 .msh b{font:700 15px/1.2 var(--name)}.msh span{font:500 12px/1.2 var(--name);color:var(--dim)}
@@ -762,7 +793,7 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .subnav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
 .subnav:empty,.subnav[hidden]{display:none!important}
 /* controls the new pages make redundant */
-#pjMuBtn,body[data-page="matchup"] #pjView,#rkSz [data-k="usg"],body[data-page="usage"] #rkSz,body[data-page="efb"] #rkSz,body[data-page="efb"] #rkWin,body:not([data-page="buysell"]) #bsSort{display:none!important}
+#pjMuBtn,body[data-page="matchup"] #pjView,body[data-page="today"] #pjView,body[data-page="today"] #pjLgRow,#rkSz [data-k="usg"],body[data-page="usage"] #rkSz,body[data-page="efb"] #rkSz,body[data-page="efb"] #rkWin,body:not([data-page="buysell"]) #bsSort{display:none!important}
 .lgchip{flex:none;display:flex;align-items:center;gap:6px;height:30px;padding:0 7px;border:1px solid var(--rule);border-radius:7px;color:var(--dim);text-decoration:none;font:500 11px/1 var(--num);position:relative}
 .lgchip svg{width:16px;height:16px}
 .lgchip::after{content:"";position:absolute;top:4px;left:18px;width:6px;height:6px;border-radius:50%;background:var(--pos)}
@@ -2955,6 +2986,131 @@ function renderSC(){
   renderGrid(ds,live,Object.entries(G.players).filter(([,q])=>q.xp&&q.xp[0]>=8),today);
 }
 function pjMsg(m){$("pjList").innerHTML=`<div class="empty">${m}</div>`;$("pjStatus").textContent=""}
+// ---- Today (My League > Today; only with a synced league): one screen of what to do. The
+// matchup at a glance, tonight's lineup (who counts, who sits for lack of spots), news on your
+// players since yesterday, and a streaming plan for the adds you have left this week. Everything
+// is the Matchup tool's math (muSim, muOdds) on the synced week, with no what-if moves.
+const MYADDS=4,MYFA=18,MYBEAM=5;
+function myCtx(){
+  const mu=ML&&ML.mu,x=ML&&lgIx();if(!x||!ML.teams||!G||!SC)return null;
+  const me=String(ML.me),at=new Date(ML.at),syncDay=new Intl.DateTimeFormat("en-CA",{timeZone:"America/New_York"}).format(at),today=etToday(),now=new Date();
+  const ok=mu&&mu.rows&&mu.rows.length===2,sD=ok&&mu.dates&&mu.dates.length?mu.dates:null;
+  // the synced week while it's still on (Yahoo's own days); otherwise this calendar week, projection only
+  const isS=!!(ok&&(sD||weekDates(0)).some(d=>d>=today)&&(sD||weekDates(0))[0]<=today),dates=isS&&sD?sD:weekDates(0);
+  const teams=Object.keys(ML.teams).filter(t=>t!==me),R0=isS?mu.rows.find(r=>r.id===me)||mu.rows[0]:null,R1=isS?mu.rows.find(r=>r!==R0):null;
+  const opId=isS?String(R1.id):teams[0];
+  const cur=r=>{const o={};CATS.forEach(c=>o[c.k]=0);if(r)mu.lab.forEach((l,i)=>{const k=muKey(l);if(k){const v=parseFloat(String(r.v[i]).replace(/^\./,"0."));o[k]=Number.isFinite(v)?v:0}});return o};
+  const cA=cur(R0),cB=cur(R1);
+  const rest=isS?dates.filter(d=>d>syncDay||(d===syncDay&&etHour(at)<19)).filter(d=>d>today||(d===today&&etHour(now)<19)||d===syncDay):dates.filter(d=>d>today||(d===today&&etHour(now)<19));
+  const cap=t=>(ML.act&&ML.act[t])||10,P=id=>{const sl=x.slot[id]||"";return{id,q:G.players[id],sl,il:/^(IL|IR)/.test(sl)}};
+  const roster=t=>Object.keys(x.own).filter(id=>x.own[id]===t).map(P).filter(o=>o.q&&o.q.xp);
+  const base=roster(me),oppR=roster(opId),F=CATS.map(c=>c.k).filter(k=>!S.punt.has(k)),C={},off=new Set(S.punt);
+  const pA=isS?muPast(base.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cA):{fga:0,fta:0,g:0},pB=isS?muPast(oppR.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cB):{fga:0,fta:0,g:0};
+  const B=muSim(oppR,rest,cap(opId),F,null,C),A=muSim(base,rest,cap(me),F,null,C),O=muOdds(cA,cB,pA,pB,A,B,off);
+  return{x,me,opId,isS,dates,rest,today,cA,cB,pA,pB,base,oppR,F,C,off,capA:cap(me),A,B,O,DS:muDist(O.rows),P,wk:isS&&mu.week?mu.week:null}}
+// A plan = moves [{d, drop, add}] in day order, d = the first day the pickup counts. Each day is
+// simulated with the roster as it stands that day, and the week is scored like the Matchup tool.
+function myEval(ctx,moves){
+  const tot={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0,fgm:0,fga:0,ftm:0,fta:0},vr={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0};let ros=ctx.base,i=0;
+  for(const d of ctx.rest){
+    while(i<moves.length&&moves[i].d<=d){const m=moves[i++];ros=[...ros.filter(o=>o.id!==m.drop),ctx.P(m.add)]}
+    const s=muSim(ros,[d],ctx.capA,ctx.F,null,ctx.C);for(const k in tot)tot[k]+=s.tot[k];for(const k in vr)vr[k]+=s.vr[k]}
+  const O=muOdds(ctx.cA,ctx.cB,ctx.pA,ctx.pB,{tot,vr},ctx.B,ctx.off);return{exp:O.exp,win:muDist(O.rows).win,O}}
+// Options (myOpt, on the device): goal "cats" = most expected categories, "win" = best chance to
+// take the week (5+ of 9); same = a pickup can play the day it's made (else from the next day);
+// noq = skip free agents with any injury tag. Droppable players are yours to tick (myDrop, per
+// league and week); until you do, everyone projected outside the top MYDROP who isn't on IL or
+// marked Keep in Build (the two weakest if that leaves nobody).
+const MYDROP=85;
+S.myO=Object.assign({goal:"cats",same:1,noq:0},store.get("myOpt",{}));
+const myKey=ctx=>`${ML.lid||""}|${ctx.dates[0]}`;
+function myDrops(ctx){const sv=store.get("myDrop",{})[myKey(ctx)],on=new Set(ctx.base.map(o=>o.id));if(sv)return new Set(sv.filter(id=>on.has(id)));
+  const B=S.bs,keep=tbKeep(),rk=id=>(B&&B.x&&B.x[id])||999,c=ctx.base.filter(o=>!o.il&&!keep.has(o.id)).sort((a,b)=>rk(b.id)-rk(a.id));
+  const d=c.filter(o=>rk(o.id)>MYDROP);return new Set((d.length?d:c.slice(0,2)).map(o=>o.id))}
+// A beam search: after each move the MYBEAM best plans get one more (any free agent in the best
+// MYFA by value x games over the days left, 12+ minutes, on a day he plays, for any droppable
+// player or a streamer the plan added earlier). It stops when another move gains under 0.03 of a
+// category (or 1 point of win chance); the three best distinct sets of pickups are kept.
+function myPlan(ctx,n){
+  const o=S.myO,drops=[...myDrops(ctx)],sc=e=>o.goal==="win"?e.win+e.exp/1e3:e.exp+e.win/1e3,eps=o.goal==="win"?.01:.03;
+  const days=o.same?ctx.rest:ctx.rest.filter(d=>d>ctx.today),gd=(q,id)=>days.filter(d=>plays(q.t,d)&&avail(id,d));
+  const fa=Object.entries(G.players).filter(([id,q])=>ctx.x.own[id]==null&&q.xp&&q.xp[0]>=12&&!(o.noq&&ijOf(id))).map(([id,q])=>{const ds=gd(q,id);return{id,ds,v:ds.reduce((a,d)=>a+val0(muLine(id,q,d,ctx.C).z,G.zp),0)}})
+    .filter(x=>x.ds.length).sort((a,b)=>b.v-a.v).slice(0,MYFA);
+  const s0=myEval(ctx,[]);let beam=[{moves:[],...s0}],best=beam[0];const all=[];
+  for(let step=0;step<n;step++){const next=[];
+    for(const st of beam){const lastD=st.moves.length?st.moves[st.moves.length-1].d:"",gone=new Set(st.moves.map(m=>m.drop)),on=new Set(st.moves.map(m=>m.add));
+      const can=[...drops.filter(id=>!gone.has(id)),...[...on].filter(id=>!gone.has(id))];
+      for(const a of fa){if(on.has(a.id)||gone.has(a.id))continue;
+        for(const d of a.ds){if(d<lastD)continue;
+          for(const dr of can){const moves=[...st.moves,{d,drop:dr,add:a.id}],e=myEval(ctx,moves);if(sc(e)>sc(st)+.002)next.push({moves,...e})}}}}
+    if(!next.length)break;next.sort((a,b)=>sc(b)-sc(a));
+    const seen=new Set();beam=next.filter(s=>{const k=s.moves.map(m=>m.add).sort().join();if(seen.has(k))return false;seen.add(k);return true}).slice(0,MYBEAM);
+    all.push(...beam);if(sc(beam[0])>sc(best)+eps)best=beam[0];else break}
+  const seen=new Set([best.moves.map(m=>m.add).sort().join()]),alts=all.filter(s=>s.moves.length<=best.moves.length||sc(s)>sc(best)).sort((a,b)=>sc(b)-sc(a)).filter(s=>{const k=s.moves.map(m=>m.add).sort().join();if(seen.has(k))return false;seen.add(k);return true}).slice(0,2);
+  return{s0,best,alts}}
+function myAddsLeft(ctx){const o=store.get("myAdds",{}),k=myKey(ctx);return o[k]==null?MYADDS:o[k]}
+function myAddsSet(ctx,v){store.set("myAdds",{[myKey(ctx)]:Math.max(0,Math.min(MYADDS,v))})}
+function renderMy(){
+  const el=$("pjList");$("pjStatus").textContent="";$("pjAsOf").textContent="";
+  const ctx=myCtx();if(!ctx)return pjMsg(ML?"Loading…":"Sync your league from Yahoo to see your day.");
+  const{x,me,opId,O,DS,today}=ctx,o=S.myO,nm=id=>esc(G.players[id]?G.players[id].n:id),sh=d=>d===today?"Today":fmtDate(d).split(",")[0];
+  const hrs=(Date.now()-new Date(ML.at))/36e5,age=hrs<1?"just now":hrs<24?Math.round(hrs)+"h ago":Math.round(hrs/24)+"d ago";
+  // 1 the matchup at a glance
+  const ahead=O.rows.filter(r=>r.p!=null&&r.p>=.7).map(r=>r.l),behind=O.rows.filter(r=>r.p!=null&&r.p<=.3).map(r=>r.l),swing=O.rows.filter(r=>r.p!=null&&r.p>.3&&r.p<.7).map(r=>r.l);
+  const top=`<section class="msec mytop"><h3 class="myh">${ctx.wk?`Week ${ctx.wk} `:""}vs ${esc(ML.teams[opId]||"opponent")}</h3><div class="mysub">synced ${age}</div>
+    <div class="mysc"><div><b>${O.won}–${O.lost}</b><i>projected</i></div><div><b>${Math.round(DS.win*100)}%</b><i>to win the week</i></div><div><b>${O.exp.toFixed(1)}</b><i>expected cats</i></div></div>
+    <div class="myln">${ahead.length?`<span><i>Ahead</i> ${ahead.join(" · ")}</span>`:""}${swing.length?`<span><i>In play</i> <b>${swing.join(" · ")}</b></span>`:""}${behind.length?`<span><i>Behind</i> ${behind.join(" · ")}</span>`:""}</div>
+    ${hrs>=20?`<p class="mywarn">Rosters are from ${age}: re-sync after any move.</p>`:""}
+    <button class="mylink" data-go="matchup">Open matchup ›</button></section>`;
+  // 2 tonight
+  const playsT=ctx.rest.includes(today),sim=playsT?muSim(ctx.base,[today],ctx.capA,ctx.F,null,ctx.C):null;
+  const mineT=ctx.base.filter(p=>plays(p.q.t,today)),st=p=>sim&&sim.st[p.id]&&sim.st[p.id][today],on=mineT.filter(p=>st(p)===1),sit=mineT.filter(p=>st(p)===2),outT=mineT.filter(p=>!st(p));
+  const trow=(p,cls,tag)=>{const e=muLine(p.id,p.q,today,ctx.C),l=e.l,i=ijOf(p.id),lu=luAdj(p.id,p.q,today);
+    return`<div class="myr ${cls}" data-id="${p.id}"><div class="myn"><b>${esc(p.q.n)}</b><i>${esc(opp(p.q.t,today))}${i&&!ijOut(i)?` · <em class="dtd">${esc(i[0])}</em>`:""}${lu>0?" · starting":lu<0?" · off the bench":""}</i></div>
+      <div class="myst">${tag||`${Math.round(l.min)} min · ${f1(l.pts)} pts · ${f1(l.reb)} reb · ${f1(l.ast)} ast`}</div><div class="myv ${vcls(pjVal(e.z))}">${tag?"":sgn(pjVal(e.z))}</div></div>`};
+  const open=ctx.capA-on.length;
+  const ton=`<section class="msec"><h3 class="myh">Tonight</h3><div class="mysub">${!mineT.length?"none of your players play":`${on.length} of your players count${sit.length?`, ${sit.length} sit${sit.length>1?"":"s"} for lack of spots`:open>0?` · ${open} open spot${open>1?"s":""}`:""}`}</div>
+    <p class="stkn">Your players with a game tonight, best first by tonight's projected Value (tonight's minutes and opponent). A team can only start as many as it has active spots (${ctx.capA}); anyone past that sits. Positions aren't checked, so make sure Yahoo lets you slot them.</p>
+    ${on.map(p=>trow(p,"")).join("")}${sit.map(p=>trow(p,"sit","no spot left tonight")).join("")}${playsT?outT.map(p=>trow(p,"out",p.il&&avail(p.id,today)?"IL":ijOf(p.id)?esc(ijOf(p.id)[0]):"out")).join(""):""}
+    ${!playsT&&mineT.length?`<div class="mye">Tonight's games are already counted in Yahoo's totals.</div>`:""}</section>`;
+  // 3 news on mine, last 36 hours
+  const its=NW&&NW.items?NW.items.filter(i=>!i.q&&!i.x&&i.id&&lgOf(i.id)===me&&Date.now()-new Date(i.t)<36*36e5).slice(0,4):[];
+  const news=`<section class="msec"><h3 class="myh">News on your players</h3><div class="mysub">${its.length?"last 36 hours":"nothing new since yesterday"}</div>${its.map(nwCard).join("")}</section>`;
+  // 4 streaming plan
+  const n=myAddsLeft(ctx),drops=myDrops(ctx),key=[ctx.dates[0],ML.at,n,[...S.punt].join(),G.asOf,IJ&&IJ.built,today,[...drops].sort().join(),o.goal,o.same,o.noq].join("|");
+  const pl=S.myPl&&S.myPl.key===key?S.myPl.v:null,busy=!pl&&n>0&&ctx.rest.length&&drops.size;
+  if(busy)setTimeout(()=>{S.myPl={key,v:myPlan(ctx,n)};if(S.pjView==="my"&&document.body.dataset.view==="pj")renderMy()},30);
+  const rk=id=>S.bs&&S.bs.x&&S.bs.x[id]?"#"+S.bs.x[id]:"–",g=(id,d)=>ctx.rest.filter(t=>t>=d&&plays(G.players[id].t,t)&&avail(id,t)).length;
+  const when=d=>{if(o.same)return sh(d);const i=ctx.dates.indexOf(d),p=i>0?ctx.dates[i-1]:d;return sh(p)};
+  const flips=(a,b)=>{const up=[],dn=[];b.rows.forEach((r,i)=>{const q=a.rows[i];if(r.p==null||q.p==null)return;if(q.p<=.5&&r.p>.5)up.push(r.l);if(q.p>.5&&r.p<=.5)dn.push(r.l)});return(up.length?` Flips <b>${up.join(", ")}</b> your way.`:"")+(dn.length?` Gives up ${dn.join(", ")}.`:"")};
+  const moveRow=(m,stp)=>`<div class="mym"><div class="myd">${when(m.d)}</div><div class="mymv"><div data-id="${m.add}"><em class="add">Add</em> <b>${nm(m.add)}</b> <i>${esc(G.players[m.add].t)} · ${g(m.add,m.d)} game${g(m.add,m.d)>1?"s":""} · Proj ${rk(m.add)}</i></div>
+    <div data-id="${m.drop}"><em class="drop">Drop</em> ${nm(m.drop)} <i>Proj ${rk(m.drop)}</i></div></div><div class="myg">${stp>=0?"+":"−"}${Math.abs(stp).toFixed(2)}<i>cats</i></div></div>`;
+  const planHTML=(b,s0)=>b.moves.map((m,i)=>moveRow(m,myEval(ctx,b.moves.slice(0,i+1)).exp-(i?myEval(ctx,b.moves.slice(0,i)).exp:s0.exp))).join("");
+  const sumLine=(b,s0)=>`expected categories <b>${s0.exp.toFixed(1)} → ${b.exp.toFixed(1)}</b>, chance to win the week <b>${Math.round(s0.win*100)}% → ${Math.round(b.win*100)}%</b>`;
+  let body;
+  if(!ctx.rest.length)body=`<div class="mye">No days left in this week.</div>`;
+  else if(n<=0)body=`<div class="mye">No adds left this week.</div>`;
+  else if(!drops.size)body=`<div class="mye">Tick at least one player you'd be willing to drop.</div>`;
+  else if(!pl)body=`<div class="mye">Working out the best moves…</div>`;
+  else if(!pl.best.moves.length)body=`<div class="mye">No pickup improves this week by a real amount. Hold your adds.</div>`;
+  else{const b=pl.best;
+    body=`<div class="mypl"><b>Best plan</b></div>`+planHTML(b,pl.s0)+`<div class="mysum">With ${b.moves.length===1?"this move":`these ${b.moves.length} moves`}: ${sumLine(b,pl.s0)}.${flips(pl.s0.O,b.O)}${b.moves.length<n?` Another add gains too little to spend, so it keeps ${n-b.moves.length} in hand.`:""}</div>`
+      +pl.alts.map((a,i)=>`<details class="myalt"><summary><b>Plan ${i+2}</b> ${a.moves.map(m=>esc(surname(G.players[m.add].n))).join(" + ")} <i>${a.exp.toFixed(1)} cats · ${Math.round(a.win*100)}%</i></summary>${planHTML(a,pl.s0)}</details>`).join("")}
+  const ros=[...ctx.base].sort((a,b)=>(S.bs&&S.bs.x?(S.bs.x[a.id]||999)-(S.bs.x[b.id]||999):0));
+  const seg=(k,opts)=>`<div class="seg mysg">${opts.map(([v,l])=>`<button data-myo="${k}" data-v="${v}" aria-pressed="${String(o[k])===String(v)}">${l}</button>`).join("")}</div>`;
+  const plan=`<section class="msec"><h3 class="myh">Streaming plan</h3><div class="mysub">adds left this week</div><div class="myadd"><button data-add="-1" aria-label="One fewer">−</button><b>${n}</b><button data-add="1" aria-label="One more">+</button></div>
+    <p class="stkn">The best use of the adds you have left this week (your league allows ${MYADDS}; set how many remain). Each move counts from its day: a streamer can be added for his games and dropped later for someone else's. Only players you tick as droppable, and streamers the plan itself added, are dropped. <b>Most categories</b> goes for the most expected categories; <b>Win the week</b> for the best chance at 5 of 9, which can mean giving up a category you're losing anyway. <b>Same day</b>: a pickup can play the day you make it; <b>Next day</b>: from the day after, so the plan tells you the day to make the move. Scored like the Matchup tool against this week's opponent, on our projections; a what-if only. Only your best ${ctx.capA} count on a crowded day; positions aren't checked.</p>
+    <div class="myopt">${seg("goal",[["cats","Most categories"],["win","Win the week"]])}${seg("same",[[1,"Same day"],[0,"Next day"]])}<button class="mychk" data-myo="noq" data-v="${o.noq?0:1}" aria-pressed="${!!o.noq}">Skip injured</button></div>
+    ${body}
+    <details class="mydd"${store.get("myDD",0)?" open":""}><summary>Who can be dropped <i>${drops.size} ticked</i></summary>
+      ${ros.map(p=>`<label class="mydr${p.il?" il":""}"><input type="checkbox" data-dr="${p.id}"${drops.has(p.id)?" checked":""}${p.il?" disabled":""}><span><b>${esc(p.q.n)}</b> <i>${esc(p.q.t)}${p.il?" · IL":""}</i></span><em>${ctx.rest.filter(d=>plays(p.q.t,d)&&avail(p.id,d)).length}g</em><em>Proj ${rk(p.id)}</em></label>`).join("")}</details></section>`;
+  el.innerHTML=`<div class="my">${top}${ton}${plan}${news}</div>`;
+  el.querySelectorAll(".my [data-id]").forEach(r=>r.onclick=()=>openSheet(r.dataset.id));
+  el.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{myAddsSet(ctx,n+ +b.dataset.add);renderMy()});
+  el.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{openPage(b.dataset.go);paintNav()});
+  el.querySelectorAll("[data-myo]").forEach(b=>b.onclick=()=>{const v=b.dataset.v;o[b.dataset.myo]=b.dataset.myo==="goal"?v:+v;store.set("myOpt",o);renderMy()});
+  el.querySelectorAll("[data-dr]").forEach(c=>c.onchange=()=>{const d=myDrops(ctx);c.checked?d.add(c.dataset.dr):d.delete(c.dataset.dr);store.set("myDrop",{[myKey(ctx)]:[...d]});renderMy()});
+  const dd=el.querySelector(".mydd");if(dd)dd.ontoggle=()=>store.set("myDD",dd.open?1:0)}
 // ---- Matchup (Proj > Matchup; only with a synced league that has this week's matchup, ML.mu).
 // Yahoo's matchup totals so far + our projection for the rest of the week, per category, with a
 // win chance. The rest of the week: every rostered player not in an IL slot, on each remaining day
@@ -3184,7 +3340,7 @@ function muClick(e){const b=e.target.closest("[data-mu]");if(!b||!S.mus)return;i
   const y=scrollY;muSave();renderMU();scrollTo(0,y)}
 function muChange(e){if(!e.target.matches("[data-mu-opp]")||!S.mus)return;S.mus.opp=e.target.value;muSave();const y=scrollY;renderMU();scrollTo(0,y)}
 function renderPJ(){
-  $("pjMuBtn").hidden=!ML;if(S.pjView==="mu"&&!ML)S.pjView="season";
+  $("pjMuBtn").hidden=!ML;if((S.pjView==="mu"||S.pjView==="my")&&!ML)S.pjView="season";
   $("pjView").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.pjView));
   $("pjWk").hidden=S.pjView!=="week";$("pjRow2").hidden=S.pjView!=="week";
   $("pjTot").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.pjTot));
@@ -3194,6 +3350,7 @@ $("pjSz").hidden=S.pjView!=="season";
   if(!G)return;
   if(!G.zp||!G.xpf)return pjMsg("Projected lines arrive with the next rankings build.");
   $("pjList").classList.toggle("muw",S.pjView==="mu");
+  if(S.pjView==="my")return renderMy();
   if(S.pjView==="mu"){$("pjAsOf").textContent="";return renderMU()}
   const today=etToday(),all=Object.entries(G.players).filter(([,q])=>q.xp&&q.xp[0]>=8);
   const sh=d=>fmtDate(d).replace(/^\w+, /,"");
@@ -3468,13 +3625,14 @@ const NAV=[
   {k:"box",l:"Box",pages:[{k:"box",l:"Box",v:"box"}]},
   {k:"players",l:"Players",pages:[
     {k:"ranks",l:"Ranks",v:"rk",open:()=>{if(S.rkSz==="usg")S.rkSz="pg"}},
-    {k:"proj",l:"Proj",v:"pj",open:()=>{if(S.pjView==="mu")S.pjView="season"}},
+    {k:"proj",l:"Proj",v:"pj",open:()=>{if(S.pjView==="mu"||S.pjView==="my")S.pjView="season"}},
     {k:"usage",l:"Usage",v:"rk",open:()=>{S.rkSz="usg"}},
     {k:"rise",l:"Rise",v:"bs",open:()=>{S.bsSort="bo"}},
     {k:"buysell",l:"Buy/Sell",v:"bs",nolg:1,open:()=>{if(!["buy","sell","x","now"].includes(S.bsSort))S.bsSort="buy"}},
     {k:"buzz",l:"Buzz",v:"bz"},
     {k:"efb",l:"EFB",v:"rk",efb:1,open:()=>{}}]},
   {k:"league",l:"My League",lg:1,pages:[
+    {k:"today",l:"Today",v:"pj",open:()=>{S.pjView="my"}},
     {k:"matchup",l:"Matchup",v:"pj",open:()=>{S.pjView="mu"}},
     {k:"roster",l:"Roster",v:"bs",open:()=>{S.bsSort="mine"}},
     {k:"waivers",l:"Waivers",v:"bs",open:()=>{S.bsSort="fa"}},
