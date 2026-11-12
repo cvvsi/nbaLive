@@ -31,7 +31,7 @@ A phone-first NBA box score viewer for **9-category fantasy basketball**. It ran
 - **Player search:** type and matches drop down as you go (`renderSearch()`): up to 8 players, anyone in the season ranks or tonight's box score, by any part of the name (accents and Jr./III ignored), or a whole team, best season rank first, when you type a team (`SRTEAM`): ESPN's code, the usual codes other sites use (UTA, GSW, NYK, SAS, NOP, WAS, PHO…), the city or the nickname ("jazz", "76ers", "golden state"); each with team, season rank and tonight's line. On desktop it's a box in the top bar (`/` focuses it); on a phone the magnifier turns the top bar into the search field. Not full screen: the page stays visible under the list, and tapping outside, Esc or Cancel closes it. ↑/↓ move through the matches, Enter opens one; back from a player returns to the results.
 - **Live:** in-progress games refresh every 60 s, and again whenever the page comes back into view.
 - On first load, if no game has tipped off today, it shows the previous night.
-- **Punt** any categories (Value is recomputed without them). Choose the comparison pool (everyone / 10+ / 15+ / 20+ minutes).
+- **Punt** any categories (Value is recomputed without them). The Punt sheet floats under the top bar wherever you are on the page (a panel on desktop, a drop-down over a dimmed page on a phone; `setSheet()` in `index.html`), so the list behind it re-ranks in place; tap outside, Esc or Punt again closes it. Choose the comparison pool (everyone / 10+ / 15+ / 20+ minutes).
 - Sort by Value, minutes, usage, or any single category's z-score (tap the category label).
 - Light and dark themes follow the phone's setting.
 

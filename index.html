@@ -356,7 +356,17 @@ body[data-view="bs"] .boxv,body[data-view="bz"] .boxv,body[data-view="pj"] .boxv
 .gear[aria-expanded="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
 
 /* settings */
-.sheet{background:var(--panel);border-bottom:1px solid var(--rule);padding-block:12px 14px;display:grid;gap:12px}
+/* The Punt sheet floats under the top bar (it used to sit at the top of the page, so opening it
+   from further down meant scrolling all the way up). Tap outside, Esc or Punt again to close. */
+.sheet{background:var(--panel);border-bottom:1px solid var(--rule);padding-block:12px 14px;display:grid;gap:12px;
+  position:fixed;z-index:30;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + var(--bar));
+  max-height:min(68dvh,calc(100dvh - env(safe-area-inset-top,0px) - var(--bar) - 56px));overflow-y:auto;overscroll-behavior:contain;
+  box-shadow:0 14px 30px color-mix(in srgb,var(--ink) 18%,transparent)}
+.sheet[hidden],.sheetbg[hidden]{display:none}
+.sheetbg{position:fixed;z-index:29;inset:calc(env(safe-area-inset-top,0px) + var(--bar)) 0 0 0;background:color-mix(in srgb,var(--ink) 28%,transparent)}
+body.sheetopen.hidebars .bar{transform:none}
+@media (min-width:1100px){.sheet{left:auto;right:16px;width:440px;top:calc(env(safe-area-inset-top,0px) + var(--bar) + 6px);border:1px solid var(--rule);border-radius:10px;padding-inline:16px}
+  #sheet>div{max-width:none;margin-inline:0}.sheetbg{background:transparent}}
 .sheet h3{margin:0 0 6px;font:600 11px/1 var(--name);text-transform:uppercase;letter-spacing:.1em;color:var(--dim)}
 .toggles{display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
 .toggles .tog{font-size:11px}
@@ -1073,7 +1083,8 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
   <button class="gear" id="gear" aria-expanded="false" aria-controls="sheet">Punt</button>
 </div>
 
-<div class="sheet gut" id="sheet" hidden>
+<div class="sheetbg" id="sheetBg" hidden></div>
+<div class="sheet gut" id="sheet" role="dialog" aria-label="Punt and ranking settings" hidden>
   <div><h3>Punt categories</h3><div class="toggles" id="toggles"></div></div>
   <div><h3>Rank by</h3>
     <div class="seg" id="gwSeg"><button data-v="0">Z-score</button><button data-v="1">Weekly weights</button></div>
@@ -4213,7 +4224,10 @@ $("prev").onclick=()=>loadDate(shift(S.date,-1));
 $("next").onclick=()=>loadDate(shift(S.date,1));
 $("date").onchange=e=>e.target.value&&loadDate(e.target.value);
 $("date").onclick=()=>{if(S.err)loadDate(S.date)};
-$("gear").onclick=()=>{const o=$("sheet").hidden;$("sheet").hidden=!o;$("gear").setAttribute("aria-expanded",o)};
+function setSheet(o){$("sheet").hidden=!o;$("sheetBg").hidden=!o;$("gear").setAttribute("aria-expanded",o);document.body.classList.toggle("sheetopen",o);if(o)$("sheet").scrollTop=0}
+$("gear").onclick=()=>setSheet($("sheet").hidden);
+$("sheetBg").onclick=()=>setSheet(false);
+addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("sheet").hidden)setSheet(false)});
 $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
 $("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>setSort(b.dataset.k));
 $("bxSide").addEventListener("click",e=>{if(e.target.closest("[data-bxmin]")){store.set("bxOppMin",!store.get("bxOppMin",false));renderBxSide();return}const r=e.target.closest("[data-id]");if(!r)return;const p=S.players.find(x=>x.id===r.dataset.id);if(p)openSheet(p.eid||p.id,p)});
