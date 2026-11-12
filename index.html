@@ -15,8 +15,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<script>(function(){try{var m=/[?&]skin=([a-z]+)/.exec(location.search),k=m?m[1]:localStorage.getItem("skin");if(m)localStorage.setItem("skin",k);
-  if(k==="press"){document.documentElement.dataset.skin="press";var l=document.createElement("link");l.rel="stylesheet";l.href="https://fonts.googleapis.com/css2?family=Anton&display=swap";document.head.appendChild(l)}}catch(e){}})()</script>
 <style>
 /* Layout: sticky date bar → scoreboard tiles → sticky category ruler → one row per player
    (name line + 9-cell heat strip). Phone-first; no sideways scrolling. */
@@ -1097,30 +1095,6 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .gfk{display:inline-block;width:2px;height:10px;background:var(--neg);vertical-align:-1px;margin:0 3px}.gsk{display:inline-block;width:14px;height:4px;border-radius:2px;background:color-mix(in srgb,var(--neg) 70%,var(--cell));vertical-align:2px}.gfa{stop-color:var(--ball);stop-opacity:.22}.gfb{stop-color:var(--ball);stop-opacity:0}
 @media (min-width:1100px){.rgrid{grid-template-columns:1fr 1fr}}
 
-/* ---- "Press" skin (a preview, off by default): an old newspaper sports page. Aged paper or
-   near-black, hairline and double rules instead of rounded panels, tall poster capitals
-   for headings over the site's own condensed face and mono, photos in black and white, and film grain over
-   everything. Turn it on with ?skin=press (remembered on the device; ?skin=off turns it off). */
-html[data-skin="press"]{--bg:#e9e5da;--panel:#f1ede3;--ink:#171614;--dim:#6b665c;--rule:#c9c3b4;--cell:#dfdacd;--ball:#b5431b;--pos:#2c6a43;--neg:#a13327;
-  --head:"Anton","Archivo Narrow","Arial Narrow",Impact,sans-serif}
-@media (prefers-color-scheme:dark){html[data-skin="press"]{--bg:#121212;--panel:#181818;--ink:#ebe7dc;--dim:#918c81;--rule:#34322e;--cell:#232220;--ball:#e2733f;--pos:#69b384;--neg:#e0796c}}
-html[data-skin="press"]::after{content:"";position:fixed;inset:0;z-index:999;pointer-events:none;opacity:.22;mix-blend-mode:multiply;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-@media (prefers-color-scheme:dark){html[data-skin="press"]::after{mix-blend-mode:screen;opacity:.16;filter:invert(1)}}
-html[data-skin="press"] *{border-radius:0!important}
-html[data-skin="press"] img{filter:grayscale(1) contrast(1.2) brightness(1.02)}
-html[data-skin="press"] .brand,html[data-skin="press"] .myh,html[data-skin="press"] .msh b,html[data-skin="press"] .sheet h3,html[data-skin="press"] h2,html[data-skin="press"] .psh h2,html[data-skin="press"] .pjh{font-family:var(--head);letter-spacing:0}
-html[data-skin="press"] .brand,html[data-skin="press"] .myh,html[data-skin="press"] .msh b,html[data-skin="press"] .sheet h3,html[data-skin="press"] .pjh{text-transform:uppercase;font-weight:400;letter-spacing:.02em}
-html[data-skin="press"] .myh{font-size:24px;line-height:1.1}html[data-skin="press"] .msh b{font-size:20px}html[data-skin="press"] .brand{font-size:19px}
-html[data-skin="press"] .msec,html[data-skin="press"] .my .msec{background:transparent;border-top:3px double var(--ink);padding-left:0;padding-right:0;margin-top:18px}
-html[data-skin="press"] .mysc div{background:transparent;border:1px solid var(--ink);padding:10px 6px}html[data-skin="press"] .mysc b{font-size:24px;font-weight:600}
-html[data-skin="press"] .mysc i,html[data-skin="press"] .mysub,html[data-skin="press"] .myd,html[data-skin="press"] .myln i{text-transform:uppercase;letter-spacing:.09em;font-size:10.5px;font-weight:600}
-html[data-skin="press"] .myn b,html[data-skin="press"] .mymv b{font-weight:700;font-size:16px}
-html[data-skin="press"] .bar,html[data-skin="press"] .tabbar{background:var(--bg);border-color:var(--ink)}html[data-skin="press"] .bar{border-bottom:1px solid var(--ink)}html[data-skin="press"] .tabbar{border-top:1px solid var(--ink);box-shadow:none}
-html[data-skin="press"] .tabbar button,html[data-skin="press"] .subnav button,html[data-skin="press"] .gear,html[data-skin="press"] .seg button{text-transform:uppercase;letter-spacing:.07em;font-size:12px;font-weight:700}
-html[data-skin="press"] .seg,html[data-skin="press"] .gear,html[data-skin="press"] .mychk,html[data-skin="press"] .myadd button,html[data-skin="press"] .myuse{border-color:var(--ink)}
-html[data-skin="press"] .myr,html[data-skin="press"] .mym,html[data-skin="press"] .mr,html[data-skin="press"] .nwc,html[data-skin="press"] .mye,html[data-skin="press"] .mysum,html[data-skin="press"] .mydr{border-top-style:dotted;border-top-color:var(--dim)}
-html[data-skin="press"] .myln b{text-decoration-thickness:2px}
 </style>
 </head>
 <body>
