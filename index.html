@@ -1075,12 +1075,16 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 
 <div class="sheet gut" id="sheet" hidden>
   <div><h3>Punt categories</h3><div class="toggles" id="toggles"></div></div>
+  <div><h3>Rank by</h3>
+    <div class="seg" id="gwSeg"><button data-v="0">Z-score</button><button data-v="1">Weekly weights</button></div>
+  </div>
   <div><h3>Compare against</h3>
     <div class="seg" id="poolSeg">
       <button data-v="0">Everyone</button><button data-v="10">10+ min</button><button data-v="15">15+ min</button><button data-v="20">20+ min</button>
     </div>
   </div>
   <div><p><b>Value</b> is a player's average z-score across your active categories, relative to everyone in the comparison pool who played that day. FG% and FT% count makes above or below average on their attempts, so volume matters. Turnovers count against. Tap a player to see the z-score under each stat.</p>
+    <p style="margin-top:8px"><b>Weekly weights</b> re-rank everyone for a weekly head-to-head. A z-score treats every category alike; over one week some swing far more than others, so a lead in them wins less often. Each z-score is multiplied by how much of it holds up over a week, measured on three seasons: assists 71%, rebounds and threes 68%, blocks 65%, points 60%, turnovers 58%, FT% 56%, FG% 55%, steals 44%. Steals specialists drop, steady scorers and passers rise. Z-score matches Basketball Monster's ranks. A single night's Value on the Box tab is never weighted.</p>
     <p style="margin-top:8px"><b>Szn / 14 / 7 / 3G</b> beside each name are 9-cat ranks: per-game over the season and the last 14 and 7 days, and over the team's last 3 games with any game the player missed counted as zero, so resting doesn't flatter anyone. All are against a top-130 pool with your punts applied, rebuilt every morning through last night.</p>
     <p style="margin-top:8px"><b>Movers.</b> A green L3 box means the last-3 rank is at least 40% better than the season rank (inside the top 130); red means at least 40% worse for someone inside 130 on the season. <b style="color:var(--ball)">▲n</b> after minutes means n more minutes a game over the last 3 than before them, usually the first sign of a new role. The Movers sort shows only flagged players.</p>
     <p style="margin-top:8px"><b>Buy/Sell</b> asks whether a start is real by comparing this season's per-minute numbers with last season's. Tap the <b>i</b> on that tab for the full explanation.</p>
@@ -1379,12 +1383,12 @@ const MOVE=.6,MINUP=6;
 let R=null;
 function rankWindows(){
   if(!R)return;
-  const ix=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>2+R.cats.indexOf(c.k));
+  const ks=actKs(),gw=gwOf(ks),ix=ks.map(k=>2+R.cats.indexOf(k)),wt=ks.map(k=>gw[k]);
   S.rk={};
   for(const w of [...WINS,{k:"d30"}]){
     const v=[];
     for(const id in R.players){const a=R.players[id].w[w.k];
-      if(a)v.push([id,ix.length?ix.reduce((s,i)=>s+a[i],0)/ix.length:0])}
+      if(a)v.push([id,ix.length?ix.reduce((s,i,j)=>s+wt[j]*a[i],0)/ix.length:0])}
     v.sort((a,b)=>b[1]-a[1]);
     S.rk[w.k]={};v.forEach(([id],i)=>S.rk[w.k][id]=i+1);
   }
@@ -1679,8 +1683,8 @@ function bsDelta(k,v,b){if(v==null||b==null)return 0;
 // than Now; Sell is the mirror for anyone inside 130 now.
 function rankBS(){
   if(!G)return;
-  const ix=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>2+G.cats.indexOf(c.k));
-  const val=a=>ix.length?ix.reduce((s,i)=>s+a[i],0)/ix.length:0;
+  const ks=actKs(),gw=gwOf(ks),ix=ks.map(k=>2+G.cats.indexOf(k)),wt=ks.map(k=>gw[k]);
+  const val=a=>ix.length?ix.reduce((s,i,j)=>s+wt[j]*a[i],0)/ix.length:0;
   const rank=src=>{const o={};Object.entries(src).map(([id,a])=>[id,val(a)]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>o[id]=i+1);return o};
   const pick=k=>Object.fromEntries(Object.entries(G.players).map(([id,q])=>[id,q[k]]));
   // Proj = the Proj tab's season line: z-scores at the average minutes over the games left, so
@@ -1788,7 +1792,7 @@ function tbDays(h){if(!SC)return[];const t=etToday(),late=etHour(new Date())>=19
   const all=Object.keys(SC.dates).filter(d=>d>t||(d===t&&!late)).sort();
   return h==="ros"?all:all.filter(d=>d<=weekDates(h==="wk"?0:1)[6])}
 function tbCtx(){
-  const key=[ML.at,S.tb.h,[...S.punt].join(),G.asOf,SC&&SC.built,IJ&&IJ.built].join("|");
+  const key=[ML.at,S.tb.h,[...S.punt].join()+S.gw,G.asOf,SC&&SC.built,IJ&&IJ.built].join("|");
   if(S.tbC&&S.tbC.key===key)return S.tbC;
   const x=lgIx(),me=String(ML.me),days=tbDays(S.tb.h);if(!x||!days.length)return null;
   const span=(new Date(days[days.length-1])-new Date(days[0]))/864e5+1,f=7/span;
@@ -2461,15 +2465,28 @@ const PK=["pts","reb","ast","tpm","stl","blk","to"];
 const PJGAP={pts:2,reb:1,ast:1,tpm:.5,stl:.3,blk:.3,to:.5};
 function xpLine(q){const f=G.xpf,o={};f.forEach((k,i)=>o[k]=q.xp[i]);return o}
 const zx=q=>Object.fromEntries(G.cats.map((c,i)=>[c,q.x[2+i]]));
+// Weekly weights (Punt sheet > Rank by, off by default; `gw` on the device). A z-score divides by
+// how much players differ; in a weekly head-to-head a category that also swings a lot from week to
+// week (steals) wins less often per z-score than a steady one (assists). GW = sigma / sqrt(sigma^2
+// + kappa x tau^2) per category, measured on 2023-24 to 2025-26 for the top 130 (`g` in
+// data/backtest-variance.json; Rosenof's G-score, arXiv 2307.02188). Weights are rescaled to
+// average 1 over the categories in play, so Value keeps its scale. Every rank uses them (season,
+// windows, Proj, week, the lineup order in Matchup and Build); a single night's Value on the Box
+// tab doesn't, since one finished game has nothing left to swing.
+const GW={pts:.60,reb:.68,ast:.71,tpm:.68,stl:.44,blk:.65,to:.58,fg:.55,ft:.56};
+S.gw=store.get("gw",0)?1:0;
+function gwOf(ks){const key=S.gw+ks.join(),c=S.gwC||(S.gwC={});if(c[key])return c[key];const o={};
+  const m=S.gw&&ks.length?ks.reduce((a,k)=>a+GW[k],0)/ks.length:1;for(const k of ks)o[k]=S.gw?GW[k]/m:1;return c[key]=o}
+const actKs=()=>SCATS.filter(c=>!S.punt.has(c.k)).map(c=>c.k);
 // Value against zero, for totals over several games (week, rest of season, games played): the
 // per-game z-scores are centered on the pool average, so games x z would make a below-average
 // player worse the more he plays. Adding back mean/sd per category measures each game from an
 // empty roster spot instead: counting stats always add, turnovers always cost, and FG%/FT%
 // (impact, already zero at the league average) stay as they are. zpool = { st: {cat: [stat,
 // mean, sd]} } for the pool the z-scores came from. Ranks within one view are unchanged.
-function val0(z,zpool){if(!zpool)return pjVal(z);const ks=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>c.k);if(!ks.length)return 0;
-  return ks.reduce((a,k)=>{const t=zpool.st[k],off=k==="fg"||k==="ft"?t[1]/t[2]:(k==="to"?-1:1)*t[1]/t[2];return a+z[k]+off},0)/ks.length}
-function pjVal(z){const ks=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>c.k);return ks.length?ks.reduce((a,k)=>a+z[k],0)/ks.length:0}
+function val0(z,zpool){if(!zpool)return pjVal(z);const ks=actKs(),w=gwOf(ks);if(!ks.length)return 0;
+  return ks.reduce((a,k)=>{const t=zpool.st[k],off=k==="fg"||k==="ft"?t[1]/t[2]:(k==="to"?-1:1)*t[1]/t[2];return a+w[k]*(z[k]+off)},0)/ks.length}
+function pjVal(z){const ks=actKs(),w=gwOf(ks);return ks.length?ks.reduce((a,k)=>a+w[k]*z[k],0)/ks.length:0}
 function pjZ(l){const P=G.zp,v={...l,fgi:l.fgm-P.lgFG*l.fga,fti:l.ftm-P.lgFT*l.fta},z={};
   for(const c of G.cats){const [k,m,sd]=P.st[c];z[c]=(c==="to"?-1:1)*(v[k]-m)/sd}return z}
 function teamDays(){if(S.tdays)return S.tdays;const m={};if(SC)for(const[d,g]of Object.entries(SC.dates))m[d]=new Set(g.flat());return S.tdays=m}
@@ -2943,7 +2960,7 @@ function muSave(){const m=S.mus,all=store.get("muSel2",{}),wk0=weekDates(0)[0];
 // sorted by: the targets if any are picked, otherwise every category that counts.
 const muOff=m=>new Set(S.punt);
 const muFocus=m=>{const off=muOff(m),t=[...m.tg].filter(k=>!off.has(k));return t.length?t:CATS.map(c=>c.k).filter(k=>!off.has(k))};
-const muFz=(z,F)=>F.length?F.reduce((a,k)=>a+z[k],0)/F.length:0;
+const muFz=(z,F)=>{if(!F.length)return 0;const w=gwOf(F);return F.reduce((a,k)=>a+w[k]*z[k],0)/F.length};
 function muLine(id,q,d,C){const k=id+"|"+d;return C[k]||(C[k]=(l=>({l,z:pjZ(l)}))(lineOn(id,q,d)))}
 // A roster over some days: on each day, everyone (an IL player too, taken as activated once the
 // injury report has him back) whose team plays and who isn't listed
@@ -3888,7 +3905,7 @@ function psDD(k,title,sub,body,def){const open=PSDD[k]!=null?PSDD[k]:def;
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.classList&&d.classList.contains("pdd")){PSDD[d.dataset.dd]=d.open;store.set("psDD",PSDD)}},true);
 // Every player's value for the rest of this week (the Week view's number: games x per-game value
 // from zero, each game against its opponent), for his week rank. Cached until the data or punts change.
-function weekRanks(off=0){const t=etToday(),key=[G&&G.asOf,IJ&&IJ.built,SC&&SC.built,[...S.punt].join(),t,off].join("|"),C=S.wkRC||(S.wkRC={});
+function weekRanks(off=0){const t=etToday(),key=[G&&G.asOf,IJ&&IJ.built,SC&&SC.built,[...S.punt].join()+S.gw,t,off].join("|"),C=S.wkRC||(S.wkRC={});
   if(C[off]&&C[off].key===key)return C[off];const live=weekDates(off).filter(d=>d>=t),v={},rk={};
   for(const[id,q]of Object.entries(G.players)){if(!q.xp||q.xp[0]<8)continue;const wd=live.filter(d=>plays(q.t,d)&&avail(id,d));if(!wd.length)continue;v[id]=wd.length*val0(pjZ(avgLine(id,q,wd)),G.zp)}
   Object.entries(v).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>rk[id]=i+1);return C[off]={key,rk,n:Object.keys(rk).length}}
@@ -4180,6 +4197,10 @@ $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
 $("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>setSort(b.dataset.k));
 $("bxSide").addEventListener("click",e=>{if(e.target.closest("[data-bxmin]")){store.set("bxOppMin",!store.get("bxOppMin",false));renderBxSide();return}const r=e.target.closest("[data-id]");if(!r)return;const p=S.players.find(x=>x.id===r.dataset.id);if(p)openSheet(p.eid||p.id,p)});
 $("teamBtn").onclick=()=>{S.byTeam=!S.byTeam;store.set("byTeam",S.byTeam);render()};
+function paintGw(){$("gwSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===S.gw))}
+$("gwSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.gw=+b.dataset.v;store.set("gw",S.gw);paintGw();
+  rankWindows();rankBS();renderBS();renderBZ();renderPJ();renderRK();renderSC();if(S.players.length)render();renderSheet()});
+paintGw();
 function paintPool(){$("poolSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===S.pool))}
 $("poolSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pool=+b.dataset.v;store.set("pool",S.pool);paintPool();
   if(S.players.length){compute();render()}});
