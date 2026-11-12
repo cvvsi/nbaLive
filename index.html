@@ -2524,6 +2524,15 @@ function nmPh(R,e){const C=nmC();if(C.ph[R])return C.ph[R];
     if(streak>=len)k=0;streak=0;
     if(k!=null){k++;ph[d]=k<=NMRET.length?k:0;if(k>NMRET.length)k=null}else ph[d]=0}
   return C.ph[R]=ph}
+// Tonight's starting five (NBA.com's lineups, Expected then Confirmed): a starter who started 2 or
+// fewer of his team's last 5 games gets at least LUUP more minutes than Proj (a next-man-up gain
+// counts toward it: the bonus tops it up, it doesn't stack), a regular starter (3+ of 5) left out
+// of the five and not inactive loses LUDN. backtest-daily.js (`startmax`, three seasons, the same
+// fit in each): 2.8% less minutes error than next man up alone, 0.7% on points.
+const LUUP=8,LUDN=2;
+function luAdj(id,q,d){if(!LU||LU.date!==d||d!==etToday())return 0;const L=LU.teams&&LU.teams[q.t];if(!L||!L.five||L.five.length<5)return 0;
+  const c=S.luS&&S.luS.lu===LU?S.luS:(S.luS={lu:LU,t:{}}),five=c.t[q.t]||(c.t[q.t]=new Set(L.five.map(x=>normN(x[0])))),r=R&&R.players[id];if(!r)return 0;
+  const st=(r.ps||0)+(r.ls?1:0),inF=five.has(normN(q.n));return inF&&st<=2?1:!inF&&st>=3?-1:0}
 // Minutes for player id (Proj line q) on date d, assuming he plays.
 function minAt(id,q,d){const C=nmC(),base=q.xp[0];let up=0,dn=0,own=1;
   for(const[R,e]of C.byT[q.t]||[]){const p=nmPh(R,e)[d]||0;
@@ -2532,7 +2541,8 @@ function minAt(id,q,d){const C=nmC(),base=q.xp[0];let up=0,dn=0,own=1;
     const v=p<0?x[1]:p>0?x[0]+(x[1]-x[0])*NMKEEP[p-1]:x[0];
     if(v>up)up=v;if(v<dn)dn=v}
   const i=ijOf(id),cap=i&&i[5]&&i[5][d];   // a minutes cap from the news ("limited to 16-20 minutes")
-  return Math.max(0,Math.min(42,cap||42,(base+up+dn)*own))}
+  const lu=luAdj(id,q,d);
+  return Math.max(0,Math.min(42,cap||42,(base+up+dn+(lu>0?Math.max(0,LUUP-up):lu<0?-LUDN:0))*own))}
 // Proj's line at other minutes: per-minute rates and shooting % stay, counts scale.
 function lineAt(q,m){const b=xpLine(q);if(!(b.min>0)||Math.abs(m-b.min)<.05)return b;const f=m/b.min,o={};for(const k in b)o[k]=k==="min"?m:b[k]*f;return o}
 const zAt=(q,m)=>Math.abs(m-q.xp[0])<.05?zx(q):pjZ(lineAt(q,m));
@@ -2582,6 +2592,7 @@ function nmNote(id,q,ds,m){if(Math.abs(m-q.xp[0])<1.5)return"";const C=nmC(),who
     const bk=back?` ~${fmtDate(back).replace(/^\w+, /,"")}`:"";
     if(outD.length)who.push(outD.length===ds.length?`${nm} out`:m<q.xp[0]&&back?`${nm} back${bk}`:`${nm} out${back?` until${bk}`:" some games"}`);
     else if(back)who.push(`${nm} back`);else if(e.m[id][0]<=-1.5)who.push(`${nm} playing`)}
+  const lu=ds.length<=7?ds.reduce((a,d)=>a||luAdj(id,q,d),0):0;if(lu)who.push(lu>0?"starting tonight":"off the bench tonight");
   const why=own?"easing back after his absence":who.join(", ");
   return why?`<div class="pjm">Minutes ${Math.round(m)} (Proj ${Math.round(q.xp[0])}): ${why}</div>`:""}
 function ijNote(id){const i=ijOf(id);if(!i)return"";const out=ijOut(i),sh=d=>fmtDate(d).replace(/^\w+, /,"");
@@ -2802,7 +2813,7 @@ function pickFive(t,ps,date){
   return{five:five.slice(0,5),status:"Projected"}
 }
 
-fetch("data/lineups.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{LU=j;if(document.body.dataset.view==="in")renderTN()}).catch(()=>{});
+fetch("data/lineups.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{LU=j;if(document.body.dataset.view==="in")renderTN();if(G&&SC){rankBS();renderPJ();renderSC()}}).catch(()=>{});
 // ---- News: RotoWire's NBA news RSS plus Rotoworld's and Basketball Monster's Bluesky posts,
 // collected every 15 minutes by fetch-news.js (data/news.json: items newest first, { g, src: rw |
 // rtw | bbm, id, n, h: headline, d: first sentence, u: link, t: time, q: status-only line, x: same
@@ -3905,7 +3916,7 @@ function psDD(k,title,sub,body,def){const open=PSDD[k]!=null?PSDD[k]:def;
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.classList&&d.classList.contains("pdd")){PSDD[d.dataset.dd]=d.open;store.set("psDD",PSDD)}},true);
 // Every player's value for the rest of this week (the Week view's number: games x per-game value
 // from zero, each game against its opponent), for his week rank. Cached until the data or punts change.
-function weekRanks(off=0){const t=etToday(),key=[G&&G.asOf,IJ&&IJ.built,SC&&SC.built,[...S.punt].join()+S.gw,t,off].join("|"),C=S.wkRC||(S.wkRC={});
+function weekRanks(off=0){const t=etToday(),key=[G&&G.asOf,IJ&&IJ.built,SC&&SC.built,LU&&LU.built,[...S.punt].join()+S.gw,t,off].join("|"),C=S.wkRC||(S.wkRC={});
   if(C[off]&&C[off].key===key)return C[off];const live=weekDates(off).filter(d=>d>=t),v={},rk={};
   for(const[id,q]of Object.entries(G.players)){if(!q.xp||q.xp[0]<8)continue;const wd=live.filter(d=>plays(q.t,d)&&avail(id,d));if(!wd.length)continue;v[id]=wd.length*val0(pjZ(avgLine(id,q,wd)),G.zp)}
   Object.entries(v).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>rk[id]=i+1);return C[off]={key,rk,n:Object.keys(rk).length}}
