@@ -175,7 +175,9 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .myg{font:600 15px/1 var(--num);color:var(--pos);text-align:right}.myg i{display:block;font:500 10.5px/1.3 var(--name);font-style:normal;color:var(--dim)}
 .myopt{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px}.mysg button{font-size:12px;padding:7px 9px}
 .mychk{font:600 12px/1 var(--name);padding:7px 9px;border:1px solid var(--rule);border-radius:6px}.mychk[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
-.mypl{padding:8px 0 2px;border-top:1px solid var(--rule);font:600 11px/1 var(--name);text-transform:uppercase;letter-spacing:.08em;color:var(--dim)}.mypl+.mym{border-top:0}
+.mypl{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0 2px;border-top:1px solid var(--rule);font:600 11px/1 var(--name);text-transform:uppercase;letter-spacing:.08em;color:var(--dim)}.mypl+.mym{border-top:0}
+.myuse{font:600 12px/1 var(--name);padding:7px 10px;border:1px solid var(--ink);border-radius:6px;text-transform:none;letter-spacing:0;color:var(--ink)}.myuse.on{background:var(--ink);color:var(--panel)}
+.mpln{position:relative;padding:12px 12px 10px}.mystr{margin-top:10px;padding-top:10px;border-top:1px solid var(--rule);font:500 13.5px/1.4 var(--name);cursor:pointer}.mystr em{font-style:normal;font-weight:600;color:var(--ball);white-space:nowrap}
 .myalt{border-top:1px solid var(--rule)}.myalt summary{padding:10px 0;font:500 13.5px/1.3 var(--name);cursor:pointer}.myalt summary b{font:600 11px/1 var(--name);text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-right:6px}.myalt summary i{font:400 12px/1 var(--num);font-style:normal;color:var(--dim);margin-left:6px}
 .mydd{border-top:1px solid var(--rule);margin-top:6px}.mydd summary{padding:10px 0 6px;font:600 13px/1.2 var(--name);cursor:pointer}.mydd summary i{font:500 12px/1 var(--name);font-style:normal;color:var(--dim);margin-left:6px}
 .mydr{display:grid;grid-template-columns:22px minmax(0,1fr) 30px 76px;gap:6px;align-items:center;padding:7px 0;border-top:1px solid var(--rule);font:500 14px/1.2 var(--name);cursor:pointer}
@@ -2986,10 +2988,11 @@ function renderSC(){
   renderGrid(ds,live,Object.entries(G.players).filter(([,q])=>q.xp&&q.xp[0]>=8),today);
 }
 function pjMsg(m){$("pjList").innerHTML=`<div class="empty">${m}</div>`;$("pjStatus").textContent=""}
-// ---- Today (My League > Today; only with a synced league): one screen of what to do. The
-// matchup at a glance, tonight's lineup (who counts, who sits for lack of spots), news on your
-// players since yesterday, and a streaming plan for the adds you have left this week. Everything
-// is the Matchup tool's math (muSim, muOdds) on the synced week, with no what-if moves.
+// ---- Today (My League > Today; only with a synced league): a brief rundown of your team's day.
+// The matchup at a glance (with the best streaming plan in one line; the plan itself is on the
+// Matchup page), tonight's lineup (who counts, who sits for lack of spots) and news on your
+// players since yesterday. The Matchup tool's math (muSim, muOdds) on the synced week, with no
+// what-if moves.
 const MYADDS=4,MYFA=18,MYBEAM=5;
 function myCtx(){
   const mu=ML&&ML.mu,x=ML&&lgIx();if(!x||!ML.teams||!G||!SC)return null;
@@ -3007,20 +3010,22 @@ function myCtx(){
   const base=roster(me),oppR=roster(opId),F=CATS.map(c=>c.k).filter(k=>!S.punt.has(k)),C={},off=new Set(S.punt);
   const pA=isS?muPast(base.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cA):{fga:0,fta:0,g:0},pB=isS?muPast(oppR.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cB):{fga:0,fta:0,g:0};
   const B=muSim(oppR,rest,cap(opId),F,null,C),A=muSim(base,rest,cap(me),F,null,C),O=muOdds(cA,cB,pA,pB,A,B,off);
-  return{x,me,opId,isS,dates,rest,today,cA,cB,pA,pB,base,oppR,F,C,off,capA:cap(me),A,B,O,DS:muDist(O.rows),P,wk:isS&&mu.week?mu.week:null}}
-// A plan = moves [{d, drop, add}] in day order, d = the first day the pickup counts. Each day is
-// simulated with the roster as it stands that day, and the week is scored like the Matchup tool.
+  return{x,me,opId,isS,dates,rest,today,cA,cB,pA,pB,base,oppR,F,C,off,capA:cap(me),A,B,O,DS:muDist(O.rows),P,set:null,tg:[],wk:isS&&mu.week?mu.week:null}}
+// ---- Streaming plan (Matchup > Streaming plan; a one-line summary on Today). A plan = moves
+// [{d, drop, add}] in day order, d = the first day the pickup counts. Each day is simulated with
+// the roster as it stands that day (muSimD), and the week is scored like the Matchup tool. ctx =
+// {x, base, rest, today, dates, capA, F, C, off, cA, cB, pA, pB, B, P, set, tg}: Matchup passes its
+// own (any week, your what-if adds and drops, your targets); Today passes myCtx().
 function myEval(ctx,moves){
-  const tot={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0,fgm:0,fga:0,ftm:0,fta:0},vr={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0};let ros=ctx.base,i=0;
-  for(const d of ctx.rest){
-    while(i<moves.length&&moves[i].d<=d){const m=moves[i++];ros=[...ros.filter(o=>o.id!==m.drop),ctx.P(m.add)]}
-    const s=muSim(ros,[d],ctx.capA,ctx.F,null,ctx.C);for(const k in tot)tot[k]+=s.tot[k];for(const k in vr)vr[k]+=s.vr[k]}
-  const O=muOdds(ctx.cA,ctx.cB,ctx.pA,ctx.pB,{tot,vr},ctx.B,ctx.off);return{exp:O.exp,win:muDist(O.rows).win,O}}
-// Options (myOpt, on the device): goal "cats" = most expected categories, "win" = best chance to
-// take the week (5+ of 9); same = a pickup can play the day it's made (else from the next day);
-// noq = skip free agents with any injury tag. Droppable players are yours to tick (myDrop, per
-// league and week); until you do, everyone projected outside the top MYDROP who isn't on IL or
-// marked Keep in Build (the two weakest if that leaves nobody).
+  const A=muSimD(ctx.base,ctx.rest,ctx.capA,ctx.F,ctx.set||null,ctx.C,moves,ctx.P),O=muOdds(ctx.cA,ctx.cB,ctx.pA,ctx.pB,A,ctx.B,ctx.off);
+  const tg=ctx.tg&&ctx.tg.length?new Set(ctx.tg):null;
+  return{exp:O.exp,win:muDist(O.rows).win,O,obj:tg?O.rows.reduce((a,r)=>a+(tg.has(r.k)?(r.p==null?.5:r.p):0),0):O.exp}}
+// Options (myOpt, on the device): goal "cats" = most expected categories (your targeted ones, if
+// any are ticked), "win" = best chance to take the week (5+ of 9); same = a pickup can play the
+// day it's made (else from the next day); noq = skip free agents with any injury tag. Droppable
+// players are yours to tick (myDrop, per league and week); until you do, everyone projected
+// outside the top MYDROP who isn't on IL or marked Keep in Build (the two weakest if that leaves
+// nobody).
 const MYDROP=85;
 S.myO=Object.assign({goal:"cats",same:1,noq:0},store.get("myOpt",{}));
 const myKey=ctx=>`${ML.lid||""}|${ctx.dates[0]}`;
@@ -3032,9 +3037,9 @@ function myDrops(ctx){const sv=store.get("myDrop",{})[myKey(ctx)],on=new Set(ctx
 // player or a streamer the plan added earlier). It stops when another move gains under 0.03 of a
 // category (or 1 point of win chance); the three best distinct sets of pickups are kept.
 function myPlan(ctx,n){
-  const o=S.myO,drops=[...myDrops(ctx)],sc=e=>o.goal==="win"?e.win+e.exp/1e3:e.exp+e.win/1e3,eps=o.goal==="win"?.01:.03;
+  const o=S.myO,drops=[...myDrops(ctx)],sc=e=>o.goal==="win"?e.win+e.exp/1e3:e.obj+e.win/1e3,eps=o.goal==="win"?.01:.03,onB=new Set(ctx.base.map(p=>p.id));
   const days=o.same?ctx.rest:ctx.rest.filter(d=>d>ctx.today),gd=(q,id)=>days.filter(d=>plays(q.t,d)&&avail(id,d));
-  const fa=Object.entries(G.players).filter(([id,q])=>ctx.x.own[id]==null&&q.xp&&q.xp[0]>=12&&!(o.noq&&ijOf(id))).map(([id,q])=>{const ds=gd(q,id);return{id,ds,v:ds.reduce((a,d)=>a+val0(muLine(id,q,d,ctx.C).z,G.zp),0)}})
+  const fa=Object.entries(G.players).filter(([id,q])=>ctx.x.own[id]==null&&!onB.has(id)&&q.xp&&q.xp[0]>=12&&!(o.noq&&ijOf(id))).map(([id,q])=>{const ds=gd(q,id);return{id,ds,v:ds.reduce((a,d)=>a+val0(muLine(id,q,d,ctx.C).z,G.zp),0)}})
     .filter(x=>x.ds.length).sort((a,b)=>b.v-a.v).slice(0,MYFA);
   const s0=myEval(ctx,[]);let beam=[{moves:[],...s0}],best=beam[0];const all=[];
   for(let step=0;step<n;step++){const next=[];
@@ -3049,18 +3054,66 @@ function myPlan(ctx,n){
   const seen=new Set([best.moves.map(m=>m.add).sort().join()]),alts=all.filter(s=>s.moves.length<=best.moves.length||sc(s)>sc(best)).sort((a,b)=>sc(b)-sc(a)).filter(s=>{const k=s.moves.map(m=>m.add).sort().join();if(seen.has(k))return false;seen.add(k);return true}).slice(0,2);
   return{s0,best,alts}}
 function myAddsLeft(ctx){const o=store.get("myAdds",{}),k=myKey(ctx);return o[k]==null?MYADDS:o[k]}
-function myAddsSet(ctx,v){store.set("myAdds",{[myKey(ctx)]:Math.max(0,Math.min(MYADDS,v))})}
+function myAddsSet(ctx,v){const o=store.get("myAdds",{});o[myKey(ctx)]=Math.max(0,Math.min(MYADDS,v));store.set("myAdds",o)}
+// The plan for ctx, worked out off the click (it takes a moment) and kept per roster, options and
+// day; null while it's being worked out, then `again` re-renders.
+function myPlanGet(ctx,again){
+  const n=myAddsLeft(ctx),drops=myDrops(ctx),o=S.myO;
+  const key=[myKey(ctx),ML.at,n,[...S.punt].join(),S.gw,G.asOf,IJ&&IJ.built,ctx.today,ctx.rest.length,ctx.base.map(p=>p.id).sort().join(),[...drops].sort().join(),(ctx.tg||[]).join(),JSON.stringify(ctx.set||{}),o.goal,o.same,o.noq].join("|"),C=S.myPC||(S.myPC={});
+  if(!n||!ctx.rest.length||!drops.size)return{n,drops,pl:null,idle:true};
+  if(C[key])return{n,drops,pl:C[key]};
+  setTimeout(()=>{if(!C[key]){for(const k in C)delete C[k];C[key]=myPlan(ctx,n)}again()},30);
+  return{n,drops,pl:null}}
+const mySame=(a,b)=>a.length===b.length&&a.every((m,i)=>m.d===b[i].d&&m.add===b[i].add&&m.drop===b[i].drop);
+// The Streaming plan panel for the Matchup page: options, the best plan and two alternates (Use
+// puts a plan into the grid as dated what-if moves), and who can be dropped.
+function myPlanSec(ctx,applied){
+  const o=S.myO,{n,drops,pl}=myPlanGet(ctx,()=>{if(S.pjView==="mu"&&document.body.dataset.view==="pj"){const y=scrollY;renderMU();scrollTo(0,y)}});
+  const nm=id=>esc(G.players[id]?G.players[id].n:id),rk=id=>S.bs&&S.bs.x&&S.bs.x[id]?"#"+S.bs.x[id]:"–",g=(id,d)=>ctx.rest.filter(t=>t>=d&&plays(G.players[id].t,t)&&avail(id,t)).length;
+  const sh=d=>d===ctx.today?"Today":fmtDate(d).split(",")[0],when=d=>{if(o.same)return sh(d);const i=ctx.dates.indexOf(d);return sh(i>0?ctx.dates[i-1]:d)};
+  const flips=(a,b)=>{const up=[],dn=[];b.rows.forEach((r,i)=>{const q=a.rows[i];if(r.p==null||q.p==null)return;if(q.p<=.5&&r.p>.5)up.push(r.l);if(q.p>.5&&r.p<=.5)dn.push(r.l)});return(up.length?` Flips <b>${up.join(", ")}</b> your way.`:"")+(dn.length?` Gives up ${dn.join(", ")}.`:"")};
+  const moveRow=(m,stp)=>`<div class="mym"><div class="myd">${when(m.d)}</div><div class="mymv"><div data-id="${m.add}"><em class="add">Add</em> <b>${nm(m.add)}</b> <i>${esc(G.players[m.add].t)} · ${g(m.add,m.d)} game${g(m.add,m.d)>1?"s":""} · Proj ${rk(m.add)}</i></div>
+    <div data-id="${m.drop}"><em class="drop">Drop</em> ${nm(m.drop)} <i>Proj ${rk(m.drop)}</i></div></div><div class="myg">${stp>=0?"+":"−"}${Math.abs(stp).toFixed(2)}<i>cats</i></div></div>`;
+  const planHTML=(b,s0)=>b.moves.map((m,i)=>moveRow(m,myEval(ctx,b.moves.slice(0,i+1)).exp-(i?myEval(ctx,b.moves.slice(0,i)).exp:s0.exp))).join("");
+  const use=(b,i)=>mySame(b.moves,applied)?`<button class="myuse on" data-pl="x">In the grid ✓ · Clear</button>`:`<button class="myuse" data-pl="${i}">Use this plan</button>`;
+  let body;
+  if(!ctx.rest.length)body=`<div class="mye">No days left in this week.</div>`;
+  else if(n<=0)body=`<div class="mye">No adds left this week.</div>`;
+  else if(!drops.size)body=`<div class="mye">Tick at least one player you'd be willing to drop.</div>`;
+  else if(!pl)body=`<div class="mye">Working out the best moves…</div>`;
+  else if(!pl.best.moves.length)body=`<div class="mye">No pickup improves this week by a real amount. Hold your adds.</div>`;
+  else{const b=pl.best;
+    body=`<div class="mypl"><b>Best plan</b>${use(b,0)}</div>`+planHTML(b,pl.s0)+`<div class="mysum">With ${b.moves.length===1?"this move":`these ${b.moves.length} moves`}: expected categories <b>${pl.s0.exp.toFixed(1)} → ${b.exp.toFixed(1)}</b>, chance to win the week <b>${Math.round(pl.s0.win*100)}% → ${Math.round(b.win*100)}%</b>.${flips(pl.s0.O,b.O)}${b.moves.length<n?` Another add gains too little to spend, so it keeps ${n-b.moves.length} in hand.`:""}</div>`
+      +pl.alts.map((a,i)=>`<details class="myalt"${mySame(a.moves,applied)?" open":""}><summary><b>Plan ${i+2}</b> ${a.moves.map(m=>esc(surname(G.players[m.add].n))).join(" + ")} <i>${a.exp.toFixed(1)} cats · ${Math.round(a.win*100)}%</i></summary>${planHTML(a,pl.s0)}<div class="mypl">${use(a,i+1)}</div></details>`).join("")}
+  if(applied.length&&pl&&![pl.best,...pl.alts].some(b=>mySame(b.moves,applied)))body=`<div class="mye">A plan from earlier is in the grid. <button class="myuse on" data-pl="x">Clear it</button></div>`+body;
+  const ros=[...ctx.base].sort((a,b)=>(S.bs&&S.bs.x?(S.bs.x[a.id]||999)-(S.bs.x[b.id]||999):0));
+  const seg=(k,opts)=>`<div class="seg mysg">${opts.map(([v,l])=>`<button data-myo="${k}" data-v="${v}" aria-pressed="${String(o[k])===String(v)}">${l}</button>`).join("")}</div>`;
+  return`<section class="msec mpln"><h3 class="myh">Streaming plan</h3><div class="mysub">adds left this week${ctx.tg&&ctx.tg.length&&o.goal==="cats"?` · going after your targets`:""}</div><div class="myadd"><button data-add="-1" aria-label="One fewer">−</button><b>${n}</b><button data-add="1" aria-label="One more">+</button></div>
+    <p class="stkn">The best use of the adds you have left this week (your league allows ${MYADDS}; set how many remain). Each move counts from its day: a streamer can be added for his games and dropped later for someone else's. Only players you tick as droppable, and streamers the plan itself added, are dropped. <b>Most categories</b> goes for the most expected categories (only the ones you've ticked as targets above, if any); <b>Win the week</b> for the best chance at 5 of 9, which can mean giving up a category you're losing anyway. <b>Same day</b>: a pickup can play the day you make it; <b>Next day</b>: from the day after, so the plan gives the day to make the move. <b>Use this plan</b> puts its moves into the grid below as what-ifs, each from its day, so you can see every game it adds; Clear or Reset takes them out. It starts from the roster shown, including your own what-if adds and drops. Scored against this week's opponent on our projections; only your best ${ctx.capA} count on a crowded day; positions aren't checked.</p>
+    <div class="myopt">${seg("goal",[["cats","Most categories"],["win","Win the week"]])}${seg("same",[[1,"Same day"],[0,"Next day"]])}<button class="mychk" data-myo="noq" data-v="${o.noq?0:1}" aria-pressed="${!!o.noq}">Skip injured</button></div>
+    ${body}
+    <details class="mydd"${store.get("myDD",0)?" open":""}><summary>Who can be dropped <i>${drops.size} ticked</i></summary>
+      ${ros.map(p=>`<label class="mydr${p.il?" il":""}"><input type="checkbox" data-dr="${p.id}"${drops.has(p.id)?" checked":""}${p.il?" disabled":""}><span><b>${esc(p.q.n)}</b> <i>${esc(p.q.t)}${p.il?" · IL":""}</i></span><em>${ctx.rest.filter(d=>plays(p.q.t,d)&&avail(p.id,d)).length}g</em><em>Proj ${rk(p.id)}</em></label>`).join("")}</details></section>`}
+function myPlanWire(el,ctx,m){const again=()=>{const y=scrollY;muSave();renderMU();scrollTo(0,y)},sec=el.querySelector(".mpln");if(!sec)return;
+  sec.querySelectorAll("[data-id]").forEach(r=>r.onclick=e=>{e.stopPropagation();openSheet(r.dataset.id)});
+  sec.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{myAddsSet(ctx,myAddsLeft(ctx)+ +b.dataset.add);again()});
+  sec.querySelectorAll("[data-myo]").forEach(b=>b.onclick=()=>{const v=b.dataset.v;S.myO[b.dataset.myo]=b.dataset.myo==="goal"?v:+v;store.set("myOpt",S.myO);again()});
+  sec.querySelectorAll("[data-dr]").forEach(c=>c.onchange=()=>{const d=myDrops(ctx);c.checked?d.add(c.dataset.dr):d.delete(c.dataset.dr);const o=store.get("myDrop",{});o[myKey(ctx)]=[...d];store.set("myDrop",o);again()});
+  sec.querySelectorAll("[data-pl]").forEach(b=>b.onclick=()=>{const k=b.dataset.pl,g=myPlanGet(ctx,()=>{});m.plan=k==="x"||!g.pl?[]:(+k?g.pl.alts[+k-1]:g.pl.best).moves.map(v=>({...v}));again()});
+  const dd=sec.querySelector(".mydd");if(dd)dd.ontoggle=()=>store.set("myDD",dd.open?1:0)}
 function renderMy(){
   const el=$("pjList");$("pjStatus").textContent="";$("pjAsOf").textContent="";
   const ctx=myCtx();if(!ctx)return pjMsg(ML?"Loading…":"Sync your league from Yahoo to see your day.");
-  const{x,me,opId,O,DS,today}=ctx,o=S.myO,nm=id=>esc(G.players[id]?G.players[id].n:id),sh=d=>d===today?"Today":fmtDate(d).split(",")[0];
+  const{x,me,opId,O,DS,today}=ctx;
   const hrs=(Date.now()-new Date(ML.at))/36e5,age=hrs<1?"just now":hrs<24?Math.round(hrs)+"h ago":Math.round(hrs/24)+"d ago";
-  // 1 the matchup at a glance
+  // 1 the matchup at a glance, with the best streaming plan in one line (the plan itself is on Matchup)
   const ahead=O.rows.filter(r=>r.p!=null&&r.p>=.7).map(r=>r.l),behind=O.rows.filter(r=>r.p!=null&&r.p<=.3).map(r=>r.l),swing=O.rows.filter(r=>r.p!=null&&r.p>.3&&r.p<.7).map(r=>r.l);
+  const pg=myPlanGet(ctx,()=>{if(S.pjView==="my"&&document.body.dataset.view==="pj")renderMy()}),pl=pg.pl;
+  const strm=pg.idle?"":!pl?`<div class="mystr">Streaming: working out the best moves…</div>`:pl.best.moves.length?`<div class="mystr" data-go="matchup"><b>Streaming:</b> ${pl.best.moves.length} move${pl.best.moves.length>1?"s":""} (${pl.best.moves.map(m=>esc(surname(G.players[m.add].n))).join(", ")}) would take you from ${Math.round(pl.s0.win*100)}% to <b>${Math.round(pl.best.win*100)}%</b> to win. <em>See the plan ›</em></div>`:`<div class="mystr">Streaming: no pickup improves this week by a real amount.</div>`;
   const top=`<section class="msec mytop"><h3 class="myh">${ctx.wk?`Week ${ctx.wk} `:""}vs ${esc(ML.teams[opId]||"opponent")}</h3><div class="mysub">synced ${age}</div>
     <div class="mysc"><div><b>${O.won}–${O.lost}</b><i>projected</i></div><div><b>${Math.round(DS.win*100)}%</b><i>to win the week</i></div><div><b>${O.exp.toFixed(1)}</b><i>expected cats</i></div></div>
     <div class="myln">${ahead.length?`<span><i>Ahead</i> ${ahead.join(" · ")}</span>`:""}${swing.length?`<span><i>In play</i> <b>${swing.join(" · ")}</b></span>`:""}${behind.length?`<span><i>Behind</i> ${behind.join(" · ")}</span>`:""}</div>
-    ${hrs>=20?`<p class="mywarn">Rosters are from ${age}: re-sync after any move.</p>`:""}
+    ${strm}${hrs>=20?`<p class="mywarn">Rosters are from ${age}: re-sync after any move.</p>`:""}
     <button class="mylink" data-go="matchup">Open matchup ›</button></section>`;
   // 2 tonight
   const playsT=ctx.rest.includes(today),sim=playsT?muSim(ctx.base,[today],ctx.capA,ctx.F,null,ctx.C):null;
@@ -3074,43 +3127,11 @@ function renderMy(){
     ${on.map(p=>trow(p,"")).join("")}${sit.map(p=>trow(p,"sit","no spot left tonight")).join("")}${playsT?outT.map(p=>trow(p,"out",p.il&&avail(p.id,today)?"IL":ijOf(p.id)?esc(ijOf(p.id)[0]):"out")).join(""):""}
     ${!playsT&&mineT.length?`<div class="mye">Tonight's games are already counted in Yahoo's totals.</div>`:""}</section>`;
   // 3 news on mine, last 36 hours
-  const its=NW&&NW.items?NW.items.filter(i=>!i.q&&!i.x&&i.id&&lgOf(i.id)===me&&Date.now()-new Date(i.t)<36*36e5).slice(0,4):[];
+  const its=NW&&NW.items?NW.items.filter(i=>!i.q&&!i.x&&i.id&&lgOf(i.id)===me&&Date.now()-new Date(i.t)<36*36e5).slice(0,5):[];
   const news=`<section class="msec"><h3 class="myh">News on your players</h3><div class="mysub">${its.length?"last 36 hours":"nothing new since yesterday"}</div>${its.map(nwCard).join("")}</section>`;
-  // 4 streaming plan
-  const n=myAddsLeft(ctx),drops=myDrops(ctx),key=[ctx.dates[0],ML.at,n,[...S.punt].join(),G.asOf,IJ&&IJ.built,today,[...drops].sort().join(),o.goal,o.same,o.noq].join("|");
-  const pl=S.myPl&&S.myPl.key===key?S.myPl.v:null,busy=!pl&&n>0&&ctx.rest.length&&drops.size;
-  if(busy)setTimeout(()=>{S.myPl={key,v:myPlan(ctx,n)};if(S.pjView==="my"&&document.body.dataset.view==="pj")renderMy()},30);
-  const rk=id=>S.bs&&S.bs.x&&S.bs.x[id]?"#"+S.bs.x[id]:"–",g=(id,d)=>ctx.rest.filter(t=>t>=d&&plays(G.players[id].t,t)&&avail(id,t)).length;
-  const when=d=>{if(o.same)return sh(d);const i=ctx.dates.indexOf(d),p=i>0?ctx.dates[i-1]:d;return sh(p)};
-  const flips=(a,b)=>{const up=[],dn=[];b.rows.forEach((r,i)=>{const q=a.rows[i];if(r.p==null||q.p==null)return;if(q.p<=.5&&r.p>.5)up.push(r.l);if(q.p>.5&&r.p<=.5)dn.push(r.l)});return(up.length?` Flips <b>${up.join(", ")}</b> your way.`:"")+(dn.length?` Gives up ${dn.join(", ")}.`:"")};
-  const moveRow=(m,stp)=>`<div class="mym"><div class="myd">${when(m.d)}</div><div class="mymv"><div data-id="${m.add}"><em class="add">Add</em> <b>${nm(m.add)}</b> <i>${esc(G.players[m.add].t)} · ${g(m.add,m.d)} game${g(m.add,m.d)>1?"s":""} · Proj ${rk(m.add)}</i></div>
-    <div data-id="${m.drop}"><em class="drop">Drop</em> ${nm(m.drop)} <i>Proj ${rk(m.drop)}</i></div></div><div class="myg">${stp>=0?"+":"−"}${Math.abs(stp).toFixed(2)}<i>cats</i></div></div>`;
-  const planHTML=(b,s0)=>b.moves.map((m,i)=>moveRow(m,myEval(ctx,b.moves.slice(0,i+1)).exp-(i?myEval(ctx,b.moves.slice(0,i)).exp:s0.exp))).join("");
-  const sumLine=(b,s0)=>`expected categories <b>${s0.exp.toFixed(1)} → ${b.exp.toFixed(1)}</b>, chance to win the week <b>${Math.round(s0.win*100)}% → ${Math.round(b.win*100)}%</b>`;
-  let body;
-  if(!ctx.rest.length)body=`<div class="mye">No days left in this week.</div>`;
-  else if(n<=0)body=`<div class="mye">No adds left this week.</div>`;
-  else if(!drops.size)body=`<div class="mye">Tick at least one player you'd be willing to drop.</div>`;
-  else if(!pl)body=`<div class="mye">Working out the best moves…</div>`;
-  else if(!pl.best.moves.length)body=`<div class="mye">No pickup improves this week by a real amount. Hold your adds.</div>`;
-  else{const b=pl.best;
-    body=`<div class="mypl"><b>Best plan</b></div>`+planHTML(b,pl.s0)+`<div class="mysum">With ${b.moves.length===1?"this move":`these ${b.moves.length} moves`}: ${sumLine(b,pl.s0)}.${flips(pl.s0.O,b.O)}${b.moves.length<n?` Another add gains too little to spend, so it keeps ${n-b.moves.length} in hand.`:""}</div>`
-      +pl.alts.map((a,i)=>`<details class="myalt"><summary><b>Plan ${i+2}</b> ${a.moves.map(m=>esc(surname(G.players[m.add].n))).join(" + ")} <i>${a.exp.toFixed(1)} cats · ${Math.round(a.win*100)}%</i></summary>${planHTML(a,pl.s0)}</details>`).join("")}
-  const ros=[...ctx.base].sort((a,b)=>(S.bs&&S.bs.x?(S.bs.x[a.id]||999)-(S.bs.x[b.id]||999):0));
-  const seg=(k,opts)=>`<div class="seg mysg">${opts.map(([v,l])=>`<button data-myo="${k}" data-v="${v}" aria-pressed="${String(o[k])===String(v)}">${l}</button>`).join("")}</div>`;
-  const plan=`<section class="msec"><h3 class="myh">Streaming plan</h3><div class="mysub">adds left this week</div><div class="myadd"><button data-add="-1" aria-label="One fewer">−</button><b>${n}</b><button data-add="1" aria-label="One more">+</button></div>
-    <p class="stkn">The best use of the adds you have left this week (your league allows ${MYADDS}; set how many remain). Each move counts from its day: a streamer can be added for his games and dropped later for someone else's. Only players you tick as droppable, and streamers the plan itself added, are dropped. <b>Most categories</b> goes for the most expected categories; <b>Win the week</b> for the best chance at 5 of 9, which can mean giving up a category you're losing anyway. <b>Same day</b>: a pickup can play the day you make it; <b>Next day</b>: from the day after, so the plan tells you the day to make the move. Scored like the Matchup tool against this week's opponent, on our projections; a what-if only. Only your best ${ctx.capA} count on a crowded day; positions aren't checked.</p>
-    <div class="myopt">${seg("goal",[["cats","Most categories"],["win","Win the week"]])}${seg("same",[[1,"Same day"],[0,"Next day"]])}<button class="mychk" data-myo="noq" data-v="${o.noq?0:1}" aria-pressed="${!!o.noq}">Skip injured</button></div>
-    ${body}
-    <details class="mydd"${store.get("myDD",0)?" open":""}><summary>Who can be dropped <i>${drops.size} ticked</i></summary>
-      ${ros.map(p=>`<label class="mydr${p.il?" il":""}"><input type="checkbox" data-dr="${p.id}"${drops.has(p.id)?" checked":""}${p.il?" disabled":""}><span><b>${esc(p.q.n)}</b> <i>${esc(p.q.t)}${p.il?" · IL":""}</i></span><em>${ctx.rest.filter(d=>plays(p.q.t,d)&&avail(p.id,d)).length}g</em><em>Proj ${rk(p.id)}</em></label>`).join("")}</details></section>`;
-  el.innerHTML=`<div class="my">${top}${ton}${plan}${news}</div>`;
+  el.innerHTML=`<div class="my">${top}${ton}${news}</div>`;
   el.querySelectorAll(".my [data-id]").forEach(r=>r.onclick=()=>openSheet(r.dataset.id));
-  el.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{myAddsSet(ctx,n+ +b.dataset.add);renderMy()});
-  el.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{openPage(b.dataset.go);paintNav()});
-  el.querySelectorAll("[data-myo]").forEach(b=>b.onclick=()=>{const v=b.dataset.v;o[b.dataset.myo]=b.dataset.myo==="goal"?v:+v;store.set("myOpt",o);renderMy()});
-  el.querySelectorAll("[data-dr]").forEach(c=>c.onchange=()=>{const d=myDrops(ctx);c.checked?d.add(c.dataset.dr):d.delete(c.dataset.dr);store.set("myDrop",{[myKey(ctx)]:[...d]});renderMy()});
-  const dd=el.querySelector(".mydd");if(dd)dd.ontoggle=()=>store.set("myDD",dd.open?1:0)}
+  el.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{openPage(b.dataset.go);paintNav()})}
 // ---- Matchup (Proj > Matchup; only with a synced league that has this week's matchup, ML.mu).
 // Yahoo's matchup totals so far + our projection for the rest of the week, per category, with a
 // win chance. The rest of the week: every rostered player not in an IL slot, on each remaining day
@@ -3140,10 +3161,10 @@ const etHour=d=>+new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",ho
 // rosters already show what was really done.
 function muSel(key){
   if(S.mus&&S.mus.key===key&&S.mus.at===ML.at)return S.mus;const all=store.get("muSel2",{}),o=all[key],mv=o&&o.at===ML.at;
-  return S.mus={key,at:ML.at,tg:new Set(o?o.tg:[]),pn:new Set(o?o.pn:[]),add:new Set(mv?o.add:[]),drop:new Set(mv?o.drop:[]),set:mv&&o.set||{},fa:o&&o.fa||12,opp:o&&o.opp||null,oo:o&&o.oo}}
+  return S.mus={key,at:ML.at,tg:new Set(o?o.tg:[]),pn:new Set(o?o.pn:[]),add:new Set(mv?o.add:[]),drop:new Set(mv?o.drop:[]),set:mv&&o.set||{},plan:mv&&o.plan||[],fa:o&&o.fa||12,opp:o&&o.opp||null,oo:o&&o.oo}}
 function muSave(){const m=S.mus,all=store.get("muSel2",{}),wk0=weekDates(0)[0];
   for(const k of Object.keys(all))if((k.split("|")[1]||"")<wk0)delete all[k];
-  all[m.key]={at:m.at,tg:[...m.tg],pn:[...m.pn],add:[...m.add],drop:[...m.drop],set:m.set,fa:m.fa,opp:m.opp,oo:m.oo};store.set("muSel2",all)}
+  all[m.key]={at:m.at,tg:[...m.tg],pn:[...m.pn],add:[...m.add],drop:[...m.drop],set:m.set,plan:m.plan||[],fa:m.fa,opp:m.opp,oo:m.oo};store.set("muSel2",all)}
 // Categories that count toward the score (not punted here or globally) and the ones players are
 // sorted by: the targets if any are picked, otherwise every category that counts.
 const muOff=m=>new Set(S.punt);
@@ -3162,6 +3183,16 @@ function muSim(ps,days,cap,F,set,C){
     for(const e of on){const u=use.has(e);(st[e.o.id]||(st[e.o.id]={}))[d]=u?(e.f===1?3:1):(e.f===0?4:2);if(!u)continue;
       g[e.o.id]=(g[e.o.id]||0)+1;for(const k in tot)tot[k]+=e.l[k];for(const k in vr)vr[k]+=(MUPHI[k]||1)*e.l[k]}}
   return{ps,tot,vr,g,st}}
+// The same with dated moves (a streaming plan): [{d, drop, add}], each counting from its day d on.
+// Every day is simulated with the roster as it stands that day; a plan's pickup is on the roster
+// from his day, a dropped player until the day before. mk(id) makes the roster entry for a pickup
+// that isn't in ps yet.
+function muSimD(ps,days,cap,F,set,C,moves,mk){if(!moves||!moves.length)return muSim(ps,days,cap,F,set,C);
+  const tot={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0,fgm:0,fga:0,ftm:0,fta:0},vr={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0},g={},st={},has=new Set(ps.map(o=>o.id));
+  const all=[...ps,...moves.filter(m=>!has.has(m.add)).map(m=>mk(m.add))],on={},off={};for(const m of moves){on[m.add]=m.d;off[m.drop]=m.d}
+  for(const d of days){const s=muSim(all.filter(o=>!(off[o.id]&&off[o.id]<=d)&&!(on[o.id]&&on[o.id]>d)),[d],cap,F,set,C);
+    for(const k in tot)tot[k]+=s.tot[k];for(const k in vr)vr[k]+=s.vr[k];for(const id in s.g)g[id]=(g[id]||0)+s.g[id];for(const id in s.st)(st[id]||(st[id]={}))[d]=s.st[id][d]}
+  return{ps:all,tot,vr,g,st}}
 // Final totals and win chance per category, from Yahoo's totals so far (cA/cB), our attempts behind
 // them (pA/pB) and the days left (A/B).
 // The attempts behind Yahoo's FG% / FT% so far (it shows only the %), from its points so far at
@@ -3222,7 +3253,11 @@ function renderMU(){
   // from points per player-game. (schedule.json only holds dates still to come, so the days already
   // played can't be simulated.)
   const pA=isS?muPast(base.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cA):{fga:0,fta:0,g:0},pB=isS?muPast(oppR.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cB):{fga:0,fta:0,g:0};
-  const B=muSim(oppR,rest,capB,F,null,C),A=muSim(mine,rest,capA,F,m.set,C),O=muOdds(cA,cB,pA,pB,A,B,off);
+  // a streaming plan put into the grid: dated moves on top of the roster above (dropped once a
+  // sync changes the roster, like the other what-ifs; a move whose pickup is no longer free is skipped)
+  const onM=new Set(mine.map(o=>o.id)),plan=(m.plan||[]).filter(v=>rest.includes(v.d)&&G.players[v.add]&&G.players[v.add].xp&&x.own[v.add]==null&&!onM.has(v.add));
+  const simA=(ps,set)=>muSimD(ps,rest,capA,F,set,C,plan,id=>({...P(id),nw:1,pl:1}));
+  const B=muSim(oppR,rest,capB,F,null,C),A=simA(mine,m.set),mineAll=A.ps,O=muOdds(cA,cB,pA,pB,A,B,off);
   // Sanity checks on what the numbers are built from; a failed one shows a red note (and a "?" win %)
   // rather than a confident wrong number.
   const DS=muDist(O.rows),SW=muSwing(O.rows),swK=new Set(SW.map(r=>r.k));
@@ -3232,8 +3267,8 @@ function renderMU(){
     for(const[k,l]of[["fg","FG%"],["ft","FT%"]])for(const c of[cA,cB])if(c[k]<0||c[k]>1)muIssues.push(`Yahoo's ${l} read as ${c[k]}, not a percentage`);}
   for(const r of O.rows){if(r.bad)muIssues.push(`${r.l} so far has no attempts behind it, so its win % is left out`);
     if(r.k!=="fg"&&r.k!=="ft"&&(r.a<r.na-1e-6||r.b<r.nb-1e-6))muIssues.push(`${r.l} projects below the total so far`)}
-  const moved=m.add.size||m.drop.size||Object.keys(m.set).length,O0=moved?muOdds(cA,cB,pA,pB,muSim(base,rest,capA,F,null,C),B,off):O;
-  const dExp=ps=>muOdds(cA,cB,pA,pB,muSim(ps,rest,capA,F,m.set,C),B,off).expP-O.expP;
+  const moved=m.add.size||m.drop.size||Object.keys(m.set).length||plan.length,O0=moved?muOdds(cA,cB,pA,pB,muSim(base,rest,capA,F,null,C),B,off):O;
+  const dExp=ps=>muOdds(cA,cB,pA,pB,simA(ps,m.set),B,off).expP-O.expP;
   const gSum=T=>Object.values(T.g).reduce((a,b)=>a+b,0),gA=gSum(A),gB=gSum(B),gTA=gA+Math.round(pA.g),gTB=gB+Math.round(pB.g);
   // League scouting: every team's projected totals for the whole week (your what-if moves included),
   // each category ranked 1 (best) to n; shown as a badge on a total only when it's top or bottom 3.
@@ -3250,10 +3285,11 @@ function renderMU(){
   const tgs=[...m.tg].filter(k=>!off.has(k));
   // free agents: Proj 12+ minutes, playing at least once in the days left; by value x games (from zero)
   const zo=F.length?F.reduce((a,k)=>{const t=G.zp.st[k];return a+(k==="fg"||k==="ft"?0:(k==="to"?-1:1)*t[1]/t[2])},0)/F.length:0;
-  const fa=Object.keys(G.players).filter(id=>x.own[id]==null&&!m.add.has(id)&&G.players[id].xp&&G.players[id].xp[0]>=12).map(P)
+  const plAdd=new Set(plan.map(v=>v.add)),plOff=Object.fromEntries(plan.map(v=>[v.drop,v.d]));
+  const fa=Object.keys(G.players).filter(id=>x.own[id]==null&&!m.add.has(id)&&!plAdd.has(id)&&G.players[id].xp&&G.players[id].xp[0]>=12).map(P)
     .map(o=>{o.g=myDs(o).length;o.v=pv(o);o.w=o.g*(o.v+zo);return o}).filter(o=>o.g).sort((a,b)=>b.w-a.w);
   const faShow=fa.slice(0,m.fa);for(const o of faShow)o.d=dExp([...mine,o]);
-  for(const o of mine){o.v=pv(o);o.d=dExp(mine.filter(p=>p!==o))}
+  for(const o of mineAll){o.v=pv(o);o.d=o.pl?null:dExp(mine.filter(p=>p!==o))}
   const dropped=base.filter(o=>m.drop.has(o.id));for(const o of dropped)o.v=pv(o);
   const fv=(k,v)=>k==="fg"||k==="ft"?v.toFixed(3).replace(/^0/,""):Math.round(v);
   const pc=p=>{const v=Math.round(100*p);return v>=99.5?">99":v<=.5?"<1":v};
@@ -3279,7 +3315,7 @@ function renderMU(){
     const v=muFz(muLine(o.id,o.q,d,C).z,F);
     return`<span class="dc s${s}"${tap?` data-mu="day" data-x="${o.id}|${d}"`:""} title="${dl(d)} ${opp(o.q.t,d)}"><b>${oppS(o.q.t,d)}</b><i class="${v>=.5?"up":v<=-.5?"dn":""}">${sg(v).replace(/^\+/,"")}</i></span>`}).join("");
   const row=(o,T,act,full)=>{const dl2=o.d!=null&&act!=="undo"?`<i class="${o.d>=.05?"up":o.d<=-.05?"dn":""}">${Math.abs(o.d)<.05?"0.0":(o.d>0?"+":"−")+Math.abs(o.d).toFixed(1)}</i>`:"";
-    return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${esc(nm(o.q.n))}</b><i>${esc(o.q.t)} · ${o.il?(b=>`<em class="ilb">${b?"back "+dl(b):"out all wk"}</em>`)(rest.find(d=>plays(o.q.t,d)&&avail(o.id,d))):esc(posOf(o.id)||"–")}${o.nw?` <em>what-if add</em>`:""}${act==="undo"?` <em>what-if drop</em>`:""}</i></div>
+    return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${esc(nm(o.q.n))}</b><i>${esc(o.q.t)} · ${o.il?(b=>`<em class="ilb">${b?"back "+dl(b):"out all wk"}</em>`)(rest.find(d=>plays(o.q.t,d)&&avail(o.id,d))):esc(posOf(o.id)||"–")}${o.pl?` <em>plan add</em>`:o.nw?` <em>what-if add</em>`:""}${plOff[o.id]?` <em>plan drop ${dl(plOff[o.id])}</em>`:""}${act==="undo"?` <em>what-if drop</em>`:""}</i></div>
       <div class="md">${act==="undo"?"":cells(o,T,act==="drop"||act==="undrop",full)}</div>
       <div class="mval"><b class="${o.v>=1?"up":o.v<=-1?"dn":""}">${sg(o.v)}</b>${dl2}</div>
       ${act?`<button class="mb" data-mu="${act}" data-x="${o.id}" aria-label="${act}">${act==="add"?"+":act==="undo"?"↺":"−"}</button>`:"<span></span>"}</div>`};
@@ -3291,6 +3327,7 @@ function renderMU(){
   const canPrev=off0>Math.min(0,sOff??0),canNext=weekDates(off0+1)[0]<=lastWk;
   const cmp=r=>{const d=r.a-r.b,good=r.k==="to"?d<0:d>0,s=(r.k==="fg"||r.k==="ft")?(d>=0?"+":"−")+Math.abs(d).toFixed(3).replace(/^0/,""):(d>=0?"+":"−")+Math.abs(Math.round(d));
     return`<td class="${Math.abs(d)<1e-9?"":good?"up":"dn"}">${s}</td>`};
+  const pctx={x,base:mine,rest,today,dates,capA,F,C,off,cA,cB,pA,pB,B,P,set:m.set,tg:tgs};
   $("pjStatus").textContent=`${wkNo?"Wk "+wkNo+" · ":""}${rest.length}d left`;$("pjLgRow").hidden=true;
   $("pjList").innerHTML=`<div class="mux">
     <div class="mtop">
@@ -3305,7 +3342,7 @@ function renderMU(){
       return`<div class="mread"><b>${tone}: ${Math.round(100*DS.win)}% to win</b> (projected ${O.won}–${O.lost}${O.n-O.won-O.lost?`–${O.n-O.won-O.lost}`:""}).
         ${ah.length?`Ahead in <span class="up">${L(ah)}</span>. `:""}${bh.length?`Behind in <span class="dn">${L(bh)}</span>. `:""}
         ${SW.length?`<b>Swing: ${L(SW)}</b> <button class="tsw" data-mu="swing" data-k="${SW.map(r=>r.k).join(",")}" title="Tick the swing categories as targets">Target these</button> `:"No category is close: streaming won't change much. "}${rest.length?`Games left: ${gA} to his ${gB}.`:""}</div>`})()}
-    ${stale}${slotNote}${muIssues.length?`<div class="mbad"><b>Check:</b> ${muIssues.join(" · ")}</div>`:""}${m.add.size||m.drop.size?`<div class="mwi"><b>What-if</b> (not on Yahoo): ${[...[...m.add].filter(id=>G.players[id]).map(id=>`<span class="up">+ ${esc(nm(G.players[id].n))}</span>`),...[...m.drop].filter(id=>G.players[id]).map(id=>`<span class="dn">− ${esc(nm(G.players[id].n))}</span>`)].join(" · ")}</div>`:""}
+    ${stale}${slotNote}${muIssues.length?`<div class="mbad"><b>Check:</b> ${muIssues.join(" · ")}</div>`:""}${m.add.size||m.drop.size||plan.length?`<div class="mwi"><b>What-if</b> (not on Yahoo): ${[...plan.map(v=>`<span>${dl(v.d)}: <span class="up">+ ${esc(nm(G.players[v.add].n))}</span> <span class="dn">− ${esc(nm((G.players[v.drop]||{n:"?"}).n))}</span></span>`),...[...m.add].filter(id=>G.players[id]).map(id=>`<span class="up">+ ${esc(nm(G.players[id].n))}</span>`),...[...m.drop].filter(id=>G.players[id]).map(id=>`<span class="dn">− ${esc(nm(G.players[id].n))}</span>`)].join(" · ")}</div>`:""}
     <div class="mfin"><div class="mctw"><table class="mct"><thead><tr><th class="tn">Final</th><th class="g">G</th>${O.rows.map(r=>`<th class="${swK.has(r.k)?"sw":""}">${r.l}</th>`).join("")}</tr>
       <tr class="tgr"><th class="tn">Target</th><th></th>${O.rows.map(r=>`<th><button class="tk${m.tg.has(r.k)?" on":""}" data-mu="cat" data-x="${r.k}" aria-pressed="${m.tg.has(r.k)}" aria-label="Target ${r.l}"></button></th>`).join("")}</tr></thead><tbody>
       <tr><th class="tn">${esc(nameA)}</th><td class="g">${gTA}</td>${O.rows.map(r=>`<td>${fv(r.k,r.a)}${badge(me,r.k)}${isS?`<i class="nw0">${fv(r.k,r.na)}<span> now</span></i>`:""}</td>`).join("")}</tr>
@@ -3315,8 +3352,9 @@ function renderMU(){
     </tbody></table></div>
     <div class="mfs"><div class="msw"><div><b>${esc(nameB)}</b>${scout(opId)}</div><div><b>${esc(nameA)}</b>${scout(me)}</div></div>
     <p class="mhint">${isS?"Projected finals: Yahoo's totals so far (small gray \"now\", as of your sync) plus Proj for the days left.":"Projected finals for the whole week (Proj only)."} G = games that count. Small ranks mark where a team is top or bottom 3 of the ${nT} teams this week. Tick categories to <b>target</b> them: the lineup, sort and Cats then go by those only (ticking all but 3PM = punting 3PM). <b>Swing</b> (underlined) = still in play, 30–70%: where a pickup can flip the result; the Target these button ticks just those. The score always counts all 9.</p></div></div>
+    ${rest.length?myPlanSec(pctx,plan):""}
     <div class="msec mme"><div class="msh"><b>${esc(nameA)}</b><span>${gA} games left · by ${esc(lab)}</span></div>${hd(A,capA,"me")}
-      ${grp(mine,o=>row(o,A,o.nw?"undrop":"drop"))}${dropped.map(o=>row(o,A,"undo")).join("")}
+      ${grp(mineAll,o=>row(o,A,o.pl||plOff[o.id]?"":o.nw?"undrop":"drop"))}${dropped.map(o=>row(o,A,"undo")).join("")}
       <p class="mhint">Tap a game to start or sit him. <span class="dc s1"></span> counts · <span class="dc s2"></span> sits (no spot) · <span class="dc s3"></span> you started him · <span class="dc s4"></span> you sat him · <span class="dc ot"></span> out (injury report).</p></div>
     <div class="mcols">
     <div class="msec"><div class="msh"><b>Free agents</b><span>best for ${esc(lab)} · value × games</span></div>${hd(A,capA,"fa")}
@@ -3326,6 +3364,7 @@ function renderMU(){
       ${grp(oppR.map(o=>(o.v=pv(o),o)),o=>row(o,B,""))}</div></div>
     </div>
     <p class="bzcap">${isS?`Yahoo's totals so far (synced ${at.toLocaleString([],{weekday:"short",hour:"numeric",minute:"2-digit"})}) plus`:"No Yahoo totals yet for this week, so it's"} Proj for the days left (${rest.length?sh(rest[0])+"–"+sh(rest[rest.length-1]):"none"}): everyone on the roster (IL players only once the injury report has them back), on days his team plays and he isn't listed out, at most each team's active spots a day, best first by your targets. Each game shows the opponent and his value that night. Free agents' games are dimmed on days your spots are full (he'd sit). Per g = his per-game value on your targets; <b>Cats</b> = how many more (or fewer) of your targeted categories you'd expect to win with him added, or without him. Rosters are as of your last sync; picks stay on this device, per week.</p></div>`;
+  myPlanWire($("pjList"),pctx,m);
 }
 function muClick(e){const b=e.target.closest("[data-mu]");if(!b||!S.mus)return;if(b.tagName==="SELECT")return;e.stopPropagation();e.preventDefault();
   const m=S.mus,k=b.dataset.x,a=b.dataset.mu;
@@ -3333,7 +3372,7 @@ function muClick(e){const b=e.target.closest("[data-mu]");if(!b||!S.mus)return;i
   else if(a==="swing"){const want=b.dataset.k?b.dataset.k.split(","):[];m.tg=new Set(want)}
   else if(a==="drop")m.drop.add(k);else if(a==="undo")m.drop.delete(k);
   else if(a==="add")m.add.add(k);else if(a==="undrop"){m.add.delete(k);for(const s in m.set)if(s.startsWith(k+"|"))delete m.set[s]}
-  else if(a==="more")m.fa+=10;else if(a==="reset"){m.add.clear();m.drop.clear();m.set={}}
+  else if(a==="more")m.fa+=10;else if(a==="reset"){m.add.clear();m.drop.clear();m.set={};m.plan=[]}
   else if(a==="day"){const c=b.className;if(m.set[k]!=null)delete m.set[k];else m.set[k]=/\bs1\b/.test(c)?0:1}
   else if(a==="opp")m.oo=!m.oo;
   else if(a==="wk"){muSave();S.muWk+=+k;renderMU();return}
