@@ -36,6 +36,7 @@ A phone-first NBA box score viewer for **9-category fantasy basketball**. It ran
 - **Punt** any categories (Value is recomputed without them). The Punt sheet floats under the top bar wherever you are on the page (a panel on desktop, a drop-down over a dimmed page on a phone; `setSheet()` in `index.html`), so the list behind it re-ranks in place; tap outside, Esc or Punt again closes it. Choose the comparison pool (everyone / 10+ / 15+ / 20+ minutes).
 - Sort by Value, minutes, usage, or any single category's z-score (tap the category label).
 - Light and dark themes follow the phone's setting.
+- **Press skin (a trial, off by default, Nov 2026):** an old sports-page look. Open the site once with `?skin=press` to turn it on for that device (`?skin=off` to go back); it's remembered in `localStorage` (`skin`). Near-black or aged paper, double rules instead of rounded panels, dotted row lines, square corners, tall poster capitals (Anton, loaded only when the skin is on) for section headings, photos in black and white, and film grain drawn in CSS. All of it is one block of `html[data-skin="press"]` rules at the end of the `<style>` in `index.html`, so removing that block and the small script above the `<style>` removes the skin. Tuned on Today and the Proj list so far.
 
 ## How Value is calculated
 
