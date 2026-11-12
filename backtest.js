@@ -61,7 +61,7 @@ const kTxt = K => K >= 1e9 ? 'base' : K === 0 ? 'cur' : String(K);
   // Samples per test season and checkpoint.
   const S = {};
   for (const y of tests) {
-    const rows = rowsByPlayer(G[y]); S[y] = {};
+    const rows = rowsByPlayer(G[y]), prevRows = rowsByPlayer(G[y - 1]); S[y] = {};
     for (const N of NS) S[y][N] = [];
     for (const [id, rs] of Object.entries(rows)) {
       const b1 = TOT[y - 1][id]; if (!b1 || b1.min < BASE_MIN) continue;
@@ -69,16 +69,17 @@ const kTxt = K => K >= 1e9 ? 'base' : K === 0 ? 'cur' : String(K);
       for (const N of NS) {
         if (rs.length < N + REST_MIN) continue;
         const e = rs.slice(0, N).reduce((a, r) => add(a, r), zero()), r = rs.slice(N).reduce((a, r) => add(a, r), zero());
-        S[y][N].push({ id, e, r, b, b1, b2: b2 || null, gp: N, restGp: rs.length - N, lmpg: b1.min / b1.gp });
+        S[y][N].push({ id, e, r, b, b1, b2: b2 || null, soph: !b2, moved: !!prevRows[id] && prevRows[id][prevRows[id].length - 1].team !== rs[0].team, gp: N, restGp: rs.length - N, lmpg: b1.min / b1.gp });
       }
     }
     console.log(`${label(y)} samples: ${NS.map(N => `N=${N}:${S[y][N].length}`).join(' ')}`);
   }
 
   // Sum of weighted squared error and weight for one stat, set of seasons, checkpoint, K.
-  function sse(ys, N, k, K, role = false) {
+  function sse(ys, N, k, K, role = false, filt = null) {
     let se = 0, wt = 0;
     for (const y of ys) for (const s of S[y][N]) {
+      if (filt && !filt(s)) continue;
       const { b, e, r } = s;
       if (PCT[k]) {
         const [m, a] = PCT[k]; if (!r[a] || !b[a]) continue;
@@ -98,7 +99,7 @@ const kTxt = K => K >= 1e9 ? 'base' : K === 0 ? 'cur' : String(K);
   const rmse = (ys, N, k, K, role) => { const { se, wt } = sse(ys, N, k, K, role); return Math.sqrt(se / wt) * (PCT[k] ? 100 : 36); };
   const best = (ys, N, k, role) => { let b = null; for (const K of KS) { const e = rmse(ys, N, k, K, role); if (Number.isFinite(e) && (!b || e < b.e)) b = { K, e }; } return b; };
 
-  const out = { tests: tests.map(label), ns: NS, perSeason: {}, pooled: {}, loso: {}, role: {}, minutes: {} };
+  const out = { tests: tests.map(label), ns: NS, perSeason: {}, pooled: {}, loso: {}, role: {}, minutes: {}, groups: {} };
   console.log(`\n== Best K per season (stable = trustworthy) and pooled; today's K in brackets`);
   console.log('stat   ' + NS.map(N => `N=${N}: ${tests.map(y => label(y).slice(2)).join(' / ')} | pooled`.padEnd(34)).join(''));
   for (const k of STATS) {
@@ -127,6 +128,29 @@ const kTxt = K => K >= 1e9 ? 'base' : K === 0 ? 'cur' : String(K);
       out.loso[k][N] = { today: +sc_(sc).toFixed(3), fitted: +sc_(sf).toFixed(3), gainPct: +gain.toFixed(1), baseOnly: +sc_(sb).toFixed(3), curOnly: +sc_(so).toFixed(3), folds: ks };
       if (N === 8 || N === 20) console.log(`${k.padEnd(6)} ${String(N).padEnd(3)} ${sc_(sc).toFixed(3).padStart(9)}   ${sc_(sf).toFixed(3).padStart(9)}  (${gain >= 0 ? '+' : ''}${gain.toFixed(1)}%)  ${sc_(sb).toFixed(3).padStart(9)}  ${sc_(so).toFixed(3).padStart(9)}   ${ks.map(kTxt).join(', ')}`);
     }
+  }
+
+  // Should some players lean on last season less? Second-year players (no season before last) and
+  // players who changed teams over the summer: K fitted on that group alone against the K fitted
+  // on everyone, both from the other two seasons, scored on the group in the held-out season.
+  console.log(`\n== Group K: K fitted on the group vs on everyone, out of sample, scored on the group (gain = % less error with its own K)`);
+  out.groups = {};
+  for (const [g, filt] of [['second-year', s => s.soph], ['changed teams', s => s.moved && !s.soph]]) {
+    out.groups[g] = {}; const row = [];
+    for (const k of STATS) {
+      let sa = 0, sg = 0, n = 0; const ks = [];
+      for (const N of NS) for (const y of tests) {
+        const train = tests.filter(t => t !== y), Ka = best(train, N, k).K;
+        let b = null; for (const K of KS) { const e = sse(train, N, k, K, false, filt); if (e.wt > 0 && Number.isFinite(e.se) && (!b || e.se < b.e)) b = { K, e: e.se }; }
+        if (!b) continue; if (N === 8) ks.push(b.K);
+        sa += sse([y], N, k, Ka, false, filt).se; sg += sse([y], N, k, b.K, false, filt).se;
+      }
+      for (const y of tests) n += S[y][8].filter(filt).length;
+      const gain = sa > 0 ? (1 - Math.sqrt(sg / sa)) * 100 : 0;
+      out.groups[g][k] = { gainPct: +gain.toFixed(1), kAt8: ks, players: n };
+      row.push(`${k} ${gain >= 0 ? '+' : ''}${gain.toFixed(1)}% [${ks.map(kTxt).join('/')}]`);
+    }
+    console.log(`  ${g} (${out.groups[g].pts.players} at N=8): ${row.join('  ')}`);
   }
 
   // Role adjustment at the SAME K (pooled best plain K), per season and out of sample.

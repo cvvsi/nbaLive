@@ -1075,12 +1075,16 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 
 <div class="sheet gut" id="sheet" hidden>
   <div><h3>Punt categories</h3><div class="toggles" id="toggles"></div></div>
+  <div><h3>Rank by</h3>
+    <div class="seg" id="gwSeg"><button data-v="0">Z-score</button><button data-v="1">Weekly weights</button></div>
+  </div>
   <div><h3>Compare against</h3>
     <div class="seg" id="poolSeg">
       <button data-v="0">Everyone</button><button data-v="10">10+ min</button><button data-v="15">15+ min</button><button data-v="20">20+ min</button>
     </div>
   </div>
   <div><p><b>Value</b> is a player's average z-score across your active categories, relative to everyone in the comparison pool who played that day. FG% and FT% count makes above or below average on their attempts, so volume matters. Turnovers count against. Tap a player to see the z-score under each stat.</p>
+    <p style="margin-top:8px"><b>Weekly weights</b> re-rank everyone for a weekly head-to-head. A z-score treats every category alike; over one week some swing far more than others, so a lead in them wins less often. Each z-score is multiplied by how much of it holds up over a week, measured on three seasons: assists 71%, rebounds and threes 68%, blocks 65%, points 60%, turnovers 58%, FT% 56%, FG% 55%, steals 44%. Steals specialists drop, steady scorers and passers rise. Z-score matches Basketball Monster's ranks. A single night's Value on the Box tab is never weighted.</p>
     <p style="margin-top:8px"><b>Szn / 14 / 7 / 3G</b> beside each name are 9-cat ranks: per-game over the season and the last 14 and 7 days, and over the team's last 3 games with any game the player missed counted as zero, so resting doesn't flatter anyone. All are against a top-130 pool with your punts applied, rebuilt every morning through last night.</p>
     <p style="margin-top:8px"><b>Movers.</b> A green L3 box means the last-3 rank is at least 40% better than the season rank (inside the top 130); red means at least 40% worse for someone inside 130 on the season. <b style="color:var(--ball)">▲n</b> after minutes means n more minutes a game over the last 3 than before them, usually the first sign of a new role. The Movers sort shows only flagged players.</p>
     <p style="margin-top:8px"><b>Buy/Sell</b> asks whether a start is real by comparing this season's per-minute numbers with last season's. Tap the <b>i</b> on that tab for the full explanation.</p>
@@ -1379,12 +1383,12 @@ const MOVE=.6,MINUP=6;
 let R=null;
 function rankWindows(){
   if(!R)return;
-  const ix=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>2+R.cats.indexOf(c.k));
+  const ks=actKs(),gw=gwOf(ks),ix=ks.map(k=>2+R.cats.indexOf(k)),wt=ks.map(k=>gw[k]);
   S.rk={};
   for(const w of [...WINS,{k:"d30"}]){
     const v=[];
     for(const id in R.players){const a=R.players[id].w[w.k];
-      if(a)v.push([id,ix.length?ix.reduce((s,i)=>s+a[i],0)/ix.length:0])}
+      if(a)v.push([id,ix.length?ix.reduce((s,i,j)=>s+wt[j]*a[i],0)/ix.length:0])}
     v.sort((a,b)=>b[1]-a[1]);
     S.rk[w.k]={};v.forEach(([id],i)=>S.rk[w.k][id]=i+1);
   }
@@ -1679,8 +1683,8 @@ function bsDelta(k,v,b){if(v==null||b==null)return 0;
 // than Now; Sell is the mirror for anyone inside 130 now.
 function rankBS(){
   if(!G)return;
-  const ix=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>2+G.cats.indexOf(c.k));
-  const val=a=>ix.length?ix.reduce((s,i)=>s+a[i],0)/ix.length:0;
+  const ks=actKs(),gw=gwOf(ks),ix=ks.map(k=>2+G.cats.indexOf(k)),wt=ks.map(k=>gw[k]);
+  const val=a=>ix.length?ix.reduce((s,i,j)=>s+wt[j]*a[i],0)/ix.length:0;
   const rank=src=>{const o={};Object.entries(src).map(([id,a])=>[id,val(a)]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>o[id]=i+1);return o};
   const pick=k=>Object.fromEntries(Object.entries(G.players).map(([id,q])=>[id,q[k]]));
   // Proj = the Proj tab's season line: z-scores at the average minutes over the games left, so
@@ -1776,18 +1780,19 @@ function renderLgBS(st){
 // with the Matchup tool's simulator (muSim: each day the best players up to the team's active
 // spots, at that day's minutes and opponent, out days from the injury report), scaled to a 7-day
 // week. Each category is then a weekly head-to-head against each of the other teams: a normal
-// approximation with variance PHI x mean (Poisson for the rest, binomial makes for FG%/FT%), times
-// TBNOISE for what a week adds beyond game-to-game noise (games, minutes, a rest night).
+// approximation with the Matchup tool's measured spread (MUPHI x mean per category, binomial makes
+// x MUPCT for FG%/FT%). TBNOISE, a flat 1.6 on top for every category, was a guess from before
+// that was measured: it made points about right and the other eight too wide (Nov 2026).
 // Win% = the categories you'd win across all 9 opponents, punted ones left out (BBM's Win% on
 // our Proj); Matchup win = the chance to take 5+ of 9, averaged over the opponents. What-if only:
 // nothing is sent to Yahoo, and a new sync clears the moves.
-const TBNOISE=1.6,TBPOOL=60,TBH={wk:"This week",w2:"2 weeks",ros:"Rest of season"};
+const TBPOOL=60,TBH={wk:"This week",w2:"2 weeks",ros:"Rest of season"};
 S.tb={h:store.get("tbH","ros"),nk:store.get("tbNk",1),drops:[],pick:null,done:[],tab:"combo",fs:"w",at:null};
 function tbDays(h){if(!SC)return[];const t=etToday(),late=etHour(new Date())>=19;
   const all=Object.keys(SC.dates).filter(d=>d>t||(d===t&&!late)).sort();
   return h==="ros"?all:all.filter(d=>d<=weekDates(h==="wk"?0:1)[6])}
 function tbCtx(){
-  const key=[ML.at,S.tb.h,[...S.punt].join(),G.asOf,SC&&SC.built,IJ&&IJ.built].join("|");
+  const key=[ML.at,S.tb.h,[...S.punt].join()+S.gw,G.asOf,SC&&SC.built,IJ&&IJ.built].join("|");
   if(S.tbC&&S.tbC.key===key)return S.tbC;
   const x=lgIx(),me=String(ML.me),days=tbDays(S.tb.h);if(!x||!days.length)return null;
   const span=(new Date(days[days.length-1])-new Date(days[0]))/864e5+1,f=7/span;
@@ -1802,8 +1807,8 @@ function tbCtx(){
   return S.tbC=ctx}
 // Weekly head-to-head: your chance to win category k against one opponent.
 function tbP(a,b,k){
-  if(k==="fg"||k==="ft"){const A=a[k+"a"],B=b[k+"a"];if(!(A>0&&B>0))return .5;const pa=a[k+"m"]/A,pb=b[k+"m"]/B,sd=Math.sqrt(TBNOISE*(pa*(1-pa)/A+pb*(1-pb)/B));return sd>0?muPhi((pa-pb)/sd):.5}
-  const sd=Math.sqrt(TBNOISE*(a.vr[k]+b.vr[k])),d=(a[k]-b[k])*(k==="to"?-1:1);return sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
+  if(k==="fg"||k==="ft"){const A=a[k+"a"],B=b[k+"a"];if(!(A>0&&B>0))return .5;const pa=a[k+"m"]/A,pb=b[k+"m"]/B,sd=Math.sqrt(MUPCT[k]*(pa*(1-pa)/A+pb*(1-pb)/B));return sd>0?muPhi((pa-pb)/sd):.5}
+  const sd=Math.sqrt(a.vr[k]+b.vr[k]),d=(a[k]-b[k])*(k==="to"?-1:1);return sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
 const tbV=(w,k)=>k==="fg"?w.fgm/w.fga:k==="ft"?w.ftm/w.fta:w[k];
 function tbScore(ctx,ps){
   const me=ctx.wk(muSim(ps,ctx.days,ctx.cap,ctx.F,null,ctx.C)),on=CATS.map(c=>c.k).filter(k=>!S.punt.has(k));
@@ -2460,15 +2465,28 @@ const PK=["pts","reb","ast","tpm","stl","blk","to"];
 const PJGAP={pts:2,reb:1,ast:1,tpm:.5,stl:.3,blk:.3,to:.5};
 function xpLine(q){const f=G.xpf,o={};f.forEach((k,i)=>o[k]=q.xp[i]);return o}
 const zx=q=>Object.fromEntries(G.cats.map((c,i)=>[c,q.x[2+i]]));
+// Weekly weights (Punt sheet > Rank by, off by default; `gw` on the device). A z-score divides by
+// how much players differ; in a weekly head-to-head a category that also swings a lot from week to
+// week (steals) wins less often per z-score than a steady one (assists). GW = sigma / sqrt(sigma^2
+// + kappa x tau^2) per category, measured on 2023-24 to 2025-26 for the top 130 (`g` in
+// data/backtest-variance.json; Rosenof's G-score, arXiv 2307.02188). Weights are rescaled to
+// average 1 over the categories in play, so Value keeps its scale. Every rank uses them (season,
+// windows, Proj, week, the lineup order in Matchup and Build); a single night's Value on the Box
+// tab doesn't, since one finished game has nothing left to swing.
+const GW={pts:.60,reb:.68,ast:.71,tpm:.68,stl:.44,blk:.65,to:.58,fg:.55,ft:.56};
+S.gw=store.get("gw",0)?1:0;
+function gwOf(ks){const key=S.gw+ks.join(),c=S.gwC||(S.gwC={});if(c[key])return c[key];const o={};
+  const m=S.gw&&ks.length?ks.reduce((a,k)=>a+GW[k],0)/ks.length:1;for(const k of ks)o[k]=S.gw?GW[k]/m:1;return c[key]=o}
+const actKs=()=>SCATS.filter(c=>!S.punt.has(c.k)).map(c=>c.k);
 // Value against zero, for totals over several games (week, rest of season, games played): the
 // per-game z-scores are centered on the pool average, so games x z would make a below-average
 // player worse the more he plays. Adding back mean/sd per category measures each game from an
 // empty roster spot instead: counting stats always add, turnovers always cost, and FG%/FT%
 // (impact, already zero at the league average) stay as they are. zpool = { st: {cat: [stat,
 // mean, sd]} } for the pool the z-scores came from. Ranks within one view are unchanged.
-function val0(z,zpool){if(!zpool)return pjVal(z);const ks=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>c.k);if(!ks.length)return 0;
-  return ks.reduce((a,k)=>{const t=zpool.st[k],off=k==="fg"||k==="ft"?t[1]/t[2]:(k==="to"?-1:1)*t[1]/t[2];return a+z[k]+off},0)/ks.length}
-function pjVal(z){const ks=SCATS.filter(c=>!S.punt.has(c.k)).map(c=>c.k);return ks.length?ks.reduce((a,k)=>a+z[k],0)/ks.length:0}
+function val0(z,zpool){if(!zpool)return pjVal(z);const ks=actKs(),w=gwOf(ks);if(!ks.length)return 0;
+  return ks.reduce((a,k)=>{const t=zpool.st[k],off=k==="fg"||k==="ft"?t[1]/t[2]:(k==="to"?-1:1)*t[1]/t[2];return a+w[k]*(z[k]+off)},0)/ks.length}
+function pjVal(z){const ks=actKs(),w=gwOf(ks);return ks.length?ks.reduce((a,k)=>a+w[k]*z[k],0)/ks.length:0}
 function pjZ(l){const P=G.zp,v={...l,fgi:l.fgm-P.lgFG*l.fga,fti:l.ftm-P.lgFT*l.fta},z={};
   for(const c of G.cats){const [k,m,sd]=P.st[c];z[c]=(c==="to"?-1:1)*(v[k]-m)/sd}return z}
 function teamDays(){if(S.tdays)return S.tdays;const m={};if(SC)for(const[d,g]of Object.entries(SC.dates))m[d]=new Set(g.flat());return S.tdays=m}
@@ -2506,6 +2524,25 @@ function nmPh(R,e){const C=nmC();if(C.ph[R])return C.ph[R];
     if(streak>=len)k=0;streak=0;
     if(k!=null){k++;ph[d]=k<=NMRET.length?k:0;if(k>NMRET.length)k=null}else ph[d]=0}
   return C.ph[R]=ph}
+// Games he's likely to play: a healthy rotation player goes on to play about 76% of his team's
+// remaining games, at any point of the season (backtest-avail.js, 2023-24 to 2025-26, trades
+// counted). His own record moves that a little: (games this season + AVB x last season's games +
+// AVK x AVMU) / (team games + AVB x 82 + AVK), fitted out of sample; a 40-game player last season
+// comes out near 70%, a 78-game one near 80%. Used for the rest-of-season Total only.
+const AVMU=.76,AVB=.5,AVK=160;
+function availP(id,q){const c=S.avC&&S.avC.g===G?S.avC:(S.avC={g:G,tg:{}});
+  if(!c.tg[q.t]){let m=0;for(const p of Object.values(G.players))if(p.t===q.t&&p.now&&p.now[0]>m)m=p.now[0];c.tg[q.t]=m||1}
+  const tg=c.tg[q.t],gp=q.now?Math.min(q.now[0],tg):0,ly=G.ly&&G.ly[id]&&G.ly[id][0]>=10?G.ly[id][0]:null;
+  return(gp+(ly!=null?AVB*ly:0)+AVK*AVMU)/(tg+(ly!=null?AVB*82:0)+AVK)}
+// Tonight's starting five (NBA.com's lineups, Expected then Confirmed): a starter who started 2 or
+// fewer of his team's last 5 games gets at least LUUP more minutes than Proj (a next-man-up gain
+// counts toward it: the bonus tops it up, it doesn't stack), a regular starter (3+ of 5) left out
+// of the five and not inactive loses LUDN. backtest-daily.js (`startmax`, three seasons, the same
+// fit in each): 2.8% less minutes error than next man up alone, 0.7% on points.
+const LUUP=8,LUDN=2;
+function luAdj(id,q,d){if(!LU||LU.date!==d||d!==etToday())return 0;const L=LU.teams&&LU.teams[q.t];if(!L||!L.five||L.five.length<5)return 0;
+  const c=S.luS&&S.luS.lu===LU?S.luS:(S.luS={lu:LU,t:{}}),five=c.t[q.t]||(c.t[q.t]=new Set(L.five.map(x=>normN(x[0])))),r=R&&R.players[id];if(!r)return 0;
+  const st=(r.ps||0)+(r.ls?1:0),inF=five.has(normN(q.n));return inF&&st<=2?1:!inF&&st>=3?-1:0}
 // Minutes for player id (Proj line q) on date d, assuming he plays.
 function minAt(id,q,d){const C=nmC(),base=q.xp[0];let up=0,dn=0,own=1;
   for(const[R,e]of C.byT[q.t]||[]){const p=nmPh(R,e)[d]||0;
@@ -2514,7 +2551,8 @@ function minAt(id,q,d){const C=nmC(),base=q.xp[0];let up=0,dn=0,own=1;
     const v=p<0?x[1]:p>0?x[0]+(x[1]-x[0])*NMKEEP[p-1]:x[0];
     if(v>up)up=v;if(v<dn)dn=v}
   const i=ijOf(id),cap=i&&i[5]&&i[5][d];   // a minutes cap from the news ("limited to 16-20 minutes")
-  return Math.max(0,Math.min(42,cap||42,(base+up+dn)*own))}
+  const lu=luAdj(id,q,d);
+  return Math.max(0,Math.min(42,cap||42,(base+up+dn+(lu>0?Math.max(0,LUUP-up):lu<0?-LUDN:0))*own))}
 // Proj's line at other minutes: per-minute rates and shooting % stay, counts scale.
 function lineAt(q,m){const b=xpLine(q);if(!(b.min>0)||Math.abs(m-b.min)<.05)return b;const f=m/b.min,o={};for(const k in b)o[k]=k==="min"?m:b[k]*f;return o}
 const zAt=(q,m)=>Math.abs(m-q.xp[0])<.05?zx(q):pjZ(lineAt(q,m));
@@ -2564,6 +2602,7 @@ function nmNote(id,q,ds,m){if(Math.abs(m-q.xp[0])<1.5)return"";const C=nmC(),who
     const bk=back?` ~${fmtDate(back).replace(/^\w+, /,"")}`:"";
     if(outD.length)who.push(outD.length===ds.length?`${nm} out`:m<q.xp[0]&&back?`${nm} back${bk}`:`${nm} out${back?` until${bk}`:" some games"}`);
     else if(back)who.push(`${nm} back`);else if(e.m[id][0]<=-1.5)who.push(`${nm} playing`)}
+  const lu=ds.length<=7?ds.reduce((a,d)=>a||luAdj(id,q,d),0):0;if(lu)who.push(lu>0?"starting tonight":"off the bench tonight");
   const why=own?"easing back after his absence":who.join(", ");
   return why?`<div class="pjm">Minutes ${Math.round(m)} (Proj ${Math.round(q.xp[0])}): ${why}</div>`:""}
 function ijNote(id){const i=ijOf(id);if(!i)return"";const out=ijOut(i),sh=d=>fmtDate(d).replace(/^\w+, /,"");
@@ -2784,7 +2823,7 @@ function pickFive(t,ps,date){
   return{five:five.slice(0,5),status:"Projected"}
 }
 
-fetch("data/lineups.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{LU=j;if(document.body.dataset.view==="in")renderTN()}).catch(()=>{});
+fetch("data/lineups.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{LU=j;if(document.body.dataset.view==="in")renderTN();if(G&&SC){rankBS();renderPJ();renderSC()}}).catch(()=>{});
 // ---- News: RotoWire's NBA news RSS plus Rotoworld's and Basketball Monster's Bluesky posts,
 // collected every 15 minutes by fetch-news.js (data/news.json: items newest first, { g, src: rw |
 // rtw | bbm, id, n, h: headline, d: first sentence, u: link, t: time, q: status-only line, x: same
@@ -2911,13 +2950,19 @@ function pjMsg(m){$("pjList").innerHTML=`<div class="empty">${m}</div>`;$("pjSta
 // his team plays and the injury report has him available, at that day's minutes (minAt); each day
 // counts at most as many players as the team has active lineup spots (ML.act), the best by value.
 // Win chance: normal approximation, from the projected final gap and how much the rest of the week
-// can swing it (per game: variance = PHI x mean for points / rebounds / assists, like the props;
-// a Poisson for the rest; FG%/FT% as binomial makes on the projected attempts). Turnovers: fewer wins.
+// can swing it: variance = MUPHI x the projected total per category, and FG%/FT% as binomial makes
+// on the projected attempts x MUPCT. Measured, not assumed (backtest-daily.js, `calib.week` in
+// data/backtest-daily.json, Nov 2026): three seasons replayed a date at a time, each player-week's
+// total against our lines for the games he played, squared, over the lines. It counts projection
+// error as well as game-to-game luck, and came out the same in every season. Before that the tool
+// took 2.2 / 1.3 / 1.4 for points / rebounds / assists and a Poisson (1) for the rest, which made
+// every win % too sure of itself, points most (its spread was a third too narrow). Games a player
+// misses without notice come on top. Turnovers: fewer wins.
 // Yahoo's column header -> our category key. Matched exactly, else by the end of the header (a
 // header like "Team FG%" still reads as FG%); longer keys first so AST never reads as ST.
 const MUKS=[["3PTM","tpm"],["FG%","fg"],["FT%","ft"],["PTS","pts"],["REB","reb"],["AST","ast"],["STL","stl"],["BLK","blk"],["3PM","tpm"],["ST","stl"],["TO","to"]];
 function muKey(l){const u=String(l||"").toUpperCase().replace(/[^A-Z0-9%]/g,"");for(const[k,v]of MUKS)if(u===k)return v;for(const[k,v]of MUKS)if(u.endsWith(k))return v;return null}
-const MUPHI={pts:2.2,reb:1.3,ast:1.4};
+const MUPHI={pts:3.8,reb:1.65,ast:1.6,tpm:1.35,stl:1.2,blk:1.15,to:1.1},MUPCT={fg:1,ft:1.1};
 const muPhi=x=>{const t=1/(1+.2316419*Math.abs(x)),d=.3989423*Math.exp(-x*x/2),p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return x>0?1-p:p};
 const etHour=d=>+new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",hour:"numeric",hourCycle:"h23"}).format(d);
 // Your picks for this matchup, kept per league + week on this device: target / punt categories,
@@ -2936,7 +2981,7 @@ function muSave(){const m=S.mus,all=store.get("muSel2",{}),wk0=weekDates(0)[0];
 // sorted by: the targets if any are picked, otherwise every category that counts.
 const muOff=m=>new Set(S.punt);
 const muFocus=m=>{const off=muOff(m),t=[...m.tg].filter(k=>!off.has(k));return t.length?t:CATS.map(c=>c.k).filter(k=>!off.has(k))};
-const muFz=(z,F)=>F.length?F.reduce((a,k)=>a+z[k],0)/F.length:0;
+const muFz=(z,F)=>{if(!F.length)return 0;const w=gwOf(F);return F.reduce((a,k)=>a+w[k]*z[k],0)/F.length};
 function muLine(id,q,d,C){const k=id+"|"+d;return C[k]||(C[k]=(l=>({l,z:pjZ(l)}))(lineOn(id,q,d)))}
 // A roster over some days: on each day, everyone (an IL player too, taken as activated once the
 // injury report has him back) whose team plays and who isn't listed
@@ -2960,7 +3005,7 @@ function muPast(L,c){const sum=k=>L.reduce((a,l)=>a+(l[k]||0),0),pts=sum("pts")|
 function muOdds(cA,cB,pA,pB,A,B,off){
   const fin=(c,p,t,k)=>{if(k==="fg"||k==="ft"){const a=p[k+"a"]+t[k+"a"],m=c[k]*p[k+"a"]+t[k+"m"];return{v:a?m/a:c[k],a,ra:t[k+"a"]}}return{v:c[k]+t[k]}};
   const rows=CATS.map(cc=>{const k=cc.k,fa=fin(cA,pA,A.tot,k),fb=fin(cB,pB,B.tot,k);let p;
-    if(k==="fg"||k==="ft"){const va=fa.a?fa.v*(1-fa.v)*fa.ra/fa.a**2:0,vb=fb.a?fb.v*(1-fb.v)*fb.ra/fb.a**2:0,sd=Math.sqrt(va+vb),d=fa.v-fb.v;p=sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
+    if(k==="fg"||k==="ft"){const va=fa.a?fa.v*(1-fa.v)*fa.ra/fa.a**2:0,vb=fb.a?fb.v*(1-fb.v)*fb.ra/fb.a**2:0,sd=Math.sqrt(MUPCT[k]*(va+vb)),d=fa.v-fb.v;p=sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
     else{const sd=Math.sqrt(A.vr[k]+B.vr[k]),d=(fa.v-fb.v)*(k==="to"?-1:1);p=sd>0?muPhi(d/sd):d>0?1:d<0?0:.5}
     // a % so far with no attempts behind it can't be weighed against the days left: no win % then
     const bad=(k==="fg"||k==="ft")&&((cA[k]>0&&!(pA[k+"a"]>0))||(cB[k]>0&&!(pB[k+"a"]>0)));
@@ -3147,10 +3192,10 @@ $("pjSz").hidden=S.pjView!=="season";
     const SV=sznVals(all),left=id=>{if(!SC)return null;const i=ijOf(id);if(ijOut(i)&&!i[1])return"?";return SV[id].ds.length};
     const tot=S.pjSz==="tot"&&SC;
     rows=all.map(([id,q])=>{const g=left(id),sv=SV[id];
-      return{id,q,l:sv.l,min:sv.m,v:tot?val0(sv.z,G.zp)*(g==="?"?0:g):sv.v,hi:1,foot:nmNote(id,q,sv.ds,sv.m)+ijNote(id),sdl:g!=null?g+"g":"",z:sv.z,ctx:g!=null?`<b>${g}</b> g left`:"",
+      return{id,q,l:sv.l,min:sv.m,v:tot?val0(sv.z,G.zp)*(g==="?"?0:g)*availP(id,q):sv.v,hi:1,foot:nmNote(id,q,sv.ds,sv.m)+ijNote(id),sdl:g!=null?g+"g":"",z:sv.z,ctx:g!=null?`<b>${g}</b> g left`:"",
         side:g!=null?`<div class="pjside"><b>${g}</b><i>games left</i></div>`:""}}).sort((a,b)=>b.v-a.v).slice(0,250);
     stat=`${rows.length} · ${tot?"total":"per game"}`;
-    cap=`Rest of season, per game: Proj's line (this season's minutes, rates blended toward a two-season baseline), with minutes shifted while a teammate is out and eased back when he returns. ${tot?"<b>Total</b>: per-game value × games left, so time missed counts.":"<b>Per g</b>: value per game, which ranks quality."} Games left are on the right, counted from any expected return on ESPN's injury report. Proj through ${sh(G.asOf)}; tap the ⓘ on Buy/Sell for how it's built.`;
+    cap=`Rest of season, per game: Proj's line (this season's minutes, rates blended toward a two-season baseline), with minutes shifted while a teammate is out and eased back when he returns. ${tot?"<b>Total</b>: per-game value × games left × the share of them he's likely to play (about 76% for anyone healthy, a little less after a season of missed games, a little more after a full one), so time missed counts.":"<b>Per g</b>: value per game, which ranks quality."} Games left are on the right, counted from any expected return on ESPN's injury report. Proj through ${sh(G.asOf)}; tap the ⓘ on Buy/Sell for how it's built.`;
   }else if(S.pjView==="week"){
     if(!SC)return pjMsg("No schedule yet: it's built with the nightly rankings.");
     const ds=weekDates(S.pjWk),live=ds.filter(d=>d>=today);
@@ -3881,7 +3926,7 @@ function psDD(k,title,sub,body,def){const open=PSDD[k]!=null?PSDD[k]:def;
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.classList&&d.classList.contains("pdd")){PSDD[d.dataset.dd]=d.open;store.set("psDD",PSDD)}},true);
 // Every player's value for the rest of this week (the Week view's number: games x per-game value
 // from zero, each game against its opponent), for his week rank. Cached until the data or punts change.
-function weekRanks(off=0){const t=etToday(),key=[G&&G.asOf,IJ&&IJ.built,SC&&SC.built,[...S.punt].join(),t,off].join("|"),C=S.wkRC||(S.wkRC={});
+function weekRanks(off=0){const t=etToday(),key=[G&&G.asOf,IJ&&IJ.built,SC&&SC.built,LU&&LU.built,[...S.punt].join()+S.gw,t,off].join("|"),C=S.wkRC||(S.wkRC={});
   if(C[off]&&C[off].key===key)return C[off];const live=weekDates(off).filter(d=>d>=t),v={},rk={};
   for(const[id,q]of Object.entries(G.players)){if(!q.xp||q.xp[0]<8)continue;const wd=live.filter(d=>plays(q.t,d)&&avail(id,d));if(!wd.length)continue;v[id]=wd.length*val0(pjZ(avgLine(id,q,wd)),G.zp)}
   Object.entries(v).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>rk[id]=i+1);return C[off]={key,rk,n:Object.keys(rk).length}}
@@ -4173,6 +4218,10 @@ $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
 $("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>setSort(b.dataset.k));
 $("bxSide").addEventListener("click",e=>{if(e.target.closest("[data-bxmin]")){store.set("bxOppMin",!store.get("bxOppMin",false));renderBxSide();return}const r=e.target.closest("[data-id]");if(!r)return;const p=S.players.find(x=>x.id===r.dataset.id);if(p)openSheet(p.eid||p.id,p)});
 $("teamBtn").onclick=()=>{S.byTeam=!S.byTeam;store.set("byTeam",S.byTeam);render()};
+function paintGw(){$("gwSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===S.gw))}
+$("gwSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.gw=+b.dataset.v;store.set("gw",S.gw);paintGw();
+  rankWindows();rankBS();renderBS();renderBZ();renderPJ();renderRK();renderSC();if(S.players.length)render();renderSheet()});
+paintGw();
 function paintPool(){$("poolSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===S.pool))}
 $("poolSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pool=+b.dataset.v;store.set("pool",S.pool);paintPool();
   if(S.players.length){compute();render()}});
