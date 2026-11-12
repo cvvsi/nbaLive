@@ -239,6 +239,13 @@ Every day-level projection depends on who he plays that night, category by categ
 - **Page** (`easeF()`, `easeLine()`, `lineOn()`, `avgLine()` in `index.html`): points, threes, rebounds, assists, steals, blocks and turnovers scale by their factor, FTA and FTM by the FTA factor, FGM by the FG factor. Sportsbook props replace our numbers where they exist (the market already prices the matchup). Cards on Today and the player page's tonight's projection say "Matchup @ CHI: PTS +5% · FTA +6%" for categories moved 3%+.
 - **Schedule tab:** each opponent's name is green (easy) or red (tough) when its overall ease (the mean of its believed effects, each over its spread across teams, punts skipped: `easeScore()`) is ±0.5 or more, and the streaming notes name the easiest and toughest schedules among the teams with the most games.
 
+## Week-to-week noise (G-scores): measured, not adopted yet
+
+`backtest-variance.js` (*Actions → Backtest*; `data/backtest-variance.json`, Nov 2026) measures how much each category swings from week to week for the top 130, on 2023-24 to 2025-26. Nothing on the page reads it yet. It comes from two sources:
+
+- **Rosenof, "Static quantification of player value for fantasy basketball"** (arXiv 2307.02188): a z-score divides by how much players differ from each other; for a weekly head-to-head it should also count how much one player swings from week to week, so a noisy category (steals) is worth less of its z-score than a steady one (assists). `g` in the JSON is that weight per category at our league size, next to the paper's 12-team numbers. It applies to forward-looking ranks only (Proj, Week, Waivers); for what already happened (Box, Ranks) the z-score is the right number.
+- **McElreath, *Statistical Rethinking*** (over-dispersion, 11.3; partial pooling, 12): Proj's blend, `(count + baseline × K) / (minutes + K)`, is the book's partial pooling with K as the strength of the prior, and the Matchup and Build win % are its predictions with a spread. `phi` checks the game-to-game spread they assume (2.2 / 1.3 / 1.4 for points / rebounds / assists, a Poisson or binomial for the rest), and `wk` checks Build's `TBNOISE` (1.6 for every category, a guess): a week's squared error over what the per-game model expects, 1 = already explained.
+
 ## Next man up: injury minutes
 
 When a regular is out, his teammates' minutes rise until he's back, then ease back down. Week, Schedule, Today, Season Total and Season per-game (the average over the games left) all use these minutes; only minutes move, per-minute rates stay Proj's.
