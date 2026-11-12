@@ -1263,7 +1263,7 @@ function foldNote(p){if(p.dataset.nf)return;p.dataset.nf=1;
   if(p.classList.contains("bzcap")){const h=p.innerHTML,m=h.match(/^([\s\S]*?)(?:[.:](?=\s|$)|<br)/),t=m&&m[1].replace(/<[^>]+>/g,"").length<=90?m[1]:"";
     p.innerHTML=t||"";p.classList.add("capl");p.appendChild(ic);return}
   // inside a dropdown the section's own heading is hidden, so the icon goes on the dropdown's title
-  const dd=p.closest("details"),sec=p.closest("section,.blk,.card"),hd=(dd&&dd.querySelector(":scope > summary > b"))||(sec&&sec.querySelector(":scope > h3, :scope > h4, :scope > .rchh > h4"));
+  const dd=p.closest("details"),sec=p.closest("section,.blk,.card"),hd=(dd&&dd.querySelector(":scope > summary > b"))||(sec&&sec.querySelector(":scope > h3, :scope > h4, :scope > .rchh > h4, :scope > .bh > span:first-child"));
   if(hd){const after=[...hd.childNodes].find(n=>n.nodeType===1&&!n.classList.contains("nfo"));hd.insertBefore(ic,after||null);p.remove()}else{p.innerHTML="";p.classList.add("nfol");p.appendChild(ic)}}
 new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes){if(n.nodeType!==1)continue;
   if(n.matches&&n.matches("p.stkn,p.bzcap"))foldNote(n);n.querySelectorAll&&n.querySelectorAll("p.stkn,p.bzcap").forEach(foldNote)}}).observe(document.documentElement,{childList:true,subtree:true});
@@ -2785,13 +2785,16 @@ function pickFive(t,ps,date){
 }
 
 fetch("data/lineups.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{LU=j;if(document.body.dataset.view==="in")renderTN()}).catch(()=>{});
-// ---- News: RotoWire's NBA news RSS, collected every 15 minutes by fetch-news.js (data/news.json:
-// items newest first, { g, id, n, h: headline, d: first sentence, u: link, t: time }). Shown on the
-// Injuries tab (filter: mine / this matchup / all) and as the latest item on a player's page,
-// credited to RotoWire with a link back. For an absence, the line under it names who gains minutes
+// ---- News: RotoWire's NBA news RSS plus Rotoworld's and Basketball Monster's Bluesky posts,
+// collected every 15 minutes by fetch-news.js (data/news.json: items newest first, { g, src: rw |
+// rtw | bbm, id, n, h: headline, d: first sentence, u: link, t: time, q: status-only line, x: same
+// news as another source's item }). Shown on the Injuries tab (filter: mine / this matchup / all;
+// q and x items left off) and as the latest item on a player's page, each credited to its source
+// with a link back. For an absence, the line under it names who gains minutes
 // (Next man up: dOut - dWith from regression.json's nm) and tags free agents in your league.
 let NW=null;S.nf=store.get("nf","all");S.nMore=0;
 fetch("data/news.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{NW=j;if(document.body.dataset.view==="in")renderTN();if(typeof renderSheet==="function")renderSheet()}).catch(()=>{});
+const NWSRC={rw:"RotoWire",rtw:"Rotoworld",bbm:"Basketball Monster"},nwSrc=i=>`<a class="nwl" href="${esc(i.u)}" target="_blank" rel="noopener">${NWSRC[i.src||"rw"]||"Source"} ›</a>`;
 const agoTxt=t=>{const m=Math.max(0,(Date.now()-Date.parse(t))/6e4);return m<60?Math.round(m)+"m":m<1440?Math.round(m/60)+"h":Math.round(m/1440)+"d"};
 const NWOUT=/\b(out|questionable|doubtful|won't play|will not play|miss(es|ing)?|sidelined|ruled out|game-time|day-to-day|not expected)\b/i,NWIN=/\b(available|will play|cleared|upgraded|returns?|returning|active)\b/i;
 function nwGain(id){const e=G&&G.nm&&G.nm[id];if(!e||!e.m)return[];
@@ -2810,17 +2813,18 @@ function nwCard(i){const q=i.id&&G&&G.players[i.id],r=i.id&&R&&R.players[i.id],t
   return`<div class="nwc"${i.id?` data-id="${i.id}"`:""}><div class="nwh"><b>${esc(i.n)}</b>${tm?`<span class="ar">${tm}</span>`:""}${i.id?tg(i.id):""}<span class="d">${agoTxt(i.t)}</span></div>
     <div class="nwt">${esc(i.h)}${nwFx(i)}</div><div class="nwd">${esc(i.d)}</div>
     ${g.length?`<div class="nwg">If he sits: ${g.map(o=>`<span data-id="${o.t}">${esc(surname(o.q.n))} <b>+${Math.round(o.v)} min</b>${tg(o.t)}</span>`).join(" · ")}</div>`:""}
-    <a class="nwl" href="${esc(i.u)}" target="_blank" rel="noopener">RotoWire ›</a></div>`}
+    ${nwSrc(i)}</div>`}
 function newsHTML(){if(!NW||!NW.items||!NW.items.length)return"";
   const me=ML&&String(ML.me),opp=ML&&ML.mu&&ML.mu.rows&&(ML.mu.rows.find(r=>r.id!==me)||{}).id;
   const f=S.nf==="all"||!ML?null:S.nf;
-  const its=NW.items.filter(i=>!f||(i.id&&(lgOf(i.id)===me||(f==="mu"&&opp&&lgOf(i.id)===String(opp)))));
+  const its=NW.items.filter(i=>!i.q&&!i.x).filter(i=>!f||(i.id&&(lgOf(i.id)===me||(f==="mu"&&opp&&lgOf(i.id)===String(opp)))));
   const n=12+S.nMore,more=its.length>n;
-  return`<div class="blk nwb"><div class="bh nwbh"><span>News · RotoWire</span>${ML?`<div class="sort nwf">${[["all","All"],["mine","Mine"],["mu","My matchup"]].map(([k,l])=>`<button data-nf="${k}" aria-pressed="${S.nf===k}">${l}</button>`).join("")}</div>`:""}</div>
+  return`<div class="blk nwb"><div class="bh nwbh"><span>News</span>${ML?`<div class="sort nwf">${[["all","All"],["mine","Mine"],["mu","My matchup"]].map(([k,l])=>`<button data-nf="${k}" aria-pressed="${S.nf===k}">${l}</button>`).join("")}</div>`:""}</div>
+    <p class="stkn">Player news from RotoWire, Rotoworld (NBC Sports) and Basketball Monster's alerts, checked every 15 minutes and kept 3 days; each item links back to its source. When two sources report the same thing within an hour, only the first is listed. Basketball Monster's routine report lines (probable, playing, off the injury report) are left off this list but still move the projections, like every item here.</p>
     ${its.slice(0,n).map(nwCard).join("")||`<div class="li ar">No news for ${f==="mine"?"your players":"your matchup"} in the last 3 days.</div>`}
     ${more?`<button class="mmore" data-nmore="1">Show more</button>`:""}</div>`}
-function newsLine(id){if(!NW||!NW.items)return"";const i=NW.items.find(x=>x.id===String(id));if(!i)return"";
-  return`<div class="nwp"><div class="nwh"><b>${esc(i.h)}</b><span class="d">${agoTxt(i.t)} ago</span></div><div class="nwd">${esc(i.d)}</div><a class="nwl" href="${esc(i.u)}" target="_blank" rel="noopener">RotoWire ›</a></div>`}
+function newsLine(id){if(!NW||!NW.items)return"";const i=NW.items.find(x=>x.id===String(id)&&!x.x);if(!i)return"";
+  return`<div class="nwp"><div class="nwh"><b>${esc(i.h)}</b><span class="d">${agoTxt(i.t)} ago</span></div><div class="nwd">${esc(i.d)}</div>${nwSrc(i)}</div>`}
 fetch("data/nba-injuries.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{NBR=j;if(document.body.dataset.view==="in")renderTN()}).catch(()=>{});
 const POSO={PG:0,G:1,SG:2,GF:3,SF:4,F:5,PF:6,FC:7,C:8};
 function renderTN(){
@@ -3729,8 +3733,8 @@ function psRole(id,q,rq){const h=[],L=S.ps&&S.ps.log;
       ${mine.length?`<div class="wwo">When <b>he</b> sits: ${mine.map(o=>`<span data-id="${o.t}">${esc(surname(o.q.n))} <span class="up">+${Math.round(o.v)}</span></span>`).join(" · ")}</div>`:""}</section>`)}
   return h.join("")||`<p class="lgk">No role data for him yet.</p>`}
 function psNews(id,q,nm){const h=[],team=q?q.t:"";
-  const its=NW&&NW.items?NW.items.filter(i=>i.id===String(id)):[];
-  h.push(`<section class="blk"><h3>News <span>RotoWire, last 3 days</span></h3>${its.length?its.map(i=>`<div class="nwc" style="cursor:default"><div class="nwh"><b>${esc(i.h)}</b>${typeof nwFx==="function"?nwFx(i):""}<span class="d">${agoTxt(i.t)} ago</span></div><div class="nwd">${esc(i.d)}</div><a class="nwl" href="${esc(i.u)}" target="_blank" rel="noopener">RotoWire ›</a></div>`).join(""):`<p class="lgk">No RotoWire items on him in the last 3 days.</p>`}</section>`);
+  const its=NW&&NW.items?NW.items.filter(i=>i.id===String(id)&&!i.x):[];
+  h.push(`<section class="blk"><h3>News <span>last 3 days</span></h3>${its.length?its.map(i=>`<div class="nwc" style="cursor:default"><div class="nwh"><b>${esc(i.h)}</b>${typeof nwFx==="function"?nwFx(i):""}<span class="d">${agoTxt(i.t)} ago</span></div>${i.d?`<div class="nwd">${esc(i.d)}</div>`:""}${nwSrc(i)}</div>`).join(""):`<p class="lgk">No news on him in the last 3 days.</p>`}</section>`);
   const i=ijOf(id);if(i)h.push(`<section class="blk"><h3>Injury report <span>ESPN and the NBA's report</span></h3><p class="note">${esc(i[0])}${i[1]?` · back ~${fmtDate(i[1]).replace(/^\w+, /,"")}`:""}${i[5]?` · minutes capped`:""}</p><p class="lgk">${esc(i[2]||"")}</p></section>`);
   const hist=NBR&&NBR.day&&NBR.day.hist?Object.entries(NBR.day.hist).find(([k])=>k.toLowerCase()===(team+"|"+nm).toLowerCase()):null;
   if(hist)h.push(`<section class="blk"><h3>Today's official report <span>each change, in order</span></h3><p class="note">${hist[1].map(([st,s])=>`${esc(s)} <span class="lgk">${esc(String(st).replace(/^\S+\s+/,""))}</span>`).join(" → ")}</p></section>`);
