@@ -23,6 +23,7 @@
  *   start     nm, then tonight's starting five (NBA.com posts it before tip): + u minutes for a
  *             starter who started under half his last 10 games, - d for a regular starter (half
  *             or more) coming off the bench; u and d fitted on two seasons, scored on the third
+ *   startmax  the same, but the starter's bonus only tops up a next-man-up gain (max, not sum)
  * Categories (points, rebounds, assists, threes, steals, blocks, turnovers, FGA, FTA):
  *   season / last   benchmarks: his average so far this season; last season's average
  *   proj      Proj's per-minute rates at Proj minutes
@@ -81,7 +82,7 @@ function walk(games, t1, t2, seasons) {
         let up = 0, dn = 0;
         for (const [R, e] of nm[t] || []) { if (R === r.id) continue; const v = e.m[r.id]; if (!v) continue; const k = here.has(R) ? v[0] : v[1]; if (k > up) up = k; if (k < dn) dn = k; }
         const m0 = x.l.min, m1 = Math.max(0, Math.min(CAPM, m0 + up + dn));
-        return { a: r, m0, m1, sd, rate: m0 > 0 ? Object.fromEntries([...KS, 'fgm', 'ftm'].map(k => [k, x.l[k] / m0])) : null,
+        return { a: r, m0, m1, sd, up, rate: m0 > 0 ? Object.fromEntries([...KS, 'fgm', 'ftm'].map(k => [k, x.l[k] / m0])) : null,
           sa: s && s.gp >= 3 ? Object.fromEntries(KS.map(k => [k, s[k] / s.gp])) : null,
           la: t1[r.id] && t1[r.id].gp >= 10 ? Object.fromEntries(KS.map(k => [k, t1[r.id][k] / t1[r.id].gp])) : null,
           sc: m0 >= MINSC && !!(x.b || (s && s.gp >= 3)) };
@@ -120,6 +121,7 @@ const scale = (m, sum, a) => Math.min(CAPM, m * (1 + a * (240 / sum - 1)));
 function minF(g, model, a) {
   if (model === 'proj') return p => p.m0;
   if (model === 'nm') return p => p.m1;
+  if (model === 'startmax') return p => Math.max(0, Math.min(CAPM, p.sd > 0 ? p.m1 + Math.max(0, a[0] - p.up) : p.sd < 0 ? p.m1 - a[1] : p.m1));   // the bonus doesn't stack on a next-man-up gain
   if (model === 'start') return p => Math.max(0, Math.min(CAPM, p.m1 + (p.sd > 0 ? a[0] : p.sd < 0 ? -a[1] : 0)));
   const k = model === 'proj240' || model === 'team' ? 'm0' : 'm1';
   if (model === 'team' || model === 'nmteam') { const sum = (k === 'm0' ? g.s0 : g.s1) || 240; return p => scale(p[k], sum, a); }
@@ -155,13 +157,13 @@ function analyze(G, tests) {
   const out = { tests: tests.map(label), note: 'RMSE per game, out of sample (settings fitted on two seasons, scored on the third). out = nights a regular (Proj 24+ min) of the team sat.', minutes: {}, cats: {}, fit: {} };
   const Z = { se: 0, n: 0, b: 0 };
   // minutes
-  const MM = ['proj', 'nm', 'proj240', 'nm240', 'team', 'nmteam', 'start'], aFold = {}, aNm = {}, aSt = {}, SG = [0, 2, 4, 6, 8, 10, 12];
+  const MM = ['proj', 'nm', 'proj240', 'nm240', 'team', 'nmteam', 'start', 'startmax'], aFold = {}, aNm = {}, aSt = {}, aSm = {}, SG = [0, 2, 4, 6, 8, 10, 12];
   for (const y of tests) { const tr = tests.filter(t => t !== y); for (const [m, o] of [['team', aFold], ['nmteam', aNm]]) { let b = null; for (const a of AL) { const e = minErr(G, tr, m, a).se; if (!b || e < b.e) b = { a, e }; } o[y] = b.a; } }
-  for (const y of tests) { const tr = tests.filter(t => t !== y); let b = null; for (const u of SG) for (const d of SG) { const e = minErr(G, tr, 'start', [u, d]).se; if (!b || e < b.e) b = { a: [u, d], e }; } aSt[y] = b.a; }
-  out.fit.minutes = tests.map(y => aFold[y]); out.fit.minutesNm = tests.map(y => aNm[y]); out.fit.start = tests.map(y => aSt[y]);
+  for (const y of tests) { const tr = tests.filter(t => t !== y); for (const [m, o] of [['start', aSt], ['startmax', aSm]]) { let b = null; for (const u of SG) for (const d of SG) { const e = minErr(G, tr, m, [u, d]).se; if (!b || e < b.e) b = { a: [u, d], e }; } o[y] = b.a; } }
+  out.fit.minutes = tests.map(y => aFold[y]); out.fit.minutesNm = tests.map(y => aNm[y]); out.fit.start = tests.map(y => aSt[y]); out.fit.startmax = tests.map(y => aSm[y]);
   console.log('\n== Minutes (RMSE per game)        all    regular out    bias (predicted - played)');
   for (const m of MM) {
-    const A = m === 'nmteam' ? aNm : m === 'start' ? aSt : aFold;
+    const A = m === 'nmteam' ? aNm : m === 'start' ? aSt : m === 'startmax' ? aSm : aFold;
     let all = Z, sub = Z; for (const y of tests) { all = addE(all, minErr(G, [y], m, A[y])); sub = addE(sub, minErr(G, [y], m, A[y], true)); }
     out.minutes[m] = { all: +rm(all).toFixed(3), out: +rm(sub).toFixed(3), bias: +(all.b / all.n).toFixed(3), n: all.n, nOut: sub.n };
     console.log(`${m.padEnd(10)} ${rm(all).toFixed(2).padStart(26)} ${rm(sub).toFixed(2).padStart(10)} ${(all.b / all.n).toFixed(2).padStart(10)}${/team|start/.test(m) ? '   a per fold: ' + tests.map(y => A[y]).join(' / ') : ''}`);
