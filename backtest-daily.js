@@ -26,7 +26,8 @@
  *   nm        ... at next-man-up minutes (the page today, before matchup ease)
  *   min       ... at the `team` minutes
  *   team      ... then scaled toward the team's own average so far: x (1 + g (team avg / sum of
- *             its players' lines - 1)), g per category fitted out of sample. When a scorer sits
+ *             its players' lines - 1)), g per category fitted out of sample, the sum over the
+ *             same known team as the minutes. nmin / nteam: the same two from next-man-up minutes. When a scorer sits
  *             the team still takes its shots, so the others' rates rise; today only minutes move.
  *   rates     Proj's rates at the minutes he actually played: the error left if minutes were
  *             perfect (the rate model alone)
@@ -83,11 +84,11 @@ function walk(games, t1, t2, seasons) {
       // the team as the page can know it: sums of minutes x the share of recent games he played
       const L = lastG[t] || [], cnt = {}; for (const set of L) for (const id of set) cnt[id] = (cnt[id] || 0) + 1;
       const wOf = id => { const c = cnt[id]; if (!c || !L.length) return 1; const r = c / L.length; return r >= SURE ? 1 : r; };
-      let s0 = 0, s1 = 0;
-      for (const p of P) { const w = wOf(p.a.id); s0 += w * p.m0; s1 += w * p.m1; }
+      let s0 = 0, s1 = 0; const C = [];
+      for (const p of P) { const w = wOf(p.a.id); s0 += w * p.m0; s1 += w * p.m1; if (p.rate) C.push({ w, m0: p.m0, m1: p.m1, rate: p.rate }); }
       for (const id in cnt) { if (here.has(id) || team[id] !== t) continue; const w = wOf(id); if (w >= 1) continue;   // a regular who sits: known out
-        const x = lineOf(id); if (x) { s0 += w * x.l.min; s1 += w * x.l.min; } }
-      groups.push({ d, t, s0, s1, ok: !!T && T.n >= TG0, regOut, tg: T ? Object.fromEntries(KS.map(k => [k, T[k] / T.n])) : null, P });
+        const x = lineOf(id); if (x && x.l.min > 0) { s0 += w * x.l.min; s1 += w * x.l.min; C.push({ w, m0: x.l.min, m1: x.l.min, rate: Object.fromEntries(KS.map(k => [k, x.l[k] / x.l.min])) }); } }
+      groups.push({ d, t, s0, s1, C, ok: !!T && T.n >= TG0, regOut, tg: T ? Object.fromEntries(KS.map(k => [k, T[k] / T.n])) : null, P });
     }
     for (const g of games.slice(i, j)) {
       const teams = new Set(g.rows.map(r => r.team)), poss = {};
@@ -124,14 +125,16 @@ function minErr(G, ys, model, a, sub) {
     for (const p of g.P) if (p.sc) { se += (f(p) - p.a.min) ** 2; b += f(p) - p.a.min; n++; } }
   return { se, n, b };
 }
-// Category error. model: season | last | proj | nm | min | team | rates
+// Category error. model: season | last | proj | nm | min | team | nmin | nteam | rates. a = [a for
+// proj minutes, a for next-man-up minutes].
 function catErr(G, ys, k, model, a, ga, sub) {
   let se = 0, n = 0, b = 0;
   for (const y of ys) for (const g of G[y]) {
     if (!g.ok || (sub && !g.regOut)) continue;
-    const f = model === 'proj' ? p => p.m0 : model === 'nm' ? p => p.m1 : model === 'rates' ? p => p.a.min : minF(g, 'team', a);
+    const N = model[0] === 'n' && model !== 'nm';
+    const f = model === 'proj' ? p => p.m0 : model === 'nm' ? p => p.m1 : model === 'rates' ? p => p.a.min : minF(g, N ? 'nmteam' : 'team', a[N ? 1 : 0]);
     let mult = 1;
-    if (model === 'team' && ga) { const S = sumOf(g.P, p => p.rate ? p.rate[k] * f(p) : 0); if (S > 0) mult = 1 + ga * (Math.max(.7, Math.min(1.4, g.tg[k] / S)) - 1); }
+    if (/team/.test(model) && ga) { const S = sumOf(g.C, c => c.w * c.rate[k] * f(c)); if (S > 0) mult = 1 + ga * (Math.max(.7, Math.min(1.4, g.tg[k] / S)) - 1); }
     for (const p of g.P) { if (!p.sc || !p.sa) continue;
       const v = model === 'season' ? p.sa[k] : model === 'last' ? (p.la ? p.la[k] : p.sa[k]) : p.rate[k] * f(p) * mult;
       se += (v - p.a[k]) ** 2; b += v - p.a[k]; n++; }
@@ -157,18 +160,18 @@ function analyze(G, tests) {
   }
   console.log(`  player-games: ${out.minutes.proj.n} (${out.minutes.proj.nOut} with a regular out)`);
   // categories
-  const CM = ['season', 'last', 'proj', 'nm', 'min', 'team', 'rates'];
-  out.fit.team = {};
-  console.log('\n== Categories (RMSE per game)\ncat   ' + CM.map(m => m.padStart(8)).join('') + '   | regular out:      nm     min    team   g per fold');
+  const CM = ['season', 'last', 'proj', 'nm', 'min', 'team', 'nmin', 'nteam', 'rates'];
+  out.fit.team = {}; out.fit.teamNm = {};
+  console.log('\n== Categories (RMSE per game)\ncat   ' + CM.map(m => m.padStart(8)).join('') + '   | regular out:      nm    team   nteam   g per fold (team; nteam)');
   for (const k of KS) {
-    const gFold = {};
-    for (const y of tests) { const tr = tests.filter(t => t !== y); let b = null; for (const ga of GA) { let e = Z; for (const t of tr) e = addE(e, catErr(G, [t], k, 'team', aFold[y], ga)); if (!b || e.se < b.e) b = { ga, e: e.se }; } gFold[y] = b.ga; }
-    out.fit.team[k] = tests.map(y => gFold[y]);
-    const row = {}, sub = {};
-    const bias = {};
-    for (const m of CM) { let a = Z, s = Z; for (const y of tests) { a = addE(a, catErr(G, [y], k, m, aFold[y], gFold[y])); s = addE(s, catErr(G, [y], k, m, aFold[y], gFold[y], true)); } row[m] = +rm(a).toFixed(3); sub[m] = +rm(s).toFixed(3); bias[m] = +(a.b / a.n).toFixed(3); }
+    const gFold = {}, gNm = {}, A = y => [aFold[y], aNm[y]];
+    for (const y of tests) { const tr = tests.filter(t => t !== y);
+      for (const [m, o] of [['team', gFold], ['nteam', gNm]]) { let b = null; for (const ga of GA) { let e = Z; for (const t of tr) e = addE(e, catErr(G, [t], k, m, A(y), ga)); if (!b || e.se < b.e) b = { ga, e: e.se }; } o[y] = b.ga; } }
+    out.fit.team[k] = tests.map(y => gFold[y]); out.fit.teamNm[k] = tests.map(y => gNm[y]);
+    const row = {}, sub = {}, bias = {};
+    for (const m of CM) { let a = Z, s = Z; for (const y of tests) { const ga = m === 'nteam' ? gNm[y] : gFold[y]; a = addE(a, catErr(G, [y], k, m, A(y), ga)); s = addE(s, catErr(G, [y], k, m, A(y), ga, true)); } row[m] = +rm(a).toFixed(3); sub[m] = +rm(s).toFixed(3); bias[m] = +(a.b / a.n).toFixed(3); }
     out.cats[k] = { all: row, out: sub, bias };
-    console.log(`${k.padEnd(5)} ${CM.map(m => row[m].toFixed(2).padStart(8)).join('')}   |              ${['nm', 'min', 'team'].map(m => sub[m].toFixed(2).padStart(7)).join(' ')}   ${tests.map(y => gFold[y]).join(' / ')}`);
+    console.log(`${k.padEnd(5)} ${CM.map(m => row[m].toFixed(2).padStart(8)).join('')}   |              ${['nm', 'team', 'nteam'].map(m => sub[m].toFixed(2).padStart(7)).join(' ')}   ${tests.map(y => gFold[y]).join(' / ')}; ${tests.map(y => gNm[y]).join(' / ')}`);
   }
   return out;
 }
