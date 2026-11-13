@@ -1074,10 +1074,10 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .rchh h4{margin:0;font:600 12px/1 var(--name);letter-spacing:.04em;text-transform:uppercase;color:var(--dim)}.rbig{display:block;font:600 28px/1.1 var(--num);margin-top:8px}.rsub{margin:2px 0 8px;font:500 12px/1.3 var(--name);color:var(--dim)}
 .rft{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--rule);margin-top:8px;padding-top:8px;font:500 11.5px/1.3 var(--name);color:var(--dim)}.rft b{font:600 12px/1.3 var(--num);color:var(--ink);white-space:nowrap}
 .rkc{margin-top:4px}.rkblk{grid-column:1/-1}.rkhd{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.rkhd b{font:700 15px/1.2 var(--name);display:flex;align-items:center;gap:6px}.rkhd span{font:500 12px/1 var(--num);color:var(--dim)}
-.rkl{display:flex;flex-wrap:wrap;gap:4px 16px;font:500 12px/1 var(--name);color:var(--dim);margin:8px 0 6px}.rkl span{display:inline-flex;align-items:center;gap:6px}.rkl b{font:600 15px/1 var(--num);color:var(--ink);min-width:26px}
-.rkl i{display:inline-block;width:14px;height:0;border-top:2.5px solid var(--ball)}.rkl i.rks{border-top:2px solid var(--ink)}.rkl i.rkx{border-top:2px dashed var(--dim)}
-.rkch{touch-action:pan-y;cursor:crosshair;display:block}.rkch path{fill:none;stroke-linejoin:round;stroke-linecap:round}.rkch path.rkf{stroke:var(--ball);stroke-width:2.25}.rkch path.rks{stroke:var(--ink);stroke-width:1.5}.rkch path.rkx{stroke:var(--dim);stroke-width:1.25;stroke-dasharray:3 3}
-.rkch .rb1{fill:color-mix(in srgb,var(--pos) 7%,transparent)}.rkch .g0{stroke:var(--rule);stroke-dasharray:none;opacity:.7}.rkch .rkcut{stroke:var(--dim);stroke-width:1;stroke-dasharray:1 3}.rkch .rkcl{font:500 9px var(--name);fill:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.rkbig{display:flex;gap:22px;margin:8px 0 2px}.rkbig div{display:grid;gap:4px}.rkbig small{font:600 10px/1 var(--name);text-transform:uppercase;letter-spacing:.08em;color:var(--dim)}.rkbig b{font:600 26px/1 var(--num);color:var(--ink);min-width:3ch}.rkbig .f b{color:var(--ball)}
+.rksub{font:500 12px/1.3 var(--name);color:var(--dim);margin-bottom:6px}.rksub b{font:600 12px/1 var(--num);color:var(--ink)}
+.rkch{touch-action:pan-y;cursor:crosshair;display:block}.rkch path{fill:none;stroke-linejoin:round;stroke-linecap:round}.rkch path.rkf{stroke:var(--ball);stroke-width:2.25}.rkch path.rks{stroke:var(--ink);stroke-width:1.5;opacity:.55}.rkch path.rkx{stroke:var(--dim);stroke-width:1.25;stroke-dasharray:3 3}
+.rkch .g0{stroke:var(--rule);stroke-dasharray:none;opacity:.7}.rkch .rkcut{stroke:var(--dim);stroke-width:1;stroke-dasharray:1 3}.rkch .rkcl{font:500 9px var(--name);fill:var(--dim);text-transform:uppercase;letter-spacing:.06em}
 .rkch .rkxh{stroke:var(--dim);stroke-width:1}.rkch .rkd{stroke:var(--bg);stroke-width:2;fill:var(--ball)}.rkch .rkd.rks{fill:var(--ink)}.rkch .rkd.rkx{fill:var(--dim)}
 .gchart{border:0;background:transparent;cursor:default}.vchart .groll{fill:none;stroke:var(--ink);stroke-width:1.4;stroke-dasharray:4 3;opacity:.7}.vchart .gpt{fill:var(--ball)}.vchart .gline.gthin{stroke-width:1.2;opacity:.45}.vchart .groll.gbold{stroke:var(--ink);stroke-width:2.2;stroke-dasharray:none;opacity:.9}.vchart .gpf{fill:var(--panel);stroke:var(--ink);stroke-width:1.6}.vchart .gpb{fill:var(--panel);stroke:var(--dim);stroke-width:1.6}.vchart .gpx{fill:var(--neg)}
 .vchart .gmk{font:700 10px var(--num);text-anchor:middle;cursor:default}.gmk{font:700 11px var(--num);display:inline-block;min-width:14px;text-align:center}.gmkf{fill:var(--ink);color:var(--ink)}.gmkb{fill:var(--dim);color:var(--dim)}.gmkx{fill:var(--neg);color:var(--neg)}
@@ -3937,16 +3937,18 @@ function minBar(mb){if(!mb)return"";const[end,sts,fl,sat]=mb,P=t=>(100*t/end).to
     <div class="mbl">${["Q1","Q2","Q3","Q4"].map((q,i)=>`<span style="left:${P(i*12)}">${q}</span>`).join("")}${end>48?`<span style="left:${P(48)}">OT</span>`:""}</div></div>`}
 // One stat by game: a smooth line with a soft fill, a dot per game and a dashed rolling 5-game average.
 // ---- Rank over time (player page > Overview, under the rank tiles): his season rank (the slow
-// line), 14-day rank (the fast one) and Proj rank (dashed) by day, rank 1 at the top, with the
-// top-100 (starters) and top-130 (rostered) bands. data/rank-history.json: {d: [dates], p: {id:
+// line) and 14-day rank (the fast one) by day, rank 1 at the top, with the 100 / 130 cut lines;
+// Proj is shown as a number. data/rank-history.json: {d: [dates], p: {id:
 // {s, f, x}}}, one rank per date, 0 = none that day. Standard 9-cat ranks: punts and weekly
 // weights don't apply to the history.
 let RH=null;fetch("data/rank-history.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{RH=j;if(typeof renderSheet==="function")renderSheet()}).catch(()=>{});
 function rankChart(id){const h=RH&&RH.p&&RH.p[id],D=RH&&RH.d;if(!h||!D||D.length<3)return"";
   const all=[...h.s,...h.f,...h.x].filter(v=>v>0);if(all.length<4)return"";
   // the scale hugs his own range, like a price chart: a move of 30 spots should look like one
-  const W=isDesk()?920:360,H=isDesk()?250:196,L=8,Rt=34,T=12,Bm=24,t0=+new Date(D[0]),t1=+new Date(D[D.length-1]);
-  const mn=Math.min(...all),mx=Math.max(...all),pad=Math.max(12,(mx-mn)*.18),lo=Math.max(1,Math.floor((mn-pad)/10)*10),hi=Math.ceil((mx+pad)/10)*10;
+  // Option B (Nov 2026): the two numbers up top, a short chart under them for the shape. Projected is
+  // a line of text, not a third line; rank labels on the right like before
+  const W=isDesk()?920:360,H=isDesk()?170:132,L=4,Rt=34,T=8,Bm=20,t0=+new Date(D[0]),t1=+new Date(D[D.length-1]);
+  const sf=[...h.s,...h.f].filter(v=>v>0),mn=Math.min(...sf),mx=Math.max(...sf),pad=Math.max(10,(mx-mn)*.15),lo=Math.max(1,Math.floor((mn-pad)/10)*10),hi=Math.ceil((mx+pad)/10)*10;
   const X=d=>L+(W-L-Rt)*(+new Date(d)-t0)/(t1-t0||1),Y=r=>T+(H-T-Bm)*(r-lo)/(hi-lo||1),r1=v=>Math.round(v*10)/10;
   // smooth, but never past the data: a monotone curve (Fritsch-Carlson), so a line can't dip or
   // peak between two days the way a plain spline does
@@ -3956,21 +3958,20 @@ function rankChart(id){const h=RH&&RH.p&&RH.p[id],D=RH&&RH.d;if(!h||!D||D.length
     let d="M"+P[0][0]+" "+P[0][1];for(let i=0;i<n-1;i++){const h=dx[i]/3;d+=`C${r1(P[i][0]+h)} ${r1(P[i][1]+t[i]*h)} ${r1(P[i+1][0]-h)} ${r1(P[i+1][1]-t[i+1]*h)} ${P[i+1][0]} ${P[i+1][1]}`}return d};
   const path=a=>{const runs=[];let cur=[];a.forEach((v,i)=>{if(v>0)cur.push([r1(X(D[i])),r1(Y(v))]);else{if(cur.length)runs.push(cur);cur=[]}});if(cur.length)runs.push(cur);return runs.map(mono).join("")};
   const last=a=>{for(let i=a.length-1;i>=0;i--)if(a[i]>0)return{i,v:a[i]};return null},md=d=>{const t=new Date(d+"T12:00:00Z");return["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][t.getUTCMonth()]+" "+t.getUTCDate()};
-  const span=hi-lo,stp=[10,20,25,50,100].find(x=>span/x<=4)||100,grid=[];for(let v=Math.ceil(lo/stp)*stp;v<=hi;v+=stp)if(v>0)grid.push(v);if(lo===1)grid.unshift(1);
-  const SER=[["f","rkf","Last 14 days"],["s","rks","Season"],["x","rkx","Projected"]],E=Object.fromEntries(SER.map(([k])=>[k,last(h[k])]));
-  const cut=(v,cls,lab)=>v>lo&&v<hi?`<line x1="${L}" x2="${W-Rt}" y1="${r1(Y(v))}" y2="${r1(Y(v))}" class="rkcut"/><text x="${L+2}" y="${r1(Y(v))-4}" class="rkcl">${lab}</text>`:"";
-  const nx=isDesk()?8:4,xi=[...new Set([...Array(nx)].map((_,k)=>Math.round(k*(D.length-1)/(nx-1))))];
-  return`<h3>Rank over time <span id="rkDate">${md(D[D.length-1])}</span></h3><div class="rkc">
-    <div class="rkl" id="rkLeg">${SER.map(([k,c,l])=>`<span><i class="${c}"></i>${l} <b data-rk="${k}">${E[k]?E[k].v:"–"}</b></span>`).join("")}</div>
-    <svg viewBox="0 0 ${W} ${H}" class="vchart gchart rkch" id="rkChart" data-d='${JSON.stringify(D.map((d,i)=>[r1(X(d)),md(d),h.s[i],h.f[i],h.x[i],h.s[i]?r1(Y(h.s[i])):0,h.f[i]?r1(Y(h.f[i])):0,h.x[i]?r1(Y(h.x[i])):0]))}'>
-    ${lo<TOP?`<rect x="${L}" y="${T}" width="${W-L-Rt}" height="${r1(Y(Math.min(TOP,hi))-T)}" class="rb1"/>`:""}
+  const span=hi-lo,stp=[10,20,25,50,100].find(x=>span/x<=3)||100,grid=[];for(let v=Math.ceil(lo/stp)*stp;v<=hi;v+=stp)if(v>0)grid.push(v);
+  const E={s:last(h.s),f:last(h.f),x:last(h.x)},n0=k=>E[k]?E[k].v:"–";
+  const cut=v=>v>lo&&v<hi?`<line x1="${L}" x2="${W-Rt}" y1="${r1(Y(v))}" y2="${r1(Y(v))}" class="rkcut"/>`:"";
+  return`<h3>Rank over time <span id="rkDate">${md(D[D.length-1])}</span></h3><div class="rkc" id="rkLeg">
+    <div class="rkbig"><div class="f"><small>Last 14 days</small><b data-rk="f">${n0("f")}</b></div><div><small>Season</small><b data-rk="s">${n0("s")}</b></div></div>
+    <div class="rksub">Projected <b data-rk="x">${n0("x")}</b> rest of season</div>
+    <svg viewBox="0 0 ${W} ${H}" class="vchart gchart rkch" id="rkChart" data-d='${JSON.stringify(D.map((d,i)=>[r1(X(d)),md(d),h.s[i],h.f[i],h.x[i],h.s[i]?r1(Y(h.s[i])):0,h.f[i]?r1(Y(h.f[i])):0,0]))}'>
     ${grid.map(v=>`<line x1="${L}" x2="${W-Rt}" y1="${r1(Y(v))}" y2="${r1(Y(v))}" class="g0"/><text x="${W-Rt+6}" y="${r1(Y(v))+3.5}" class="gy" style="text-anchor:start">${v}</text>`).join("")}
-    ${cut(TOP,"","starters")}${cut(ROST,"","rostered")}
-    ${xi.map((i,k)=>`<text x="${r1(X(D[i]))}" y="${H-7}" class="gx" style="text-anchor:${k===0?"start":k===xi.length-1?"end":"middle"}">${md(D[i])}</text>`).join("")}
-    <path d="${path(h.x)}" class="rkx"/><path d="${path(h.s)}" class="rks"/><path d="${path(h.f)}" class="rkf"/>
+    ${cut(TOP)}${cut(ROST)}
+    <text x="${L}" y="${H-5}" class="gx" style="text-anchor:start">${md(D[0])}</text><text x="${W-Rt}" y="${H-5}" class="gx" style="text-anchor:end">${md(D[D.length-1])}</text>
+    <path d="${path(h.s)}" class="rks"/><path d="${path(h.f)}" class="rkf"/>
     <line id="rkX" y1="${T}" y2="${H-Bm}" class="rkxh" x1="-9" x2="-9"/>
-    ${SER.map(([k,c])=>E[k]?`<circle data-dot="${k}" cx="${r1(X(D[E[k].i]))}" cy="${r1(Y(E[k].v))}" r="4" class="rkd ${c}"/>`:"").join("")}</svg>
-    <p class="stkn">His rank by day; up is better. <b>Last 14 days</b> is the fast line and <b>Season</b> the slow one, so read them like a moving-average crossover: the fast line above the slow one means he's playing better than his season rank says. <b>Projected</b> is where the model had him each day. The scale fits his own range; the tinted area is the top ${TOP} (starters in a 10-team league) and the labelled lines mark ${TOP} and ${ROST} (rostered) when they fall inside it. Drag across the chart to read any day. Standard 9-category ranks: your punts and weekly weights don't apply to the history. A break in a line means no games in that window.</p></div>`}
+    ${["s","f"].map(k=>E[k]?`<circle data-dot="${k}" cx="${r1(X(D[E[k].i]))}" cy="${r1(Y(E[k].v))}" r="4" class="rkd rk${k}"/>`:"").join("")}</svg>
+    <p class="stkn">His rank by day; up is better. <b>Last 14 days</b> (orange) is the fast line and <b>Season</b> the slow one, so read them like a moving-average crossover: orange above the season line means he's playing better than his season rank says. <b>Projected</b> is the model's rest-of-season rank. The dotted lines mark ${TOP} (starters in a 10-team league) and ${ROST} (rostered) when they fall inside his range. Drag across the chart to read any day. Standard 9-category ranks: your punts and weekly weights don't apply to the history. A break in a line means no games in that window.</p></div>`}
 function rkBind(){const s=$("rkChart");if(!s)return;const P=JSON.parse(s.dataset.d||"[]"),xh=$("rkX"),dt=$("rkDate"),leg=$("rkLeg"),K=["s","f","x"];if(!P.length)return;
   const show=b=>{xh.setAttribute("x1",b[0]);xh.setAttribute("x2",b[0]);dt.textContent=b[1];
     K.forEach((k,j)=>{const v=b[2+j],el=leg.querySelector(`[data-rk="${k}"]`),dot=s.querySelector(`[data-dot="${k}"]`);if(el)el.textContent=v||"–";if(dot){dot.style.display=v?"":"none";if(v){dot.setAttribute("cx",b[0]);dot.setAttribute("cy",b[5+j])}}})};
