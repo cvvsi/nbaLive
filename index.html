@@ -1073,6 +1073,11 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .rgrid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}.rch{background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:14px 14px 10px;margin:0!important}
 .rchh h4{margin:0;font:600 12px/1 var(--name);letter-spacing:.04em;text-transform:uppercase;color:var(--dim)}.rbig{display:block;font:600 28px/1.1 var(--num);margin-top:8px}.rsub{margin:2px 0 8px;font:500 12px/1.3 var(--name);color:var(--dim)}
 .rft{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--rule);margin-top:8px;padding-top:8px;font:500 11.5px/1.3 var(--name);color:var(--dim)}.rft b{font:600 12px/1.3 var(--num);color:var(--ink);white-space:nowrap}
+.rkc{margin-top:12px}.rkl{display:flex;gap:14px;font:500 11.5px/1 var(--name);color:var(--dim);margin-bottom:4px;align-items:center}.rkl span{display:inline-flex;align-items:center;gap:5px}
+.rkl i{display:inline-block;width:16px;height:0;border-top:2.5px solid var(--ink)}.rkl i.rkf{border-top-color:var(--ball)}.rkl i.rkx{border-top:2px dashed var(--dim)}
+.rkch path{fill:none;stroke-linejoin:round;stroke-linecap:round}.rkch path.rks{stroke:var(--ink);stroke-width:2}.rkch path.rkf{stroke:var(--ball);stroke-width:2.6}.rkch path.rkx{stroke:var(--dim);stroke-width:1.5;stroke-dasharray:4 3}
+.rkch .rb1{fill:color-mix(in srgb,var(--pos) 9%,transparent)}.rkch .rb2{fill:color-mix(in srgb,var(--pos) 4%,transparent)}.rkch .rkh{fill:transparent}
+.rkch text.rke{font:600 11px var(--num);fill:var(--ink)}.rkch text.rke.rkf{fill:var(--ball)}.rkch text.rke.rkx{fill:var(--dim)}
 .gchart{border:0;background:transparent;cursor:default}.vchart .groll{fill:none;stroke:var(--ink);stroke-width:1.4;stroke-dasharray:4 3;opacity:.7}.vchart .gpt{fill:var(--ball)}.vchart .gline.gthin{stroke-width:1.2;opacity:.45}.vchart .groll.gbold{stroke:var(--ink);stroke-width:2.2;stroke-dasharray:none;opacity:.9}.vchart .gpf{fill:var(--panel);stroke:var(--ink);stroke-width:1.6}.vchart .gpb{fill:var(--panel);stroke:var(--dim);stroke-width:1.6}.vchart .gpx{fill:var(--neg)}
 .vchart .gmk{font:700 10px var(--num);text-anchor:middle;cursor:default}.gmk{font:700 11px var(--num);display:inline-block;min-width:14px;text-align:center}.gmkf{fill:var(--ink);color:var(--ink)}.gmkb{fill:var(--dim);color:var(--dim)}.gmkx{fill:var(--neg);color:var(--neg)}
 .rwin{margin:4px 0 10px}.rwin button{padding:6px 12px}
@@ -3930,6 +3935,29 @@ function minBar(mb){if(!mb)return"";const[end,sts,fl,sat]=mb,P=t=>(100*t/end).to
     ${qs.map(m=>`<span class="mq" style="left:${P(m)}"></span>`).join("")}${fl.map(([t,tr],i)=>`<span class="mfl${tr?" tr":""}" style="left:${P(t)}"><i>${i+1}</i></span>`).join("")}</div>
     <div class="mbl">${["Q1","Q2","Q3","Q4"].map((q,i)=>`<span style="left:${P(i*12)}">${q}</span>`).join("")}${end>48?`<span style="left:${P(48)}">OT</span>`:""}</div></div>`}
 // One stat by game: a smooth line with a soft fill, a dot per game and a dashed rolling 5-game average.
+// ---- Rank over time (player page > Overview, under the rank tiles): his season rank (the slow
+// line), 14-day rank (the fast one) and Proj rank (dashed) by day, rank 1 at the top, with the
+// top-100 (starters) and top-130 (rostered) bands. data/rank-history.json: {d: [dates], p: {id:
+// {s, f, x}}}, one rank per date, 0 = none that day. Standard 9-cat ranks: punts and weekly
+// weights don't apply to the history.
+let RH=null;fetch("data/rank-history.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{RH=j;if(typeof renderSheet==="function")renderSheet()}).catch(()=>{});
+function rankChart(id){const h=RH&&RH.p&&RH.p[id],D=RH&&RH.d;if(!h||!D||D.length<3)return"";
+  const all=[...h.s,...h.f,...h.x].filter(v=>v>0);if(all.length<4)return"";
+  const W=isDesk()?520:360,H=176,L=30,Rt=44,T=10,Bm=24,t0=+new Date(D[0]),t1=+new Date(D[D.length-1]);
+  const hi=Math.min(400,Math.max(150,Math.ceil(Math.max(...all)*1.08/50)*50)),X=d=>L+(W-L-Rt)*(+new Date(d)-t0)/(t1-t0||1),Y=r=>T+(H-T-Bm)*(Math.min(r,hi)-1)/(hi-1);
+  const pts=a=>a.map((v,i)=>v>0?[Math.round(X(D[i])*10)/10,Math.round(Y(v)*10)/10]:null),seg=a=>{const out=[];let cur=[];for(const p of pts(a)){if(p)cur.push(p);else{if(cur.length>1)out.push(cur);cur=[]}}if(cur.length>1)out.push(cur);return out.map(c=>smoothPath(c)).join("")};
+  const last=a=>{for(let i=a.length-1;i>=0;i--)if(a[i]>0)return[i,a[i]];return null},md=d=>{const t=new Date(d+"T12:00:00Z");return(t.getUTCMonth()+1)+"/"+t.getUTCDate()};
+  const ends=[["s","rks"],["f","rkf"],["x","rkx"]].map(([k,c])=>{const e=last(h[k]);return e?{c,y:Y(e[1]),v:e[1]}:null}).filter(Boolean).sort((a,b)=>a.y-b.y);
+  for(let i=1;i<ends.length;i++)if(ends[i].y-ends[i-1].y<11)ends[i].y=ends[i-1].y+11;
+  const step=Math.ceil(D.length/(isDesk()?8:5)),ticks=[1,TOP,ROST,hi].filter((v,i,a)=>v<=hi&&a.indexOf(v)===i);
+  return`<div class="rkc"><div class="rkl"><span><i class="rks"></i>Season</span><span><i class="rkf"></i>Last 14 days</span><span><i class="rkx"></i>Projected</span></div>
+    <svg viewBox="0 0 ${W} ${H}" class="vchart gchart rkch"><rect x="${L}" y="${Y(1)}" width="${W-L-Rt}" height="${Y(TOP)-Y(1)}" class="rb1"/><rect x="${L}" y="${Y(TOP)}" width="${W-L-Rt}" height="${Y(Math.min(ROST,hi))-Y(TOP)}" class="rb2"/>
+    ${ticks.map(v=>`<line x1="${L}" x2="${W-Rt}" y1="${Y(v)}" y2="${Y(v)}" class="g0"/><text x="${L-6}" y="${Y(v)+3}" class="gy" style="text-anchor:end">${v}</text>`).join("")}
+    ${D.map((d,i)=>(i%step&&i!==D.length-1)||(i!==D.length-1&&X(D[D.length-1])-X(d)<34)?"":`<text x="${X(d)}" y="${H-7}" class="gx"${i===D.length-1?' style="text-anchor:end"':i?"":' style="text-anchor:start"'}>${md(d)}</text>`).join("")}
+    <path d="${seg(h.x)}" class="rkx"/><path d="${seg(h.s)}" class="rks"/><path d="${seg(h.f)}" class="rkf"/>
+    ${ends.map(e=>`<text x="${W-Rt+6}" y="${e.y+4}" class="rke ${e.c}">${e.v}</text>`).join("")}
+    ${D.map((d,i)=>`<rect x="${X(d)-(W-L-Rt)/D.length/2}" y="${T}" width="${(W-L-Rt)/D.length}" height="${H-T-Bm}" class="rkh"><title>${md(d)}: Season ${h.s[i]||"–"} · 14 days ${h.f[i]||"–"} · Proj ${h.x[i]||"–"}</title></rect>`).join("")}</svg>
+    <p class="stkn">His rank by day, 1 at the top. <b>Season</b> is everything so far, so it moves slowly; <b>Last 14 days</b> is the trend, and when it runs above the season line he's playing better than his season rank says. <b>Projected</b> is where the model had him each day. The shaded bands are the top ${TOP} (starters in a 10-team league) and top ${ROST} (rostered). Standard 9-category ranks: your punts and weekly weights don't apply to the history. A gap means no games in that window.</p></div>`}
 function gameChart(gs,val,o){const W=isDesk()?440:360,mk=o.mk,H=mk?166:150,n=gs.length,v=gs.map(val);if(n<2)return"";
   const ok=v.filter(x=>x!=null),hi=o.max!=null?Math.max(o.max,...ok):Math.ceil(Math.max(...ok)*1.15/8)*8,lo=0;
   const X=i=>Math.round(30+(W-40)*i/(n-1)),Y=x=>Math.round(10+(H-(mk?50:36))*(hi-x)/(hi-lo||1));
@@ -4186,7 +4214,7 @@ function renderSheet(){
     if(rq&&S.rk){const m=S.mv[id];
       h.push(`<section class="blk"><h3>${9-S.punt.size}-cat rank <span>top ${TOP} start · top ${ROST} rostered</span></h3><div class="tiles">${WINS.map(w=>{const a=rq.w[w.k];
         return tile({season:"Season",d14:"14 days",d7:"7 days",g3:"Last 3"}[w.k],a?S.rk[w.k][id]:0,a?(w.k==="g3"?a[0]+"/3 played":a[0]+"g · "+Math.round(a[1])+"m"):"",w.k==="g3"&&m?(m.hot?"up":m.cold?"dn":""):"")}).join("")}</div>
-        ${q&&B?`<div class="tiles t3">${tile("Now",B.now[id],"this season")}${tile("Projected",hasPj(q)?B.x[id]:0,q.b?"if luck evens out":q.rk?"rookie estimate":"no baseline",B.v[id]==="buy"?"up":B.v[id]==="sell"?"dn":"")}${tile("Last season",B.ly[id],"final rank")}</div>`:""}</section>`)}
+        ${q&&B?`<div class="tiles t3">${tile("Now",B.now[id],"this season")}${tile("Projected",hasPj(q)?B.x[id]:0,q.b?"if luck evens out":q.rk?"rookie estimate":"no baseline",B.v[id]==="buy"?"up":B.v[id]==="sell"?"dn":"")}${tile("Last season",B.ly[id],"final rank")}</div>`:""}${rankChart(id)}</section>`)}
     {const pc=psPct(id,q),dl=psDaily(id,q);if(pc&&dl)h.push(`<div class="ov2">${pc}${dl}</div>`);else h.push(pc+dl)}
     if(a.text)h.push(`<section class="blk"><h3>The read <span>from the numbers, 10-team league</span></h3>${readHTML(a)}</section>`);
     if(q&&q.up&&B){const uv=B.val(q.up),ur=1+B.xs.filter(t=>t>uv).length;
