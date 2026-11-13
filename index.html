@@ -1073,11 +1073,12 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .rgrid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}.rch{background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:14px 14px 10px;margin:0!important}
 .rchh h4{margin:0;font:600 12px/1 var(--name);letter-spacing:.04em;text-transform:uppercase;color:var(--dim)}.rbig{display:block;font:600 28px/1.1 var(--num);margin-top:8px}.rsub{margin:2px 0 8px;font:500 12px/1.3 var(--name);color:var(--dim)}
 .rft{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--rule);margin-top:8px;padding-top:8px;font:500 11.5px/1.3 var(--name);color:var(--dim)}.rft b{font:600 12px/1.3 var(--num);color:var(--ink);white-space:nowrap}
-.rkc{margin-top:12px}.rkl{display:flex;gap:14px;font:500 11.5px/1 var(--name);color:var(--dim);margin-bottom:4px;align-items:center}.rkl span{display:inline-flex;align-items:center;gap:5px}
-.rkl i{display:inline-block;width:16px;height:0;border-top:2.5px solid var(--ink)}.rkl i.rkf{border-top-color:var(--ball)}.rkl i.rkx{border-top:2px dashed var(--dim)}
-.rkch path{fill:none;stroke-linejoin:round;stroke-linecap:round}.rkch path.rks{stroke:var(--ink);stroke-width:2}.rkch path.rkf{stroke:var(--ball);stroke-width:2.6}.rkch path.rkx{stroke:var(--dim);stroke-width:1.5;stroke-dasharray:4 3}
-.rkch .rb1{fill:color-mix(in srgb,var(--pos) 9%,transparent)}.rkch .rb2{fill:color-mix(in srgb,var(--pos) 4%,transparent)}.rkch .rkh{fill:transparent}
-.rkch text.rke{font:600 11px var(--num);fill:var(--ink)}.rkch text.rke.rkf{fill:var(--ball)}.rkch text.rke.rkx{fill:var(--dim)}
+.rkc{margin-top:16px;padding-top:12px;border-top:1px solid var(--rule)}.rkhd{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.rkhd b{font:700 15px/1.2 var(--name);display:flex;align-items:center;gap:6px}.rkhd span{font:500 12px/1 var(--num);color:var(--dim)}
+.rkl{display:flex;flex-wrap:wrap;gap:4px 16px;font:500 12px/1 var(--name);color:var(--dim);margin:8px 0 6px}.rkl span{display:inline-flex;align-items:center;gap:6px}.rkl b{font:600 15px/1 var(--num);color:var(--ink);min-width:26px}
+.rkl i{display:inline-block;width:14px;height:0;border-top:2.5px solid var(--ball)}.rkl i.rks{border-top:2px solid var(--ink)}.rkl i.rkx{border-top:2px dashed var(--dim)}
+.rkch{touch-action:pan-y;cursor:crosshair;display:block;max-width:640px}.rkch path{fill:none;stroke-linejoin:round;stroke-linecap:round}.rkch path.rkf{stroke:var(--ball);stroke-width:2.25}.rkch path.rks{stroke:var(--ink);stroke-width:1.5}.rkch path.rkx{stroke:var(--dim);stroke-width:1.25;stroke-dasharray:3 3}
+.rkch .rb1{fill:color-mix(in srgb,var(--pos) 7%,transparent)}.rkch .g0{stroke:var(--rule);stroke-dasharray:none;opacity:.7}.rkch .rkcut{stroke:var(--dim);stroke-width:1;stroke-dasharray:1 3}.rkch .rkcl{font:500 9px var(--name);fill:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.rkch .rkxh{stroke:var(--dim);stroke-width:1}.rkch .rkd{stroke:var(--bg);stroke-width:2;fill:var(--ball)}.rkch .rkd.rks{fill:var(--ink)}.rkch .rkd.rkx{fill:var(--dim)}
 .gchart{border:0;background:transparent;cursor:default}.vchart .groll{fill:none;stroke:var(--ink);stroke-width:1.4;stroke-dasharray:4 3;opacity:.7}.vchart .gpt{fill:var(--ball)}.vchart .gline.gthin{stroke-width:1.2;opacity:.45}.vchart .groll.gbold{stroke:var(--ink);stroke-width:2.2;stroke-dasharray:none;opacity:.9}.vchart .gpf{fill:var(--panel);stroke:var(--ink);stroke-width:1.6}.vchart .gpb{fill:var(--panel);stroke:var(--dim);stroke-width:1.6}.vchart .gpx{fill:var(--neg)}
 .vchart .gmk{font:700 10px var(--num);text-anchor:middle;cursor:default}.gmk{font:700 11px var(--num);display:inline-block;min-width:14px;text-align:center}.gmkf{fill:var(--ink);color:var(--ink)}.gmkb{fill:var(--dim);color:var(--dim)}.gmkx{fill:var(--neg);color:var(--neg)}
 .rwin{margin:4px 0 10px}.rwin button{padding:6px 12px}
@@ -3943,21 +3944,35 @@ function minBar(mb){if(!mb)return"";const[end,sts,fl,sat]=mb,P=t=>(100*t/end).to
 let RH=null;fetch("data/rank-history.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{RH=j;if(typeof renderSheet==="function")renderSheet()}).catch(()=>{});
 function rankChart(id){const h=RH&&RH.p&&RH.p[id],D=RH&&RH.d;if(!h||!D||D.length<3)return"";
   const all=[...h.s,...h.f,...h.x].filter(v=>v>0);if(all.length<4)return"";
-  const W=isDesk()?520:360,H=176,L=30,Rt=44,T=10,Bm=24,t0=+new Date(D[0]),t1=+new Date(D[D.length-1]);
-  const hi=Math.min(400,Math.max(150,Math.ceil(Math.max(...all)*1.08/50)*50)),X=d=>L+(W-L-Rt)*(+new Date(d)-t0)/(t1-t0||1),Y=r=>T+(H-T-Bm)*(Math.min(r,hi)-1)/(hi-1);
-  const pts=a=>a.map((v,i)=>v>0?[Math.round(X(D[i])*10)/10,Math.round(Y(v)*10)/10]:null),seg=a=>{const out=[];let cur=[];for(const p of pts(a)){if(p)cur.push(p);else{if(cur.length>1)out.push(cur);cur=[]}}if(cur.length>1)out.push(cur);return out.map(c=>smoothPath(c)).join("")};
-  const last=a=>{for(let i=a.length-1;i>=0;i--)if(a[i]>0)return[i,a[i]];return null},md=d=>{const t=new Date(d+"T12:00:00Z");return(t.getUTCMonth()+1)+"/"+t.getUTCDate()};
-  const ends=[["s","rks"],["f","rkf"],["x","rkx"]].map(([k,c])=>{const e=last(h[k]);return e?{c,y:Y(e[1]),v:e[1]}:null}).filter(Boolean).sort((a,b)=>a.y-b.y);
-  for(let i=1;i<ends.length;i++)if(ends[i].y-ends[i-1].y<11)ends[i].y=ends[i-1].y+11;
-  const step=Math.ceil(D.length/(isDesk()?8:5)),ticks=[1,TOP,ROST,hi].filter((v,i,a)=>v<=hi&&a.indexOf(v)===i);
-  return`<div class="rkc"><div class="rkl"><span><i class="rks"></i>Season</span><span><i class="rkf"></i>Last 14 days</span><span><i class="rkx"></i>Projected</span></div>
-    <svg viewBox="0 0 ${W} ${H}" class="vchart gchart rkch"><rect x="${L}" y="${Y(1)}" width="${W-L-Rt}" height="${Y(TOP)-Y(1)}" class="rb1"/><rect x="${L}" y="${Y(TOP)}" width="${W-L-Rt}" height="${Y(Math.min(ROST,hi))-Y(TOP)}" class="rb2"/>
-    ${ticks.map(v=>`<line x1="${L}" x2="${W-Rt}" y1="${Y(v)}" y2="${Y(v)}" class="g0"/><text x="${L-6}" y="${Y(v)+3}" class="gy" style="text-anchor:end">${v}</text>`).join("")}
-    ${D.map((d,i)=>(i%step&&i!==D.length-1)||(i!==D.length-1&&X(D[D.length-1])-X(d)<34)?"":`<text x="${X(d)}" y="${H-7}" class="gx"${i===D.length-1?' style="text-anchor:end"':i?"":' style="text-anchor:start"'}>${md(d)}</text>`).join("")}
-    <path d="${seg(h.x)}" class="rkx"/><path d="${seg(h.s)}" class="rks"/><path d="${seg(h.f)}" class="rkf"/>
-    ${ends.map(e=>`<text x="${W-Rt+6}" y="${e.y+4}" class="rke ${e.c}">${e.v}</text>`).join("")}
-    ${D.map((d,i)=>`<rect x="${X(d)-(W-L-Rt)/D.length/2}" y="${T}" width="${(W-L-Rt)/D.length}" height="${H-T-Bm}" class="rkh"><title>${md(d)}: Season ${h.s[i]||"–"} · 14 days ${h.f[i]||"–"} · Proj ${h.x[i]||"–"}</title></rect>`).join("")}</svg>
-    <p class="stkn">His rank by day, 1 at the top. <b>Season</b> is everything so far, so it moves slowly; <b>Last 14 days</b> is the trend, and when it runs above the season line he's playing better than his season rank says. <b>Projected</b> is where the model had him each day. The shaded bands are the top ${TOP} (starters in a 10-team league) and top ${ROST} (rostered). Standard 9-category ranks: your punts and weekly weights don't apply to the history. A gap means no games in that window.</p></div>`}
+  // the scale hugs his own range, like a price chart: a move of 30 spots should look like one
+  const W=isDesk()?560:360,H=isDesk()?210:196,L=8,Rt=34,T=12,Bm=24,t0=+new Date(D[0]),t1=+new Date(D[D.length-1]);
+  const mn=Math.min(...all),mx=Math.max(...all),pad=Math.max(12,(mx-mn)*.18),lo=Math.max(1,Math.floor((mn-pad)/10)*10),hi=Math.ceil((mx+pad)/10)*10;
+  const X=d=>L+(W-L-Rt)*(+new Date(d)-t0)/(t1-t0||1),Y=r=>T+(H-T-Bm)*(r-lo)/(hi-lo||1),r1=v=>Math.round(v*10)/10;
+  const path=a=>{let d="",pen=false;a.forEach((v,i)=>{if(v>0){d+=(pen?"L":"M")+r1(X(D[i]))+" "+r1(Y(v));pen=true}else pen=false});return d};
+  const last=a=>{for(let i=a.length-1;i>=0;i--)if(a[i]>0)return{i,v:a[i]};return null},md=d=>{const t=new Date(d+"T12:00:00Z");return["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][t.getUTCMonth()]+" "+t.getUTCDate()};
+  const span=hi-lo,stp=[10,20,25,50,100].find(x=>span/x<=4)||100,grid=[];for(let v=Math.ceil(lo/stp)*stp;v<=hi;v+=stp)if(v>0)grid.push(v);if(lo===1)grid.unshift(1);
+  const SER=[["f","rkf","Last 14 days"],["s","rks","Season"],["x","rkx","Projected"]],E=Object.fromEntries(SER.map(([k])=>[k,last(h[k])]));
+  const cut=(v,cls,lab)=>v>lo&&v<hi?`<line x1="${L}" x2="${W-Rt}" y1="${r1(Y(v))}" y2="${r1(Y(v))}" class="rkcut"/><text x="${L+2}" y="${r1(Y(v))-4}" class="rkcl">${lab}</text>`:"";
+  const nx=isDesk()?6:4,xi=[...new Set([...Array(nx)].map((_,k)=>Math.round(k*(D.length-1)/(nx-1))))];
+  return`<div class="rkc"><div class="rkhd"><b>Rank over time</b><span id="rkDate">${md(D[D.length-1])}</span></div>
+    <div class="rkl" id="rkLeg">${SER.map(([k,c,l])=>`<span><i class="${c}"></i>${l} <b data-rk="${k}">${E[k]?E[k].v:"–"}</b></span>`).join("")}</div>
+    <svg viewBox="0 0 ${W} ${H}" class="vchart gchart rkch" id="rkChart" data-d='${JSON.stringify(D.map((d,i)=>[r1(X(d)),md(d),h.s[i],h.f[i],h.x[i],h.s[i]?r1(Y(h.s[i])):0,h.f[i]?r1(Y(h.f[i])):0,h.x[i]?r1(Y(h.x[i])):0]))}'>
+    ${lo<TOP?`<rect x="${L}" y="${T}" width="${W-L-Rt}" height="${r1(Y(Math.min(TOP,hi))-T)}" class="rb1"/>`:""}
+    ${grid.map(v=>`<line x1="${L}" x2="${W-Rt}" y1="${r1(Y(v))}" y2="${r1(Y(v))}" class="g0"/><text x="${W-Rt+6}" y="${r1(Y(v))+3.5}" class="gy" style="text-anchor:start">${v}</text>`).join("")}
+    ${cut(TOP,"","starters")}${cut(ROST,"","rostered")}
+    ${xi.map((i,k)=>`<text x="${r1(X(D[i]))}" y="${H-7}" class="gx" style="text-anchor:${k===0?"start":k===xi.length-1?"end":"middle"}">${md(D[i])}</text>`).join("")}
+    <path d="${path(h.x)}" class="rkx"/><path d="${path(h.s)}" class="rks"/><path d="${path(h.f)}" class="rkf"/>
+    <line id="rkX" y1="${T}" y2="${H-Bm}" class="rkxh" x1="-9" x2="-9"/>
+    ${SER.map(([k,c])=>E[k]?`<circle data-dot="${k}" cx="${r1(X(D[E[k].i]))}" cy="${r1(Y(E[k].v))}" r="4" class="rkd ${c}"/>`:"").join("")}</svg>
+    <p class="stkn">His rank by day; up is better. <b>Last 14 days</b> is the fast line and <b>Season</b> the slow one, so read them like a moving-average crossover: the fast line above the slow one means he's playing better than his season rank says. <b>Projected</b> is where the model had him each day. The scale fits his own range; the tinted area is the top ${TOP} (starters in a 10-team league) and the labelled lines mark ${TOP} and ${ROST} (rostered) when they fall inside it. Drag across the chart to read any day. Standard 9-category ranks: your punts and weekly weights don't apply to the history. A break in a line means no games in that window.</p></div>`}
+function rkBind(){const s=$("rkChart");if(!s)return;const P=JSON.parse(s.dataset.d||"[]"),xh=$("rkX"),dt=$("rkDate"),leg=$("rkLeg"),K=["s","f","x"];if(!P.length)return;
+  const show=b=>{xh.setAttribute("x1",b[0]);xh.setAttribute("x2",b[0]);dt.textContent=b[1];
+    K.forEach((k,j)=>{const v=b[2+j],el=leg.querySelector(`[data-rk="${k}"]`),dot=s.querySelector(`[data-dot="${k}"]`);if(el)el.textContent=v||"–";if(dot){dot.style.display=v?"":"none";if(v){dot.setAttribute("cx",b[0]);dot.setAttribute("cy",b[5+j])}}})};
+  const mv=e=>{const r=s.getBoundingClientRect(),x=((e.touches?e.touches[0].clientX:e.clientX)-r.left)*(s.viewBox.baseVal.width/r.width);let b=P[0];for(const p of P)if(Math.abs(p[0]-x)<Math.abs(b[0]-x))b=p;show(b)};
+  const end=()=>{const b=P[P.length-1];show(b);xh.setAttribute("x1",-9);xh.setAttribute("x2",-9);
+    // back to each line's own latest point
+    K.forEach((k,j)=>{for(let i=P.length-1;i>=0;i--)if(P[i][2+j]){const dot=s.querySelector(`[data-dot="${k}"]`),el=leg.querySelector(`[data-rk="${k}"]`);if(dot){dot.style.display="";dot.setAttribute("cx",P[i][0]);dot.setAttribute("cy",P[i][5+j])}if(el)el.textContent=P[i][2+j];break}})};
+  s.addEventListener("mousemove",mv);s.addEventListener("mouseleave",end);s.addEventListener("touchstart",mv,{passive:true});s.addEventListener("touchmove",mv,{passive:true});s.addEventListener("touchend",end)}
 function gameChart(gs,val,o){const W=isDesk()?440:360,mk=o.mk,H=mk?166:150,n=gs.length,v=gs.map(val);if(n<2)return"";
   const ok=v.filter(x=>x!=null),hi=o.max!=null?Math.max(o.max,...ok):Math.ceil(Math.max(...ok)*1.15/8)*8,lo=0;
   const X=i=>Math.round(30+(W-40)*i/(n-1)),Y=x=>Math.round(10+(H-(mk?50:36))*(hi-x)/(hi-lo||1));
@@ -4241,7 +4256,7 @@ function renderSheet(){
   if(T==="log")h.push(psLogHTML());
   if(T==="role")h.push(psRole(id,q,rq));
   if(T==="news")h.push(psNews(id,q,nm));
-  const sc=$("psPanel").scrollTop;$("psBody").innerHTML=h.join("");$("psPanel").scrollTop=sc;psChartBind();
+  const sc=$("psPanel").scrollTop;$("psBody").innerHTML=h.join("");$("psPanel").scrollTop=sc;psChartBind();rkBind();
 }
 // The analyst note split into labeled parts so it scans like a write-up: the call first, then
 // role, shooting, per-36, upside, outlook, fit and price. Same sentences as the note, nothing cut.

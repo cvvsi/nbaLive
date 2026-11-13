@@ -351,11 +351,9 @@ function nextMan(games, scored, rankings) {
   return out;
 }
 
-function buildRegression(games, asOf, rankings) {
-  let H = null;
-  try { H = JSON.parse(fs.readFileSync(HIST, 'utf8')); }
-  catch (e) { console.log(`${HIST} missing: run node build-history.js once. Skipping ${REG}.`); return; }
-  const tot = totals(games), lines = [], RP = rookiePriors(), pos = {}, mins = {};
+// Every player's projected per-game line from some games (see expectedLine), ready for score().
+function projLines(games, H, RP) {
+  const tot = totals(games), lines = [], pos = {}, mins = {};
   for (const g of [...games].sort((a, b) => a.date < b.date ? -1 : 1)) for (const r of g.rows) {
     if (r.pos) pos[r.id] = r.pos;
     (mins[r.id] || (mins[r.id] = [])).push(r.min);
@@ -367,6 +365,38 @@ function buildRegression(games, asOf, rankings) {
     const x = b ? expectedLine(s, b.t, fadeMpg(mins[s.id] || [], b.t.mpg)) : rk ? expectedLine(s, rk, s.min / s.gp, ROOKIE_K) : expectedLine(s, NOBASE, s.min / s.gp);
     lines.push({ id: s.id, gp: s.gp, ...x, s, b, rk, rkPos: rk ? (RP[grp(pos[s.id] || '')] ? grp(pos[s.id] || '') : 'F') : null });
   }
+  return lines;
+}
+// Rank over time for the player page's chart (data/rank-history.json): on every game date so far,
+// each player's season rank (games through that date), 14-day rank and Proj rank, all 9 categories,
+// rebuilt from the cached box scores each night so the whole season is always there.
+// { d: [dates], p: { id: { s, f, x } } }, one rank per date, 0 = none. Dates more than RH_FULL days
+// back are thinned to every third, and only players who were ever inside RH_KEEP are kept.
+const RH = 'data/rank-history.json', RH_FULL = 45, RH_KEEP = 300, RH_MIN = 3;
+function rankHistory(games, asOf) {
+  let H = null; try { H = JSON.parse(fs.readFileSync(HIST, 'utf8')); } catch (e) {}
+  const RP = H ? rookiePriors() : null, all = [...new Set(games.map(g => g.date))].sort();
+  const old = all.filter(d => d < shift(asOf, -RH_FULL)), dates = [...old.filter((_, i) => i % 3 === 0), ...all.filter(d => d >= shift(asOf, -RH_FULL))].slice(RH_MIN - 1);
+  const ranks = P => { const o = {}; [...P].sort((a, b) => b.value - a.value).forEach((p, i) => o[p.id] = i + 1); return o; };
+  const p = {}, put = (k, o, n) => { for (const id in o) { const e = p[id] || (p[id] = { s: [], f: [], x: [] }); while (e[k].length < n) e[k].push(0); e[k].push(o[id]); } };
+  dates.forEach((d, n) => {
+    const gs = games.filter(g => g.date <= d), from = shift(d, -13);
+    put('s', ranks(rankWindow(gs)), n);
+    const w = gs.filter(g => g.date >= from); if (w.length) put('f', ranks(rankWindow(w)), n);
+    if (H) put('x', ranks(score(projLines(gs, H, RP))), n);
+  });
+  for (const [id, e] of Object.entries(p)) {
+    for (const k of ['s', 'f', 'x']) while (e[k].length < dates.length) e[k].push(0);
+    if (!['s', 'f', 'x'].some(k => e[k].some(v => v > 0 && v <= RH_KEEP))) delete p[id];
+  }
+  fs.writeFileSync(RH, JSON.stringify({ asOf, d: dates, p }));
+  console.log(`${RH}: ${dates.length} dates, ${Object.keys(p).length} players`);
+}
+function buildRegression(games, asOf, rankings) {
+  let H = null;
+  try { H = JSON.parse(fs.readFileSync(HIST, 'utf8')); }
+  catch (e) { console.log(`${HIST} missing: run node build-history.js once. Skipping ${REG}.`); return; }
+  const RP = rookiePriors(), lines = projLines(games, H, RP);
   const out = {}, cx = context(games), scored = score(lines);
   for (const p of scored) {
     out[p.id] = { n: p.s.name, t: p.s.team,
@@ -563,6 +593,7 @@ async function main() {
   buildRegression(games, asOf, players);
   addEase(games, asOf);
   breakouts(games, players, asOf);
+  try { rankHistory(games, asOf); } catch (e) { console.log('rank history skipped:', e.message); }
 }
 
 // Matchup ease (ease.js): this season's effect per team and category, and how far to believe it
@@ -580,5 +611,5 @@ function addEase(games, asOf) {
   console.log(`ease: ${Object.keys(t).length} teams${fit ? '' : ' (provisional K)'}`);
 }
 
-module.exports = { loadGames, totals, rankWindow, nextMan, expectedLine, baseline, fadeMpg, rookiePriors, ROOKIE_K, STATS, CATS, r2 };
+module.exports = { loadGames, totals, rankWindow, rankHistory, nextMan, expectedLine, baseline, fadeMpg, rookiePriors, ROOKIE_K, STATS, CATS, r2 };
 if (require.main === module) main();
