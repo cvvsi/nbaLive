@@ -17,7 +17,7 @@
  *               Yahoo's own stats for that day, null for days to come), and the best 150
  *               available players with their eligible positions and status tags (fa).
  *
- * POST /mcp/<RELAY_KEY> (or /mcp with "Authorization: Bearer <RELAY_KEY>") -> the fantasy analyst, an
+ * POST /mcp/<RELAY_KEY> (or /mcp with an "X-Relay-Key: <RELAY_KEY>" or "Authorization: Bearer" header) -> the fantasy analyst, an
  *               MCP server with read-only tools over the same data (worker/analyst.js).
  *
  * Deployed by .github/workflows/relay.yml (Actions -> Yahoo relay). */
@@ -229,7 +229,7 @@ export default {
     // The analyst (MCP): the key in the path, for a claude.ai custom connector (a URL only), or as a Bearer token.
     const mp = url.pathname.match(/^\/mcp(?:\/([^/]+))?\/?$/);
     if (mp) {
-      const k = mp[1] ? decodeURIComponent(mp[1]) : (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+      const k = mp[1] ? decodeURIComponent(mp[1]) : req.headers.get('X-Relay-Key') || (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
       if (!keyOk(k, env.RELAY_KEY || '')) return json({ error: 'Wrong or missing relay key.' }, 401);
       try { return await mcp(req, env, { buildSync, leagueKey, yf, items, flat, pick }); }
       catch (e) { return json({ error: e.message || String(e) }, 500); }
