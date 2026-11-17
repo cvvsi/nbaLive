@@ -4489,13 +4489,13 @@ function readHTML(a){
 S.psLn=store.get("psLn","proj");
 const LNK=["pts","reb","ast","tpm","stl","blk","to","fg","ft"],LNL={pts:"PTS",reb:"REB",ast:"AST",tpm:"3PM",stl:"STL",blk:"BLK",to:"TO",fg:"FG%",ft:"FT%"};
 // Minutes: the model's number, yours if set (shared through the relay), EFB's when synced on this device.
-function ovHTML(id,q){if(!q||!q.xp)return"";const r=ovRec(id),model=(q.xp0||q.xp)[0],relay=!!store.get("relay",null);
+// Only on a device with your relay set up: anyone else sees no Minutes box (and no EFB numbers).
+function ovHTML(id,q){if(!q||!q.xp||!store.get("relay",null))return"";const r=ovRec(id),model=(q.xp0||q.xp)[0];
   let efb=null;try{const X=efbIx(),e=X&&X.rows.find(x=>x.id===id);if(e)efb=e.l.min}catch(e){}
   const f=v=>(Math.round(v*10)/10).toFixed(1);
   return`<section class="blk ovb"><h3>Minutes${r?` <i class="ovt">yours</i>`:""}</h3>
     <div class="ovr"><span>Model <b>${f(model)}</b></span>${efb?`<span>EFB <b>${f(efb)}</b>${Math.abs(efb-(r?r.m:model))>=1?` <button class="ovx" data-ov="efb" data-v="${f(efb)}">Use</button>`:""}</span>`:""}${r?`<span>Yours <b>${f(r.m)}</b>${r.until?` until ${fmtDate(r.until).replace(/^\w+, /,"")}`:""}</span>`:""}</div>
-    ${relay?`<div class="ovf"><label>Minutes <input id="ovM" type="number" inputmode="decimal" min="0" max="48" step="0.5" value="${r?r.m:""}" placeholder="${f(model)}"></label><label>Until <input id="ovU" type="date" value="${r&&r.until||""}"></label><button class="ovx" data-ov="save">Save</button>${r?`<button class="ovx dn" data-ov="clear">Clear</button>`:""}</div>`
-      :`<p class="lgk">Set up the relay on league.html to set minutes by hand (shared across your devices).</p>`}
+    ${`<div class="ovf"><label>Minutes <input id="ovM" type="number" inputmode="decimal" min="0" max="48" step="0.5" value="${r?r.m:""}" placeholder="${f(model)}"></label><label>Until <input id="ovU" type="date" value="${r&&r.until||""}"></label><button class="ovx" data-ov="save">Save</button>${r?`<button class="ovx dn" data-ov="clear">Clear</button>`:""}</div>`}
     <p class="stkn">Your own minutes for him: they replace the model's minutes everywhere (ranks, Week, Today, Matchup, streaming plan, IL+, Build and the analyst); what he does per minute stays the model's. Leave Until empty to keep it until you clear it. Shared through your relay, so every device sees it.</p></section>`}
 function linesHTML(id,q,rq){
   const B=S.bs,rows=[],DL=d=>new Date(d+"T12:00:00Z").toLocaleDateString("en-US",{weekday:"short",timeZone:"UTC"}),t=etToday();
