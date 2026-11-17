@@ -25,6 +25,17 @@ const u = 'https://sixthman-yahoo.saac-choi.workers.dev', key = process.env.RELA
       console.log('Yahoo status tags league-wide:', JSON.stringify(tags), '| mine tagged:', o.p.filter(p => p[3] === o.me && p[6]).length, 'of', o.p.filter(p => p[3] === o.me).length);
       console.log('available players read:', (o.fa || []).length, '| with positions:', (o.fa || []).filter(x => x[3]).length, '| tagged:', (o.fa || []).filter(x => x[4]).length);
       console.log('schedule weeks:', Object.keys(o.sched).length, '| categories:', (o.cfg.cats || []).join(' '), '| positions:', Object.keys(o.cfg.pos || {}).join(' '));
+      // the analyst (MCP): handshake, tool list, and one call each to the two main tools (sizes only)
+      const call = async (id, method, params) => (await fetch(u + '/mcp/' + encodeURIComponent(key), { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id, method, params }) })).json();
+      const ini = await call(1, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'smoke', version: '1' } });
+      const tl = await call(2, 'tools/list', {});
+      console.log('analyst:', ini.result ? ini.result.serverInfo.name : 'FAILED', '|', tl.result ? tl.result.tools.length + ' tools' : 'no tools');
+      for (const t of ['get_my_team', 'get_matchup', 'get_free_agents']) {
+        const r = await call(3, 'tools/call', { name: t, arguments: {} }), c = r.result && r.result.content[0].text;
+        let info = ''; try { const j = JSON.parse(c); info = t === 'get_my_team' ? (j.roster || []).filter(p => p.proj_rank).length + ' of ' + (j.roster || []).length + ' matched to our data' : t === 'get_free_agents' ? (j.players || []).filter(p => p.proj_rank).length + ' of ' + (j.players || []).length + ' matched' : 'chance to win ' + j.chance_to_win_week + ', ' + (j.categories || []).length + ' categories'; } catch (e) { info = String(c).slice(0, 120); }
+        console.log('  ' + t + ':', r.result && r.result.isError ? 'ERROR ' + String(c).slice(0, 160) : info);
+      }
       return;
     }
     console.log('try', i + 1, '->', r.status, o && o.error ? o.error : '');
