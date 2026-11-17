@@ -11,7 +11,10 @@
  * GET /sync  -> the same bundle league.html's bookmark builds ({v:1, lid, at, me, teams, p, act, mu,
  *               sched}, read by index.html), plus what the bookmark can't read: src:"api", exact
  *               FGM/FGA and FTM/FTA so far (mu.rows[].x), adds used this week (adds), league
- *               settings (cfg) and each player's eligible positions and status (p[i][5], p[i][6]).
+ *               settings (cfg), each player's eligible positions and status (p[i][5], p[i][6]),
+ *               and both matchup teams' lineups for every day of the week (lu: team -> date ->
+ *               {yahoo player id: [slot, played]}; played is 1 / 0 for days already played, from
+ *               Yahoo's own stats for that day, null for days to come).
  *
  * Deployed by .github/workflows/relay.yml (Actions -> Yahoo relay). */
 
@@ -142,7 +145,45 @@ async function buildSync(env) {
     }
   }
 
-  return { v: 1, src: 'api', lid: String(meta.league_id), at: new Date().toISOString(), me, teams, p, act, mu, sched, adds, cfg };
+  // Both matchup teams' lineups, every day of the week: the slot each player is in that day as set
+  // on Yahoo (days to come carry today's lineup unless you've changed them), and for days already
+  // played whether he played (any stat recorded; Yahoo shows "-" when he didn't).
+  const lu = {};
+  if (mu && mu.dates.length) {
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+    const jobs = [];
+    for (const r of mu.rows) for (const d of mu.dates) jobs.push(dayLineup(env, `${lk}.t.${r.id}`, d, d <= today).then(v => {
+      (lu[r.id] || (lu[r.id] = {}))[d] = v;
+    }));
+    await Promise.all(jobs);
+  }
+
+  return { v: 1, src: 'api', lid: String(meta.league_id), at: new Date().toISOString(), me, teams, p, act, mu, sched, adds, cfg, lu };
+}
+
+// One team's lineup on one day: {player id: [slot, played]}. With stats (days already played) it
+// asks for the roster with each player's stats for that day; if Yahoo refuses that combination it
+// falls back to the roster alone (played unknown, null).
+async function dayLineup(env, tk, d, withStats) {
+  let fc = null, stats = false;
+  if (withStats) {
+    try { fc = await yf(env, `/team/${tk}/roster;date=${d}/players/stats;type=date;date=${d}`); stats = true; } catch (e) { fc = null; }
+  }
+  if (!fc) fc = await yf(env, `/team/${tk}/roster;date=${d}`);
+  const roster = pick(fc.team, 'roster') || {}, out = {};
+  for (const x of items((roster['0'] || {}).players)) {
+    const pm = flat(x.player[0]), sp = flat(pick(x.player, 'selected_position'));
+    let played = null;
+    if (stats) {
+      const ps = pick(x.player, 'player_stats');
+      // Yahoo's games-played stat (id 0) when it's there; otherwise any non-zero stat that day
+      const st = ps ? items(ps.stats).map(s => s.stat || {}) : [];
+      const gp = st.find(s => String(s.stat_id) === '0');
+      played = gp ? (+gp.value > 0 ? 1 : 0) : st.length ? (st.some(s => /[1-9]/.test(String(s.value))) ? 1 : 0) : null;
+    }
+    out[String(pm.player_id)] = [sp.position || '', played];
+  }
+  return out;
 }
 
 // Constant-time compare, so the key can't be guessed a character at a time.
