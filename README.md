@@ -242,6 +242,7 @@ To test the phone layout on desktop, use Chrome DevTools → device toolbar → 
 - **Numbers use `--num`** (IBM Plex Mono, tabular digits). Names and labels use `--name` (Archivo Narrow).
 - **Read ESPN stats by key name, not array index.**
 - Anything stored in `localStorage` is wrapped in try/catch (private browsing can throw).
+- **Interface guidelines** (Vercel's [Web Interface Guidelines](https://github.com/vercel-labs/web-interface-guidelines), audited Nov 2026 on phone and desktop): no sideways scroll, every control has an accessible name, zoom never disabled. Global CSS at the end of the `<style>` in `index.html` and `league.html`: `touch-action: manipulation` on controls (no double-tap zoom), 16px inputs on touch screens (iOS Safari zooms in below that), a `:focus-visible` ring in `--ball` for keyboard users, and the reduce-motion setting turning animation off. Small icons get a 24px+ hit area with an invisible `::after` (`.nfo`). Keep new inputs and icon buttons inside these rules.
 
 ## Tests
 

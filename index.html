@@ -1136,6 +1136,16 @@ body[data-page="today"] .yattr,body[data-page="matchup"] .yattr,body[data-page="
 .gfk{display:inline-block;width:2px;height:10px;background:var(--neg);vertical-align:-1px;margin:0 3px}.gsk{display:inline-block;width:14px;height:4px;border-radius:2px;background:color-mix(in srgb,var(--neg) 70%,var(--cell));vertical-align:2px}.gfa{stop-color:var(--ball);stop-opacity:.22}.gfb{stop-color:var(--ball);stop-opacity:0}
 @media (min-width:1100px){.rgrid{grid-template-columns:1fr 1fr}}
 
+
+/* Interface guidelines (Vercel's Web Interface Guidelines, audited Nov 2026): no double-tap zoom on
+   controls; touch screens get 16px inputs so iOS Safari doesn't zoom in on focus; a visible focus
+   ring for keyboard users only; the phone's reduce-motion setting turns animation off; the small
+   info icons get a 24px+ hit area without changing how they look. */
+button,a,input,select,textarea,label,summary,[role=button]{touch-action:manipulation}
+:focus-visible{outline:2px solid var(--ball);outline-offset:2px}
+@media (pointer:coarse){input,select,textarea{font-size:16px!important}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+.nfo{position:relative}.nfo::after{content:"";position:absolute;inset:-8px}
 </style>
 </head>
 <body>
