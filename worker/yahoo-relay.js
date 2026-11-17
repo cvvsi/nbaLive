@@ -228,7 +228,8 @@ async function ovSet(env, b) {
     const m = Math.round(+b.m * 10) / 10;
     if (!(m >= 0 && m <= 48)) throw new HttpErr(400, 'Minutes must be 0-48.');
     const until = /^\d{4}-\d{2}-\d{2}$/.test(b.until || '') ? b.until : null;
-    o[id] = { m, until, at: new Date().toISOString(), n: String(b.n || '').slice(0, 60), t: String(b.t || '').slice(0, 5) };
+    const sp = /^(w1|w2|w4|date)$/.test(b.sp || '') && until ? b.sp : undefined;  // how the end was picked, for the page
+    o[id] = { m, until, sp, at: new Date().toISOString(), n: String(b.n || '').slice(0, 60), t: String(b.t || '').slice(0, 5) };
   }
   if (Object.keys(o).length > 300) throw new HttpErr(400, 'Too many overrides.');
   await env.OV.put('ov', JSON.stringify(o));

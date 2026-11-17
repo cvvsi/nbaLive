@@ -801,9 +801,15 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .lgchip.busy{opacity:.55}
 .ovr{display:flex;flex-wrap:wrap;gap:6px 16px;font:500 13px/1.4 var(--name);color:var(--dim)}.ovr b{font:600 14px/1 var(--num);color:var(--ink)}
 .ovt{font:600 10px/1 var(--num);font-style:normal;color:var(--ball);border:1px solid var(--ball);border-radius:4px;padding:2px 4px;vertical-align:middle}
-.ovf{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px;margin-top:8px;font:500 12px/1.2 var(--name);color:var(--dim)}
-.ovf input{display:block;margin-top:3px;width:92px;font:500 14px/1.2 var(--num);color:var(--ink);background:var(--cell);border:1px solid var(--rule);border-radius:6px;padding:6px 8px}
-.ovf input[type=date]{width:140px}
+.ovst{display:flex;align-items:center;gap:6px;margin-top:10px}
+.ovst input{width:64px;text-align:center;font:600 16px/1.2 var(--num);color:var(--ink);background:var(--cell);border:1px solid var(--rule);border-radius:6px;padding:7px 4px}
+.ovsb{width:36px;height:36px;font:600 18px/1 var(--num);color:var(--ink);background:none;border:1px solid var(--rule);border-radius:50%;cursor:pointer}
+.ovp{margin-left:8px;font:500 13px/1.2 var(--name);color:var(--dim)}.ovp b{font:600 15px/1 var(--num);color:var(--ink)}.ovp b.up{color:var(--pos)}.ovp b.dn{color:var(--dim)}.ovp i{font-style:normal;margin-left:4px}
+.ovsp{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:10px;font:500 12px/1 var(--name);color:var(--dim)}.ovsp>span{margin-right:3px}
+.ovsp button{font:600 12px/1 var(--name);color:var(--ink);background:none;border:1px solid var(--rule);border-radius:999px;padding:7px 10px;cursor:pointer}
+.ovsp button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.ovsp input{font:500 13px/1.2 var(--num);color:var(--ink);background:var(--cell);border:1px solid var(--rule);border-radius:6px;padding:5px 7px}
+.ovf{display:flex;gap:8px;margin-top:12px}.ovx.sv{background:var(--ball);border-color:var(--ball);color:var(--panel)}
 .ovx{font:600 12px/1 var(--name);color:var(--ink);background:none;border:1px solid var(--rule);border-radius:999px;padding:7px 12px;cursor:pointer}.ovx.dn{color:var(--neg);border-color:var(--neg)}
 .ilg{overflow-x:auto;margin:6px 0 4px}.ilg table{border-collapse:collapse;font:500 12px/1.2 var(--name)}
 .ilg th{font-weight:600;color:var(--dim);font-size:10px;padding:3px 4px;text-align:center}
@@ -1329,10 +1335,10 @@ function applyOv(){if(typeof G==="undefined"||!G||!G.players)return;let n=0;
 function ovSetLocal(o){MOV=o||{};store.set("mov",MOV);applyOv();
   rankBS();renderBS();renderPJ();renderRK();renderSC();if(S.players.length){scoreValue();render()}renderSheet()}
 // save / clear one override through the relay (m null = clear)
-async function ovSave(id,m,until){const R0=store.get("relay",null);if(!R0||!R0.u||!R0.k){alert("Set up the relay on league.html first: overrides are shared through it.");return}
+async function ovSave(id,m,until,sp){const R0=store.get("relay",null);if(!R0||!R0.u||!R0.k){alert("Set up the relay on league.html first: overrides are shared through it.");return}
   const q=G&&G.players[id];
   const r=await fetch(R0.u.replace(/\/+$/,"")+"/minutes",{method:"POST",headers:{"X-Relay-Key":R0.k,"Content-Type":"application/json"},
-    body:JSON.stringify({id,m,until:until||null,n:q?q.n:"",t:q?q.t:""})}).catch(e=>({ok:false,statusText:e.message}));
+    body:JSON.stringify({id,m,until:until||null,sp:sp||null,n:q?q.n:"",t:q?q.t:""})}).catch(e=>({ok:false,statusText:e.message}));
   const o=r.json?await r.json().catch(()=>null):null;
   if(!r.ok||!o||o.error){alert("Couldn't save the override: "+((o&&o.error)||r.statusText||r.status));return}
   ovSetLocal(o)}
@@ -4454,7 +4460,7 @@ function renderSheet(){
           const att=k==="fg"?` <em>${f1(q.att[0]/q.now[0])} att</em>`:k==="ft"?` <em>${f1(q.att[2]/q.now[0])} att</em>`:"";
           return`<div class="${nh(k).trim()}"><b>${v}</b><i>${CL[k].toUpperCase()}${att}</i></div>`}).join("")}
           <div class="role"><b>${f1(r("mpg"))}</b><i>MIN</i></div><div class="role"><b>${Math.round(r("usg"))}%</b><i>USAGE</i></div></div></section>`)}
-    h.push(ovHTML(id,q));h.push(linesHTML(id,q,rq));h.push(luckHTML(id,q,rq));
+    h.push(ovHTML(id,q));h.push(linesHTML(id,q,rq));setTimeout(ovPreview,0);h.push(luckHTML(id,q,rq));
     if(q){const wk=psWeekProj(id,q);
       if(wk)h.push(psDD("week","This week",wk.sub,wk.html,true));
       h.push(psDD("proj","Proj vs this season","per game · rest of season",stickHTML(q,B,id),false));
@@ -4490,13 +4496,39 @@ S.psLn=store.get("psLn","proj");
 const LNK=["pts","reb","ast","tpm","stl","blk","to","fg","ft"],LNL={pts:"PTS",reb:"REB",ast:"AST",tpm:"3PM",stl:"STL",blk:"BLK",to:"TO",fg:"FG%",ft:"FT%"};
 // Minutes: the model's number, yours if set (shared through the relay), EFB's when synced on this device.
 // Only on a device with your relay set up: anyone else sees no Minutes box (and no EFB numbers).
+// Minutes with - / + (1 a step) or typed, a live preview of his rest-of-season Proj rank at them
+// (nothing saved until Save: it doubles as a what-if), and how long it lasts as one tap: ROS (no
+// end), 1 / 2 / 4 weeks, or a date picked by hand.
+const OVSPAN=[["ros","ROS",0],["w1","1 wk",7],["w2","2 wk",14],["w4","4 wk",28],["date","Date…",null]];
+// His average minutes over the games left (as the Proj rank counts them) with m minutes up to end
+// (null = all of them) and the model's after; m null = the model's throughout (any override of
+// his set aside).
+function ovEff(id,q,m,end){const ds=sznDs(id,q);if(!ds.length)return m!=null?m:(q.xp0||q.xp)[0];const sv=MOV[id];if(sv)delete MOV[id];
+  try{return ds.reduce((a,d)=>a+(m!=null&&(!end||d<=end)?m:minAt(id,q,d)),0)/ds.length}finally{if(sv)MOV[id]=sv}}
+// his Proj rank (rest of season, per game) at an average of m minutes over the games left, among
+// everyone else (lined up with his rank on the page: the offset at his current minutes carries over)
+function ovRank(id,q,m){const B=S.bs;if(!B||!B.xs||!B.val||!q||!q.xp)return null;
+  // scored with the same value as the Proj ranks (S.bs.val over the z-scores, punts and weights in)
+  const sc=mm=>{const z=pjZ(lineAt(q,mm));return B.val([0,mm,...G.cats.map(c=>z[c])])},own=sc(q.xp[0]);
+  const raw=mm=>{const v=sc(mm);return 1+B.xs.filter(x=>x>v).length-(own>v?1:0)};
+  const off=B.x&&B.x[id]?B.x[id]-raw(avgMin(id,q,sznDs(id,q))):0;return Math.max(1,raw(m)+off)}
+function ovPreview(){const box=document.querySelector(".ovb");if(!box||!S.ps)return;const id=S.ps.id,q=G&&G.players[id],m=parseFloat($("ovM").value),el=box.querySelector(".ovp");
+  if(!q||!(m>=0&&m<=48)){el.innerHTML="";return}
+  const sp=box.dataset.span||"ros",n=(OVSPAN.find(([k])=>k===sp)||[])[2],end=sp==="date"?($("ovU").value||null):n?dPlus(etToday(),n):null;
+  const r=ovRank(id,q,ovEff(id,q,m,end)),mr=ovRank(id,q,ovEff(id,q,null));
+  el.innerHTML=r?`Proj <b class="${r<=TOP?"up":r<=ROST?"":"dn"}">#${r}</b> <i>model #${mr}</i>`:""}
 function ovHTML(id,q){if(!q||!q.xp||!store.get("relay",null))return"";const r=ovRec(id),model=(q.xp0||q.xp)[0];
   let efb=null;try{const X=efbIx(),e=X&&X.rows.find(x=>x.id===id);if(e)efb=e.l.min}catch(e){}
-  const f=v=>(Math.round(v*10)/10).toFixed(1);
-  return`<section class="blk ovb"><h3>Minutes${r?` <i class="ovt">yours</i>`:""}</h3>
-    <div class="ovr"><span>Model <b>${f(model)}</b></span>${efb?`<span>EFB <b>${f(efb)}</b>${Math.abs(efb-(r?r.m:model))>=1?` <button class="ovx" data-ov="efb" data-v="${f(efb)}">Use</button>`:""}</span>`:""}${r?`<span>Yours <b>${f(r.m)}</b>${r.until?` until ${fmtDate(r.until).replace(/^\w+, /,"")}`:""}</span>`:""}</div>
-    ${`<div class="ovf"><label>Minutes <input id="ovM" type="number" inputmode="decimal" min="0" max="48" step="0.5" value="${r?r.m:""}" placeholder="${f(model)}"></label><label>Until <input id="ovU" type="date" value="${r&&r.until||""}"></label><button class="ovx" data-ov="save">Save</button>${r?`<button class="ovx dn" data-ov="clear">Clear</button>`:""}</div>`}
-    <p class="stkn">Your own minutes for him: they replace the model's minutes everywhere (ranks, Week, Today, Matchup, streaming plan, IL+, Build and the analyst); what he does per minute stays the model's. Leave Until empty to keep it until you clear it. Shared through your relay, so every device sees it.</p></section>`}
+  const f=v=>(Math.round(v*10)/10).toFixed(1),t=etToday();
+  // which span the saved override is: none = ROS, an end a week / 2 / 4 from when it was set, else a date
+  const span=!r||!r.until?"ros":r.sp&&OVSPAN.some(([k])=>k===r.sp)?r.sp:(OVSPAN.find(([k,,n])=>n&&r.at&&dPlus(String(r.at).slice(0,10),n)===r.until)||["date"])[0];
+  const m0=r?r.m:Math.round(model*10)/10;
+  return`<section class="blk ovb" data-span="${span}"><h3>Minutes${r?` <i class="ovt">yours</i>`:""}</h3>
+    <div class="ovr"><span>Model <b>${f(model)}</b></span>${efb?`<span>EFB <b>${f(efb)}</b>${Math.abs(efb-m0)>=1?` <button class="ovx" data-ov="efb" data-v="${f(efb)}">Use</button>`:""}</span>`:""}${r?`<span>Yours <b>${f(r.m)}</b> · ${r.until?"until "+fmtDate(r.until).replace(/^\w+, /,""):"ROS"}</span>`:""}</div>
+    <div class="ovst"><button class="ovsb" data-ovs="-1" aria-label="One minute less">−</button><input id="ovM" type="number" inputmode="decimal" min="0" max="48" step="0.5" value="${m0}"><button class="ovsb" data-ovs="1" aria-label="One minute more">+</button><span class="ovp"></span></div>
+    <div class="ovsp"><span>How long</span>${OVSPAN.map(([k,l])=>`<button data-ovu="${k}" aria-pressed="${k===span}">${l}</button>`).join("")}<input id="ovU" type="date" min="${t}" value="${span==="date"&&r?r.until:""}"${span==="date"?"":" hidden"}></div>
+    <div class="ovf"><button class="ovx sv" data-ov="save">Save</button>${r?`<button class="ovx dn" data-ov="clear">Clear</button>`:""}</div>
+    <p class="stkn">Your own minutes for him: they replace the model's minutes everywhere (ranks, Week, Today, Matchup, streaming plan, IL+, Build and the analyst); what he does per minute stays the model's. The Proj rank beside the minutes is a preview: try any number, nothing changes until you Save. How long: ROS keeps it until you clear it; 1 / 2 / 4 weeks end it then (a fill-in role), or pick a date. Shared through your relay, so every device sees it.</p></section>`}
 function linesHTML(id,q,rq){
   const B=S.bs,rows=[],DL=d=>new Date(d+"T12:00:00Z").toLocaleDateString("en-US",{weekday:"short",timeZone:"UTC"}),t=etToday();
   const xr=l=>{const v=pjVal(pjZ(l));return B&&B.xs?1+B.xs.filter(x=>x>v).length:null};
@@ -4633,10 +4665,15 @@ $("psBody").addEventListener("click",e=>{
   const t=e.target.closest("[data-pst]");if(t){S.ps.tab=t.dataset.pst;S.ps.sel=null;renderSheet();$("psPanel").scrollTop=0;return}
   const rw=e.target.closest("[data-rwin]");if(rw){S.roleWin=rw.dataset.rwin;store.set("roleWin",S.roleWin);renderSheet();return}
   const ln=e.target.closest("[data-psln]");if(ln){S.psLn=ln.dataset.psln;store.set("psLn",S.psLn);renderSheet();return}
-  const ob=e.target.closest("[data-ov]");if(ob&&S.ps&&S.ps.id){const id=S.ps.id,a=ob.dataset.ov,u=($("ovU")||{}).value||"";
-    if(a==="clear")ovSave(id,null);else if(a==="efb")ovSave(id,+ob.dataset.v,u);
-    else{const v=parseFloat(($("ovM")||{}).value);if(!(v>=0&&v<=48)){alert("Enter minutes between 0 and 48.");return}ovSave(id,v,u)}return}
+  const os=e.target.closest("[data-ovs]");if(os){const i=$("ovM");i.value=Math.max(0,Math.min(48,Math.round((parseFloat(i.value)||0)+ +os.dataset.ovs)));ovPreview();return}
+  const ou=e.target.closest("[data-ovu]");if(ou){const box=ou.closest(".ovb");box.dataset.span=ou.dataset.ovu;box.querySelectorAll("[data-ovu]").forEach(b=>b.setAttribute("aria-pressed",b===ou));
+    const d=$("ovU");d.hidden=ou.dataset.ovu!=="date";if(!d.hidden&&!d.value)d.value=dPlus(etToday(),21);ovPreview();return}
+  const ob=e.target.closest("[data-ov]");if(ob&&S.ps&&S.ps.id){const id=S.ps.id,a=ob.dataset.ov,box=ob.closest(".ovb"),sp=box&&box.dataset.span||"ros",
+    days=(OVSPAN.find(([k])=>k===sp)||[])[2],u=sp==="date"?($("ovU")||{}).value||"":days?dPlus(etToday(),days):"";
+    if(a==="clear")ovSave(id,null);else if(a==="efb"){$("ovM").value=ob.dataset.v;ovPreview()}
+    else{const v=parseFloat(($("ovM")||{}).value);if(!(v>=0&&v<=48)){alert("Enter minutes between 0 and 48.");return}ovSave(id,v,u,sp)}return}
   const p=e.target.closest(".wwo [data-id]");if(p)openSheet(p.dataset.id,null)});
+document.addEventListener("input",e=>{if(e.target&&(e.target.id==="ovM"||e.target.id==="ovU"))ovPreview()});
 $("psClose").onclick=()=>closeSheet();
 $("srBtn").onclick=openSearch;
 $("srX").onclick=()=>closeSearch();
