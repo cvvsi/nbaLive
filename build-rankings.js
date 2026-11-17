@@ -173,21 +173,10 @@ const MIN_HALF = 5;          // minutes: recent games count more, a game 5 games
 // 2025-26, out of sample): 5.1% less error than the flat average + 5 games over the next 10
 // games, 2.0% over the rest of the season; better at every checkpoint from 5 to 45 games. A
 // rolling window (last 10-15 games) gained less; counting blowouts or 5-foul games less, nothing.
-// Injury exits (Nov 2026): a game under EXIT_FRAC of his usual minutes so far (or last season's mpg)
-// that's followed by a missed team game (for his latest game: listed out on the injury report now)
-// counts EXIT_W as much. backtest-minutes.js, 2023-24 to 2025-26 out of sample: -1% error over the
-// rest of the season, -2% on players who left a game hurt, level over the next 10 games; leaving
-// such games out entirely was worse (they come back limited or get hurt again, and the box score
-// can't tell an injury exit from a benching). Every season picked 0.7; the weight 0.25-0.5.
-const EXIT_FRAC = 0.7, EXIT_W = 0.5;
-function fadeMpg(mins, ly, exits) {
+function fadeMpg(mins, ly) {
   let a = 0, w = 0;
+  for (let i = 0; i < mins.length; i++) { const k = Math.pow(.5, (mins.length - 1 - i) / MIN_HALF); a += k * mins[i]; w += k; }
   const G = ly == null ? 0 : PRIOR_GP;
-  for (let i = 0; i < mins.length; i++) {
-    const k = Math.pow(.5, (mins.length - 1 - i) / MIN_HALF), usual = w ? (a + G * (ly || 0)) / (w + G) : ly;
-    const e = exits && exits[i] && usual != null && mins[i] < EXIT_FRAC * usual ? EXIT_W : 1;
-    a += k * e * mins[i]; w += k * e;
-  }
   return w + G ? (a + G * (ly || 0)) / (w + G) : 0;
 }
 const BASE_MIN = 500;        // under this many minutes last season, the season before counts in full
@@ -363,24 +352,17 @@ function nextMan(games, scored, rankings) {
 }
 
 // Every player's projected per-game line from some games (see expectedLine), ready for score().
-function projLines(games, H, RP, outNow) {
-  const tot = totals(games), lines = [], pos = {}, mins = {}, exits = {};
-  // each game, and whether he missed his team's next one (an injury exit, if the game was short:
-  // see fadeMpg); for his latest game, whether he's listed out now (outNow: a Set of ids, or none)
-  const sorted = [...games].sort((a, b) => a.date < b.date ? -1 : 1), nextOf = {}, last = {};
-  for (let gi = sorted.length - 1; gi >= 0; gi--) for (const t of new Set(sorted[gi].rows.map(r => r.team))) {
-    if (last[t] != null) nextOf[t + '|' + gi] = last[t]; last[t] = gi; }
-  sorted.forEach((g, gi) => { for (const r of g.rows) {
+function projLines(games, H, RP) {
+  const tot = totals(games), lines = [], pos = {}, mins = {};
+  for (const g of [...games].sort((a, b) => a.date < b.date ? -1 : 1)) for (const r of g.rows) {
     if (r.pos) pos[r.id] = r.pos;
     (mins[r.id] || (mins[r.id] = [])).push(r.min);
-    const nx = nextOf[r.team + '|' + gi];
-    (exits[r.id] || (exits[r.id] = [])).push(nx != null ? !sorted[nx].rows.some(q => q.id === r.id) : !!(outNow && outNow.has(r.id)));
-  } });
+  }
   for (const s of Object.values(tot)) {
     const h = H.players[s.id], b = baseline(h && { seasons: H.seasons, s: h.s });
     // No baseline: the rookie prior for his position (see ROOKIE_K), or the raw line without one.
     const rk = !b && RP ? RP[grp(pos[s.id] || '')] || RP.F : null;
-    const x = b ? expectedLine(s, b.t, fadeMpg(mins[s.id] || [], b.t.mpg, exits[s.id])) : rk ? expectedLine(s, rk, s.min / s.gp, ROOKIE_K) : expectedLine(s, NOBASE, s.min / s.gp);
+    const x = b ? expectedLine(s, b.t, fadeMpg(mins[s.id] || [], b.t.mpg)) : rk ? expectedLine(s, rk, s.min / s.gp, ROOKIE_K) : expectedLine(s, NOBASE, s.min / s.gp);
     lines.push({ id: s.id, gp: s.gp, ...x, s, b, rk, rkPos: rk ? (RP[grp(pos[s.id] || '')] ? grp(pos[s.id] || '') : 'F') : null });
   }
   return lines;
@@ -414,12 +396,7 @@ function buildRegression(games, asOf, rankings) {
   let H = null;
   try { H = JSON.parse(fs.readFileSync(HIST, 'utf8')); }
   catch (e) { console.log(`${HIST} missing: run node build-history.js once. Skipping ${REG}.`); return; }
-  // players listed out right now (the injury report in the repo, from the last run): a short latest
-  // game of theirs counts as an injury exit in the minutes average
-  let outNow = null;
-  try { const ij = JSON.parse(fs.readFileSync('data/injuries.json', 'utf8')).players || {}, today = new Date().toISOString().slice(0, 10);
-    outNow = new Set(Object.keys(ij).filter(id => /out/i.test(ij[id][0]) && !(ij[id][1] && ij[id][1] <= today))); } catch (e) { }
-  const RP = rookiePriors(), lines = projLines(games, H, RP, outNow);
+  const RP = rookiePriors(), lines = projLines(games, H, RP);
   const out = {}, cx = context(games), scored = score(lines);
   for (const p of scored) {
     out[p.id] = { n: p.s.name, t: p.s.team,
