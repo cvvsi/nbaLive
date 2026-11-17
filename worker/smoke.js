@@ -21,6 +21,8 @@ const u = 'https://sixthman-yahoo.saac-choi.workers.dev', key = process.env.RELA
           console.log('lineups', t === o.me ? 'me ' : 'opp', line);
         }
       } else console.log('lineups: MISSING');
+      const tags = {}; for (const p of o.p) if (p[6]) tags[p[6]] = (tags[p[6]] || 0) + 1;
+      console.log('Yahoo status tags league-wide:', JSON.stringify(tags), '| mine tagged:', o.p.filter(p => p[3] === o.me && p[6]).length, 'of', o.p.filter(p => p[3] === o.me).length);
       console.log('schedule weeks:', Object.keys(o.sched).length, '| categories:', (o.cfg.cats || []).join(' '), '| positions:', Object.keys(o.cfg.pos || {}).join(' '));
       return;
     }
