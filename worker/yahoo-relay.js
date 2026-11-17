@@ -14,7 +14,8 @@
  *               settings (cfg), each player's eligible positions and status (p[i][5], p[i][6]),
  *               and both matchup teams' lineups for every day of the week (lu: team -> date ->
  *               {yahoo player id: [slot, played]}; played is 1 / 0 for days already played, from
- *               Yahoo's own stats for that day, null for days to come).
+ *               Yahoo's own stats for that day, null for days to come), and the best 150
+ *               available players with their eligible positions and status tags (fa).
  *
  * Deployed by .github/workflows/relay.yml (Actions -> Yahoo relay). */
 
@@ -158,7 +159,21 @@ async function buildSync(env) {
     await Promise.all(jobs);
   }
 
-  return { v: 1, src: 'api', lid: String(meta.league_id), at: new Date().toISOString(), me, teams, p, act, mu, sched, adds, cfg, lu };
+  // The best 150 available players (free agents and waivers) by Yahoo's season rank, with their
+  // eligible positions and status tags, for pickups in the IL+ optimizer: [id, name, team, positions, tag].
+  const fa = [];
+  const pages = await Promise.all([0, 25, 50, 75, 100, 125].map(st =>
+    yf(env, `/league/${lk}/players;status=A;sort=AR;start=${st};count=25`).catch(() => null)));
+  for (const fc of pages) {
+    if (!fc) continue;
+    for (const x of items(pick(fc.league, 'players'))) {
+      const pm = flat(x.player[0]);
+      fa.push([String(pm.player_id), (pm.name && pm.name.full) || '', String(pm.editorial_team_abbr || '').toUpperCase(),
+        (pm.eligible_positions || []).map(e => e.position).filter(Boolean).join(','), pm.status || '']);
+    }
+  }
+
+  return { v: 1, src: 'api', lid: String(meta.league_id), at: new Date().toISOString(), me, teams, p, act, mu, sched, adds, cfg, lu, fa };
 }
 
 // One team's lineup on one day: {player id: [slot, played]}. With stats (days already played) it
