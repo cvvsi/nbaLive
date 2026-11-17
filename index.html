@@ -799,6 +799,13 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .lgchip{flex:none;display:flex;align-items:center;gap:6px;height:30px;padding:0 7px;border:1px solid var(--rule);border-radius:7px;color:var(--dim);text-decoration:none;font:500 11px/1 var(--num);position:relative}
 .lgchip svg{width:16px;height:16px}
 .lgchip.busy{opacity:.55}
+.ilpd{display:grid;grid-template-columns:44px 1fr;gap:8px;padding:7px 0;border-top:1px solid var(--rule)}
+.ilpd .myd i{display:block;font:500 10px/1.3 var(--num);color:var(--dim);font-style:normal}
+.ilpl>div:first-child{display:flex;flex-wrap:wrap;gap:3px 9px;font:500 13px/1.35 var(--name)}
+.ilpl span em{font:500 9px/1 var(--num);color:var(--dim);font-style:normal;margin-right:3px}
+.ilpl span.chg{color:var(--ball);font-weight:700}
+.ilpl .ilr{font:500 10px/1 var(--num);color:var(--neg);font-style:normal}
+.ilpk,.ilps{font:500 12px/1.35 var(--name);color:var(--dim);margin-top:3px}.ilpk b{color:var(--ink)}.ilpk i{font-style:normal}
 .mlu{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0 2px;font:500 12px/1 var(--name);color:var(--dim)}
 .mlu button{font:600 12px/1 var(--name);color:var(--ink);background:none;border:1px solid var(--rule);border-radius:999px;padding:7px 11px;cursor:pointer}
 .mlu button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -1298,12 +1305,12 @@ function lgIx(){
   const full={},tlf={},seen=new Set();
   for(const[id,q]of src){if(seen.has(id)||!q||!q.n)continue;seen.add(id);const k=lgKey(q.n),w=k.split(" ");
     (full[k]||(full[k]=[])).push([id,q.t]);const t=`${q.t}|${w[w.length-1]}|${w[0][0]}`;(tlf[t]||(tlf[t]=[])).push([id,q.t])}
-  const own={},slot={},eid={},miss=[];
-  for(const[yp,name,yt,ft,sl]of ML.p){const t=YT[yt]||yt,k=lgKey(name),w=k.split(" ");let c=full[k]||[];
+  const own={},slot={},eid={},el={},ys={},miss=[];
+  for(const[yp,name,yt,ft,sl,pe,pst]of ML.p){const t=YT[yt]||yt,k=lgKey(name),w=k.split(" ");let c=full[k]||[];
     if(c.length!==1)c=c.filter(x=>x[1]===t);
     if(!c.length)c=(tlf[`${t}|${w[w.length-1]}|${w[0][0]}`]||[]);
-    if(c.length){own[c[0][0]]=String(ft);slot[c[0][0]]=sl||"";eid[yp]=c[0][0]}else miss.push(name)}
-  return LGX={n:src.length,own,slot,eid,miss};
+    if(c.length){own[c[0][0]]=String(ft);slot[c[0][0]]=sl||"";eid[yp]=c[0][0];if(pe)el[c[0][0]]=String(pe).split(",");ys[c[0][0]]=pst||""}else miss.push(name)}
+  return LGX={n:src.length,own,slot,eid,el,ys,miss};
 }
 const lgOf=id=>{const x=lgIx();return x?(x.own[id]||null):undefined};
 const lgTag=id=>ML&&lgOf(id)===String(ML.me)?`<i class="lgt">Mine</i>`:"";
@@ -3128,6 +3135,88 @@ function myPlanWire(el,ctx,m){const again=()=>{const y=scrollY;muSave();renderMU
   sec.querySelectorAll("[data-dr]").forEach(c=>c.onchange=()=>{const d=myDrops(ctx);c.checked?d.add(c.dataset.dr):d.delete(c.dataset.dr);const o=store.get("myDrop",{});o[myKey(ctx)]=[...d];store.set("myDrop",o);again()});
   sec.querySelectorAll("[data-pl]").forEach(b=>b.onclick=()=>{const k=b.dataset.pl,g=myPlanGet(ctx,()=>{});m.plan=k==="x"||!g.pl?[]:(+k?g.pl.alts[+k-1]:g.pl.best).moves.map(v=>({...v}));again()});
   const dd=sec.querySelector(".mydd");if(dd)dd.ontoggle=()=>store.set("myDD",dd.open?1:0)}
+// ---- IL+ optimizer (Matchup, with the relay's lineup slots, eligible positions and Yahoo's status
+// tags). Yahoo lets you move a player into an IL slot while he carries an injury tag (Q, P, D, O,
+// INJ, GTD...), checked when you make the move, and lets you set lineups days ahead. So players
+// tagged right now can be parked in IL on future days, which frees roster room: everyone on a roster
+// of active + bench + IL spots stays usable, and a free agent can be added with no drop by parking a
+// tagged player today. The catch: once a parked player loses his tag, Yahoo blocks adds and drops
+// until he's out of the IL slot, and an add or drop can reset the lineups you preset.
+// Each day left: which tagged players to park (as many as the roster needs to fit the active and
+// bench spots; every choice tried) and the best legal active lineup by Yahoo's eligible positions,
+// each player weighted by his chance to play that day times his value from zero. The lineup is the
+// heaviest set of players the slots can hold: a greedy pick checked by augmenting paths, which is
+// exact here (the sets that fit a set of slots form a matroid). Chance to play (ilpP): out on the
+// injury report 0; Doubtful .25 / Questionable .5 on the next two days, .6 / .75 after; Day-To-Day
+// .7; Probable .9; back from an absence .8; healthy .97. Free agents' positions come from our data
+// (G / F / C), rostered players' from Yahoo.
+const ILTAG=st=>!!st&&!/^(NA|SUSP|SUSPENDED)$/i.test(String(st).trim());
+const dPlus=(d,n)=>{const x=new Date(d+"T12:00:00Z");x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10)};
+const ILPOS={G:["PG","SG","G","Util"],F:["SF","PF","F","Util"],C:["C","Util"]};
+const ilpPos=id=>{const r=typeof R!=="undefined"&&R&&R.players&&R.players[id];return r&&r.p||""};
+function ilpP(id,d,today){if(!avail(id,d))return 0;const i=ijOf(id),s=i?String(i[0]):"",soon=d<=dPlus(today,1);
+  if(/doubt/i.test(s))return soon?.25:.6;if(/question/i.test(s))return soon?.5:.75;if(/day-to-day/i.test(s))return .7;if(/probable/i.test(s))return .9;
+  if(i&&ijOut(i)&&i[1]&&d>=i[1])return .8;return .97}
+function ilpSlots(){const pos=(ML.cfg&&ML.cfg.pos)||{},act=[];let il=0,bn=0;
+  for(const[k,n]of Object.entries(pos)){if(/^(IL|IR)/i.test(k))il+=n;else if(/^BN$/i.test(k))bn+=n;else if(!/^NA$/i.test(k))for(let i=0;i<n;i++)act.push(k)}
+  return{act,il,bn}}
+function ilpFill(c,act){const m=Array(act.length).fill(-1);
+  const aug=(pi,seen)=>{for(let s=0;s<act.length;s++){if(seen[s]||!c[pi].el.includes(act[s]))continue;seen[s]=1;if(m[s]<0||aug(m[s],seen)){m[s]=pi;return true}}return false};
+  let w=0;for(const pi of c.map((_,i)=>i).sort((a,b)=>c[b].w-c[a].w)){if(c[pi].w<=0)break;if(aug(pi,[]))w+=c[pi].w}
+  return{m,w}}
+function*ilpComb(a,k,i=0,cur=[]){if(cur.length===k){yield cur.slice();return}for(let j=i;j<a.length;j++){cur.push(a[j]);yield*ilpComb(a,k,j+1,cur);cur.pop()}}
+// One roster over the days left: the best parking + lineup each day, or null if it can't be made legal.
+function ilpRun(ps,X){const days=[];let ev=0,g=0;
+  for(const d of X.rest){const need=Math.max(0,ps.length-X.sl.act.length-X.sl.bn),tag=ps.filter(o=>o.tag);
+    if(need>X.sl.il||need>tag.length)return null;
+    const P=new Map(ps.map(o=>[o.id,plays(o.q.t,d)?ilpP(o.id,d,X.today):0]));
+    const W=new Map(ps.map(o=>{const p=P.get(o.id);return[o.id,p?p*Math.max(.05,muFz(muLine(o.id,o.q,d,X.C).z,X.F)+X.zo):0]}));
+    let best=null;
+    for(const park of ilpComb(tag,need)){const pk=new Set(park.map(o=>o.id)),c=ps.filter(o=>!pk.has(o.id)).map(o=>({o,el:o.el,w:W.get(o.id)}));
+      const f=ilpFill(c,X.sl.act);if(!best||f.w>best.w+1e-9)best={w:f.w,park,act:f.m.map((pi,s)=>pi<0?null:{slot:X.sl.act[s],o:c[pi].o}).filter(Boolean)}}
+    const gd=best.act.reduce((a,e)=>a+P.get(e.o.id),0);ev+=best.w;g+=gd;
+    // the lineup as set on Yahoo now, weighed the same way (only for players on Yahoo's lineup)
+    const cur=X.lk?ps.filter(o=>X.lk[o.id+"|"+d]===1):null;
+    days.push({d,...best,P,g:gd,cw:cur?cur.reduce((a,o)=>a+W.get(o.id),0):null,cg:cur?cur.reduce((a,o)=>a+P.get(o.id),0):null,cur:cur&&new Set(cur.map(o=>o.id))})}
+  return{days,ev,g,cw:days.every(x=>x.cw!=null)?days.reduce((a,x)=>a+x.cw,0):null,cg:days.every(x=>x.cg!=null)?days.reduce((a,x)=>a+x.cg,0):null}}
+// The section: roster room, who's tagged, the best lineups day by day, and pickups worth parking for.
+function ilpSec(X){
+  const x=lgIx(),sl=ilpSlots();if(!sl.act.length||!sl.il)return"";
+  const mk=o=>({...o,tag:ILTAG(x.ys[o.id]),ys:x.ys[o.id]||"",el:x.el[o.id]||ILPOS[ilpPos(o.id)]||["Util"],fa:x.own[o.id]==null,pos:ilpPos(o.id)});
+  const ps=X.ps.map(mk),cap=sl.act.length+sl.bn+sl.il,X2={...X,sl};
+  const base=ilpRun(ps,X2);
+  const nm=o=>esc(surname(o.q.n)),sh=d=>d===X.today?"Today":fmtDate(d).split(",")[0];
+  const tags=ps.filter(o=>o.tag);
+  const head=`<section class="msec mpln ilp"><h3 class="myh">IL+ optimizer</h3><div class="mysub">${ps.length} of ${cap} roster spots · ${sl.il} IL · ${tags.length} tagged now</div>
+    <p class="stkn">Yahoo lets you move a player into an IL slot while he has an injury tag (Q, P, D, O, INJ, GTD), checked when you make the move, and lets you set lineups days ahead. So players tagged right now can be parked in IL on future days: that frees roster room, so all ${cap} players (${sl.act.length} active, ${sl.bn} bench, ${sl.il} IL) stay usable, and you can add a free agent with no drop by parking a tagged player today. For each day left this picks who to park and the best legal lineup by Yahoo's positions, weighing each player by his chance to play that day (injury report: Out 0, Doubtful 25%, Questionable 50% near the game, Day-To-Day 70%, Probable 90%) times his value. <b>The catch:</b> once a parked player loses his tag, Yahoo blocks adds and drops until he's out of IL, an add or drop can reset lineups you've preset, and tags change, so re-check daily. Free agents' positions are estimated (G / F / C); your players' are Yahoo's.</p>`;
+  if(!X.rest.length)return head+`<div class="mye">No days left in this week.</div></section>`;
+  if(!base)return head+`<div class="mye">Your roster can't be made legal on every day left with the players tagged now (more players than active + bench spots, and not enough tagged to park).</div></section>`;
+  // pickups: free agents added today by parking a tagged player (no drop), best first; then a second on top
+  const room=cap-ps.length,R={};let pick=[];
+  if(room>0&&tags.length){const cand=X.fa.slice(0,14).map(mk);
+    pick=cand.map(o=>{const r=ilpRun([...ps,o],X2);return r?{o,r,gain:r.ev-base.ev}:null}).filter(v=>v&&v.gain>.05).sort((a,b)=>b.gain-a.gain).slice(0,3);
+    if(room>1&&pick.length){const p1=pick[0],two=cand.filter(o=>o.id!==p1.o.id).map(o=>{const r=ilpRun([...ps,p1.o,o],X2);return r?{o,r}:null}).filter(Boolean).sort((a,b)=>b.r.ev-a.r.ev)[0];
+      if(two&&two.r.ev-p1.r.ev>.05)pick.unshift({o:p1.o,o2:two.o,r:two.r,gain:two.r.ev-base.ev})}}
+  const expOf=(r,adds)=>{const set={};for(const dd of r.days){const on=new Set(dd.act.map(e=>e.o.id));for(const o of[...ps,...adds])set[o.id+"|"+dd.d]=on.has(o.id)?1:0}
+    return{set,O:X.odds([...X.ps,...adds.map(o=>X.P(o.id))],set)}};
+  const opt=expOf(base,[]);R.base={set:opt.set,add:[]};
+  const daysHTML=r=>r.days.map(dd=>{const on=new Set(dd.act.map(e=>e.o.id)),sit=dd.cur?[...dd.cur].filter(id=>!on.has(id)&&dd.P.get(id)>0).map(id=>ps.find(o=>o.id===id)).filter(Boolean):[];
+    const risk=e=>{const p=dd.P.get(e.o.id);return p<.8?` <i class="ilr">${Math.round(p*100)}%</i>`:""};
+    return`<div class="ilpd"><div class="myd">${sh(dd.d)}<i>${dd.g.toFixed(1)}g</i></div><div class="ilpl">
+      <div>${dd.act.map(e=>`<span class="${dd.cur&&!dd.cur.has(e.o.id)?"chg":""}${e.o.fa?" fa":""}"><em>${e.slot}</em>${nm(e.o)}${risk(e)}</span>`).join("")}</div>
+      ${dd.park.length?`<div class="ilpk"><b>IL</b> ${dd.park.map(o=>{const p=plays(o.q.t,dd.d)?dd.P.get(o.id):0;return`${nm(o)} <i>${esc(o.ys)}</i>${p>.3?` <i class="ilr">${Math.round(p*100)}% to play</i>`:""}`}).join(" · ")}</div>`:""}
+      ${sit.length?`<div class="ilps">Bench (playing, but active on Yahoo now): ${sit.map(nm).join(", ")}</div>`:""}</div></div>`}).join("");
+  const vs=base.cg!=null?`Expected games left <b>${base.cg.toFixed(1)} → ${base.g.toFixed(1)}</b> against your lineups on Yahoo now`:`Expected games left <b>${base.g.toFixed(1)}</b>`;
+  const pkHTML=pick.map((v,i)=>{const adds=[v.o,v.o2].filter(Boolean),e=expOf(v.r,adds);R["p"+i]={set:e.set,add:adds.map(o=>o.id)};
+    const park=v.r.days[0].park.filter(o=>!base.days[0].park.some(q=>q.id===o.id));
+    return`<details class="myalt"><summary><b>Add ${adds.map(nm).join(" + ")}</b> <i>${adds.map(o=>esc(o.q.t)+" "+esc(o.pos)).join(", ")} · +${(v.r.g-base.g).toFixed(1)} games · ${e.O.exp.toFixed(1)} cats</i></summary>
+      <div class="mysum">Today: add ${adds.map(nm).join(" and ")} (no drop)${park.length?`, with ${park.map(nm).join(" and ")} in IL`:", parking a tagged player in IL"}. Expected games <b>${base.g.toFixed(1)} → ${v.r.g.toFixed(1)}</b>, expected categories <b>${opt.O.exp.toFixed(1)} → ${e.O.exp.toFixed(1)}</b>. Uses ${adds.length} of your adds.</div>
+      ${daysHTML(v.r)}<div class="mypl"><button class="myuse" data-mu="ilp" data-x="p${i}">Put in the grid</button></div></details>`}).join("");
+  S.ilpR=R;
+  return head+`<div class="mysum">${vs}; expected categories <b>${opt.O.exp.toFixed(1)}</b>.${tags.length?` Tagged now: ${tags.map(o=>`${nm(o)} <i>${esc(o.ys)}</i>`).join(", ")}.`:" Nobody on your roster is tagged now, so nobody can be parked."}</div>
+    <div class="mypl"><b>Best lineups</b><button class="myuse" data-mu="ilp" data-x="base">Put in the grid</button></div>${daysHTML(base)}
+    ${room>0?`<div class="mypl"><b>Pickups</b><span class="dim">${room} open roster spot${room>1?"s":""}${tags.length?"":" · nobody tagged to park"}</span></div>${pkHTML||`<div class="mye">No free agent adds enough to be worth it.</div>`}`:""}
+    <p class="mhint">Orange: not in your Yahoo lineup now. % = chance to play. Set these on Yahoo day by day (tap a future date on your team page).</p></section>`}
 function renderMy(){
   const el=$("pjList");$("pjStatus").textContent="";$("pjAsOf").textContent="";
   const ctx=myCtx();if(!ctx)return pjMsg(ML?"Loading…":"Sync your league from Yahoo to see your day.");
@@ -3401,6 +3490,7 @@ function renderMU(){
     <div class="mfs"><div class="msw"><div><b>${esc(nameB)}</b>${scout(opId)}</div><div><b>${esc(nameA)}</b>${scout(me)}</div></div>
     <p class="mhint">${isS?"Projected finals: Yahoo's totals so far (small gray \"now\", as of your sync) plus Proj for the days left.":"Projected finals for the whole week (Proj only)."} G = games that count${isS&&pA.gx?" (so far: Yahoo's starters who played; days left: "+(S.muLu==="y"&&lkA?"your lineups as set on Yahoo":"the best lineup each day")+")":""}. Small ranks mark where a team is top or bottom 3 of the ${nT} teams this week. Tick categories to <b>target</b> them: the lineup, sort and Cats then go by those only (ticking all but 3PM = punting 3PM). <b>Swing</b> (underlined) = still in play, 30–70%: where a pickup can flip the result; the Target these button ticks just those. The score always counts all 9.</p></div></div>
     ${rest.length?myPlanSec(pctx,plan):""}
+    ${isS&&ML.cfg&&ML.cfg.pos?ilpSec({ps:mine.filter(o=>!o.pl),rest,today,F,C,zo,fa,lk:lkA,P,odds:(ps,set)=>muOdds(cA,cB,pA,pB,muSimD(ps,rest,capA,F,set,C,[],null,null),B,off)}):""}
     <div class="msec mme"><div class="msh"><b>${esc(nameA)}</b><span>${gA} games left · by ${esc(lab)}</span></div>${hd(A,capA,"me")}
       ${grp(mineAll,o=>row(o,A,o.pl||plOff[o.id]?"":o.nw?"undrop":"drop"))}${dropped.map(o=>row(o,A,"undo")).join("")}
       <p class="mhint">Tap a game to start or sit him. <span class="dc s1"></span> counts · <span class="dc s2"></span> sits (no spot) · <span class="dc s3"></span> you started him · <span class="dc s4"></span> you sat him · <span class="dc ot"></span> out (injury report).</p></div>
@@ -3423,6 +3513,7 @@ function muClick(e){const b=e.target.closest("[data-mu]");if(!b||!S.mus)return;i
   else if(a==="more")m.fa+=10;else if(a==="reset"){m.add.clear();m.drop.clear();m.set={};m.plan=[]}
   else if(a==="day"){const c=b.className;if(m.set[k]!=null)delete m.set[k];else m.set[k]=/\bs1\b/.test(c)?0:1}
   else if(a==="opp")m.oo=!m.oo;
+  else if(a==="ilp"){const r=S.ilpR&&S.ilpR[k];if(r){m.set={...r.set};for(const id of r.add)m.add.add(id)}}
   else if(a==="lu"){S.muLu=k==="b"?"b":"y";store.set("muLu",S.muLu)}
   else if(a==="wk"){muSave();S.muWk+=+k;renderMU();return}
   const y=scrollY;muSave();renderMU();scrollTo(0,y)}
