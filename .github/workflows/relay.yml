@@ -1,7 +1,7 @@
 # Deploys the private Yahoo relay (worker/yahoo-relay.js) to Cloudflare and sets its secrets from
 # the repo secrets. Run it once to set up, again after a Yahoo login (new token) or a new client
 # secret, and after changing worker/. Needs repo secrets CLOUDFLARE_API_TOKEN (template "Edit
-# Cloudflare Workers"), CLOUDFLARE_ACCOUNT_ID and RELAY_KEY (your passphrase, 16+ characters), plus
+# Cloudflare Workers") and RELAY_KEY (your passphrase, 16+ characters), plus
 # the YAHOO_* ones. Logs show no secrets: the secrets file goes to a temp path and is deleted.
 name: Yahoo relay
 
@@ -16,7 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -37,4 +36,4 @@ jobs:
           node worker/secrets.js > "$f"
           npx --yes wrangler@4 secret bulk "$f" --config worker/wrangler.toml
           rm -f "$f"
-          echo "Relay ready. Its address is the workers.dev URL printed by the deploy step above."
+          echo "Relay ready: https://sixthman-yahoo.saac-choi.workers.dev"
