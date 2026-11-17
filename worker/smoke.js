@@ -11,6 +11,16 @@ const u = 'https://sixthman-yahoo.saac-choi.workers.dev', key = process.env.RELA
       console.log('slots:', JSON.stringify(slots), '| eligible positions on', o.p.filter(p => p[5]).length, 'players');
       console.log('active spots:', JSON.stringify([...new Set(Object.values(o.act))]), '| adds:', o.adds && o.adds[o.me] != null ? 'read' : 'not read', '| max weekly adds:', o.cfg && o.cfg.maxAdds);
       console.log('matchup:', o.mu ? `week ${o.mu.week}, ${o.mu.dates.length} days, ${o.mu.rows.length} teams, columns ${o.mu.lab.join(' ')}, attempts ${o.mu.rows.every(r => r.x && r.x.fga != null && r.x.fta != null) ? 'read' : 'not read'}` : 'MISSING');
+      if (o.lu) {
+        const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+        for (const t of Object.keys(o.lu)) {
+          const line = Object.keys(o.lu[t]).sort().map(d => {
+            const v = Object.values(o.lu[t][d]), act = v.filter(x => x[0] && !/^(BN|IL|IR|NA)/.test(x[0]));
+            return d.slice(5) + ':' + act.length + 'act' + (d <= today ? '/' + act.filter(x => x[1] === 1).length + 'pl' + (act.some(x => x[1] == null) ? '?' : '') : '');
+          }).join(' ');
+          console.log('lineups', t === o.me ? 'me ' : 'opp', line);
+        }
+      } else console.log('lineups: MISSING');
       console.log('schedule weeks:', Object.keys(o.sched).length, '| categories:', (o.cfg.cats || []).join(' '), '| positions:', Object.keys(o.cfg.pos || {}).join(' '));
       return;
     }
