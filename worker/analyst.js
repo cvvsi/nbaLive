@@ -62,9 +62,17 @@ function injTxt(S, id) {
   const i = inj(S, id); if (!i) return null;
   return [i[0], i[1] ? 'back ~' + i[1] : null, i[2] ? String(i[2]).slice(0, 160) : null].filter(Boolean).join(' · ');
 }
-function projLine(S, id) {
+// His Proj line as an object; with a minutes override of yours (L.ov, set on the site), at your
+// minutes: per-minute rates stay the model's, counts scale.
+function xpObj(S, L, id) {
   const q = S.A.p[id]; if (!q || !q.xp) return null;
   const o = {}; S.A.xpf.forEach((f, i) => o[f] = q.xp[i]);
+  const ov = L && L.ov && L.ov[id];
+  if (ov && o.min > 0) { const f = ov.m / o.min; for (const k in o) o[k] = k === 'min' ? ov.m : o[k] * f; }
+  return o;
+}
+function projLine(S, id, L) {
+  const o = xpObj(S, L, id); if (!o) return null;
   return { min: o.min, pts: o.pts, reb: o.reb, ast: o.ast, stl: o.stl, blk: o.blk, '3pm': o.tpm, to: o.to,
     'fg%': o.fga ? r3(o.fgm / o.fga) : null, fga: o.fga, 'ft%': o.fta ? r3(o.ftm / o.fta) : null, fta: o.fta };
 }
@@ -78,7 +86,9 @@ function card(S, L, row, opts = {}) {
   Object.assign(o, { proj_rank: q.pr, season_rank: q.sr, rank_14d: q.r14, rank_7d: q.r7, gp: q.gp, mpg: q.mpg,
     mpg_last3: q.m3 != null ? q.m3 : undefined, min_change_last3: q.dm3 != null ? q.dm3 : undefined, injury: injTxt(S, id) || undefined,
     games_left_this_week: games(S, id, q.t, tw).map(d => d.slice(5)), games_next_week: games(S, id, q.t, nw).length });
-  if (opts.line !== false) o.proj_per_game = projLine(S, id);
+  const ov = L.ov && L.ov[id];
+  if (ov) o.minutes_override = { yours: ov.m, model: q.xp ? q.xp[0] : null, until: ov.until || 'until cleared', note: 'set by you on Sixth Man; the Proj line below uses it, proj_rank is still the model\'s' };
+  if (opts.line !== false) o.proj_per_game = projLine(S, id, L);
   return o;
 }
 
@@ -194,7 +204,7 @@ function matchup(S, L, today) {
       const D = lu[d] || Object.fromEntries(roster.map(r => [r[0], [r[4]]])), on = [];
       for (const [yp, v] of Object.entries(D)) { if (!ACT(v[0])) continue; const r = yid[yp]; if (!r) continue; const id = espnId(S, r[1], r[2]), q = id && S.A.p[id];
         if (!q || !q.xp || !plays(S, q.t, d) || out(S, id, d)) continue; on.push(r[1]);
-        const o = {}; S.A.xpf.forEach((f, i) => o[f] = q.xp[i]); for (const k in add) add[k] += o[k] || 0; }
+        const o = xpObj(S, L, id); for (const k in add) add[k] += o[k] || 0; }
       days[d] = on;
     }
     return { team: L.teams[row.id], so_far: cur, made_attempted_so_far: { fg: [x.fgm, x.fga], ft: [x.ftm, x.fta] }, games_played_so_far: known ? playedSoFar : undefined,
@@ -226,6 +236,7 @@ function matchup(S, L, today) {
 const INSTRUCTIONS = `You are a fantasy basketball analyst for the user's own Yahoo league, with their league read live from Yahoo and Sixth Man's projections.
 League: 10 teams, head-to-head, 9 categories (FG%, FT%, 3PTM, PTS, REB, AST, ST, BLK, TO; fewer turnovers wins). Weekly matchups Mon-Sun, 4 adds a week. Lineup: PG, SG, G, SF, PF, F, C, C, Util, Util (10 active), 3 bench; this league allows 3 IL players (13 + 3 = 16 at most).
 Sixth Man ranks are plain 9-cat per-game ranks among all NBA players: proj_rank = rest of season (the best guide for adds and drops), season_rank, rank_14d, rank_7d. Inside 100 = a starter in a 10-team league, 101-130 = bench/streamer, beyond 130 = waiver level. Weekly value = games x per-game quality: a 4-game streamer can beat a better 2-game player for one week.
+Minutes overrides: the user can set a player's minutes by hand on Sixth Man (minutes_override on a player); the Proj line and the matchup projection use them, proj_rank stays the model's. When you think the model's minutes are off (an injury-shortened game, a restriction ending, a starter returning), say so and suggest an override.
 IL+ trick (the user uses it): a player with a Yahoo injury tag (Q, P, D, O, INJ, GTD) can be moved to IL; lineups can be preset days or weeks ahead and hold even after he's healthy, as long as there are no adds or drops. Each day the IL slots should hold tagged players who don't play that day; tagged players whose games overlap block each other. Any add or drop can reset preset lineups, and once a parked player loses his tag adds/drops are blocked. Use get_il_plus for this.
 Use the tools before answering; cite the numbers (ranks, games, win chances) and be decisive: give a recommendation, then the why. Start with get_my_team and get_matchup for most questions. Fantasy data provided by Yahoo Fantasy.`;
 
