@@ -17,7 +17,12 @@
  *               Yahoo's own stats for that day, null for days to come), and the best 150
  *               available players with their eligible positions and status tags (fa).
  *
+ * POST /mcp/<RELAY_KEY> (or /mcp with "Authorization: Bearer <RELAY_KEY>") -> the fantasy analyst, an
+ *               MCP server with read-only tools over the same data (worker/analyst.js).
+ *
  * Deployed by .github/workflows/relay.yml (Actions -> Yahoo relay). */
+
+import { mcp } from './analyst.js';
 
 const API = 'https://fantasysports.yahooapis.com/fantasy/v2';
 const SPOT_OFF = /^(BN|IL\+?|IR\+?|NA)$/i;
@@ -221,6 +226,14 @@ export default {
 
     const url = new URL(req.url);
     if (url.pathname === '/') return json({ ok: true, relay: 'sixthman-yahoo' });
+    // The analyst (MCP): the key in the path, for a claude.ai custom connector (a URL only), or as a Bearer token.
+    const mp = url.pathname.match(/^\/mcp(?:\/([^/]+))?\/?$/);
+    if (mp) {
+      const k = mp[1] ? decodeURIComponent(mp[1]) : (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+      if (!keyOk(k, env.RELAY_KEY || '')) return json({ error: 'Wrong or missing relay key.' }, 401);
+      try { return await mcp(req, env, { buildSync, leagueKey, yf, items, flat, pick }); }
+      catch (e) { return json({ error: e.message || String(e) }, 500); }
+    }
     if (!keyOk(req.headers.get('X-Relay-Key') || '', env.RELAY_KEY || '')) return json({ error: 'Wrong or missing relay key.' }, 401);
     try {
       if (url.pathname === '/sync' && req.method === 'GET') return json(await buildSync(env));
