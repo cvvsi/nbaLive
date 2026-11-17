@@ -3183,7 +3183,13 @@ function ilpRun(ps,X){const days=[];let ev=0,g=0;
 function ilpSec(X){
   const x=lgIx(),sl=ilpSlots();if(!sl.act.length||!sl.il)return"";
   const mk=o=>({...o,tag:ILTAG(x.ys[o.id]),ys:x.ys[o.id]||"",el:x.el[o.id]||ILPOS[ilpPos(o.id)]||["Util"],fa:x.own[o.id]==null,pos:ilpPos(o.id)});
-  const ps=X.ps.map(mk),cap=sl.act.length+sl.bn+sl.il,X2={...X,sl};
+  const ps=X.ps.map(mk);
+  // Yahoo tolerates a roster past its spots once the trick is in play (lineups can still be set):
+  // take the IL and bench room your Yahoo lineup already uses as the limit when it's more than the
+  // league's, so the roster you have is always workable.
+  const nIL=ps.filter(o=>/^(IL|IR)/.test(x.slot[o.id]||"")).length,nBN=ps.filter(o=>(x.slot[o.id]||"")==="BN").length;
+  sl.il=Math.max(sl.il,nIL);sl.bn=Math.max(sl.bn,nBN);
+  const cap=sl.act.length+sl.bn+sl.il,X2={...X,sl};
   const base=ilpRun(ps,X2);
   const nm=o=>esc(surname(o.q.n)),sh=d=>d===X.today?"Today":fmtDate(d).split(",")[0];
   const tags=ps.filter(o=>o.tag);
