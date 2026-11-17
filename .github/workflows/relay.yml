@@ -22,6 +22,10 @@ jobs:
         with:
           node-version: 22
 
+      # Storage for your minutes overrides (Cloudflare KV): found or created, bound as OV.
+      - name: Overrides storage
+        run: node worker/kv.js
+
       - name: Deploy the Worker
         run: npx --yes wrangler@4 deploy --config worker/wrangler.toml
 

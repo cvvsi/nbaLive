@@ -53,6 +53,12 @@ a{color:var(--ball)}
     <div class="st" id="rlSt"></div>
   </div>
 
+  <div class="card" id="ovCard" hidden>
+    <h2>Your minutes overrides</h2>
+    <p class="dim">Minutes you've set by hand on a player's page (Projection tab), shared across your devices through the relay. Each replaces the model's minutes everywhere until its end date or until you clear it.</p>
+    <div class="st" id="ovList"></div>
+  </div>
+
   <div class="card">
     <h2>Computer (Chrome, Edge, Firefox)</h2>
     <ol>
@@ -180,6 +186,15 @@ $r("rlGo").onclick=async()=>{const u=$r("rlU").value.trim().replace(/\/+$/,""),k
   catch(e){st.innerHTML=`<p><b>Sync failed:</b> ${esc(e.message||e)}</p><p class="dim">Check the address and key. "Failed to fetch" usually means a wrong address, or this page's address isn't in the relay's ALLOW_ORIGINS.</p>`}};
 $r("rlDel").onclick=()=>{if(confirm("Remove the relay from this device? Your saved league stays.")){store.del("relay");store.del("relayErr");$r("rlU").value="";$r("rlK").value="";paintRelay()}};
 paintRelay();
+// The overrides list, read live from the relay.
+async function paintOv(){const R=store.get("relay",null),card=$r("ovCard"),el=$r("ovList");if(!R)return;card.hidden=false;
+  try{const r=await fetch(R.u+"/minutes",{headers:{"X-Relay-Key":R.k},cache:"no-store"}),o=await r.json();if(!r.ok)throw new Error(o.error||r.status);
+    store.set("mov",o);const ids=Object.keys(o).sort((a,b)=>String(o[a].n).localeCompare(String(o[b].n)));
+    el.innerHTML=ids.length?ids.map(id=>`<p><b>${esc(o[id].n||id)}</b> ${esc(o[id].t||"")} · <b>${o[id].m}</b> min ${o[id].until?"until "+esc(o[id].until):"until cleared"} <button class="warn" data-ovc="${id}">Clear</button></p>`).join("")
+      :`<p class="dim">None yet. Open a player, Projection tab, Minutes.</p>`;
+    el.querySelectorAll("[data-ovc]").forEach(b=>b.onclick=async()=>{b.disabled=true;await fetch(R.u+"/minutes",{method:"POST",headers:{"X-Relay-Key":R.k,"Content-Type":"application/json"},body:JSON.stringify({id:b.dataset.ovc,m:null})});paintOv()})}
+  catch(e){el.innerHTML=`<p class="dim">Couldn't read the overrides: ${esc(e.message||e)}</p>`}}
+paintOv();
 function paint(){const L=store.get("league",null),el=document.getElementById("st");
   if(!L){el.innerHTML=`<p class="dim">No league saved on this device yet.</p>`;return}
   const d=new Date(L.at),n=Object.keys(L.teams||{}).length,mine=(L.teams||{})[L.me]||"–";

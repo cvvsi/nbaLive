@@ -799,6 +799,12 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .lgchip{flex:none;display:flex;align-items:center;gap:6px;height:30px;padding:0 7px;border:1px solid var(--rule);border-radius:7px;color:var(--dim);text-decoration:none;font:500 11px/1 var(--num);position:relative}
 .lgchip svg{width:16px;height:16px}
 .lgchip.busy{opacity:.55}
+.ovr{display:flex;flex-wrap:wrap;gap:6px 16px;font:500 13px/1.4 var(--name);color:var(--dim)}.ovr b{font:600 14px/1 var(--num);color:var(--ink)}
+.ovt{font:600 10px/1 var(--num);font-style:normal;color:var(--ball);border:1px solid var(--ball);border-radius:4px;padding:2px 4px;vertical-align:middle}
+.ovf{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px;margin-top:8px;font:500 12px/1.2 var(--name);color:var(--dim)}
+.ovf input{display:block;margin-top:3px;width:92px;font:500 14px/1.2 var(--num);color:var(--ink);background:var(--cell);border:1px solid var(--rule);border-radius:6px;padding:6px 8px}
+.ovf input[type=date]{width:140px}
+.ovx{font:600 12px/1 var(--name);color:var(--ink);background:none;border:1px solid var(--rule);border-radius:999px;padding:7px 12px;cursor:pointer}.ovx.dn{color:var(--neg);border-color:var(--neg)}
 .ilg{overflow-x:auto;margin:6px 0 4px}.ilg table{border-collapse:collapse;font:500 12px/1.2 var(--name)}
 .ilg th{font-weight:600;color:var(--dim);font-size:10px;padding:3px 4px;text-align:center}
 .ilg tbody th{text-align:left;color:var(--ink);font-size:12px;white-space:nowrap;padding-right:8px}.ilg tbody th i{font:500 10px/1 var(--num);color:var(--dim);font-style:normal}
@@ -1301,9 +1307,35 @@ const S={date:null,events:[],players:[],game:"all",punt:new Set(store.get("punt"
 const lgOk=o=>!!(o&&o.v===1&&Array.isArray(o.p)&&o.p.length);
 function lgSave(o){o.rs=o.p.map(x=>x[0]+"@"+x[3]).sort().join("|");store.set("league",o);return o}
 (()=>{const h=location.hash;if(!h.startsWith("#league="))return;
-  try{const o=JSON.parse(decodeURIComponent(h.slice(8)));if(lgOk(o)){lgSave(o);store.set("lgF","avail");S.lgNew=1}}catch(e){}
+  try{const o=JSON.parse(decodeURIComponent(h.slice(8)));if(lgOk(o)){lgSave(o);store.set("lgF","avail");S.lgNew=1;if(o.ov)store.set("mov",o.ov)}}catch(e){}
   history.replaceState(null,"",location.pathname+location.search+"#matchup")})();
 let ML=store.get("league",null);S.lgF=ML?store.get("lgF","all"):"all";
+// ---- Minutes overrides (Nov 2026): your own minutes for a player, set on his page (Projection tab),
+// shared through the relay (stored in its KV, sent with every sync as ov) so every device and the
+// analyst see the same list: {espn id: {m, until, at, n, t}}. The model keeps setting everyone
+// else's minutes; an override replaces only the minutes, per-minute rates stay Proj's. applyOv()
+// rescales the Proj line (xp) and its z-scores (x) to your minutes, so ranks, Week, Today, Matchup,
+// the streaming plan, IL+ and Build all follow; minAt() gives exactly your number on the dates it
+// covers (no next-man-up shifts), the model's after its end date.
+let MOV=store.get("mov",{});
+const ovRec=id=>MOV&&MOV[id]&&(!MOV[id].until||MOV[id].until>=etToday())?MOV[id]:null;
+const ovOn=(id,d)=>{const r=MOV&&MOV[id];return r&&(!r.until||d<=r.until)?r.m:null};
+function applyOv(){if(typeof G==="undefined"||!G||!G.players)return;let n=0;
+  for(const q of Object.values(G.players))if(q.xp0){q.xp=q.xp0;q.x=q.x0;delete q.xp0;delete q.x0}
+  for(const id of Object.keys(MOV||{})){const q=G.players[id],r=ovRec(id);if(!q||!q.xp||!r||!(q.xp[0]>0))continue;
+    const l=lineAt(q,r.m),z=pjZ(l);q.xp0=q.xp;q.x0=q.x;q.xp=G.xpf.map(k=>l[k]);q.x=[q.x[0],r.m,...G.cats.map(c=>z[c])];n++}
+  // caches keyed on G.asOf (plans, Build) recompute
+  if(G.asOf0==null)G.asOf0=G.asOf;G.asOf=G.asOf0+(n?"|ov"+JSON.stringify(MOV).length+n:"")}
+function ovSetLocal(o){MOV=o||{};store.set("mov",MOV);applyOv();
+  rankBS();renderBS();renderPJ();renderRK();renderSC();if(S.players.length){scoreValue();render()}renderSheet()}
+// save / clear one override through the relay (m null = clear)
+async function ovSave(id,m,until){const R0=store.get("relay",null);if(!R0||!R0.u||!R0.k){alert("Set up the relay on league.html first: overrides are shared through it.");return}
+  const q=G&&G.players[id];
+  const r=await fetch(R0.u.replace(/\/+$/,"")+"/minutes",{method:"POST",headers:{"X-Relay-Key":R0.k,"Content-Type":"application/json"},
+    body:JSON.stringify({id,m,until:until||null,n:q?q.n:"",t:q?q.t:""})}).catch(e=>({ok:false,statusText:e.message}));
+  const o=r.json?await r.json().catch(()=>null):null;
+  if(!r.ok||!o||o.error){alert("Couldn't save the override: "+((o&&o.error)||r.statusText||r.status));return}
+  ovSetLocal(o)}
 const YT={GSW:"GS",NOP:"NO",NYK:"NY",SAS:"SA",PHO:"PHX",UTA:"UTAH",WAS:"WSH",BRK:"BKN",CHO:"CHA"};
 const lgKey=n=>String(n).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z ]/g,"").replace(/\b(jr|sr|ii|iii|iv|v)\b/g,"").replace(/\s+/g," ").trim();
 let LGX=null;
@@ -2627,7 +2659,8 @@ function luAdj(id,q,d){if(!LU||LU.date!==d||d!==etToday())return 0;const L=LU.te
   const c=S.luS&&S.luS.lu===LU?S.luS:(S.luS={lu:LU,t:{}}),five=c.t[q.t]||(c.t[q.t]=new Set(L.five.map(x=>normN(x[0])))),r=R&&R.players[id];if(!r)return 0;
   const st=(r.ps||0)+(r.ls?1:0),inF=five.has(normN(q.n));return inF&&st<=2?1:!inF&&st>=3?-1:0}
 // Minutes for player id (Proj line q) on date d, assuming he plays.
-function minAt(id,q,d){const C=nmC(),base=q.xp[0];let up=0,dn=0,own=1;
+function minAt(id,q,d){const ov=ovOn(id,d);if(ov!=null){const i=ijOf(id),cap=i&&i[5]&&i[5][d];return Math.min(42,cap||42,ov)}
+  const C=nmC(),base=(q.xp0||q.xp)[0];let up=0,dn=0,own=1;
   for(const[R,e]of C.byT[q.t]||[]){const p=nmPh(R,e)[d]||0;
     if(R===id){if(p>0)own=NMRET[p-1];continue}
     const x=e.m[id];if(!x)continue;
@@ -3888,7 +3921,7 @@ function setView(v){if(v==="in")setTimeout(()=>{try{renderTN()}catch(e){}},0);
 }
 fetch("data/regression.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
   .then(j=>{if(!j)return bsMsg("No Buy/Sell data yet: it's built each morning with the rankings.");
-    G=j;rankBS();renderBS();renderPJ();renderSC();if(S.players.length)render();if(BZ)renderBZ();if(document.body.dataset.page==="efb")renderRK();try{efbFreeze()}catch(e){}})
+    G=j;applyOv();rankBS();renderBS();renderPJ();renderSC();if(S.players.length)render();if(BZ)renderBZ();if(document.body.dataset.page==="efb")renderRK();try{efbFreeze()}catch(e){}})
   .catch(()=>bsMsg("Couldn't load the Buy/Sell data."));
 
 // ---- Player sheet: everything about one player, opened from any card. tn = that night's
@@ -4421,7 +4454,7 @@ function renderSheet(){
           const att=k==="fg"?` <em>${f1(q.att[0]/q.now[0])} att</em>`:k==="ft"?` <em>${f1(q.att[2]/q.now[0])} att</em>`:"";
           return`<div class="${nh(k).trim()}"><b>${v}</b><i>${CL[k].toUpperCase()}${att}</i></div>`}).join("")}
           <div class="role"><b>${f1(r("mpg"))}</b><i>MIN</i></div><div class="role"><b>${Math.round(r("usg"))}%</b><i>USAGE</i></div></div></section>`)}
-    h.push(linesHTML(id,q,rq));h.push(luckHTML(id,q,rq));
+    h.push(ovHTML(id,q));h.push(linesHTML(id,q,rq));h.push(luckHTML(id,q,rq));
     if(q){const wk=psWeekProj(id,q);
       if(wk)h.push(psDD("week","This week",wk.sub,wk.html,true));
       h.push(psDD("proj","Proj vs this season","per game · rest of season",stickHTML(q,B,id),false));
@@ -4455,6 +4488,15 @@ function readHTML(a){
 // Projected / Actual is remembered per device (psLn).
 S.psLn=store.get("psLn","proj");
 const LNK=["pts","reb","ast","tpm","stl","blk","to","fg","ft"],LNL={pts:"PTS",reb:"REB",ast:"AST",tpm:"3PM",stl:"STL",blk:"BLK",to:"TO",fg:"FG%",ft:"FT%"};
+// Minutes: the model's number, yours if set (shared through the relay), EFB's when synced on this device.
+function ovHTML(id,q){if(!q||!q.xp)return"";const r=ovRec(id),model=(q.xp0||q.xp)[0],relay=!!store.get("relay",null);
+  let efb=null;try{const X=efbIx(),e=X&&X.rows.find(x=>x.id===id);if(e)efb=e.l.min}catch(e){}
+  const f=v=>(Math.round(v*10)/10).toFixed(1);
+  return`<section class="blk ovb"><h3>Minutes${r?` <i class="ovt">yours</i>`:""}</h3>
+    <div class="ovr"><span>Model <b>${f(model)}</b></span>${efb?`<span>EFB <b>${f(efb)}</b>${Math.abs(efb-(r?r.m:model))>=1?` <button class="ovx" data-ov="efb" data-v="${f(efb)}">Use</button>`:""}</span>`:""}${r?`<span>Yours <b>${f(r.m)}</b>${r.until?` until ${fmtDate(r.until).replace(/^\w+, /,"")}`:""}</span>`:""}</div>
+    ${relay?`<div class="ovf"><label>Minutes <input id="ovM" type="number" inputmode="decimal" min="0" max="48" step="0.5" value="${r?r.m:""}" placeholder="${f(model)}"></label><label>Until <input id="ovU" type="date" value="${r&&r.until||""}"></label><button class="ovx" data-ov="save">Save</button>${r?`<button class="ovx dn" data-ov="clear">Clear</button>`:""}</div>`
+      :`<p class="lgk">Set up the relay on league.html to set minutes by hand (shared across your devices).</p>`}
+    <p class="stkn">Your own minutes for him: they replace the model's minutes everywhere (ranks, Week, Today, Matchup, streaming plan, IL+, Build and the analyst); what he does per minute stays the model's. Leave Until empty to keep it until you clear it. Shared through your relay, so every device sees it.</p></section>`}
 function linesHTML(id,q,rq){
   const B=S.bs,rows=[],DL=d=>new Date(d+"T12:00:00Z").toLocaleDateString("en-US",{weekday:"short",timeZone:"UTC"}),t=etToday();
   const xr=l=>{const v=pjVal(pjZ(l));return B&&B.xs?1+B.xs.filter(x=>x>v).length:null};
@@ -4591,6 +4633,9 @@ $("psBody").addEventListener("click",e=>{
   const t=e.target.closest("[data-pst]");if(t){S.ps.tab=t.dataset.pst;S.ps.sel=null;renderSheet();$("psPanel").scrollTop=0;return}
   const rw=e.target.closest("[data-rwin]");if(rw){S.roleWin=rw.dataset.rwin;store.set("roleWin",S.roleWin);renderSheet();return}
   const ln=e.target.closest("[data-psln]");if(ln){S.psLn=ln.dataset.psln;store.set("psLn",S.psLn);renderSheet();return}
+  const ob=e.target.closest("[data-ov]");if(ob&&S.ps&&S.ps.id){const id=S.ps.id,a=ob.dataset.ov,u=($("ovU")||{}).value||"";
+    if(a==="clear")ovSave(id,null);else if(a==="efb")ovSave(id,+ob.dataset.v,u);
+    else{const v=parseFloat(($("ovM")||{}).value);if(!(v>=0&&v<=48)){alert("Enter minutes between 0 and 48.");return}ovSave(id,v,u)}return}
   const p=e.target.closest(".wwo [data-id]");if(p)openSheet(p.dataset.id,null)});
 $("psClose").onclick=()=>closeSheet();
 $("srBtn").onclick=openSearch;
@@ -4668,7 +4713,7 @@ async function relaySync(force){const R=store.get("relay",null);if(!R||!R.u||!R.
   S.rlBusy=1;const c=$("lgChip");c.classList.add("busy");
   try{const r=await fetch(R.u.replace(/\/+$/,"")+"/sync",{headers:{"X-Relay-Key":R.k},cache:"no-store"}),o=await r.json().catch(()=>null);
     if(!r.ok||!lgOk(o))throw new Error(o&&o.error||"The relay answered "+r.status);
-    const first=!ML;lgSave(o);store.set("relayErr",null);
+    const first=!ML;lgSave(o);store.set("relayErr",null);if(o.ov){MOV=o.ov;store.set("mov",MOV);applyOv();rankBS()}
     if(first){store.set("lgF","avail");location.hash="#matchup";location.reload();return true}
     ML=o;LGX=null;openPage(S.navPage);return true}
   catch(e){store.set("relayErr",{at:new Date().toISOString(),m:String(e.message||e)});if(force)alert("Couldn't sync from Yahoo: "+(e.message||e));return false}
