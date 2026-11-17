@@ -37,3 +37,8 @@ jobs:
           npx --yes wrangler@4 secret bulk "$f" --config worker/wrangler.toml
           rm -f "$f"
           echo "Relay ready: https://sixthman-yahoo.saac-choi.workers.dev"
+
+      - name: Check a real sync (counts only)
+        env:
+          RELAY_KEY: ${{ secrets.RELAY_KEY }}
+        run: node worker/smoke.js
