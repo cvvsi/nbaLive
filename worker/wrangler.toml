@@ -1,6 +1,8 @@
 # Sixth Man's private Yahoo relay (yahoo-relay.js). Deployed by Actions -> Yahoo relay; secrets are
 # set there from the repo secrets, never in this file (the repo is public).
 name = "sixthman-yahoo"
+# Not a secret: it only says which Cloudflare account to deploy to (the API token is the secret).
+account_id = "97eab732ce0d967e37738412909c99da"
 main = "yahoo-relay.js"
 compatibility_date = "2025-06-01"
 workers_dev = true
