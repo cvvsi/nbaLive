@@ -799,6 +799,9 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .lgchip{flex:none;display:flex;align-items:center;gap:6px;height:30px;padding:0 7px;border:1px solid var(--rule);border-radius:7px;color:var(--dim);text-decoration:none;font:500 11px/1 var(--num);position:relative}
 .lgchip svg{width:16px;height:16px}
 .lgchip.busy{opacity:.55}
+.mlu{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0 2px;font:500 12px/1 var(--name);color:var(--dim)}
+.mlu button{font:600 12px/1 var(--name);color:var(--ink);background:none;border:1px solid var(--rule);border-radius:999px;padding:7px 11px;cursor:pointer}
+.mlu button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 /* Yahoo's agreement: credit Yahoo wherever league data shows (the My League pages) */
 .yattr{display:none;margin:22px 16px 10px;text-align:center;font:500 11px/1.2 var(--num);color:var(--dim)}
 body[data-page="today"] .yattr,body[data-page="matchup"] .yattr,body[data-page="roster"] .yattr,body[data-page="waivers"] .yattr,body[data-page="build"] .yattr{display:block}
@@ -1295,12 +1298,12 @@ function lgIx(){
   const full={},tlf={},seen=new Set();
   for(const[id,q]of src){if(seen.has(id)||!q||!q.n)continue;seen.add(id);const k=lgKey(q.n),w=k.split(" ");
     (full[k]||(full[k]=[])).push([id,q.t]);const t=`${q.t}|${w[w.length-1]}|${w[0][0]}`;(tlf[t]||(tlf[t]=[])).push([id,q.t])}
-  const own={},slot={},miss=[];
-  for(const[,name,yt,ft,sl]of ML.p){const t=YT[yt]||yt,k=lgKey(name),w=k.split(" ");let c=full[k]||[];
+  const own={},slot={},eid={},miss=[];
+  for(const[yp,name,yt,ft,sl]of ML.p){const t=YT[yt]||yt,k=lgKey(name),w=k.split(" ");let c=full[k]||[];
     if(c.length!==1)c=c.filter(x=>x[1]===t);
     if(!c.length)c=(tlf[`${t}|${w[w.length-1]}|${w[0][0]}`]||[]);
-    if(c.length){own[c[0][0]]=String(ft);slot[c[0][0]]=sl||""}else miss.push(name)}
-  return LGX={n:src.length,own,slot,miss};
+    if(c.length){own[c[0][0]]=String(ft);slot[c[0][0]]=sl||"";eid[yp]=c[0][0]}else miss.push(name)}
+  return LGX={n:src.length,own,slot,eid,miss};
 }
 const lgOf=id=>{const x=lgIx();return x?(x.own[id]||null):undefined};
 const lgTag=id=>ML&&lgOf(id)===String(ML.me)?`<i class="lgt">Mine</i>`:"";
@@ -3025,16 +3028,17 @@ function myCtx(){
   const cap=t=>(ML.act&&ML.act[t])||10,P=id=>{const sl=x.slot[id]||"";return{id,q:G.players[id],sl,il:/^(IL|IR)/.test(sl)}};
   const roster=t=>Object.keys(x.own).filter(id=>x.own[id]===t).map(P).filter(o=>o.q&&o.q.xp);
   const base=roster(me),oppR=roster(opId),F=CATS.map(c=>c.k).filter(k=>!S.punt.has(k)),C={},off=new Set(S.punt);
-  const pA=isS?muPastR(base.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cA,R0):{fga:0,fta:0,g:0},pB=isS?muPastR(oppR.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cB,R1):{fga:0,fta:0,g:0};
-  const B=muSim(oppR,rest,cap(opId),F,null,C),A=muSim(base,rest,cap(me),F,null,C),O=muOdds(cA,cB,pA,pB,A,B,off);
-  return{x,me,opId,isS,dates,rest,today,cA,cB,pA,pB,base,oppR,F,C,off,capA:cap(me),A,B,O,DS:muDist(O.rows),P,set:null,tg:[],wk:isS&&mu.week?mu.week:null}}
+  const pastD=isS?dates.filter(d=>!rest.includes(d)):[],lkA=isS?luLock(me,rest):null,lkB=isS?luLock(opId,rest):null;
+  const pA=isS?luPast(muPastR(base.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cA,R0),me,pastD):{fga:0,fta:0,g:0},pB=isS?luPast(muPastR(oppR.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cB,R1),opId,pastD):{fga:0,fta:0,g:0};
+  const B=muSim(oppR,rest,cap(opId),F,null,C,lkB),A=muSim(base,rest,cap(me),F,null,C,lkA),O=muOdds(cA,cB,pA,pB,A,B,off);
+  return{lkA,x,me,opId,isS,dates,rest,today,cA,cB,pA,pB,base,oppR,F,C,off,capA:cap(me),A,B,O,DS:muDist(O.rows),P,set:null,tg:[],wk:isS&&mu.week?mu.week:null}}
 // ---- Streaming plan (Matchup > Streaming plan; a one-line summary on Today). A plan = moves
 // [{d, drop, add}] in day order, d = the first day the pickup counts. Each day is simulated with
 // the roster as it stands that day (muSimD), and the week is scored like the Matchup tool. ctx =
 // {x, base, rest, today, dates, capA, F, C, off, cA, cB, pA, pB, B, P, set, tg}: Matchup passes its
 // own (any week, your what-if adds and drops, your targets); Today passes myCtx().
 function myEval(ctx,moves){
-  const A=muSimD(ctx.base,ctx.rest,ctx.capA,ctx.F,ctx.set||null,ctx.C,moves,ctx.P),O=muOdds(ctx.cA,ctx.cB,ctx.pA,ctx.pB,A,ctx.B,ctx.off);
+  const A=muSimD(ctx.base,ctx.rest,ctx.capA,ctx.F,ctx.set||null,ctx.C,moves,ctx.P,ctx.lkA),O=muOdds(ctx.cA,ctx.cB,ctx.pA,ctx.pB,A,ctx.B,ctx.off);
   const tg=ctx.tg&&ctx.tg.length?new Set(ctx.tg):null;
   return{exp:O.exp,win:muDist(O.rows).win,O,obj:tg?O.rows.reduce((a,r)=>a+(tg.has(r.k)?(r.p==null?.5:r.p):0),0):O.exp}}
 // Options (myOpt, on the device): goal "cats" = most expected categories (your targeted ones, if
@@ -3082,7 +3086,7 @@ function myAddsSet(ctx,v){const o=store.get("myAdds",{}),k=myKey(ctx);o[k]=Math.
 // day; null while it's being worked out, then `again` re-renders.
 function myPlanGet(ctx,again){
   const n=myAddsLeft(ctx),drops=myDrops(ctx),o=S.myO;
-  const key=[myKey(ctx),ML.at,n,[...S.punt].join(),S.gw,G.asOf,IJ&&IJ.built,ctx.today,ctx.rest.length,ctx.base.map(p=>p.id).sort().join(),[...drops].sort().join(),(ctx.tg||[]).join(),JSON.stringify(ctx.set||{}),o.goal,o.same,o.noq].join("|"),C=S.myPC||(S.myPC={});
+  const key=[myKey(ctx),ML.at,S.muLu,n,[...S.punt].join(),S.gw,G.asOf,IJ&&IJ.built,ctx.today,ctx.rest.length,ctx.base.map(p=>p.id).sort().join(),[...drops].sort().join(),(ctx.tg||[]).join(),JSON.stringify(ctx.set||{}),o.goal,o.same,o.noq].join("|"),C=S.myPC||(S.myPC={});
   if(!n||!ctx.rest.length||!drops.size)return{n,drops,pl:null,idle:true};
   if(C[key])return{n,drops,pl:C[key]};
   setTimeout(()=>{if(!C[key]){for(const k in C)delete C[k];C[key]=myPlan(ctx,n)}again()},30);
@@ -3139,7 +3143,7 @@ function renderMy(){
     ${strm}${hrs>=20?`<p class="mywarn">Rosters are from ${age}: re-sync after any move.</p>`:""}
     <button class="mylink" data-go="matchup">Open matchup ›</button></section>`;
   // 2 tonight
-  const playsT=ctx.rest.includes(today),sim=playsT?muSim(ctx.base,[today],ctx.capA,ctx.F,null,ctx.C):null;
+  const playsT=ctx.rest.includes(today),sim=playsT?muSim(ctx.base,[today],ctx.capA,ctx.F,null,ctx.C,ctx.lkA):null;
   const mineT=ctx.base.filter(p=>plays(p.q.t,today)),st=p=>sim&&sim.st[p.id]&&sim.st[p.id][today],on=mineT.filter(p=>st(p)===1),sit=mineT.filter(p=>st(p)===2),outT=mineT.filter(p=>!st(p));
   const trow=(p,cls,tag)=>{const e=muLine(p.id,p.q,today,ctx.C),l=e.l,i=ijOf(p.id),lu=luAdj(p.id,p.q,today);
     return`<div class="myr ${cls}" data-id="${p.id}"><div class="myn"><b>${esc(p.q.n)}</b><i>${esc(opp(p.q.t,today))}${i&&!ijOut(i)?` · <em class="dtd">${esc(i[0])}</em>`:""}${lu>0?" · starting":lu<0?" · off the bench":""}</i></div>
@@ -3198,11 +3202,15 @@ function muLine(id,q,d,C){const k=id+"|"+d;return C[k]||(C[k]=(l=>({l,z:pjZ(l)})
 // injury report has him back) whose team plays and who isn't listed
 // out; games forced in count first, then the best by the sort categories up to the team's active
 // spots. Cell state per id and day: 1 counts, 2 sits for lack of spots, 3 forced in, 4 forced out.
-function muSim(ps,days,cap,F,set,C){
+// lk (optional): the lineup as set on Yahoo, id|date -> 1 (active slot) / 0 (bench, IL). A locked
+// player counts or sits like a forced one but keeps the plain "counts" / "sits" look; a what-if in
+// set overrides it, and players with no lock (what-if pickups) fill only spots left open.
+function muSim(ps,days,cap,F,set,C,lk){
   const tot={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0,fgm:0,fga:0,ftm:0,fta:0},vr={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0},g={},st={};
   for(const d of days){
-    const on=ps.filter(o=>plays(o.q.t,d)&&avail(o.id,d)).map(o=>{const e=muLine(o.id,o.q,d,C);return{o,l:e.l,v:muFz(e.z,F),f:set&&set[o.id+"|"+d]}});
-    const forced=on.filter(e=>e.f===1).slice(0,cap),auto=on.filter(e=>e.f!==1&&e.f!==0).sort((a,b)=>b.v-a.v),use=new Set([...forced,...auto.slice(0,cap-forced.length)]);
+    const on=ps.filter(o=>plays(o.q.t,d)&&avail(o.id,d)).map(o=>{const e=muLine(o.id,o.q,d,C),f=set&&set[o.id+"|"+d];return{o,l:e.l,v:muFz(e.z,F),f,y:f==null&&lk?lk[o.id+"|"+d]:undefined}});
+    const isIn=e=>e.f===1||(e.f==null&&e.y===1),isOut=e=>e.f===0||(e.f==null&&e.y===0);
+    const forced=on.filter(isIn).slice(0,cap),auto=on.filter(e=>!isIn(e)&&!isOut(e)).sort((a,b)=>b.v-a.v),use=new Set([...forced,...auto.slice(0,cap-forced.length)]);
     for(const e of on){const u=use.has(e);(st[e.o.id]||(st[e.o.id]={}))[d]=u?(e.f===1?3:1):(e.f===0?4:2);if(!u)continue;
       g[e.o.id]=(g[e.o.id]||0)+1;for(const k in tot)tot[k]+=e.l[k];for(const k in vr)vr[k]+=(MUPHI[k]||1)*e.l[k]}}
   return{ps,tot,vr,g,st}}
@@ -3210,10 +3218,10 @@ function muSim(ps,days,cap,F,set,C){
 // Every day is simulated with the roster as it stands that day; a plan's pickup is on the roster
 // from his day, a dropped player until the day before. mk(id) makes the roster entry for a pickup
 // that isn't in ps yet.
-function muSimD(ps,days,cap,F,set,C,moves,mk){if(!moves||!moves.length)return muSim(ps,days,cap,F,set,C);
+function muSimD(ps,days,cap,F,set,C,moves,mk,lk){if(!moves||!moves.length)return muSim(ps,days,cap,F,set,C,lk);
   const tot={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0,fgm:0,fga:0,ftm:0,fta:0},vr={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0},g={},st={},has=new Set(ps.map(o=>o.id));
   const all=[...ps,...moves.filter(m=>!has.has(m.add)).map(m=>mk(m.add))],on={},off={};for(const m of moves){on[m.add]=m.d;off[m.drop]=m.d}
-  for(const d of days){const s=muSim(all.filter(o=>!(off[o.id]&&off[o.id]<=d)&&!(on[o.id]&&on[o.id]>d)),[d],cap,F,set,C);
+  for(const d of days){const s=muSim(all.filter(o=>!(off[o.id]&&off[o.id]<=d)&&!(on[o.id]&&on[o.id]>d)),[d],cap,F,set,C,lk);
     for(const k in tot)tot[k]+=s.tot[k];for(const k in vr)vr[k]+=s.vr[k];for(const id in s.g)g[id]=(g[id]||0)+s.g[id];for(const id in s.st)(st[id]||(st[id]={}))[d]=s.st[id][d]}
   return{ps:all,tot,vr,g,st}}
 // Final totals and win chance per category, from Yahoo's totals so far (cA/cB), our attempts behind
@@ -3223,6 +3231,19 @@ function muSimD(ps,days,cap,F,set,C,moves,mk){if(!moves||!moves.length)return mu
 // per player-game. L = the roster's per-game Proj lines. (test-matchup.js checks this and muOdds.)
 function muPast(L,c){const sum=k=>L.reduce((a,l)=>a+(l[k]||0),0),pts=sum("pts")||1;
   return{fga:c.pts*sum("fga")/pts,fta:c.pts*sum("fta")/pts,g:L.length?c.pts/(pts/L.length):0}}
+// Yahoo's lineups for the synced week (relay: ML.lu[team][date] = {yahoo id: [slot, played]}).
+// S.muLu "y" (default): the days left follow the lineup as set on Yahoo (an active slot with a game
+// counts, bench and IL don't, an active slot with no game stays empty), so the games and totals
+// match Yahoo's; "b": the best lineup each day (who would count if you set it right). Games so far
+// are always Yahoo's: starters who played (luPast), no estimate.
+S.muLu=store.get("muLu","y");
+const LUACT=sl=>!!sl&&!/^(BN|IL|IR|NA)/.test(sl);
+function luLock(t,days){const L=ML&&ML.lu&&ML.lu[t],x=lgIx();if(!L||S.muLu!=="y"||!x)return null;const o={};let n=0;
+  for(const d of days){const D=L[d];if(!D)continue;for(const yp in D){const id=x.eid[yp];if(id){o[id+"|"+d]=LUACT(D[yp][0])?1:0;n++}}}
+  return n?o:null}
+function luPast(p,t,days){const L=ML&&ML.lu&&ML.lu[t];if(!L||!days.length)return p;let g=0;
+  for(const d of days){const D=L[d];if(!D)return p;for(const yp in D){const v=D[yp];if(!LUACT(v[0]))continue;if(v[1]==null)return p;g+=v[1]}}
+  return{...p,g,gx:1}}
 // With the relay, Yahoo's own made / attempted counts so far (row.x) replace the estimate.
 function muPastR(L,c,row){const p=muPast(L,c),x=row&&row.x;if(x){if(x.fga!=null)p.fga=x.fga;if(x.fta!=null)p.fta=x.fta}return p}
 function muOdds(cA,cB,pA,pB,A,B,off){
@@ -3277,12 +3298,13 @@ function renderMU(){
   // (points track shot volume) at the roster's projected attempts per point; games so far likewise
   // from points per player-game. (schedule.json only holds dates still to come, so the days already
   // played can't be simulated.)
-  const pA=isS?muPastR(base.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cA,R0):{fga:0,fta:0,g:0},pB=isS?muPastR(oppR.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cB,R1):{fga:0,fta:0,g:0};
+  const pastD=isS?dates.filter(d=>!rest.includes(d)):[],lkA=isS?luLock(me,rest):null,lkB=isS?luLock(opId,rest):null;
+  const pA=isS?luPast(muPastR(base.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cA,R0),me,pastD):{fga:0,fta:0,g:0},pB=isS?luPast(muPastR(oppR.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cB,R1),opId,pastD):{fga:0,fta:0,g:0};
   // a streaming plan put into the grid: dated moves on top of the roster above (dropped once a
   // sync changes the roster, like the other what-ifs; a move whose pickup is no longer free is skipped)
   const onM=new Set(mine.map(o=>o.id)),plan=(m.plan||[]).filter(v=>rest.includes(v.d)&&G.players[v.add]&&G.players[v.add].xp&&x.own[v.add]==null&&!onM.has(v.add));
-  const simA=(ps,set)=>muSimD(ps,rest,capA,F,set,C,plan,id=>({...P(id),nw:1,pl:1}));
-  const B=muSim(oppR,rest,capB,F,null,C),A=simA(mine,m.set),mineAll=A.ps,O=muOdds(cA,cB,pA,pB,A,B,off);
+  const simA=(ps,set)=>muSimD(ps,rest,capA,F,set,C,plan,id=>({...P(id),nw:1,pl:1}),lkA);
+  const B=muSim(oppR,rest,capB,F,null,C,lkB),A=simA(mine,m.set),mineAll=A.ps,O=muOdds(cA,cB,pA,pB,A,B,off);
   // Sanity checks on what the numbers are built from; a failed one shows a red note (and a "?" win %)
   // rather than a confident wrong number.
   const DS=muDist(O.rows),SW=muSwing(O.rows),swK=new Set(SW.map(r=>r.k));
@@ -3292,7 +3314,7 @@ function renderMU(){
     for(const[k,l]of[["fg","FG%"],["ft","FT%"]])for(const c of[cA,cB])if(c[k]<0||c[k]>1)muIssues.push(`Yahoo's ${l} read as ${c[k]}, not a percentage`);}
   for(const r of O.rows){if(r.bad)muIssues.push(`${r.l} so far has no attempts behind it, so its win % is left out`);
     if(r.k!=="fg"&&r.k!=="ft"&&(r.a<r.na-1e-6||r.b<r.nb-1e-6))muIssues.push(`${r.l} projects below the total so far`)}
-  const moved=m.add.size||m.drop.size||Object.keys(m.set).length||plan.length,O0=moved?muOdds(cA,cB,pA,pB,muSim(base,rest,capA,F,null,C),B,off):O;
+  const moved=m.add.size||m.drop.size||Object.keys(m.set).length||plan.length,O0=moved?muOdds(cA,cB,pA,pB,muSim(base,rest,capA,F,null,C,lkA),B,off):O;
   const dExp=ps=>muOdds(cA,cB,pA,pB,simA(ps,m.set),B,off).expP-O.expP;
   const gSum=T=>Object.values(T.g).reduce((a,b)=>a+b,0),gA=gSum(A),gB=gSum(B),gTA=gA+Math.round(pA.g),gTB=gB+Math.round(pB.g);
   // League scouting: every team's projected totals for the whole week (your what-if moves included),
@@ -3352,7 +3374,7 @@ function renderMU(){
   const canPrev=off0>Math.min(0,sOff??0),canNext=weekDates(off0+1)[0]<=lastWk;
   const cmp=r=>{const d=r.a-r.b,good=r.k==="to"?d<0:d>0,s=(r.k==="fg"||r.k==="ft")?(d>=0?"+":"−")+Math.abs(d).toFixed(3).replace(/^0/,""):(d>=0?"+":"−")+Math.abs(Math.round(d));
     return`<td class="${Math.abs(d)<1e-9?"":good?"up":"dn"}">${s}</td>`};
-  const pctx={x,base:mine,rest,today,dates,capA,F,C,off,cA,cB,pA,pB,B,P,set:m.set,tg:tgs};
+  const pctx={x,base:mine,rest,today,dates,capA,F,C,off,cA,cB,pA,pB,B,P,set:m.set,tg:tgs,lkA};
   $("pjStatus").textContent=`${wkNo?"Wk "+wkNo+" · ":""}${rest.length}d left`;$("pjLgRow").hidden=true;
   $("pjList").innerHTML=`<div class="mux">
     <div class="mtop">
@@ -3368,6 +3390,7 @@ function renderMU(){
         ${ah.length?`Ahead in <span class="up">${L(ah)}</span>. `:""}${bh.length?`Behind in <span class="dn">${L(bh)}</span>. `:""}
         ${SW.length?`<b>Swing: ${L(SW)}</b> <button class="tsw" data-mu="swing" data-k="${SW.map(r=>r.k).join(",")}" title="Tick the swing categories as targets">Target these</button> `:"No category is close: streaming won't change much. "}${rest.length?`Games left: ${gA} to his ${gB}.`:""}</div>`})()}
     ${stale}${slotNote}${muIssues.length?`<div class="mbad"><b>Check:</b> ${muIssues.join(" · ")}</div>`:""}${m.add.size||m.drop.size||plan.length?`<div class="mwi"><b>What-if</b> (not on Yahoo): ${[...plan.map(v=>`<span>${dl(v.d)}: <span class="up">+ ${esc(nm(G.players[v.add].n))}</span> <span class="dn">− ${esc(nm((G.players[v.drop]||{n:"?"}).n))}</span></span>`),...[...m.add].filter(id=>G.players[id]).map(id=>`<span class="up">+ ${esc(nm(G.players[id].n))}</span>`),...[...m.drop].filter(id=>G.players[id]).map(id=>`<span class="dn">− ${esc(nm(G.players[id].n))}</span>`)].join(" · ")}</div>`:""}
+    ${isS&&ML.lu?`<div class="mlu" role="group" aria-label="Lineups for the days left">Days left: <button data-mu="lu" data-x="y" aria-pressed="${S.muLu==="y"}">Lineups as set on Yahoo</button><button data-mu="lu" data-x="b" aria-pressed="${S.muLu!=="y"}">Best lineup each day</button></div>`:""}
     <div class="mfin"><div class="mctw"><table class="mct"><thead><tr><th class="tn">Final</th><th class="g">G</th>${O.rows.map(r=>`<th class="${swK.has(r.k)?"sw":""}">${r.l}</th>`).join("")}</tr>
       <tr class="tgr"><th class="tn">Target</th><th></th>${O.rows.map(r=>`<th><button class="tk${m.tg.has(r.k)?" on":""}" data-mu="cat" data-x="${r.k}" aria-pressed="${m.tg.has(r.k)}" aria-label="Target ${r.l}"></button></th>`).join("")}</tr></thead><tbody>
       <tr><th class="tn">${esc(nameA)}</th><td class="g">${gTA}</td>${O.rows.map(r=>`<td>${fv(r.k,r.a)}${badge(me,r.k)}${isS?`<i class="nw0">${fv(r.k,r.na)}<span> now</span></i>`:""}</td>`).join("")}</tr>
@@ -3376,7 +3399,7 @@ function renderMU(){
       <tr class="wp"><th class="tn">Win %</th><td class="g"></td>${O.rows.map(r=>r.p==null?`<td class="bad">?</td>`:`<td class="${swK.has(r.k)?"swc":""}" style="${heat(r.p)}">${pc(r.p)}%</td>`).join("")}</tr>
     </tbody></table></div>
     <div class="mfs"><div class="msw"><div><b>${esc(nameB)}</b>${scout(opId)}</div><div><b>${esc(nameA)}</b>${scout(me)}</div></div>
-    <p class="mhint">${isS?"Projected finals: Yahoo's totals so far (small gray \"now\", as of your sync) plus Proj for the days left.":"Projected finals for the whole week (Proj only)."} G = games that count. Small ranks mark where a team is top or bottom 3 of the ${nT} teams this week. Tick categories to <b>target</b> them: the lineup, sort and Cats then go by those only (ticking all but 3PM = punting 3PM). <b>Swing</b> (underlined) = still in play, 30–70%: where a pickup can flip the result; the Target these button ticks just those. The score always counts all 9.</p></div></div>
+    <p class="mhint">${isS?"Projected finals: Yahoo's totals so far (small gray \"now\", as of your sync) plus Proj for the days left.":"Projected finals for the whole week (Proj only)."} G = games that count${isS&&pA.gx?" (so far: Yahoo's starters who played; days left: "+(S.muLu==="y"&&lkA?"your lineups as set on Yahoo":"the best lineup each day")+")":""}. Small ranks mark where a team is top or bottom 3 of the ${nT} teams this week. Tick categories to <b>target</b> them: the lineup, sort and Cats then go by those only (ticking all but 3PM = punting 3PM). <b>Swing</b> (underlined) = still in play, 30–70%: where a pickup can flip the result; the Target these button ticks just those. The score always counts all 9.</p></div></div>
     ${rest.length?myPlanSec(pctx,plan):""}
     <div class="msec mme"><div class="msh"><b>${esc(nameA)}</b><span>${gA} games left · by ${esc(lab)}</span></div>${hd(A,capA,"me")}
       ${grp(mineAll,o=>row(o,A,o.pl||plOff[o.id]?"":o.nw?"undrop":"drop"))}${dropped.map(o=>row(o,A,"undo")).join("")}
@@ -3400,6 +3423,7 @@ function muClick(e){const b=e.target.closest("[data-mu]");if(!b||!S.mus)return;i
   else if(a==="more")m.fa+=10;else if(a==="reset"){m.add.clear();m.drop.clear();m.set={};m.plan=[]}
   else if(a==="day"){const c=b.className;if(m.set[k]!=null)delete m.set[k];else m.set[k]=/\bs1\b/.test(c)?0:1}
   else if(a==="opp")m.oo=!m.oo;
+  else if(a==="lu"){S.muLu=k==="b"?"b":"y";store.set("muLu",S.muLu)}
   else if(a==="wk"){muSave();S.muWk+=+k;renderMU();return}
   const y=scrollY;muSave();renderMU();scrollTo(0,y)}
 function muChange(e){if(!e.target.matches("[data-mu-opp]")||!S.mus)return;S.mus.opp=e.target.value;muSave();const y=scrollY;renderMU();scrollTo(0,y)}
