@@ -798,6 +798,10 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 #pjMuBtn,body[data-page="matchup"] #pjView,body[data-page="today"] #pjView,body[data-page="today"] #pjLgRow,#rkSz [data-k="usg"],body[data-page="usage"] #rkSz,body[data-page="efb"] #rkSz,body[data-page="efb"] #rkWin,body:not([data-page="buysell"]) #bsSort{display:none!important}
 .lgchip{flex:none;display:flex;align-items:center;gap:6px;height:30px;padding:0 7px;border:1px solid var(--rule);border-radius:7px;color:var(--dim);text-decoration:none;font:500 11px/1 var(--num);position:relative}
 .lgchip svg{width:16px;height:16px}
+.lgchip.busy{opacity:.55}
+/* Yahoo's agreement: credit Yahoo wherever league data shows (the My League pages) */
+.yattr{display:none;margin:22px 16px 10px;text-align:center;font:500 11px/1.2 var(--num);color:var(--dim)}
+body[data-page="today"] .yattr,body[data-page="matchup"] .yattr,body[data-page="roster"] .yattr,body[data-page="waivers"] .yattr,body[data-page="build"] .yattr{display:block}
 .lgchip::after{content:"";position:absolute;top:4px;left:18px;width:6px;height:6px;border-radius:50%;background:var(--pos)}
 .lgchip span{display:none}
 @media (min-width:1100px){.lgchip span{display:inline}.subnav button{font-size:14.5px}}
@@ -1245,6 +1249,7 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
   </aside>
 </div>
 
+<p class="yattr">Fantasy data provided by Yahoo Fantasy</p>
 <nav class="tabbar" id="tabs" aria-label="Sections"><button data-t="box">Box</button><button data-t="players">Players</button><button data-t="league" id="tabLeague" hidden>My League</button><button data-t="sc">Schedule</button><button data-t="in">Injuries</button></nav>
 <div class="subnav" id="subnav" role="tablist" aria-label="Pages"></div>
 <script>
@@ -1271,8 +1276,13 @@ const S={date:null,events:[],players:[],game:"all",punt:new Set(store.get("punt"
   try{const o=JSON.parse(decodeURIComponent(h.slice(5)));if(o&&o.v===1&&Array.isArray(o.r)&&o.r.length){store.set("efb",o);
     const day=String(o.at).slice(0,10),hist=store.get("efbHist",[]).filter(x=>String(x.at).slice(0,10)!==day);hist.push(o);store.set("efbHist",hist.slice(-12))}}catch(e){}
   history.replaceState(null,"",location.pathname+location.search+"#efb")})();
+// A league bundle (bookmark or relay) is saved with rs, its rosters as a signature: what-if moves
+// (Matchup, Build) are kept until a sync changes who is on which team, not cleared by every
+// re-sync, since the relay re-syncs every few minutes.
+const lgOk=o=>!!(o&&o.v===1&&Array.isArray(o.p)&&o.p.length);
+function lgSave(o){o.rs=o.p.map(x=>x[0]+"@"+x[3]).sort().join("|");store.set("league",o);return o}
 (()=>{const h=location.hash;if(!h.startsWith("#league="))return;
-  try{const o=JSON.parse(decodeURIComponent(h.slice(8)));if(o&&o.v===1&&Array.isArray(o.p)&&o.p.length){store.set("league",o);store.set("lgF","avail");S.lgNew=1}}catch(e){}
+  try{const o=JSON.parse(decodeURIComponent(h.slice(8)));if(lgOk(o)){lgSave(o);store.set("lgF","avail");S.lgNew=1}}catch(e){}
   history.replaceState(null,"",location.pathname+location.search+"#matchup")})();
 let ML=store.get("league",null);S.lgF=ML?store.get("lgF","all"):"all";
 const YT={GSW:"GS",NOP:"NO",NYK:"NY",SAS:"SA",PHO:"PHX",UTA:"UTAH",WAS:"WSH",BRK:"BKN",CHO:"CHA"};
@@ -1882,7 +1892,7 @@ const tbG=(ctx,o)=>ctx.days.filter(d=>plays(o.q.t,d)&&avail(o.id,d)).length;
 const tbSub=(ctx,o)=>`${esc(o.q.t)} · Proj #${S.bs.x[o.id]||"–"} · ${tbG(ctx,o)}g`;
 function renderBuild(){
   const T=S.tb,el=$("bsList");
-  if(T.at!==ML.at){T.at=ML.at;T.done=[];T.drops=[];T.pick=null}
+  const tk=ML.rs||ML.at;if(T.at!==tk){T.at=tk;T.done=[];T.drops=[];T.pick=null}
   if(!SC||!S.bs){el.innerHTML=`<div class="empty">Loading…</div>`;return}
   const ctx=tbCtx();
   $("bsAsOf").textContent=`Proj thru ${fmtDate(G.asOf).replace(/^\w+, /,"")}`;
@@ -3015,7 +3025,7 @@ function myCtx(){
   const cap=t=>(ML.act&&ML.act[t])||10,P=id=>{const sl=x.slot[id]||"";return{id,q:G.players[id],sl,il:/^(IL|IR)/.test(sl)}};
   const roster=t=>Object.keys(x.own).filter(id=>x.own[id]===t).map(P).filter(o=>o.q&&o.q.xp);
   const base=roster(me),oppR=roster(opId),F=CATS.map(c=>c.k).filter(k=>!S.punt.has(k)),C={},off=new Set(S.punt);
-  const pA=isS?muPast(base.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cA):{fga:0,fta:0,g:0},pB=isS?muPast(oppR.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cB):{fga:0,fta:0,g:0};
+  const pA=isS?muPastR(base.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cA,R0):{fga:0,fta:0,g:0},pB=isS?muPastR(oppR.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cB,R1):{fga:0,fta:0,g:0};
   const B=muSim(oppR,rest,cap(opId),F,null,C),A=muSim(base,rest,cap(me),F,null,C),O=muOdds(cA,cB,pA,pB,A,B,off);
   return{x,me,opId,isS,dates,rest,today,cA,cB,pA,pB,base,oppR,F,C,off,capA:cap(me),A,B,O,DS:muDist(O.rows),P,set:null,tg:[],wk:isS&&mu.week?mu.week:null}}
 // ---- Streaming plan (Matchup > Streaming plan; a one-line summary on Today). A plan = moves
@@ -3060,8 +3070,14 @@ function myPlan(ctx,n){
     all.push(...beam);if(sc(beam[0])>sc(best)+eps)best=beam[0];else break}
   const seen=new Set([best.moves.map(m=>m.add).sort().join()]),alts=all.filter(s=>s.moves.length<=best.moves.length||sc(s)>sc(best)).sort((a,b)=>sc(b)-sc(a)).filter(s=>{const k=s.moves.map(m=>m.add).sort().join();if(seen.has(k))return false;seen.add(k);return true}).slice(0,2);
   return{s0,best,alts}}
-function myAddsLeft(ctx){const o=store.get("myAdds",{}),k=myKey(ctx);return o[k]==null?MYADDS:o[k]}
-function myAddsSet(ctx,v){const o=store.get("myAdds",{});o[myKey(ctx)]=Math.max(0,Math.min(MYADDS,v));store.set("myAdds",o)}
+// The league's weekly add limit and the adds you've used, read by the relay (the bookmark can't);
+// without them, MYADDS and the stepper. A number you set with the stepper holds until a sync shows
+// a different count used.
+const myMax=()=>ML&&ML.cfg&&ML.cfg.maxAdds>0?ML.cfg.maxAdds:MYADDS;
+const myUsed=ctx=>ML&&ML.adds&&ML.adds[ML.me]!=null&&ML.mu&&ML.mu.dates&&ML.mu.dates[0]===ctx.dates[0]?ML.adds[ML.me]:null;
+function myAddsLeft(ctx){const o=store.get("myAdds",{}),k=myKey(ctx),u=myUsed(ctx);
+  if(u!=null&&(o[k]==null||o[k+"#"]!==u))return Math.max(0,myMax()-u);return o[k]==null?myMax():o[k]}
+function myAddsSet(ctx,v){const o=store.get("myAdds",{}),k=myKey(ctx);o[k]=Math.max(0,Math.min(myMax(),v));o[k+"#"]=myUsed(ctx);store.set("myAdds",o)}
 // The plan for ctx, worked out off the click (it takes a moment) and kept per roster, options and
 // day; null while it's being worked out, then `again` re-renders.
 function myPlanGet(ctx,again){
@@ -3096,7 +3112,7 @@ function myPlanSec(ctx,applied){
   const ros=[...ctx.base].sort((a,b)=>(S.bs&&S.bs.x?(S.bs.x[a.id]||999)-(S.bs.x[b.id]||999):0));
   const seg=(k,opts)=>`<div class="seg mysg">${opts.map(([v,l])=>`<button data-myo="${k}" data-v="${v}" aria-pressed="${String(o[k])===String(v)}">${l}</button>`).join("")}</div>`;
   return`<section class="msec mpln"><h3 class="myh">Streaming plan</h3><div class="mysub">adds left this week${ctx.tg&&ctx.tg.length&&o.goal==="cats"?` · going after your targets`:""}</div><div class="myadd"><button data-add="-1" aria-label="One fewer">−</button><b>${n}</b><button data-add="1" aria-label="One more">+</button></div>
-    <p class="stkn">The best use of the adds you have left this week (your league allows ${MYADDS}; set how many remain). Each move counts from its day: a streamer can be added for his games and dropped later for someone else's. Only players you tick as droppable, and streamers the plan itself added, are dropped. <b>Most categories</b> goes for the most expected categories (only the ones you've ticked as targets above, if any); <b>Win the week</b> for the best chance at 5 of 9, which can mean giving up a category you're losing anyway. <b>Same day</b>: a pickup can play the day you make it; <b>Next day</b>: from the day after, so the plan gives the day to make the move. <b>Use this plan</b> puts its moves into the grid below as what-ifs, each from its day, so you can see every game it adds; Clear or Reset takes them out. It starts from the roster shown, including your own what-if adds and drops. Scored against this week's opponent on our projections; only your best ${ctx.capA} count on a crowded day; positions aren't checked.</p>
+    <p class="stkn">The best use of the adds you have left this week (your league allows ${myMax()}${myUsed(ctx)!=null?`; ${myUsed(ctx)} used, read from Yahoo`:"; set how many remain"}). Each move counts from its day: a streamer can be added for his games and dropped later for someone else's. Only players you tick as droppable, and streamers the plan itself added, are dropped. <b>Most categories</b> goes for the most expected categories (only the ones you've ticked as targets above, if any); <b>Win the week</b> for the best chance at 5 of 9, which can mean giving up a category you're losing anyway. <b>Same day</b>: a pickup can play the day you make it; <b>Next day</b>: from the day after, so the plan gives the day to make the move. <b>Use this plan</b> puts its moves into the grid below as what-ifs, each from its day, so you can see every game it adds; Clear or Reset takes them out. It starts from the roster shown, including your own what-if adds and drops. Scored against this week's opponent on our projections; only your best ${ctx.capA} count on a crowded day; positions aren't checked.</p>
     <div class="myopt">${seg("goal",[["cats","Most categories"],["win","Win the week"]])}${seg("same",[[1,"Same day"],[0,"Next day"]])}<button class="mychk" data-myo="noq" data-v="${o.noq?0:1}" aria-pressed="${!!o.noq}">Skip injured</button></div>
     ${body}
     <details class="mydd"${store.get("myDD",0)?" open":""}><summary>Who can be dropped <i>${drops.size} ticked</i></summary>
@@ -3167,11 +3183,11 @@ const etHour=d=>+new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",ho
 // start/sit). What-if moves on the synced week are cleared by each new sync, since the synced
 // rosters already show what was really done.
 function muSel(key){
-  if(S.mus&&S.mus.key===key&&S.mus.at===ML.at)return S.mus;const all=store.get("muSel2",{}),o=all[key],mv=o&&o.at===ML.at;
-  return S.mus={key,at:ML.at,tg:new Set(o?o.tg:[]),pn:new Set(o?o.pn:[]),add:new Set(mv?o.add:[]),drop:new Set(mv?o.drop:[]),set:mv&&o.set||{},plan:mv&&o.plan||[],fa:o&&o.fa||12,opp:o&&o.opp||null,oo:o&&o.oo}}
+  if(S.mus&&S.mus.key===key&&(S.mus.at===ML.at||(!!ML.rs&&S.mus.rs===ML.rs)))return S.mus;const all=store.get("muSel2",{}),o=all[key],mv=o&&(o.at===ML.at||(!!ML.rs&&o.rs===ML.rs));
+  return S.mus={key,at:ML.at,rs:ML.rs,tg:new Set(o?o.tg:[]),pn:new Set(o?o.pn:[]),add:new Set(mv?o.add:[]),drop:new Set(mv?o.drop:[]),set:mv&&o.set||{},plan:mv&&o.plan||[],fa:o&&o.fa||12,opp:o&&o.opp||null,oo:o&&o.oo}}
 function muSave(){const m=S.mus,all=store.get("muSel2",{}),wk0=weekDates(0)[0];
   for(const k of Object.keys(all))if((k.split("|")[1]||"")<wk0)delete all[k];
-  all[m.key]={at:m.at,tg:[...m.tg],pn:[...m.pn],add:[...m.add],drop:[...m.drop],set:m.set,plan:m.plan||[],fa:m.fa,opp:m.opp,oo:m.oo};store.set("muSel2",all)}
+  all[m.key]={at:m.at,rs:ML.rs,tg:[...m.tg],pn:[...m.pn],add:[...m.add],drop:[...m.drop],set:m.set,plan:m.plan||[],fa:m.fa,opp:m.opp,oo:m.oo};store.set("muSel2",all)}
 // Categories that count toward the score (not punted here or globally) and the ones players are
 // sorted by: the targets if any are picked, otherwise every category that counts.
 const muOff=m=>new Set(S.punt);
@@ -3207,6 +3223,8 @@ function muSimD(ps,days,cap,F,set,C,moves,mk){if(!moves||!moves.length)return mu
 // per player-game. L = the roster's per-game Proj lines. (test-matchup.js checks this and muOdds.)
 function muPast(L,c){const sum=k=>L.reduce((a,l)=>a+(l[k]||0),0),pts=sum("pts")||1;
   return{fga:c.pts*sum("fga")/pts,fta:c.pts*sum("fta")/pts,g:L.length?c.pts/(pts/L.length):0}}
+// With the relay, Yahoo's own made / attempted counts so far (row.x) replace the estimate.
+function muPastR(L,c,row){const p=muPast(L,c),x=row&&row.x;if(x){if(x.fga!=null)p.fga=x.fga;if(x.fta!=null)p.fta=x.fta}return p}
 function muOdds(cA,cB,pA,pB,A,B,off){
   const fin=(c,p,t,k)=>{if(k==="fg"||k==="ft"){const a=p[k+"a"]+t[k+"a"],m=c[k]*p[k+"a"]+t[k+"m"];return{v:a?m/a:c[k],a,ra:t[k+"a"]}}return{v:c[k]+t[k]}};
   const rows=CATS.map(cc=>{const k=cc.k,fa=fin(cA,pA,A.tot,k),fb=fin(cB,pB,B.tot,k);let p;
@@ -3259,7 +3277,7 @@ function renderMU(){
   // (points track shot volume) at the roster's projected attempts per point; games so far likewise
   // from points per player-game. (schedule.json only holds dates still to come, so the days already
   // played can't be simulated.)
-  const pA=isS?muPast(base.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cA):{fga:0,fta:0,g:0},pB=isS?muPast(oppR.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cB):{fga:0,fta:0,g:0};
+  const pA=isS?muPastR(base.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cA,R0):{fga:0,fta:0,g:0},pB=isS?muPastR(oppR.map(o=>o.il?null:xpLine(o.q)).filter(Boolean),cB,R1):{fga:0,fta:0,g:0};
   // a streaming plan put into the grid: dated moves on top of the roster above (dropped once a
   // sync changes the roster, like the other what-ifs; a move whose pickup is no longer free is skipped)
   const onM=new Set(mine.map(o=>o.id)),plan=(m.plan||[]).filter(v=>rest.includes(v.d)&&G.players[v.add]&&G.players[v.add].xp&&x.own[v.add]==null&&!onM.has(v.add));
@@ -4489,6 +4507,25 @@ $("poolSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pool=+b.data
   if(S.players.length){compute();render()}});
 paintPool();
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S.date&&(S.err||S.events.some(e=>e.state==="in")))loadDate(S.date)});
+// ---- Yahoo relay (worker/yahoo-relay.js; set up on league.html as {u: address, k: key}). With
+// one on this device the league syncs by itself: when the page opens or comes back into view and
+// the saved copy is over RELAYAGE old, and on a tap of the league chip. Same bundle as the
+// bookmark, so every league page reads it unchanged. A failed sync keeps the saved copy and is
+// noted for league.html (relayErr). Nothing goes anywhere but this device.
+const RELAYAGE=15*60e3;
+async function relaySync(force){const R=store.get("relay",null);if(!R||!R.u||!R.k||S.rlBusy)return false;
+  if(!force&&ML&&Date.now()-new Date(ML.at)<RELAYAGE)return false;
+  S.rlBusy=1;const c=$("lgChip");c.classList.add("busy");
+  try{const r=await fetch(R.u.replace(/\/+$/,"")+"/sync",{headers:{"X-Relay-Key":R.k},cache:"no-store"}),o=await r.json().catch(()=>null);
+    if(!r.ok||!lgOk(o))throw new Error(o&&o.error||"The relay answered "+r.status);
+    const first=!ML;lgSave(o);store.set("relayErr",null);
+    if(first){store.set("lgF","avail");location.hash="#matchup";location.reload();return true}
+    ML=o;LGX=null;openPage(S.navPage);return true}
+  catch(e){store.set("relayErr",{at:new Date().toISOString(),m:String(e.message||e)});if(force)alert("Couldn't sync from Yahoo: "+(e.message||e));return false}
+  finally{S.rlBusy=0;c.classList.remove("busy")}}
+$("lgChip").addEventListener("click",e=>{if(!store.get("relay",null))return;e.preventDefault();relaySync(true)});
+setTimeout(()=>relaySync(),600);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)relaySync()});
 renderCats();
 loadDate(etToday(),true);
 </script>

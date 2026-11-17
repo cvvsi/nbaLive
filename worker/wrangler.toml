@@ -1,0 +1,10 @@
+# Sixth Man's private Yahoo relay (yahoo-relay.js). Deployed by Actions -> Yahoo relay; secrets are
+# set there from the repo secrets, never in this file (the repo is public).
+name = "sixthman-yahoo"
+main = "yahoo-relay.js"
+compatibility_date = "2025-06-01"
+workers_dev = true
+
+[vars]
+# Pages allowed to call the relay from a browser. The relay key is the real lock.
+ALLOW_ORIGINS = "https://sixthmanhoops.app,https://cvvsi.github.io,http://localhost:8000"
