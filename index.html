@@ -3390,11 +3390,13 @@ function ilpSec(X){
 // for his next game ("if he sits"), each teammate's line that night: next-man-up minutes (minAt),
 // the matchup, and his own per-minute numbers in the games that regular already missed this
 // season (nm[R].wo, from build-rankings.js), believed g / (g + SMK): so a usage bump shows, not
-// just minutes. Scored on the Proj scale with your punts; "plays like #n" = where that line would
+// just minutes. backtest-smash.js (48,930 fill-in nights, 2023-24 to 2025-26): one night is mostly
+// noise, so the split earns little (K = 16 in every fold; 4 was 0.8% worse); the tags do work:
+// Smash came through at a top-60 level 42% of the time, against 18% for every fill-in. Scored on the Proj scale with your punts; "plays like #n" = where that line would
 // rank among everyone's rest-of-season per-game Proj. Smash: like a top-SMTOP[0] player and SMUP
 // better than his usual; Good: top-SMTOP[1]. Players already ranked inside SMSKIP are left out
 // (you start them anyway).
-const SMK=4,SMTOP=[60,100],SMUP=.15,SMSKIP=75;
+const SMK=16,SMTOP=[60,100],SMUP=.15,SMSKIP=75;
 const SMKEYS=["pts","reb","ast","stl","blk","tpm","to","fgm","fga","ftm","fta"];
 function smLine(X,q,d,e,cond){let m=minAt(X,q,d);const x=e.m&&e.m[X];if(cond&&x)m=Math.max(0,m-x[0]+x[1]);
   let L=easeLine(lineAt(q,m),easeF(oppT(q.t,d)));const w=e.wo&&e.wo[X];

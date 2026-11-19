@@ -1,0 +1,203 @@
+{
+ "tests": [
+  "2023-24",
+  "2024-25",
+  "2025-26"
+ ],
+ "samples": [
+  15084,
+  16701,
+  17145
+ ],
+ "note": "RMSE of the 9-cat value of a fill-in's line the night a regular sat (z per game against the season's 15+ minute player-games), out of sample; gain = % less error than usual",
+ "models": {
+  "usual": {
+   "rmse": 0.347,
+   "n": 48930,
+   "min": 6.87,
+   "pts": 6.181,
+   "reb": 2.547,
+   "ast": 1.877,
+   "tpm": 1.256,
+   "gainPct": 0
+  },
+  "nm": {
+   "rmse": 0.348,
+   "n": 48930,
+   "min": 7.061,
+   "pts": 6.209,
+   "reb": 2.582,
+   "ast": 1.873,
+   "tpm": 1.259,
+   "gainPct": -0.4
+  },
+  "wo1": {
+   "rmse": 0.358,
+   "n": 48930,
+   "min": 6.914,
+   "pts": 6.305,
+   "reb": 2.624,
+   "ast": 1.912,
+   "tpm": 1.304,
+   "gainPct": -3.2
+  },
+  "wo2": {
+   "rmse": 0.353,
+   "n": 48930,
+   "min": 6.854,
+   "pts": 6.228,
+   "reb": 2.591,
+   "ast": 1.887,
+   "tpm": 1.285,
+   "gainPct": -1.9
+  },
+  "wo4": {
+   "rmse": 0.35,
+   "n": 48930,
+   "min": 6.826,
+   "pts": 6.176,
+   "reb": 2.569,
+   "ast": 1.869,
+   "tpm": 1.27,
+   "gainPct": -0.8
+  },
+  "wo8": {
+   "rmse": 0.348,
+   "n": 48930,
+   "min": 6.836,
+   "pts": 6.154,
+   "reb": 2.558,
+   "ast": 1.86,
+   "tpm": 1.262,
+   "gainPct": -0.3
+  },
+  "wo16": {
+   "rmse": 0.347,
+   "n": 48930,
+   "min": 6.873,
+   "pts": 6.154,
+   "reb": 2.557,
+   "ast": 1.859,
+   "tpm": 1.258,
+   "gainPct": -0.1
+  }
+ },
+ "groups": {
+  "0": {
+   "n": 5301,
+   "best": 0.341,
+   "nm": 0.341,
+   "usual": 0.341
+  },
+  "1-2": {
+   "n": 9209,
+   "best": 0.347,
+   "nm": 0.348,
+   "usual": 0.348
+  },
+  "3-5": {
+   "n": 10201,
+   "best": 0.339,
+   "nm": 0.34,
+   "usual": 0.339
+  },
+  "6+": {
+   "n": 24219,
+   "best": 0.351,
+   "nm": 0.353,
+   "usual": 0.351
+  }
+ },
+ "fit": {
+  "folds": [
+   16,
+   16,
+   16
+  ],
+  "rmse": 0.347,
+  "gainPct": -0.1
+ },
+ "tags": {
+  "model": "wo16",
+  "past": {
+   "smash": {
+    "n": 1089,
+    "meanValue": 0.097,
+    "top100Pct": 53.8,
+    "top60Pct": 42.4
+   },
+   "good": {
+    "n": 3589,
+    "meanValue": 0.059,
+    "top100Pct": 47.8,
+    "top60Pct": 38
+   },
+   "allFillIns": {
+    "n": 41100,
+    "meanValue": -0.184,
+    "top100Pct": 25,
+    "top60Pct": 18.2
+   },
+   "smashBy": {
+    "0": {
+     "n": 107,
+     "meanValue": 0.094,
+     "top100Pct": 55.1,
+     "top60Pct": 45.8
+    },
+    "1-2": {
+     "n": 209,
+     "meanValue": 0.091,
+     "top100Pct": 53.6,
+     "top60Pct": 42.6
+    },
+    "3+": {
+     "n": 773,
+     "meanValue": 0.099,
+     "top100Pct": 53.7,
+     "top60Pct": 41.9
+    }
+   }
+  },
+  "thisSeason": {
+   "smash": {
+    "n": 24,
+    "meanValue": 0.116,
+    "top100Pct": 62.5,
+    "top60Pct": 50
+   },
+   "good": {
+    "n": 99,
+    "meanValue": 0.083,
+    "top100Pct": 54.5,
+    "top60Pct": 44.4
+   },
+   "allFillIns": {
+    "n": 884,
+    "meanValue": -0.167,
+    "top100Pct": 28.6,
+    "top60Pct": 19.2
+   },
+   "smashBy": {
+    "0": {
+     "n": 18,
+     "meanValue": 0.091,
+     "top100Pct": 61.1,
+     "top60Pct": 44.4
+    },
+    "1-2": {
+     "n": 5,
+     "meanValue": 0.097,
+     "top100Pct": 60,
+     "top60Pct": 60
+    },
+    "3+": {
+     "n": 1,
+     "meanValue": 0.658,
+     "top100Pct": 100,
+     "top60Pct": 100
+    }
+   }
+  }
+ }
+}
