@@ -24,12 +24,9 @@
  * POST /mcp/<RELAY_KEY> (or /mcp with an "X-Relay-Key: <RELAY_KEY>" or "Authorization: Bearer" header) -> the fantasy analyst, an
  *               MCP server with read-only tools over the same data (worker/analyst.js).
  *
- * GET /nba/...  -> play clips from NBA.com for the player page (worker/nba.js).
- *
  * Deployed by .github/workflows/relay.yml (Actions -> Yahoo relay). */
 
 import { mcp } from './analyst.js';
-import { nbaRoute } from './nba.js';
 
 const API = 'https://fantasysports.yahooapis.com/fantasy/v2';
 const SPOT_OFF = /^(BN|IL\+?|IR\+?|NA)$/i;
@@ -274,10 +271,7 @@ export default {
       try { return await mcp(req, env, { buildSync, leagueKey, yf, items, flat, pick, ovGet }); }
       catch (e) { return json({ error: e.message || String(e) }, 500); }
     }
-    const keyed = keyOk(req.headers.get('X-Relay-Key') || '', env.RELAY_KEY || '');
-    const nr = await nbaRoute(req, url, env, json, keyed);
-    if (nr) return nr;
-    if (!keyed) return json({ error: 'Wrong or missing relay key.' }, 401);
+    if (!keyOk(req.headers.get('X-Relay-Key') || '', env.RELAY_KEY || '')) return json({ error: 'Wrong or missing relay key.' }, 401);
     try {
       if (url.pathname === '/sync' && req.method === 'GET') return json(await buildSync(env));
       if (url.pathname === '/minutes' && req.method === 'GET') return json(await ovGet(env));
