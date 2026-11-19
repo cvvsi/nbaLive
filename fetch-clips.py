@@ -108,15 +108,30 @@ def clock(c):
     return round(int(m.group(1)) * 60 + float(m.group(2)), 1) if m else None
 
 
+PROBED = {}
 S = requests.Session()
 S.headers.update(STATS_HEADERS)
+
+
+def probe(gid, ev):
+    """One lookup, printed in full, before a night's batch: says what NBA.com sent back."""
+    u = f'https://stats.nba.com/stats/videoeventsasset?GameID={gid}&GameEventID={ev}'
+    t = time.time()
+    try:
+        r = S.get(u, timeout=20)
+        body = r.text[:300].replace('\n', ' ')
+        print(f'  test lookup (play {ev}): HTTP {r.status_code} in {time.time() - t:.1f} s: {body}')
+        return r.status_code == 200
+    except Exception as e:
+        print(f'  test lookup (play {ev}): no answer in {time.time() - t:.0f} s ({type(e).__name__})')
+        return False
 
 
 def video(gid, ev):
     u = f'https://stats.nba.com/stats/videoeventsasset?GameID={gid}&GameEventID={ev}'
     for attempt in range(4):
         try:
-            r = S.get(u, timeout=30)
+            r = S.get(u, timeout=15)
             if r.status_code == 200:
                 v = ((r.json().get('resultSets') or {}).get('Meta') or {}).get('videoUrls') or [{}]
                 url = v[0].get('lurl') or v[0].get('murl') or v[0].get('surl')
@@ -158,10 +173,16 @@ def night(d):
             kinds[r[5]] = kinds.get(r[5], 0) + 1
         print(f'  {key}: {len(rows)} plays from the {src} ' + ' '.join(f'{k}:{v}' for k, v in sorted(kinds.items())))
         todo = [r for r in rows if not r[7]]
+        if todo and not PROBED.get(d):
+            if not probe(gid, todo[0][0]):
+                raise SystemExit('NBA.com did not answer the video lookup: paste the line above into the chat.')
+            PROBED[d] = True
         t = time.time()
         with ThreadPoolExecutor(6) as ex:
-            for r, v in zip(todo, ex.map(lambda r: video(gid, r[0]), todo)):
+            for i, (r, v) in enumerate(zip(todo, ex.map(lambda r: video(gid, r[0]), todo)), 1):
                 r[7] = v
+                if i % 50 == 0:
+                    print(f'    {i} of {len(todo)} looked up, {sum(1 for x in todo[:i] if x[7])} with a clip', flush=True)
         keep = [r for r in rows if r[7]]
         print(f'  {key} {gid}: {len(keep)} of {len(rows)} plays have a clip ({len(todo)} looked up, {time.time() - t:.0f} s)')
         if keep:
