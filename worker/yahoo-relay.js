@@ -145,6 +145,13 @@ async function buildSync(env) {
       lab: scored.map(c => c.display_name), rows };
   }
 
+  // Yahoo's matchup calendar: each week's first and last day. Most weeks are Mon-Sun, but some are
+  // longer (the NBA Cup week, the All-Star break); the site builds its weeks from this.
+  try {
+    const gw = await yf(env, `/game/${lk.split('.l.')[0]}/game_weeks`);
+    cfg.wks = items(pick(gw.game, 'game_weeks')).map(x => x.game_week).filter(w => w && w.start && w.end).map(w => [+w.week, w.start, w.end]);
+  } catch (e) { /* the site falls back to Mon-Sun weeks plus the known long ones */ }
+
   // your opponent every week of the season
   const sched = {};
   if (me) {

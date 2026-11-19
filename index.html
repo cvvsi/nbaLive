@@ -270,7 +270,7 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
   .mfs .msw{grid-template-columns:1fr;gap:10px;margin-top:14px}.mfs .msw>div{flex-direction:column;gap:3px}
   .mct{font-size:13.5px}.mct th,.mct td{padding:7px 8px}.mct .tn{max-width:180px}.mct sup{font-size:9px}
   .mcols .msec,.mme{margin-top:12px}
-  .mrh,.mr{grid-template-columns:minmax(150px,1fr) 28px calc(var(--nd,7)*72px) minmax(330px,440px) 50px 26px}
+  .mrh,.mr{grid-template-columns:minmax(150px,1fr) 28px calc(var(--nd,7)*var(--dcw,72px)) minmax(330px,440px) 50px 26px}
   .mr{padding:3px 0}.mn{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:6px}.mn b{font-size:13.5px}.mn i{margin:0}.mstl{flex-basis:100%;margin-top:3px}
   .md{display:grid;grid-template-columns:repeat(var(--nd,7),minmax(0,1fr));gap:3px}
   .dc,.dh{width:auto;min-width:0}
@@ -2042,7 +2042,7 @@ const TBPOOL=60,TBH={wk:"This week",w2:"2 weeks",ros:"Rest of season"};
 S.tb={h:store.get("tbH","ros"),nk:store.get("tbNk",1),drops:[],pick:null,done:[],tab:"combo",fs:"w",at:null};
 function tbDays(h){if(!SC)return[];const t=etToday(),late=etHour(new Date())>=19;
   const all=Object.keys(SC.dates).filter(d=>d>t||(d===t&&!late)).sort();
-  return h==="ros"?all:all.filter(d=>d<=weekDates(h==="wk"?0:1)[6])}
+  return h==="ros"?all:all.filter(d=>d<=weekDates(h==="wk"?0:1).slice(-1)[0])}
 function tbCtx(){
   const key=[ML.at,S.tb.h,[...S.punt].join()+S.gw,G.asOf,SC&&SC.built,IJ&&IJ.built].join("|");
   if(S.tbC&&S.tbC.key===key)return S.tbC;
@@ -2757,8 +2757,24 @@ function pjZ(l){const P=G.zp,v={...l,fgi:l.fgm-P.lgFG*l.fga,fti:l.ftm-P.lgFT*l.f
   for(const c of G.cats){const [k,m,sd]=P.st[c];z[c]=(c==="to"?-1:1)*(v[k]-m)/sd}return z}
 function teamDays(){if(S.tdays)return S.tdays;const m={};if(SC)for(const[d,g]of Object.entries(SC.dates))m[d]=new Set(g.flat());return S.tdays=m}
 const plays=(t,d)=>{const x=teamDays()[d];return !!(x&&x.has(t))};
-function weekDates(off){const t=etToday(),dow=new Date(t+"T12:00:00Z").getUTCDay(),mon=shift(t,-((dow+6)%7));
+// Calendar weeks (Mon-Sun), off weeks from this one: the Schedule tab's grid.
+function calWeek(off){const t=etToday(),dow=new Date(t+"T12:00:00Z").getUTCDay(),mon=shift(t,-((dow+6)%7));
   const st=shift(mon,7*(+off||0));return[...Array(7)].map((_,i)=>shift(st,i))}
+// Fantasy matchup weeks: Yahoo's calendar (cfg.wks from the relay: [week, first day, last day]),
+// else Mon-Sun weeks with the known long ones merged in (FWLONG: first day -> last day). 2026-27:
+// week 7 runs Nov 30 - Dec 13 around the NBA Cup, 4 adds for the two weeks. weekDates(off) = the
+// days of the matchup week off weeks from the one holding today, so Matchup, the streaming plan,
+// Today, Proj → Week, Build, IL+ and the player page all follow the league's weeks.
+const FWLONG={"2026-11-30":"2026-12-13"};
+function fwList(){const c=S.fw;const k=ML&&ML.cfg&&ML.cfg.wks?JSON.stringify(ML.cfg.wks):"x";if(c&&c.k===k)return c.L;
+  let L=[];
+  if(ML&&ML.cfg&&Array.isArray(ML.cfg.wks)&&ML.cfg.wks.length)L=ML.cfg.wks.map(([w,a,b])=>({w,a,b})).sort((x,y)=>x.a<y.a?-1:1);
+  else{let d="2026-10-19";const end="2027-04-18";while(d<=end){const b=FWLONG[d]||shift(d,6);L.push({a:d,b});d=shift(b,1)}}
+  S.fw={k,L};return L}
+function fwIdx(d){const L=fwList();for(let i=0;i<L.length;i++)if(d>=L[i].a&&d<=L[i].b)return i;return-1}
+function weekDates(off){const L=fwList(),t=etToday();let i=fwIdx(t);
+  if(i<0){const j=L.findIndex(w=>w.a>t);i=j<0?L.length:j}
+  const w=L[i+(+off||0)];if(!w)return calWeek(off);const o=[];for(let d=w.a;d<=w.b;d=shift(d,1))o.push(d);return o}
 function opp(t,d){for(const[a,h]of(SC&&SC.dates[d])||[]){if(a===t)return"@ "+h;if(h===t)return"vs "+a}return""}
 // ESPN's injury report (data/injuries.json): [status, return date, note, name, team] by id.
 // Out with a return date: misses games before it. Out with none: unknown, so Week counts
@@ -3071,9 +3087,9 @@ function teamPanel(t,gd,live,all,szn,wk,nN,wkR,WM){
 }
 // Week picker (Proj > Week and Schedule): this week = 0, then one week at a time to the end of
 // the schedule.
-function paintWk(el,off){const ds=weekDates(off),last=SC?Object.keys(SC.dates).sort().pop():"",sh=d=>fmtDate(d).replace(/^\w+, /,"");
-  $(el).querySelector("span").textContent=off===0?"This wk":off===1?"Next wk":`${sh(ds[0])}–${ds[0].slice(5,7)===ds[6].slice(5,7)?+ds[6].slice(8):sh(ds[6])}`;
-  const[pv,nx]=$(el).querySelectorAll("button");pv.disabled=off<=0;nx.disabled=!last||shift(ds[6],1)>last}
+function paintWk(el,off){const ds=el==="scWk"?calWeek(off):weekDates(off),z=ds[ds.length-1],last=SC?Object.keys(SC.dates).sort().pop():"",sh=d=>fmtDate(d).replace(/^\w+, /,"");
+  $(el).querySelector("span").textContent=(off===0?"This wk":off===1?"Next wk":`${sh(ds[0])}–${ds[0].slice(5,7)===z.slice(5,7)?+z.slice(8):sh(z)}`)+(ds.length>7?` · ${ds.length/7|0} wks`:"");
+  const[pv,nx]=$(el).querySelectorAll("button");pv.disabled=off<=0;nx.disabled=!last||shift(z,1)>last}
 // Schedule tab: the grid for the picked week.
 S.scWk=0;
 // ---- Schedule > Tonight: every game tonight on one page, both full rosters, with the official NBA
@@ -3228,7 +3244,7 @@ function renderSC(){
   if(document.body.dataset.view==="in")renderTN();
   paintWk("scWk",S.scWk);
   if(!G||!SC){$("scList").innerHTML=`<div class="empty">${G?"No schedule yet: it's built with the nightly rankings.":"Loading…"}</div>`;return}
-  const today=etToday(),ds=weekDates(S.scWk),live=ds.filter(d=>d>=today);
+  const today=etToday(),ds=calWeek(S.scWk),live=ds.filter(d=>d>=today);
   renderGrid(ds,live,Object.entries(G.players).filter(([,q])=>q.xp&&q.xp[0]>=8),today);
 }
 function pjMsg(m){$("pjList").innerHTML=`<div class="empty">${m}</div>`;$("pjStatus").textContent=""}
@@ -3329,7 +3345,7 @@ function myPlanSec(ctx,applied){
   const use=(b,i)=>mySame(b.moves,applied)?`<button class="myuse on" data-pl="x">In the grid ✓ · Clear</button>`:`<button class="myuse" data-pl="${i}">Use this plan</button>`;
   let body;
   if(!ctx.rest.length)body=`<div class="mye">No days left in this week.</div>`;
-  else if(n<=0)body=`<div class="mye">No adds left this week.</div>`;
+  else if(n<=0)body=`<div class="mye">No adds left this ${ctx.dates&&ctx.dates.length>7?"matchup":"week"}.</div>`;
   else if(!drops.size)body=`<div class="mye">Tick at least one player you'd be willing to drop.</div>`;
   else if(!pl)body=`<div class="mye">Working out the best moves…</div>`;
   else if(!pl.best.moves.length)body=`<div class="mye">No pickup improves this week by a real amount. Hold your adds.</div>`;
@@ -3339,7 +3355,7 @@ function myPlanSec(ctx,applied){
   if(applied.length&&pl&&![pl.best,...pl.alts].some(b=>mySame(b.moves,applied)))body=`<div class="mye">A plan from earlier is in the grid. <button class="myuse on" data-pl="x">Clear it</button></div>`+body;
   const ros=[...ctx.base].sort((a,b)=>(S.bs&&S.bs.x?(S.bs.x[a.id]||999)-(S.bs.x[b.id]||999):0));
   const seg=(k,opts)=>`<div class="seg mysg">${opts.map(([v,l])=>`<button data-myo="${k}" data-v="${v}" aria-pressed="${String(o[k])===String(v)}">${l}</button>`).join("")}</div>`;
-  return`<section class="msec mpln"><h3 class="myh">Streaming plan</h3><div class="mysub">adds left this week${ctx.tg&&ctx.tg.length&&o.goal==="cats"?` · going after your targets`:""}</div><div class="myadd"><button data-add="-1" aria-label="One fewer">−</button><b>${n}</b><button data-add="1" aria-label="One more">+</button></div>
+  return`<section class="msec mpln"><h3 class="myh">Streaming plan</h3><div class="mysub">adds left this ${ctx.dates&&ctx.dates.length>7?`matchup (${ctx.dates.length/7|0} weeks)`:"week"}${ctx.tg&&ctx.tg.length&&o.goal==="cats"?` · going after your targets`:""}</div><div class="myadd"><button data-add="-1" aria-label="One fewer">−</button><b>${n}</b><button data-add="1" aria-label="One more">+</button></div>
     <p class="stkn">The best use of the adds you have left this week (your league allows ${myMax()}${myUsed(ctx)!=null?`; ${myUsed(ctx)} used, read from Yahoo`:"; set how many remain"}). Each move counts from its day: a streamer can be added for his games and dropped later for someone else's. Only players you tick as droppable, and streamers the plan itself added, are dropped. <b>Most categories</b> goes for the most expected categories (only the ones you've ticked as targets above, if any); <b>Win the week</b> for the best chance at 5 of 9, which can mean giving up a category you're losing anyway. <b>Same day</b>: a pickup can play the day you make it; <b>Next day</b>: from the day after, so the plan gives the day to make the move. <b>Use this plan</b> puts its moves into the grid below as what-ifs, each from its day, so you can see every game it adds; Clear or Reset takes them out. It starts from the roster shown, including your own what-if adds and drops. Scored against this week's opponent on our projections; only your best ${ctx.capA} count on a crowded day; positions aren't checked.</p>
     <div class="myopt">${seg("goal",[["cats","Most categories"],["win","Win the week"]])}${seg("same",[[1,"Same day"],[0,"Next day"]])}<button class="mychk" data-myo="noq" data-v="${o.noq?0:1}" aria-pressed="${!!o.noq}">Skip injured</button></div>
     ${body}
@@ -3482,7 +3498,7 @@ function ilpSec(X){
       <div>${dd.act.map(e=>`<span class="${ch(e.o).trim()}"><em>${e.slot}</em>${nm(e.o)}</span>`).join("")||`<span class="dim">no games</span>`}</div>
       ${dd.park.length?`<div class="ilpk"><b>IL</b> ${dd.park.map(o=>`<span class="${dd.on.has(o.id)&&dd.lostIL?"lost":""}${ch(o)}">${nm(o)}</span>`).join(" · ")}</div>`:""}
       ${dd.bench.filter(o=>dd.on.has(o.id)).length?`<div class="ilps"><b>Sits</b> ${dd.bench.filter(o=>dd.on.has(o.id)).map(o=>`<span class="${ch(o).trim()}">${nm(o)}</span>`).join(" · ")}</div>`:""}</div></div>`}).join("");
-  const weeks=r=>{const wk=dd=>X.rest.includes(dd.d)?0:1+Math.floor((new Date(dd.d)-new Date(X.days.find(d=>!X.rest.includes(d))))/6048e5),G=[];
+  const weeks=r=>{const i0=fwIdx(X.days[0]),wk=dd=>X.rest.includes(dd.d)?0:Math.max(1,fwIdx(dd.d)-i0),G=[];
     for(const dd of r.days)(G[wk(dd)]||(G[wk(dd)]=[])).push(dd);return G};
   const block=(r,extra)=>weeks(r).map((D,k)=>!D?"":k===0?grid(r,D,extra)+`<details class="myalt ilpdd"><summary><b>Lineup each day</b> <i>changes in orange</i></summary>${dayRows(D)}</details>`
     :`<details class="myalt"><summary><b>${k===1?"Next week":"In 2 weeks"}</b> <i>${D.reduce((a,x)=>a+x.g,0)} games</i></summary>${grid(r,D,extra)}${dayRows(D)}</details>`).join("");
@@ -3714,7 +3730,7 @@ function renderMU(){
   const me=String(ML.me),wk0=weekDates(0)[0],at=new Date(ML.at),syncDay=new Intl.DateTimeFormat("en-CA",{timeZone:"America/New_York"}).format(at);
   const ok=mu&&mu.rows&&mu.rows.length===2,sDates=ok&&mu.dates&&mu.dates.length?mu.dates:null;
   // the synced week, as an offset from this calendar week (Mon-Sun); Yahoo's own days for it
-  const sOff=ok?Math.round((new Date((sDates||weekDates(0))[0])-new Date(wk0))/6048e5):null;
+  const sOff=ok?(sDates?fwIdx(sDates[0])-fwIdx(weekDates(0)[0]):0):null;
   const today=etToday(),now=new Date(),lastWk=SC?Object.keys(SC.dates).sort().pop():today;
   if(S.muWk==null){S.muWk=sOff!=null?sOff:0;const d=S.muWk===sOff&&sDates?sDates:weekDates(S.muWk);if(!d.some(x=>x>=today))S.muWk++}
   const off0=S.muWk,isS=ok&&off0===sOff,dates=isS&&sDates?sDates:weekDates(off0),wkNo=ok&&mu.week?mu.week+(off0-sOff):null;
@@ -3824,7 +3840,7 @@ function renderMU(){
     return`<td class="${Math.abs(d)<1e-9?"":good?"up":"dn"}">${s}</td>`};
   const pctx={x,base:mine,rest,today,dates,capA,F,C,off,cA,cB,pA,pB,B,P,set:m.set,tg:tgs,lkA};
   $("pjStatus").textContent=`${wkNo?"Wk "+wkNo+" · ":""}${rest.length}d left`;$("pjLgRow").hidden=true;
-  $("pjList").innerHTML=`<div class="mux" style="--nd:${Math.max(1,rest.length)}">
+  $("pjList").innerHTML=`<div class="mux" style="--nd:${Math.max(1,rest.length)};--dcw:${rest.length>7?"46px":"72px"}">
     <div class="mtop">
       <div class="mwk"><button class="mar" data-mu="wk" data-x="-1"${canPrev?"":" disabled"} aria-label="Previous week">‹</button><span><b>${wkNo?"Week "+wkNo:"Week"}</b> ${sh(dates[0])}–${sh(dates[dates.length-1])}${isS?"":` <i>projection only</i>`}</span><button class="mar" data-mu="wk" data-x="1"${canNext?"":" disabled"} aria-label="Next week">›</button></div>
       <div class="muh"><div><b>${esc(nameA)}</b><i class="${O.won>O.lost?"up":O.won<O.lost?"dn":""}">${O.won}</i></div><span>${O.n-O.won-O.lost?`${O.n-O.won-O.lost} even`:"vs"}</span><div>${isS?`<b>${esc(nameB)}</b>`:`<select class="mop" data-mu-opp aria-label="Opponent">${teams.map(t=>`<option value="${t}"${t===opId?" selected":""}>${esc(ML.teams[t])}${t===sch?" (scheduled)":""}</option>`).join("")}</select>`}<i>${O.lost}</i></div></div>
@@ -3920,7 +3936,7 @@ $("pjSz").hidden=S.pjView!=="season";
         sub:` · <b>${g}</b> g`,sdl:g+"g",foot:nmNote(id,q,wd,m)+ijNote(id),z,bb:b2b(q.t,id)}}).filter(o=>o.g>0).sort((a,b)=>b.v-a.v).slice(0,250);
     rows.forEach((o,i)=>{const d=szn[o.id]-(i+1);o.ctx=`<b>${o.g}</b>g${o.bb?" · b2b":""} · <span class="${d>=10?"up":d<=-10?"dn":""}">${d>0?"▲"+d:d<0?"▼"+(-d):"="}</span>`});
     stat=`${rows.length} players`;
-    cap=`${S.pjWk?`Week of ${sh(ds[0])}`:"The rest of this week"}: Proj's per-game line times games ${S.pjWk?"":"left "}(${live.length?sh(live[0]):""}–${sh(ds[6])}). Value is the week's total, so a 4-game player can beat a better 2-game one. ${S.pjTot==="tot"?"Stats are week totals":"Stats are per game"}. ▲/▼ = spots gained or lost against the player's per-game season rank: the schedule's effect.`;
+    cap=`${S.pjWk?`Week of ${sh(ds[0])}`:"The rest of this week"}: Proj's per-game line times games ${S.pjWk?"":"left "}(${live.length?sh(live[0]):""}–${sh(ds[ds.length-1])}). Value is the week's total, so a 4-game player can beat a better 2-game one. ${S.pjTot==="tot"?"Stats are week totals":"Stats are per game"}. ▲/▼ = spots gained or lost against the player's per-game season rank: the schedule's effect.`;
   }else{
     const teams=new Set(((SC&&SC.dates[today])||[]).flat());
     const P=prIx(),priced=new Set();
