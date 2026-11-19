@@ -18,7 +18,7 @@
  * Scored on the 9-cat value of the line (z-scores against the season's player-games of 15+ min,
  * FG% / FT% as impact), and on minutes, points, rebounds, assists, threes. K fitted on two seasons,
  * scored on the third. Then the page's tags on the best model: "plays like #n" = where the value
- * would rank among the season's per-game values (players with 20+ games); Smash = like a top-60
+ * would rank among the season's per-game values (players with 20+ games, or 60% of the most games played early in a season); Smash = like a top-60
  * player, Good = top-100, his usual line outside the top 75. Reported: how many came through
  * (actual value at a top-100 / top-60 level) against every fill-in outside the top 75, by tier
  * and by how many games without that regular he had. The current season so far is scored the same
@@ -82,7 +82,7 @@ function replay(games, prevGames) {
   }
   // per-game value of every player with 20+ games, for "plays like #n"
   const tot = {}; for (const g of games) for (const r of g.rows) { const o = tot[r.id] || (tot[r.id] = { gp: 0, min: 0, ...Object.fromEntries(ST.map(k => [k, 0])) }); o.gp++; o.min += r.min; for (const k of ST) o[k] += r[k]; }
-  const pv = Object.values(tot).filter(o => o.gp >= 20).map(o => SC.val(Object.fromEntries(['min', ...ST].map(k => [k, o[k] / o.gp])))).sort((a, b) => b - a);
+  const mx = Math.max(...Object.values(tot).map(o => o.gp)), pv = Object.values(tot).filter(o => o.gp >= Math.min(20, Math.ceil(mx * .6))).map(o => SC.val(Object.fromEntries(['min', ...ST].map(k => [k, o[k] / o.gp])))).sort((a, b) => b - a);
   const T = n => pv[Math.min(n, pv.length) - 1];
   return { S: out, T60: T(60), T75: T(75), T100: T(100) };
 }
