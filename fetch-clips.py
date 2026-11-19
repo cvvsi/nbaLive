@@ -16,7 +16,8 @@ video lookup don't answer other sites, which is why this runs here).
 
 type is NBA.com's actionType (2pt, 3pt, freethrow, rebound, turnover, steal, block). video drops the
 https://videos.nba.com/nba/pbp/media/ prefix when it has it. Plays NBA.com has no clip for are left out.
-About 350 lookups a game, 6 at a time: a few minutes for a full night. Re-running a date only looks up
+About 350 lookups a game, 2 at a time with a pause (stats.nba.com stops answering for a while
+after a burst): about 2 minutes a game. Re-running a date only looks up
 the plays still missing a clip (clips appear on NBA.com a few hours after a game).
 """
 import json, os, re, sys, time, datetime
@@ -131,6 +132,7 @@ def video(gid, ev):
     u = f'https://stats.nba.com/stats/videoeventsasset?GameID={gid}&GameEventID={ev}'
     for attempt in range(4):
         try:
+            time.sleep(0.4)  # stats.nba.com goes quiet for a while after a burst
             r = S.get(u, timeout=15)
             if r.status_code == 200:
                 v = ((r.json().get('resultSets') or {}).get('Meta') or {}).get('videoUrls') or [{}]
@@ -178,7 +180,7 @@ def night(d):
                 raise SystemExit('NBA.com did not answer the video lookup: paste the line above into the chat.')
             PROBED[d] = True
         t = time.time()
-        ex = ThreadPoolExecutor(6)
+        ex = ThreadPoolExecutor(2)
         futs = [ex.submit(video, gid, r[0]) for r in todo]
         for i, (r, f) in enumerate(zip(todo, futs), 1):
             while True:  # short waits, so Ctrl+C gets through on Windows
