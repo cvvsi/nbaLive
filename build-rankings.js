@@ -351,6 +351,40 @@ function nextMan(games, scored, rankings) {
   return out;
 }
 
+// Minutes per game he's available for, for the day-level lines (Week, Today, Schedule, Matchup):
+// Proj's minutes count only games he played, so a game the coach sat him adds nothing. Here each
+// short miss (1-2 team games in a row without him, from his first game for his current team) counts
+// as a 0-minute game at half weight; 3+ in a row is an absence (the injury report's job), left out,
+// and a short run still going at the end isn't known yet. Last season's mpg counts as 1 game.
+// backtest-depth.js (2023-24 to 2025-26, fit on two seasons and scored on the third, the same
+// setting in each): 3.9% less error on minutes per available game over the next 10 (5.2% bench,
+// 8.6% players who sat lately), and our +1.2 min high bias halved. Per game *played* it's 0.7%
+// worse, so the rest-of-season Proj (and its rank) keeps fadeMpg. dm = the change from Proj's.
+const DM_HALF = 5, DM_PRIOR = 1, DM_ZW = .5, DM_SHORT = 2;
+function dayMinutes(games, lines) {
+  const sorted = [...games].sort((a, b) => a.date < b.date ? -1 : 1), byT = {}, last = {};
+  for (const g of sorted) { const ts = new Set(g.rows.map(r => r.team)); for (const t of ts) (byT[t] || (byT[t] = [])).push(g); for (const r of g.rows) last[r.id] = r.team; }
+  const out = {};
+  for (const p of lines) {
+    if (!p.b) continue;
+    const t = last[p.id], gs = byT[t]; if (!gs) continue;
+    const seq = gs.map(g => { const r = g.rows.find(x => x.id === p.id && x.team === t); return r ? r.min : null; });
+    const k0 = seq.findIndex(v => v != null); if (k0 < 0) continue;
+    const h = [];
+    for (let i = k0; i < seq.length; i++) {
+      if (seq[i] != null) { h.push([seq[i], 1]); continue; }
+      let j = i; while (j < seq.length && seq[j] == null) j++;
+      if (j < seq.length && j - i <= DM_SHORT) for (let q = i; q < j; q++) h.push([0, DM_ZW]);
+      i = j - 1;
+    }
+    let a = 0, w = 0; const N = h.length;
+    for (let i = 0; i < N; i++) { const k = Math.pow(.5, (N - 1 - i) / DM_HALF) * h[i][1]; a += k * h[i][0]; w += k; }
+    const ly = p.b.t.mpg, m = (a + DM_PRIOR * ly) / (w + DM_PRIOR), dm = m - p.min;
+    if (Math.abs(dm) >= .3) out[p.id] = r1(dm);
+  }
+  return out;
+}
+
 // Every player's projected per-game line from some games (see expectedLine), ready for score().
 function projLines(games, H, RP) {
   const tot = totals(games), lines = [], pos = {}, mins = {};
@@ -397,7 +431,7 @@ function buildRegression(games, asOf, rankings) {
   try { H = JSON.parse(fs.readFileSync(HIST, 'utf8')); }
   catch (e) { console.log(`${HIST} missing: run node build-history.js once. Skipping ${REG}.`); return; }
   const RP = rookiePriors(), lines = projLines(games, H, RP);
-  const out = {}, cx = context(games), scored = score(lines);
+  const out = {}, cx = context(games), scored = score(lines), DM = dayMinutes(games, lines);
   for (const p of scored) {
     out[p.id] = { n: p.s.name, t: p.s.team,
       now: rankings[p.id].w.season,
@@ -408,6 +442,7 @@ function buildRegression(games, asOf, rankings) {
       r: rates(p.s),
       // for the page's analyst note: exact per-game averages, and shot attempts behind each %
       pg: PG.map(k => r1(p.s[k] / p.s.gp)), att: [p.s.fga, p.s.tpa, p.s.fta], cx: cx[p.id] };
+    if (DM[p.id] != null) out[p.id].dm = DM[p.id];   // day-level minutes: sat-out games as zeros
     // Role upside: what the same (blended) per-minute numbers are worth at 30 minutes.
     if (p.s.min / p.s.gp < UP_BELOW && p.gp >= 3) {
       const z = zOf(p.b ? expectedLine(p.s, p.b.t, UP_MIN) : p.rk ? expectedLine(p.s, p.rk, UP_MIN, ROOKIE_K) : expectedLine(p.s, NOBASE, UP_MIN), scored.pool);
