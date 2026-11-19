@@ -22,7 +22,7 @@ the plays still missing a clip (clips appear on NBA.com a few hours after a game
 import json, os, re, sys, time, datetime
 from concurrent.futures import ThreadPoolExecutor
 import requests
-from nba_api.stats.endpoints import scoreboardv2
+from nba_api.stats.endpoints import scoreboardv3, playbyplayv3
 from nba_api.live.nba.endpoints import playbyplay
 from nba_api.stats.library.http import STATS_HEADERS
 
@@ -39,19 +39,68 @@ def et_today():
 def games(d):
     for attempt in range(4):
         try:
-            gh = scoreboardv2.ScoreboardV2(game_date=d, timeout=60).get_dict()['resultSets'][0]
-            ix = {h: i for i, h in enumerate(gh['headers'])}
-            out = []
-            for r in gh['rowSet']:
-                code = r[ix['GAMECODE']]  # "20261118/MILMIA"
-                m = re.match(r'\d{8}/([A-Z]{3})([A-Z]{3})', code or '')
-                if m:
-                    out.append((r[ix['GAME_ID']], m.group(1), m.group(2)))
-            return out
+            sb = scoreboardv3.ScoreboardV3(game_date=d, league_id='00', timeout=60).get_dict()
+            gs = (sb.get('scoreboard') or {}).get('games') or []
+            return [(g['gameId'], g['awayTeam']['teamTricode'], g['homeTeam']['teamTricode']) for g in gs]
         except Exception as e:
             print(f'  scoreboard retry {attempt + 1}: {type(e).__name__} {e}')
             time.sleep(5 * (attempt + 1))
     raise SystemExit('Gave up on the scoreboard for ' + d)
+
+
+def plays_live(gid):
+    """cdn.nba.com's live feed: steals and blocks are their own actions, assists named on the shot."""
+    out = []
+    for a in playbyplay.PlayByPlay(gid).get_dict()['game']['actions']:
+        ty = str(a.get('actionType') or '').lower()
+        if ty in TYPES and a.get('personId') and a.get('playerNameI'):
+            out.append([a['actionNumber'], a.get('period'), clock(a.get('clock')), a.get('teamTricode') or '',
+                        a['playerNameI'], ty, a.get('assistPlayerNameInitial') or '', None])
+    return out
+
+
+def plays_v3(gid):
+    """stats.nba.com's play-by-play (same action numbers as the live feed). Its action types are words
+    ("Made Shot", "Free Throw"...); steals and blocks are read from the description; the assist comes
+    only as a last name ("(Herro 2 AST)"), turned back into "T. Herro" from his team's other plays."""
+    acts = []
+    for attempt in range(4):
+        try:
+            acts = playbyplayv3.PlayByPlayV3(game_id=gid, start_period=0, end_period=0, timeout=60).get_dict()['game']['actions']
+            break
+        except Exception as e:
+            print(f'    v3 retry {attempt + 1}: {type(e).__name__} {e}')
+            time.sleep(5 * (attempt + 1))
+    names = {}
+    for a in acts:
+        if a.get('playerNameI') and a.get('playerName'):
+            names[(a.get('teamTricode'), a['playerName'])] = a['playerNameI']
+    out = []
+    for a in acts:
+        at, desc = str(a.get('actionType') or ''), str(a.get('description') or '')
+        if not a.get('personId') or not a.get('playerNameI') or a.get('videoAvailable') == 0:
+            continue
+        if at in ('Made Shot', 'Missed Shot'):
+            ty = '3pt' if a.get('shotValue') == 3 or '3PT' in desc else '2pt'
+        elif at == 'Free Throw':
+            ty = 'freethrow'
+        elif at == 'Rebound':
+            ty = 'rebound'
+        elif at == 'Turnover':
+            ty = 'turnover'
+        elif re.search(r'\bSTEAL\b', desc):
+            ty = 'steal'
+        elif re.search(r'\bBLOCK\b', desc):
+            ty = 'block'
+        else:
+            continue
+        ast = ''
+        m = re.search(r"\(([A-Za-z.'\- ]+?) \d+ AST\)", desc)
+        if ty in ('2pt', '3pt') and m:
+            ast = names.get((a.get('teamTricode'), m.group(1).strip()), '')
+        out.append([a['actionNumber'], a.get('period'), clock(a.get('clock')), a.get('teamTricode') or '',
+                    a['playerNameI'], ty, ast, None])
+    return out
 
 
 def clock(c):
@@ -91,19 +140,23 @@ def night(d):
     print(f'{d}: {len(gs)} games')
     for gid, away, home in gs:
         key = f'{away}@{home}'
+        rows, src = [], ''
         try:
-            acts = playbyplay.PlayByPlay(gid).get_dict()['game']['actions']
+            rows, src = plays_live(gid), 'live feed'
         except Exception as e:
-            print(f'  {key}: no play-by-play yet ({type(e).__name__})')
+            live_err = f'{type(e).__name__}'
+        if not rows:
+            rows, src = plays_v3(gid), 'stats play-by-play'
+        if not rows:
+            print(f'  {key}: no play-by-play yet')
             continue
         had = {a[0]: a[7] for a in (old.get(key) or {}).get('a', [])}
-        rows = []
-        for a in acts:
-            ty = str(a.get('actionType') or '').lower()
-            if ty not in TYPES or not a.get('personId') or not a.get('playerNameI'):
-                continue
-            rows.append([a['actionNumber'], a.get('period'), clock(a.get('clock')), a.get('teamTricode') or '',
-                         a['playerNameI'], ty, a.get('assistPlayerNameInitial') or '', had.get(a['actionNumber'])])
+        for r in rows:
+            r[7] = had.get(r[0])
+        kinds = {}
+        for r in rows:
+            kinds[r[5]] = kinds.get(r[5], 0) + 1
+        print(f'  {key}: {len(rows)} plays from the {src} ' + ' '.join(f'{k}:{v}' for k, v in sorted(kinds.items())))
         todo = [r for r in rows if not r[7]]
         t = time.time()
         with ThreadPoolExecutor(6) as ex:
