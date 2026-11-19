@@ -2762,10 +2762,11 @@ function calWeek(off){const t=etToday(),dow=new Date(t+"T12:00:00Z").getUTCDay()
   const st=shift(mon,7*(+off||0));return[...Array(7)].map((_,i)=>shift(st,i))}
 // Fantasy matchup weeks: Yahoo's calendar (cfg.wks from the relay: [week, first day, last day]),
 // else Mon-Sun weeks with the known long ones merged in (FWLONG: first day -> last day). 2026-27:
-// week 7 runs Nov 30 - Dec 13 around the NBA Cup, 4 adds for the two weeks. weekDates(off) = the
+// week 7 runs Nov 30 - Dec 13 around the NBA Cup, week 17 Feb 15 - 28 around the All-Star break,
+// 4 adds for each two-week matchup. weekDates(off) = the
 // days of the matchup week off weeks from the one holding today, so Matchup, the streaming plan,
 // Today, Proj → Week, Build, IL+ and the player page all follow the league's weeks.
-const FWLONG={"2026-11-30":"2026-12-13"};
+const FWLONG={"2026-11-30":"2026-12-13","2027-02-15":"2027-02-28"};
 function fwList(){const c=S.fw;const k=ML&&ML.cfg&&ML.cfg.wks?JSON.stringify(ML.cfg.wks):"x";if(c&&c.k===k)return c.L;
   let L=[];
   if(ML&&ML.cfg&&Array.isArray(ML.cfg.wks)&&ML.cfg.wks.length)L=ML.cfg.wks.map(([w,a,b])=>({w,a,b})).sort((x,y)=>x.a<y.a?-1:1);
