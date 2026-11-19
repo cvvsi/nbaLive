@@ -291,6 +291,7 @@ function context(games) {
 // absence from backtest-return.js. n = games missed in a row at the end of the data; bk =
 // games played since coming back from a 5+ game absence (while still under 6).
 const NM_REG = 24, NM_LEN = 5, NM_RAMP = 6, NM_SEEN = 3;
+const WO_K = ['min', 'pts', 'reb', 'ast', 'stl', 'blk', 'tpm', 'to', 'fgm', 'fga', 'ftm', 'fta'];
 const grp = p => /C/.test(p) ? 'C' : /F/.test(p) ? 'F' : /G/.test(p) ? 'G' : '?';
 function nextMan(games, scored, rankings) {
   const X = Object.fromEntries(scored.map(p => [p.id, p]));
@@ -345,7 +346,17 @@ function nextMan(games, scored, rankings) {
         const dW = B.with - B.all, dO = o - B.all;
         if (Math.abs(dW) >= .3 || Math.abs(dO) >= .3) m[id] = [r1(dW), r1(dO)];
       }
-      out[R] = { t, n, ...(bk != null ? { bk } : {}), m };
+      // Smash spots (the page's Smash view): each teammate's per-game box line in the games the
+      // regular missed this season, and in the games they played together, so a fill-in's usage
+      // bump (Cam Spencer without Ty Jerome) shows up, not just his minutes. [g, min, pts, reb,
+      // ast, stl, blk, tpm, to, fgm, fga, ftm, fta]; only teammates who played 1+ such game.
+      const wo = {}, wi = {}, add = (o, r) => { o[0]++; WO_K.forEach((k, j) => o[j + 1] += r[k]); };
+      for (const id of mates) if (id !== R) {
+        const a = [0, ...WO_K.map(() => 0)], b = [0, ...WO_K.map(() => 0)];
+        for (let i = Math.max(f, first[id]); i < rows.length; i++) { const r = rows[i][id]; if (r) add(played(i) ? b : a, r); }
+        if (a[0]) { wo[id] = a.map((v, j) => j ? r1(v / a[0]) : v); wi[id] = b.map((v, j) => j && b[0] ? r1(v / b[0]) : v); }
+      }
+      out[R] = { t, n, ...(bk != null ? { bk } : {}), m, ...(Object.keys(wo).length ? { wo, wi } : {}) };
     }
   }
   return out;

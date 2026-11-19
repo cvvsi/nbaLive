@@ -799,7 +799,7 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .subnav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
 .subnav:empty,.subnav[hidden]{display:none!important}
 /* controls the new pages make redundant */
-#pjMuBtn,body[data-page="matchup"] #pjView,body[data-page="today"] #pjView,body[data-page="today"] #pjLgRow,#rkSz [data-k="usg"],body[data-page="usage"] #rkSz,body[data-page="efb"] #rkSz,body[data-page="efb"] #rkWin,body:not([data-page="buysell"]) #bsSort{display:none!important}
+#pjMuBtn,body[data-page="smash"] #pjView,body[data-page="smash"] #pjLgRow,body[data-page="smash"] #pjSz,body[data-page="smash"] #pjWk,body[data-page="smash"] #pjRow2,body[data-page="matchup"] #pjView,body[data-page="today"] #pjView,body[data-page="today"] #pjLgRow,#rkSz [data-k="usg"],body[data-page="usage"] #rkSz,body[data-page="efb"] #rkSz,body[data-page="efb"] #rkWin,body:not([data-page="buysell"]) #bsSort{display:none!important}
 .lgchip{flex:none;display:flex;align-items:center;gap:6px;height:30px;padding:0 7px;border:1px solid var(--rule);border-radius:7px;color:var(--dim);text-decoration:none;font:500 11px/1 var(--num);position:relative}
 .lgchip svg{width:16px;height:16px}
 .lgchip.busy{opacity:.55}
@@ -834,6 +834,15 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .ilps b{color:var(--ink)}.ilps .dn{color:var(--neg)}.ilpl .ilpk span.chg,.ilpl .ilps span.chg{color:var(--ball);font-weight:700}
 .ilg tfoot th{text-align:left;color:var(--dim);font-size:10px;white-space:nowrap;padding-right:8px}.ilg tfoot td{border:0;color:var(--dim)}.ilg tfoot td.up{color:var(--pos)}
 .ilpc{margin:8px 0;font:500 13px/1.45 var(--name)}.ilpc>div{padding:5px 0;border-top:1px solid var(--rule)}.ilpc .myd{display:inline-block;min-width:44px;font-weight:700}.ilpc em{font:500 9px/1 var(--num);color:var(--dim);font-style:normal}
+.smf{margin:6px 0 10px}@media (min-width:1100px){.my.smx{display:block}.smg{display:grid;grid-template-columns:1fr 1fr;gap:0 28px;align-items:start}}.smc{padding:10px 0;border-top:1px solid var(--rule);cursor:pointer}.smc.t2{border-left:3px solid var(--pos);padding-left:9px}
+.smh{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.smh b{font:600 15px/1.2 var(--name)}.smh>i{font:500 11px/1 var(--num);color:var(--dim);font-style:normal}
+.smb{margin-left:auto;font:700 10px/1 var(--name);text-transform:uppercase;letter-spacing:.06em;padding:3px 6px;border-radius:4px}.smb.t2{background:var(--pos);color:var(--bg)}.smb.t1{border:1px solid var(--pos);color:var(--pos)}
+.smtk{font:500 10px/1 var(--name);font-style:normal;color:var(--dim)}
+.smw{font:500 13px/1.35 var(--name);margin-top:3px}.smw i{color:var(--dim);font-style:normal}
+.smds{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}.smd{font:600 11px/1 var(--name);padding:4px 6px;border-radius:4px;background:var(--cell)}.smd em{font:500 10px/1 var(--num);font-style:normal;color:var(--dim)}
+.smd.t2{background:color-mix(in srgb,var(--pos) 25%,transparent)}.smd.c{background:none;border:1px dashed var(--dim)}
+.smln{display:flex;flex-wrap:wrap;gap:4px 10px;font:500 10px/1.2 var(--name);color:var(--dim);text-transform:uppercase}.smln b{display:block;font:600 14px/1.1 var(--num);color:var(--ink)}
+.smev{margin-top:6px;font:500 12px/1.45 var(--num);color:var(--dim)}.smev b{font:600 12px/1 var(--name);color:var(--ink)}.smev i{font-style:normal}
 .ilsc b small{font-size:13px;color:var(--pos);margin-left:3px}
 .ilst{font:500 13px/1.35 var(--name);padding:7px 10px;margin:4px 0;border-radius:6px;background:var(--cell)}.ilst b{margin-right:6px}.ilst.dn b{color:var(--neg)}.ilst.up b{color:var(--pos)}.ilst.wn b{color:var(--ball)}
 .ilpc>div{display:grid;grid-template-columns:44px 30px 1fr;align-items:baseline}.ilpc span:last-child em{font:600 9px/1 var(--num);text-transform:uppercase;color:var(--dim);font-style:normal;margin:0 4px 0 8px}.ilpc span:last-child em:first-child{margin-left:0}.ilpc span:last-child i{font:500 9px/1 var(--num);color:var(--dim);font-style:normal}
@@ -3378,6 +3387,65 @@ function ilpSec(X){
   return head+hz+score+st.join("")+todoHTML+`<div class="mypl"><b>Rotation</b><button class="myuse" data-mu="ilp" data-x="base">Put in the grid</button></div>${block(base,[])}`+
     `<div class="mypl"><b>Moves</b></div><div class="ilsub">Who can you drop? Tap to choose. Each add shows games gained${more?` through ${sh(last)}`:""} and value per game vs the player dropped.</div>${chips}${mv||`<div class="mye">Pick a player above to see the best adds for his spot.</div>`}${tagsBox}
     <p class="mhint"><span class="ilk on">●</span> starts · <span class="ilk free">IL</span> parked, no game lost · <span class="ilk lost">IL</span> parked on a game he'd start · <span class="ilk bn">○</span> no spot</p></section>`}
+// ---- Smash spots (Players → Smash): streaming nights when a regular sits. For every regular
+// (Proj 24+ min) out on the injury report on one of the next 7 days, or questionable / day-to-day
+// for his next game ("if he sits"), each teammate's line that night: next-man-up minutes (minAt),
+// the matchup, and his own per-minute numbers in the games that regular already missed this
+// season (nm[R].wo, from build-rankings.js), believed g / (g + SMK): so a usage bump shows, not
+// just minutes. Scored on the Proj scale with your punts; "plays like #n" = where that line would
+// rank among everyone's rest-of-season per-game Proj. Smash: like a top-SMTOP[0] player and SMUP
+// better than his usual; Good: top-SMTOP[1]. Players already ranked inside SMSKIP are left out
+// (you start them anyway).
+const SMK=4,SMTOP=[60,100],SMUP=.15,SMSKIP=75;
+const SMKEYS=["pts","reb","ast","stl","blk","tpm","to","fgm","fga","ftm","fta"];
+function smLine(X,q,d,e,cond){let m=minAt(X,q,d);const x=e.m&&e.m[X];if(cond&&x)m=Math.max(0,m-x[0]+x[1]);
+  let L=easeLine(lineAt(q,m),easeF(oppT(q.t,d)));const w=e.wo&&e.wo[X];
+  if(w&&w[0]>=1&&w[1]>0&&L.min>0){const a=w[0]/(w[0]+SMK),mm=(1-a)*L.min+a*w[1],o={min:mm};
+    SMKEYS.forEach((k,j)=>{o[k]=((1-a)*L[k]/L.min+a*w[2+j]/w[1])*mm});L={...L,...o}}
+  return L}
+function renderSmash(){
+  const el=$("pjList");$("pjStatus").textContent="";
+  if(!G.nm||!SC)return pjMsg("Smash spots arrive with the next rankings build.");
+  const C=nmC(),today=etToday(),days=Object.keys(SC.dates).filter(d=>d>=today).sort().slice(0,7);
+  if(!days.length)return pjMsg("No games in the next week.");
+  const x=ML?lgIx():null,me=ML&&String(ML.me),own=id=>!x?null:x.own[id]==null?"fa":x.own[id]===me?"me":"tk";
+  const all=Object.entries(G.players).filter(([,q])=>q.xp&&q.x),base=all.map(([,q])=>pjVal(zx(q))).sort((a,b)=>b-a);
+  const like=v=>1+base.filter(u=>u>v).length;
+  const nmS=n=>n.replace(/^(\S)\S*\s/,"$1. "),dn=d=>d===today?"Tonight":fmtDate(d).split(",")[0];
+  const by={};   // X -> {q, days: [{d, v, rk, tier, R[], cond, L, e}]}
+  for(const d of days){const pick={};
+    for(const[t,list]of Object.entries(C.byT)){if(!plays(t,d))continue;const nextD=(C.td[t]||[]).find(z=>z>=today);
+      for(const[R,e]of list){const out=nmPh(R,e)[d]===-1,i=ijOf(R),cond=!out&&d===nextD&&!!i&&/question|doubt|day-to-day|gtd/i.test(i[0]);
+        if(!out&&!cond)continue;
+        for(const X of new Set([...Object.keys(e.m||{}),...Object.keys(e.wo||{})])){const q=G.players[X];
+          if(!q||!q.xp||!q.x||q.t!==t||!avail(X,d))continue;
+          const L=smLine(X,q,d,e,cond),v=pjVal(pjZ(L)),u=pjVal(zx(q)),rk=like(v),urk=like(u);
+          if(urk<=SMSKIP||v-u<SMUP*.66)continue;
+          const tier=rk<=SMTOP[0]&&v-u>=SMUP?2:rk<=SMTOP[1]?1:0;if(!tier)continue;
+          const cur=pick[X];const ent={d,v,rk,urk,tier,R:[R],cond,L,e,u};
+          if(!cur)pick[X]=ent;else{if(!cur.R.includes(R))cur.R.push(R);if(v>cur.v)Object.assign(cur,{...ent,R:cur.R})}}}}
+    for(const[X,ent]of Object.entries(pick)){(by[X]||(by[X]={X,q:G.players[X],days:[]})).days.push(ent)}}
+  const F=ML?S.smF||(S.smF=store.get("smF","fa")):"all";
+  let rows=Object.values(by).filter(r=>F==="all"||(F==="fa"?own(r.X)==="fa":own(r.X)==="me"));
+  for(const r of rows){r.best=r.days.reduce((a,b)=>b.tier>a.tier||b.tier===a.tier&&b.v>a.v?b:a);r.n2=r.days.filter(z=>z.tier===2).length}
+  rows.sort((a,b)=>b.best.tier-a.best.tier||b.n2-a.n2||b.days.length-a.days.length||b.best.v-a.best.v);
+  const f1=v=>v.toFixed(1),tag=id=>{const o=own(id);return o==="fa"?`<i class="lgt fa">FA</i>`:o==="me"?`<i class="lgt">Mine</i>`:o==="tk"?`<i class="smtk">${esc(ML.teams[x.own[id]]||"taken")}</i>`:""};
+  const split=(X,R,e)=>{const w=e.wo&&e.wo[X],h=e.wi&&e.wi[X],n=G.players[R]?nmS(G.players[R].n):"him";if(!w)return"";
+    const ln=a=>`${Math.round(a[1])} min · ${f1(a[2])} pts · ${f1(a[3])} reb · ${f1(a[4])} ast · ${f1(a[7])} 3pm`;
+    return`<div class="smev"><b>Without ${esc(n)}</b> <i>${w[0]} g</i> ${ln(w)}${h&&h[0]?`<br><b>With him</b> <i>${h[0]} g</i> ${ln(h)}`:""}</div>`};
+  const card=r=>{const b=r.best,L=b.L,q=r.q,why=b.R.map(R=>{const n=G.players[R]?esc(nmS(G.players[R].n)):"a regular";return b.cond?`if ${n} sits (${esc(ijOf(R)[0])})`:`${n} out`}).join(", ");
+    const chips=r.days.map(z=>`<span class="smd t${z.tier}${z.cond?" c":""}" title="${z.cond?"If he sits":"He's out"} · plays like #${z.rk}">${dn(z.d)} <em>${esc(opp(q.t,z.d))}</em></span>`).join("");
+    return`<div class="smc t${b.tier}" data-id="${r.X}"><div class="smh"><b>${esc(q.n)}</b><i>${esc(q.t)}${posOf(r.X)?" · "+esc(posOf(r.X)):""}</i>${tag(r.X)}<span class="smb t${b.tier}">${b.tier===2?"Smash":"Good"}</span></div>
+      <div class="smw">${why} · plays like <b>#${b.rk}</b> <i>(usually #${b.urk})</i></div>
+      <div class="smds">${chips}</div>
+      <div class="smln"><span><b>${Math.round(L.min)}</b>MIN</span>${["pts","reb","ast","tpm","stl","blk","to"].map(k=>`<span><b>${f1(L[k])}</b>${CATS.find(c=>c.k===k).l}</span>`).join("")}<span><b>${L.fga?(L.fgm/L.fga).toFixed(3).replace(/^0/,""):"–"}</b>FG%</span></div>
+      ${b.R.map(R=>split(r.X,R,G.nm[R])).join("")}</div>`};
+  const flt=ML?`<div class="seg mysg smf">${[["fa","Free agents"],["me","Mine"],["all","Everyone"]].map(([k,l])=>`<button data-smf="${k}" aria-pressed="${F===k}">${l}</button>`).join("")}</div>`:"";
+  el.innerHTML=`<div class="my smx"><section class="msec"><h3 class="myh">Smash spots</h3><div class="mysub">next 7 days · ${rows.filter(r=>r.best.tier===2).length} smash, ${rows.filter(r=>r.best.tier===1).length} good</div>
+    <p class="stkn">Streaming nights when a regular sits. For every regular (24+ projected minutes) out on the injury report in the next 7 days, or questionable for his next game ("if he sits"), each teammate's line that night: the extra minutes he gets (next man up), the matchup, and how he actually played in the games that regular already missed this season, so a bigger role on offense shows, not just minutes (the more such games, the more it counts: ${SMK} games = half). <b>Plays like #n</b> = where that line would rank among everyone's per-game projection. <b>Smash</b>: like a top-${SMTOP[0]} player and clearly better than his usual; <b>Good</b>: like a top-${SMTOP[1]} player. Players already ranked inside ${SMSKIP} are left out. Your punts apply. Day chips: green = smash that night, outlined = if he sits.</p>
+    ${flt}${rows.length?`<div class="smg">${rows.map(card).join("")}</div>`:`<div class="mye">No smash spots ${F==="fa"?"among free agents ":""}in the next 7 days.</div>`}</section></div>`;
+  el.querySelectorAll(".smc[data-id]").forEach(c=>c.onclick=()=>openSheet(c.dataset.id));
+  el.querySelectorAll("[data-smf]").forEach(b=>b.onclick=e=>{e.stopPropagation();S.smF=b.dataset.smf;store.set("smF",S.smF);renderSmash()})}
 function renderMy(){
   const el=$("pjList");$("pjStatus").textContent="";$("pjAsOf").textContent="";
   const ctx=myCtx();if(!ctx)return pjMsg(ML?"Loading…":"Sync your league from Yahoo to see your day.");
@@ -3703,6 +3771,7 @@ $("pjSz").hidden=S.pjView!=="season";
   if(!G.zp||!G.xpf)return pjMsg("Projected lines arrive with the next rankings build.");
   $("pjList").classList.toggle("muw",S.pjView==="mu");
   if(S.pjView==="my")return renderMy();
+  if(S.pjView==="smash"){$("pjAsOf").textContent="";return renderSmash()}
   if(S.pjView==="mu"){$("pjAsOf").textContent="";return renderMU()}
   const today=etToday(),all=Object.entries(G.players).filter(([,q])=>q.xp&&q.xp[0]>=8);
   const sh=d=>fmtDate(d).replace(/^\w+, /,"");
@@ -3977,7 +4046,8 @@ const NAV=[
   {k:"box",l:"Box",pages:[{k:"box",l:"Box",v:"box"}]},
   {k:"players",l:"Players",pages:[
     {k:"ranks",l:"Ranks",v:"rk",open:()=>{if(S.rkSz==="usg")S.rkSz="pg"}},
-    {k:"proj",l:"Proj",v:"pj",open:()=>{if(S.pjView==="mu"||S.pjView==="my")S.pjView="season"}},
+    {k:"proj",l:"Proj",v:"pj",open:()=>{if(["mu","my","smash"].includes(S.pjView))S.pjView="season"}},
+    {k:"smash",l:"Smash",v:"pj",open:()=>{S.pjView="smash"}},
     {k:"usage",l:"Usage",v:"rk",open:()=>{S.rkSz="usg"}},
     {k:"rise",l:"Rise",v:"bs",open:()=>{S.bsSort="bo"}},
     {k:"buysell",l:"Buy/Sell",v:"bs",nolg:1,open:()=>{if(!["buy","sell","x","now"].includes(S.bsSort))S.bsSort="buy"}},
