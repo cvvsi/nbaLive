@@ -2056,11 +2056,11 @@ function renderLgBS(st){
 // nothing is sent to Yahoo, and a new sync clears the moves.
 const TBPOOL=60,TBH={wk:"This week",w2:"2 weeks",ros:"Rest of season"};
 S.tb={h:store.get("tbH","ros"),nk:store.get("tbNk",1),drops:[],pick:null,done:[],tab:"combo",fs:"w",at:null};
-function tbDays(h){if(!SC)return[];const t=etToday(),late=etHour(new Date())>=19;
-  const all=Object.keys(SC.dates).filter(d=>d>t||(d===t&&!late)).sort();
+function tbDays(h){if(!SC)return[];const t=etToday(),left=dayLeft(t,new Date());
+  const all=Object.keys(SC.dates).filter(d=>d>t||(d===t&&left)).sort();
   return h==="ros"?all:all.filter(d=>d<=weekDates(h==="wk"?0:1).slice(-1)[0])}
 function tbCtx(){
-  const key=[ML.at,S.tb.h,[...S.punt].join()+S.gw,G.asOf,SC&&SC.built,IJ&&IJ.built].join("|");
+  const key=[ML.at,S.tb.h,[...S.punt].join()+S.gw,G.asOf,SC&&SC.built,IJ&&IJ.built,tbDays(S.tb.h).join()].join("|");
   if(S.tbC&&S.tbC.key===key)return S.tbC;
   const x=lgIx(),me=String(ML.me),days=tbDays(S.tb.h);if(!x||!days.length)return null;
   const span=(new Date(days[days.length-1])-new Date(days[0]))/864e5+1,f=7/span;
@@ -3281,7 +3281,7 @@ function myCtx(){
   const opId=isS?String(R1.id):teams[0];
   const cur=r=>{const o={};CATS.forEach(c=>o[c.k]=0);if(r)mu.lab.forEach((l,i)=>{const k=muKey(l);if(k){const v=parseFloat(String(r.v[i]).replace(/^\./,"0."));o[k]=Number.isFinite(v)?v:0}});return o};
   const cA=cur(R0),cB=cur(R1);
-  const rest=isS?dates.filter(d=>d>syncDay||(d===syncDay&&etHour(at)<19)).filter(d=>d>today||(d===today&&etHour(now)<19)||d===syncDay):dates.filter(d=>d>today||(d===today&&etHour(now)<19));
+  const rest=isS?dates.filter(d=>d>syncDay||(d===syncDay&&dayLeft(d,at))).filter(d=>d>today||(d===today&&dayLeft(d,now))||d===syncDay):dates.filter(d=>d>today||(d===today&&dayLeft(d,now)));
   const cap=t=>(ML.act&&ML.act[t])||10,P=id=>{const sl=x.slot[id]||"";return{id,q:G.players[id],sl,il:/^(IL|IR)/.test(sl)}};
   const roster=t=>Object.keys(x.own).filter(id=>x.own[id]===t).map(P).filter(o=>o.q&&o.q.xp);
   const base=roster(me),oppR=roster(opId),F=CATS.map(c=>c.k).filter(k=>!S.punt.has(k)),C={},off=new Set(S.punt);
@@ -3654,6 +3654,11 @@ function muKey(l){const u=String(l||"").toUpperCase().replace(/[^A-Z0-9%]/g,"");
 const MUPHI={pts:3.8,reb:1.65,ast:1.6,tpm:1.35,stl:1.2,blk:1.15,to:1.1},MUPCT={fg:1,ft:1.1};
 const muPhi=x=>{const t=1/(1+.2316419*Math.abs(x)),d=.3989423*Math.exp(-x*x/2),p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return x>0?1-p:p};
 const etHour=d=>+new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",hour:"numeric",hourCycle:"h23"}).format(d);
+// Is day d still to play? By default a day is still to play when synced (or, with no sync, looked at)
+// before 7pm ET. The Matchup page's "Today" switch overrides it for today (muTd: {date: "p" still to
+// play | "d" done}), e.g. a sync at 7:30 when most games haven't tipped, or at 11pm with the late games
+// still on. Matchup, Today and Build all ask here.
+function dayLeft(d,t){const o=store.get("muTd",{})[d];return o==="p"?true:o==="d"?false:etHour(t)<19}
 // Your picks for this matchup, kept per league + week on this device: target / punt categories,
 // players added (free agents) or dropped, and games forced in or out on a day (id|date -> 1 / 0).
 // Your picks per league and week, kept on this device (muSel2: {key: picks}): target / punt
@@ -3759,8 +3764,11 @@ function renderMU(){
   const cA=cur(R0),cB=cur(R1);
   // days still to play: on the synced week, those not yet in Yahoo's totals (after the sync day, or
   // the sync day itself if synced before 7pm ET); on other weeks, today (before 7pm) and later
-  const rest=isS?dates.filter(d=>d>syncDay||(d===syncDay&&etHour(at)<19)):dates.filter(d=>d>today||(d===today&&etHour(now)<19));
+  const rest=isS?dates.filter(d=>d>syncDay||(d===syncDay&&dayLeft(d,at))):dates.filter(d=>d>today||(d===today&&dayLeft(d,now)));
   const past=isS?dates.filter(d=>!rest.includes(d)):[];
+  // the Today switch: only while today is in the week shown
+  const tdT=isS?at:now,tdO=store.get("muTd",{})[today],tdAuto=etHour(tdT)<19,tdDay=new Date(today+"T12:00:00Z").toLocaleDateString("en-US",{weekday:"short",timeZone:"UTC"});
+  const tdSw=dates.includes(today)&&(!isS||syncDay===today)?`<div class="mlu" role="group" aria-label="Does today count as played?" title="By default today is still to play when ${isS?"you synced":"it's"} before 7pm ET. Synced mid-evening? Pick Still to play if most games hadn't tipped (games already under way then count twice, a little), or Played if they're nearly over (what's left of them isn't counted).">Today (${tdDay}): <button data-mu="td" data-x="a" aria-pressed="${!tdO}">Auto: ${tdAuto?"still to play":"played"}</button><button data-mu="td" data-x="p" aria-pressed="${tdO==="p"}">Still to play</button><button data-mu="td" data-x="d" aria-pressed="${tdO==="d"}">Played</button></div>`:"";
   const cap=t=>(ML.act&&ML.act[t])||10,capA=cap(me),capB=cap(opId);
   const P=id=>{const sl=x.slot[id]||"";return{id,q:G.players[id],sl,il:/^(IL|IR)/.test(sl),bn:sl==="BN"}};
   const roster=tid=>Object.keys(x.own).filter(id=>x.own[id]===tid).map(P).filter(o=>o.q&&o.q.xp);
@@ -3871,7 +3879,7 @@ function renderMU(){
         ${ah.length?`Ahead in <span class="up">${L(ah)}</span>. `:""}${bh.length?`Behind in <span class="dn">${L(bh)}</span>. `:""}
         ${SW.length?`<b>Swing: ${L(SW)}</b> <button class="tsw" data-mu="swing" data-k="${SW.map(r=>r.k).join(",")}" title="Tick the swing categories as targets">Target these</button> `:"No category is close: streaming won't change much. "}${rest.length?`Games left: ${gA} to his ${gB}.`:""}</div>`})()}
     ${stale}${slotNote}${muIssues.length?`<div class="mbad"><b>Check:</b> ${muIssues.join(" · ")}</div>`:""}${m.add.size||m.drop.size||plan.length?`<div class="mwi"><b>What-if</b> (not on Yahoo): ${[...plan.map(v=>`<span>${dl(v.d)}: <span class="up">+ ${esc(nm(G.players[v.add].n))}</span> <span class="dn">− ${esc(nm((G.players[v.drop]||{n:"?"}).n))}</span></span>`),...[...m.add].filter(id=>G.players[id]).map(id=>`<span class="up">+ ${esc(nm(G.players[id].n))}</span>`),...[...m.drop].filter(id=>G.players[id]).map(id=>`<span class="dn">− ${esc(nm(G.players[id].n))}</span>`)].join(" · ")}</div>`:""}
-    ${isS&&ML.lu?`<div class="mlu" role="group" aria-label="Lineups for the days left">Days left: <button data-mu="lu" data-x="y" aria-pressed="${S.muLu==="y"}">Lineups as set on Yahoo</button><button data-mu="lu" data-x="b" aria-pressed="${S.muLu!=="y"}">Best lineup each day</button></div>`:""}
+    ${tdSw}${isS&&ML.lu?`<div class="mlu" role="group" aria-label="Lineups for the days left">Days left: <button data-mu="lu" data-x="y" aria-pressed="${S.muLu==="y"}">Lineups as set on Yahoo</button><button data-mu="lu" data-x="b" aria-pressed="${S.muLu!=="y"}">Best lineup each day</button></div>`:""}
     <div class="mfin"><div class="mctw"><table class="mct"><thead><tr><th class="tn">Final</th><th class="g">G</th>${O.rows.map(r=>`<th class="${swK.has(r.k)?"sw":""}">${r.l}</th>`).join("")}</tr>
       <tr class="tgr"><th class="tn">Target</th><th></th>${O.rows.map(r=>`<th><button class="tk${m.tg.has(r.k)?" on":""}" data-mu="cat" data-x="${r.k}" aria-pressed="${m.tg.has(r.k)}" aria-label="Target ${r.l}"></button></th>`).join("")}</tr></thead><tbody>
       <tr><th class="tn">${esc(nameA)}</th><td class="g">${gTA}</td>${O.rows.map(r=>`<td>${fv(r.k,r.a)}${badge(me,r.k)}${isS?`<i class="nw0">${fv(r.k,r.na)}<span> now</span></i>`:""}</td>`).join("")}</tr>
@@ -3912,6 +3920,7 @@ function muClick(e){const b=e.target.closest("[data-mu]");if(!b||!S.mus)return;i
   else if(a==="ilpdr"){const o=store.get("ilpDrop",{}),d=new Set(S.ilpDS||[]);d.has(k)?d.delete(k):d.add(k);o[ML.lid||"-"]=[...d];store.set("ilpDrop",o)}
   else if(a==="ilpcp"){const t=S.ilpTxt||"";(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{b.textContent="Copied"},()=>{b.textContent="Copy blocked"});return}
   else if(a==="lu"){S.muLu=k==="b"?"b":"y";store.set("muLu",S.muLu)}
+  else if(a==="td"){const o={};if(k==="p"||k==="d")o[etToday()]=k;store.set("muTd",o)}
   else if(a==="wk"){muSave();S.muWk+=+k;renderMU();return}
   const y=scrollY;muSave();renderMU();scrollTo(0,y)}
 function muChange(e){if(!e.target.matches("[data-mu-opp]")||!S.mus)return;S.mus.opp=e.target.value;muSave();const y=scrollY;renderMU();scrollTo(0,y)}
