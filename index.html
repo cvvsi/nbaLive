@@ -1092,6 +1092,30 @@ body[data-page="today"] .yattr,body[data-page="matchup"] .yattr,body[data-page="
   .ruler.pjv .meta:not(.lgrow),.ruler.rkv .meta:not(.lgrow){flex:1;min-width:0}
   .ruler .lgrow{padding:0}.ruler .lgrow .lgs{display:none}
 }
+@media (min-width:1100px){
+  .ruler.bsv>div{display:flex;flex-wrap:wrap;align-items:center;column-gap:14px}.ruler.bsv>div>#subnav{flex-basis:100%}.ruler.bsv .meta{flex:1;min-width:0}
+  /* Rise in the Box look: headshot, name over meta, roomier rows, labels pinned like the other lists */
+  .bo3w .bo3{padding:0;border:0;border-bottom:1px solid var(--rule);border-radius:0;background:none;box-shadow:none}
+  .bo3w .bo3r{padding:6px 4px}.bo3w .bo3h{padding:8px 4px 6px;top:calc(var(--bar) + 38px)}
+  .bo3w .bo3h>*{font:600 10.5px/1 var(--name);letter-spacing:.06em;text-transform:uppercase}
+  .bo3w .b2n .hs{width:36px;height:36px;border-radius:50%;overflow:hidden;background:var(--cell);flex:none}.bo3w .b2n .hs img{width:100%;height:100%;object-fit:cover;object-position:top center}.bo3w .b2n{gap:10px}
+  .bo3w .b2t .nm{font:600 15px/1.15 var(--name)}.bo3w .b2t i{font-size:12px;margin-top:3px;flex-wrap:nowrap;overflow:hidden}
+  .bo3w .bo3r{grid-template-columns:minmax(220px,1.6fr) 64px 64px repeat(5,46px) 50px repeat(9,minmax(34px,.35fr)) 48px}
+  .bo2w.bo3w{max-width:1500px;margin-inline:auto}
+  .bo3w .b3s{font-size:13.5px}.bo3w .b2p{font:600 15px/1 var(--num)}
+  .bo3w article.bo3:hover{background:color-mix(in srgb,var(--cell) 60%,transparent)}
+}
+@media (min-width:1100px){
+  .bzw2{display:grid;grid-template-columns:36px minmax(0,1fr) 72px 44px 42px 40px 40px 40px 58px;align-items:center;column-gap:8px;padding:6px 4px;border-bottom:1px solid var(--rule)}
+  article.bzw2{cursor:pointer}article.bzw2:hover{background:color-mix(in srgb,var(--cell) 60%,transparent)}
+  .bzw2 .mug{padding:0}.bzw2 .w1{min-width:0;display:flex;flex-direction:column;gap:3px}.bzw2 .w1 .nm{font:600 15px/1.15 var(--name);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bzw2 .w1 .mt{font:500 12px/1.2 var(--name);color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px}.bzw2 .lgt{margin-left:0}
+  .bzw2 .ws{text-align:right;font:500 13.5px/1 var(--num);color:var(--ink)}.bzw2 .ws.wb{font:700 18px/1 var(--name)}.bzw2 .ws.good{color:var(--pos)}.bzw2 .ws.bad{color:var(--neg)}
+  .bzw2 .wl{text-align:center;font:500 12px/1 var(--num);color:var(--ink)}.bzw2 .wl.hi{color:var(--pos)}.bzw2 .wl.lo,.bzw2 .wl.na{color:var(--dim)}
+  .bzw2 .vt{justify-self:end}
+  .bzwh{position:sticky;top:calc(var(--bar) + 38px);z-index:3;background:var(--bg);padding:8px 4px 6px}
+  .bzwh span{font:600 10.5px/1 var(--name)!important;letter-spacing:.06em;color:var(--dim)!important;text-transform:uppercase}.bzwh .w1{text-align:left}
+}
 @media (min-width:1100px) and (max-width:1399px){
   .dw{--dwg:24px 32px minmax(130px,1fr) 32px 44px 44px 44px 36px 36px 36px 36px 50px 50px 52px;column-gap:5px}
   .dw .ws.wb{font-size:18px}.dw .ws{font-size:13px}.dw .ws.wp{font-size:12px}.dw .vl{font-size:14px}
@@ -2217,7 +2241,7 @@ function renderBO(){
   $("bsStatus").textContent=`${rows.length} rising`;
   $("bsAsOf").textContent=`Thru ${fmtDate(BO.asOf).replace(/^\w+, /,"")}`;
   $("bsList").innerHTML=`<p class="bzcap">Players outside the top ${BO_FLOOR} whose role just grew: 6+ more minutes a game over the last 3 (to 22+), moved into the starting five, or 5+ points more usage with 3+ more minutes (to 24+). On desktop, <b>Szn · 30D · 14D · 7D · L3</b> = his 9-cat rank in each window (green inside 100), then Proj, then his <b>last 3 games</b> per game (a missed game counts as zero) and the day the role change started. Sorted by <b>Proj</b>, which already counts the new minutes. Min, Usg% and Rank read <b>season → last 3 games</b>. <b>Spike</b> = 10+ more minutes, which held up about half as often (mostly injury fill-ins). In past seasons, of players in this spot, ${pc("top80")}% from #${BO_FLOOR+1}–80, ${pc("fringe")}% from #81–${ROST} and ${pc("deep")}% from outside ${ROST} were top-${ROST} over their next 20 games (${one(pc("deep"))} for the deep ones): most role bumps fade, so check why the minutes came.</p>`
-    +(rows.length?(isDesk()?`<div class="bo2w bo3w"><div class="bo3r bo3h"><span>Player</span><span>Min</span><span>Usg%</span><span>Szn</span><span>30D</span><span>14D</span><span>7D</span><span>L3</span><span>Proj</span><span>PTS</span><span>REB</span><span>AST</span><span>3PM</span><span>STL</span><span>BLK</span><span>TO</span><span>FG%</span><span>FT%</span><span>Since</span></div>${rows.map(boRow).join("")}</div>`
+    +(rows.length?(isDesk()?(`<div class="bo2w bo3w"><div class="bo3r bo3h"><span>Player</span><span>Min</span><span>Usg%</span><span>Szn</span><span>30D</span><span>14D</span><span>7D</span><span>L3</span><span>Proj</span><span>PTS</span><span>REB</span><span>AST</span><span>3PM</span><span>STL</span><span>BLK</span><span>TO</span><span>FG%</span><span>FT%</span><span>Since</span></div>${rows.map(boRow).join("")}</div>`)
       :`<div class="bo2w"><div class="bo2r bo2h"><span>Player</span><span>Min</span><span>Usg%</span><span>Proj</span></div>${rows.map(boRow).join("")}</div>`):`<div class="empty">No one outside the top ${BO_FLOOR} has a growing role right now.</div>`);
 }
 // The two biggest changes from last season, labeled with what they mean: minutes and usage
@@ -2616,6 +2640,20 @@ function bzRow(r,drop=S.bzSort==="drops"){
     </div>
   </article>`;
 }
+// Desktop Buzz rows in the Box look: headshot, name over a meta line (team, position, the read's
+// reason), adds or drops big, then % rostered, minutes over the last 3 (▲/▼ when they moved), his
+// Szn / L3 / Proj ranks and the call (Follow / Fade, Panic / Agree).
+function bzRowW(r,drop){
+  const id=bzId(r),rq=id&&R.players[id],g=rq&&rq.w.g3,q=id&&G&&G.players[id],B=S.bs;
+  const rd=id?bzRead(id,drop):{t:"",c:"dim",why:"Not in my ranks yet."},tc={buy:"good",sell:"bad",dim:"dim"}[rd.c]||"";
+  const mu=g&&rq.pm!=null?Math.round(g[1]-rq.pm):0,tier=r=>!r?"na":r<=TOP?"hi":r<=ROST?"":"lo";
+  const rk=r=>`<span class="wl ${tier(r)}">${r||"–"}</span>`,sz=id&&S.rk&&S.rk.season[id],l3=id&&S.rk&&g&&S.rk.g3[id],pj=id&&hasPj(q)&&B?B.x[id]:null;
+  return`<article class="bzw2 dtr" ${id?`data-id="${esc(id)}" tabindex="0"`:""} aria-label="${esc(r.name)}">${mug({eid:id},0)}
+    <div class="w1"><b class="nm">${esc(r.name)}</b><span class="mt">${esc(r.team)} · ${esc(r.pos)}${lgTagFA(id)}${rd.why?` · ${esc(rd.why)}`:""}</span></div>
+    <span class="ws wb">${drop?"−"+fmtN(r.drops):"+"+fmtN(r.adds)}</span><span class="ws">${r.ros}%</span>
+    <span class="ws ${mu>=3?"good":mu<=-3?"bad":""}">${g?(mu>=3?"▲"+mu:mu<=-3?"▼"+(-mu):Math.round(g[1])):"–"}</span>
+    ${rk(sz)}${rk(l3)}${rk(pj)}<span class="vt ${tc}">${rd.t}</span></article>`}
+const bzHeadW=drop=>`<div class="bzw2 bzwh"><span></span><span class="w1">Player</span><span class="ws">${drop?"Drops":"Adds"}</span><span class="ws">Rost</span><span class="ws">Min</span><span class="wl">Szn</span><span class="wl">L3</span><span class="wl">Proj</span><span class="vt">Call</span></div>`;
 function renderBZ(){
   if(!BZ)return;
   const D=bzDay(),part=D===BZ.today,drop=S.bzSort==="drops",rows=drop?D.dropped:D.added;
@@ -2627,7 +2665,7 @@ function renderBZ(){
   const upd=BZ.built?` Updated ${new Date(BZ.built).toLocaleString(undefined,{weekday:"short",hour:"numeric",minute:"2-digit"})}.`:"";
   const cap=`<p class="bzcap">Across all Yahoo leagues on ${fmtDate(D.date)}${part?", so far today":""}.${upd} ${drop?"<b>Panic</b> = my numbers still like him; <b>Agree</b> = the role shrank.":"<b>Follow</b> = minutes or Proj back it up; <b>Fade</b> = it doesn't."} Ranks${R?` thru ${fmtDate(R.asOf).replace(/^\w+, /,"")}`:" loading"}.${ML?` <b>FA</b> = available in your league (synced ${new Date(ML.at).toLocaleDateString([],{month:"short",day:"numeric"})}).`:""} Tap a player for the full page.</p>`;
   // desktop: adds and drops side by side (the Adds / Drops switch is phone-only)
-  if(isDesk()){const col=(t,rs,dr)=>`<section class="bzc"><div class="bzch">${t} <span>${rs.length}</span></div>${rs.map(r=>bzRow(r,dr)).join("")||`<div class="empty">None.</div>`}</section>`;
+  if(isDesk()){const col=(t,rs,dr)=>`<section class="bzc"><div class="bzch">${t} <span>${rs.length}</span></div>${rs.length?bzHeadW(dr)+rs.map(r=>bzRowW(r,dr)).join(""):`<div class="empty">None.</div>`}</section>`;
     $("bzStatus").textContent=`${D.added.length} adds · ${D.dropped.length} drops`;
     const capD=cap.replace(/<b>Panic<\/b>[^.]*\.[^.]*\.|<b>Follow<\/b>[^.]*\.[^.]*\./,"<b>Follow</b> / <b>Fade</b> on adds and <b>Panic</b> / <b>Agree</b> on drops: whether minutes and Proj back the move up.");
     $("bzList").innerHTML=capD+`<div class="bzcols">${col("Most added",D.added,false)}${col("Most dropped",D.dropped,true)}</div>`;return}
