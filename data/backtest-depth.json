@@ -1,0 +1,401 @@
+{
+ "tests": [
+  "2023-24",
+  "2024-25",
+  "2025-26"
+ ],
+ "note": "RMSE in minutes, out of sample (fit on two seasons, scored on the third); gain = % less error than proj (today); bias = mean (pred - actual)",
+ "samples": [
+  1648,
+  1587,
+  1682
+ ],
+ "targets": {
+  "avail": {
+   "proj": {
+    "folds": [
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 0
+     },
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 0
+     },
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 0
+     }
+    ],
+    "all": {
+     "rmse": 4.719,
+     "bias": 1.23,
+     "n": 4917,
+     "gainPct": 0
+    },
+    "bench": {
+     "rmse": 5.371,
+     "bias": 1.04,
+     "n": 1692,
+     "gainPct": 0
+    },
+    "sitters": {
+     "rmse": 5.276,
+     "bias": 1.85,
+     "n": 1668,
+     "gainPct": 0
+    }
+   },
+   "zeros": {
+    "folds": [
+     {
+      "h": 5,
+      "G": 1,
+      "zw": 0.5
+     },
+     {
+      "h": 5,
+      "G": 1,
+      "zw": 0.5
+     },
+     {
+      "h": 5,
+      "G": 1,
+      "zw": 0.5
+     }
+    ],
+    "all": {
+     "rmse": 4.533,
+     "bias": 0.59,
+     "n": 4917,
+     "gainPct": 3.9
+    },
+    "bench": {
+     "rmse": 5.094,
+     "bias": -0.01,
+     "n": 1692,
+     "gainPct": 5.2
+    },
+    "sitters": {
+     "rmse": 4.824,
+     "bias": -0.04,
+     "n": 1668,
+     "gainPct": 8.6
+    }
+   },
+   "zeros1": {
+    "folds": [
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 1
+     },
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 1
+     },
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 1
+     }
+    ],
+    "all": {
+     "rmse": 4.586,
+     "bias": 0.32,
+     "n": 4917,
+     "gainPct": 2.8
+    },
+    "bench": {
+     "rmse": 5.175,
+     "bias": -0.09,
+     "n": 1692,
+     "gainPct": 3.6
+    },
+    "sitters": {
+     "rmse": 4.959,
+     "bias": -0.71,
+     "n": 1668,
+     "gainPct": 6
+    }
+   },
+   "shareG": {
+    "folds": [
+     {
+      "h": 8,
+      "G": 2,
+      "zw": 0,
+      "sg": 1
+     },
+     {
+      "h": 8,
+      "G": 2,
+      "zw": 0,
+      "sg": 1
+     },
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 0,
+      "sg": 1
+     }
+    ],
+    "all": {
+     "rmse": 4.685,
+     "bias": 1.14,
+     "n": 4917,
+     "gainPct": 0.7
+    },
+    "bench": {
+     "rmse": 5.289,
+     "bias": 0.82,
+     "n": 1692,
+     "gainPct": 1.5
+    },
+    "sitters": {
+     "rmse": 5.173,
+     "bias": 1.6,
+     "n": 1668,
+     "gainPct": 2
+    }
+   },
+   "both": {
+    "folds": [
+     {
+      "h": 5,
+      "G": 1,
+      "zw": 0.5,
+      "sg": 1
+     },
+     {
+      "h": 5,
+      "G": 1,
+      "zw": 0.5,
+      "sg": 1
+     },
+     {
+      "h": 5,
+      "G": 1,
+      "zw": 0.5,
+      "sg": 1
+     }
+    ],
+    "all": {
+     "rmse": 4.543,
+     "bias": 0.53,
+     "n": 4917,
+     "gainPct": 3.7
+    },
+    "bench": {
+     "rmse": 5.112,
+     "bias": -0.14,
+     "n": 1692,
+     "gainPct": 4.8
+    },
+    "sitters": {
+     "rmse": 4.852,
+     "bias": -0.21,
+     "n": 1668,
+     "gainPct": 8
+    }
+   }
+  },
+  "played": {
+   "proj": {
+    "folds": [
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 0
+     },
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 0
+     },
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 0
+     }
+    ],
+    "all": {
+     "rmse": 3.904,
+     "bias": -0.25,
+     "n": 4917,
+     "gainPct": 0
+    },
+    "bench": {
+     "rmse": 4.901,
+     "bias": -0.52,
+     "n": 1692,
+     "gainPct": 0
+    },
+    "sitters": {
+     "rmse": 4.398,
+     "bias": -0.26,
+     "n": 1668,
+     "gainPct": 0
+    }
+   },
+   "zeros": {
+    "folds": [
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 0.25
+     },
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 0.25
+     },
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 0.25
+     }
+    ],
+    "all": {
+     "rmse": 3.931,
+     "bias": -0.51,
+     "n": 4917,
+     "gainPct": -0.7
+    },
+    "bench": {
+     "rmse": 4.92,
+     "bias": -0.86,
+     "n": 1692,
+     "gainPct": -0.4
+    },
+    "sitters": {
+     "rmse": 4.469,
+     "bias": -1,
+     "n": 1668,
+     "gainPct": -1.6
+    }
+   },
+   "zeros1": {
+    "folds": [
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 1
+     },
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 1
+     },
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 1
+     }
+    ],
+    "all": {
+     "rmse": 4.259,
+     "bias": -1.16,
+     "n": 4917,
+     "gainPct": -9.1
+    },
+    "bench": {
+     "rmse": 5.174,
+     "bias": -1.66,
+     "n": 1692,
+     "gainPct": -5.6
+    },
+    "sitters": {
+     "rmse": 5.275,
+     "bias": -2.81,
+     "n": 1668,
+     "gainPct": -19.9
+    }
+   },
+   "shareG": {
+    "folds": [
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 0,
+      "sg": 1
+     },
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 0,
+      "sg": 1
+     },
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 0,
+      "sg": 1
+     }
+    ],
+    "all": {
+     "rmse": 3.898,
+     "bias": -0.31,
+     "n": 4917,
+     "gainPct": 0.2
+    },
+    "bench": {
+     "rmse": 4.891,
+     "bias": -0.69,
+     "n": 1692,
+     "gainPct": 0.2
+    },
+    "sitters": {
+     "rmse": 4.384,
+     "bias": -0.44,
+     "n": 1668,
+     "gainPct": 0.3
+    }
+   },
+   "both": {
+    "folds": [
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 0.5,
+      "sg": 1
+     },
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 0.5,
+      "sg": 1
+     },
+     {
+      "h": 5,
+      "G": 2,
+      "zw": 0.5,
+      "sg": 1
+     }
+    ],
+    "all": {
+     "rmse": 4.052,
+     "bias": -0.83,
+     "n": 4917,
+     "gainPct": -3.8
+    },
+    "bench": {
+     "rmse": 5.048,
+     "bias": -1.35,
+     "n": 1692,
+     "gainPct": -3
+    },
+    "sitters": {
+     "rmse": 4.776,
+     "bias": -1.91,
+     "n": 1668,
+     "gainPct": -8.6
+    }
+   }
+  }
+ }
+}
