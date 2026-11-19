@@ -253,20 +253,24 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .msw>div{display:flex;flex-wrap:wrap;gap:2px 10px}.msw>div>b{color:var(--ink);font-weight:700}.msw b.up,.msw b.dn{font-weight:600}
 .mstl{display:block;margin-top:3px;white-space:nowrap}.mst{margin-right:8px;font:500 10.5px/1 var(--num);color:var(--ink)}
 .mcols{display:block}
+.mgp,.mcat{display:none}.mtot{display:none}
 @media (min-width:1000px){
-  #pjList.muw{max-width:1560px}
-  .mux{max-width:1560px}
+  .mgp{display:block;font:600 12px/1 var(--num);text-align:center}.mrh .mgp{font:600 9.5px/1 var(--name)}
+  .mcat{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));font:500 11.5px/1 var(--num);text-align:right;color:var(--ink)}.mcat .pu{opacity:.35}
+  .mrh .mcat{font:600 9.5px/1 var(--name);letter-spacing:.04em}
+  .mtot{display:grid;border-top:2px solid var(--ink);cursor:default}.mtot .mcat,.mtot .mgp{font-weight:700}
+  .mplans{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}.mplans>.msec{margin-top:12px}
+  #pjList.muw{max-width:1360px}
+  .mux{max-width:1360px}
   .mtop{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;background:var(--panel);border-radius:12px;padding:8px 12px}
   .mtop .mwk{padding:0}.mtop .muh{margin:0;padding:0;gap:18px}.mtop .muh i{font-size:26px}.mtop .mue{margin:0;text-align:right}
   .mfin{display:grid;grid-template-columns:minmax(0,900px) minmax(240px,1fr);gap:18px;align-items:start}
   .mfs .msw{grid-template-columns:1fr;gap:10px;margin-top:14px}.mfs .msw>div{flex-direction:column;gap:3px}
   .mct{font-size:13.5px}.mct th,.mct td{padding:7px 8px}.mct .tn{max-width:180px}.mct sup{font-size:9px}
-  .mcols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
   .mcols .msec,.mme{margin-top:12px}
-  .mopp .mob{display:block!important}.mopp>.msh{cursor:default}.mopp>.msh::after{content:none!important}
-  .mrh,.mr{grid-template-columns:minmax(150px,210px) minmax(0,1fr) 50px 26px}
+  .mrh,.mr{grid-template-columns:minmax(150px,1fr) 28px calc(var(--nd,7)*72px) minmax(330px,440px) 50px 26px}
   .mr{padding:3px 0}.mn{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:6px}.mn b{font-size:13.5px}.mn i{margin:0}.mstl{flex-basis:100%;margin-top:3px}
-  .md{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+  .md{display:grid;grid-template-columns:repeat(var(--nd,7),minmax(0,1fr));gap:3px}
   .dc,.dh{width:auto;min-width:0}
   .dc{height:32px;flex-direction:column;gap:2px;border-radius:5px}
   .dc b,.dc i{display:block;font:600 10.5px/1 var(--name);font-style:normal;color:var(--ink)}
@@ -3593,8 +3597,8 @@ function renderMU(){
   const stale=isS&&today>syncDay&&rest.length?`<div class="mus">Totals are from your sync on ${sh(syncDay)}. Sync again for today's numbers.</div>`:"";
   // per day: how many of a team's players count, and how many play (more than its spots = some sit)
   const dayN=(T,d)=>{let c=0,p=0;for(const id in T.st){const s=T.st[id][d];if(!s)continue;if(s!==4)p++;if(s===1||s===3)c++}return{c,p}};
-  const hd=(T,capT,kind)=>`<div class="mrh"><span>${kind==="fa"?"Open spots":"Games / spots"}</span><div class="md">${rest.map(d=>{const n=dayN(T,d),open=capT-n.c;
-    return kind==="fa"?`<span class="dh${open>0?" op":" fu"}"><b>${dl(d)}<span> ${+d.slice(8)}</span></b><i>${open>0?open:"0"}<span class="cap"> open</span></i></span>`:`<span class="dh${n.p>capT?" fu":""}"><b>${dl(d)}<span> ${+d.slice(8)}</span></b><i>${n.c}<span class="cap">/${capT}</span>${n.p>capT?`<em>+${n.p-capT}</em>`:""}</i></span>`}).join("")}</div><span class="mval">Per g<br>Cats</span><span></span></div>`;
+  const hd=(T,capT,kind)=>`<div class="mrh"><span>${kind==="fa"?"Open spots":"Games / spots"}</span><span class="mgp">GP</span><div class="md">${rest.map(d=>{const n=dayN(T,d),open=capT-n.c;
+    return kind==="fa"?`<span class="dh${open>0?" op":" fu"}"><b>${dl(d)}<span> ${+d.slice(8)}</span></b><i>${open>0?open:"0"}<span class="cap"> open</span></i></span>`:`<span class="dh${n.p>capT?" fu":""}"><b>${dl(d)}<span> ${+d.slice(8)}</span></b><i>${n.c}<span class="cap">/${capT}</span>${n.p>capT?`<em>+${n.p-capT}</em>`:""}</i></span>`}).join("")}</div><div class="mcat">${CATS.map(c=>`<span>${c.l}</span>`).join("")}</div><span class="mval">Per g<br>Cats</span><span></span></div>`;
   const oppS=(t,d)=>{const s=opp(t,d);return s.startsWith("@")?s.replace(" ",""):s.replace(/^vs /,"")};
   const cells=(o,T,tap,full)=>rest.map(d=>{let s=T.st[o.id]&&T.st[o.id][d];const pl=plays(o.q.t,d);
     if(!s&&pl&&!o.il&&!avail(o.id,d))return`<span class="dc ot"><b>${oppS(o.q.t,d)}</b><i>out</i></span>`;
@@ -3603,9 +3607,16 @@ function renderMU(){
     if(s===5&&full&&full.has(d))s=6;
     const v=muFz(muLine(o.id,o.q,d,C).z,F);
     return`<span class="dc s${s}"${tap?` data-mu="day" data-x="${o.id}|${d}"`:""} title="${dl(d)} ${opp(o.q.t,d)}"><b>${oppS(o.q.t,d)}</b><i class="${v>=.5?"up":v<=-.5?"dn":""}">${sg(v).replace(/^\+/,"")}</i></span>`}).join("");
+  const cnt=s=>s===1||s===3||s===5;
+  const ptot=(o,T)=>{const t={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0,fgm:0,fga:0,ftm:0,fta:0};let n=0;
+    for(const d of rest){if(!cnt(T.st[o.id]&&T.st[o.id][d]))continue;n++;const l=muLine(o.id,o.q,d,C).l;for(const k in t)t[k]+=l[k]||0}return{t,n}};
+  const cf=(k,t)=>k==="fg"?(t.fga?(t.fgm/t.fga).toFixed(3).replace(/^0/,""):"–"):k==="ft"?(t.fta?(t.ftm/t.fta).toFixed(3).replace(/^0/,""):"–"):k==="pts"||k==="reb"||k==="ast"?Math.round(t[k]):t[k].toFixed(1);
+  const catC=(o,T)=>{const{t,n}=ptot(o,T);return[`<span class="mgp">${n||""}</span>`,`<div class="mcat">${n?CATS.map(c=>`<span class="${off.has(c.k)?"pu":""}">${cf(c.k,t)}</span>`).join(""):""}</div>`]};
+  const trow=(ps,T)=>{const t={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0,fgm:0,fga:0,ftm:0,fta:0};let n=0;for(const o of ps){if(o.il&&!rest.some(d=>cnt(T.st[o.id]&&T.st[o.id][d])))continue;const r=ptot(o,T);n+=r.n;for(const k in t)t[k]+=r.t[k]}
+    return`<div class="mr mtot"><div class="mn"><b>Days left total</b></div><span class="mgp">${n}</span><div class="md"></div><div class="mcat">${CATS.map(c=>`<span>${cf(c.k,t)}</span>`).join("")}</div><div class="mval"></div><span></span></div>`};
   const row=(o,T,act,full)=>{const dl2=o.d!=null&&act!=="undo"?`<i class="${o.d>=.05?"up":o.d<=-.05?"dn":""}">${Math.abs(o.d)<.05?"0.0":(o.d>0?"+":"−")+Math.abs(o.d).toFixed(1)}</i>`:"";
     return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${esc(nm(o.q.n))}</b><i>${esc(o.q.t)} · ${o.il?(b=>`<em class="ilb">${b?"back "+dl(b):"out all wk"}</em>`)(rest.find(d=>plays(o.q.t,d)&&avail(o.id,d))):esc(posOf(o.id)||"–")}${o.pl?` <em>plan add</em>`:o.nw?` <em>what-if add</em>`:""}${plOff[o.id]?` <em>plan drop ${dl(plOff[o.id])}</em>`:""}${act==="undo"?` <em>what-if drop</em>`:""}</i></div>
-      <div class="md">${act==="undo"?"":cells(o,T,act==="drop"||act==="undrop",full)}</div>
+      ${act==="undo"?`<span class="mgp"></span><div class="md"></div><div class="mcat"></div>`:(c=>c[0]+`<div class="md">${cells(o,T,act==="drop"||act==="undrop",full)}</div>`+c[1])(catC(o,T))}
       <div class="mval"><b class="${o.v>=1?"up":o.v<=-1?"dn":""}">${sg(o.v)}</b>${dl2}</div>
       ${act?`<button class="mb" data-mu="${act}" data-x="${o.id}" aria-label="${act}">${act==="add"?"+":act==="undo"?"↺":"−"}</button>`:"<span></span>"}</div>`};
   const sortR=a=>a.sort((p,q)=>q.v-p.v);
@@ -3618,7 +3629,7 @@ function renderMU(){
     return`<td class="${Math.abs(d)<1e-9?"":good?"up":"dn"}">${s}</td>`};
   const pctx={x,base:mine,rest,today,dates,capA,F,C,off,cA,cB,pA,pB,B,P,set:m.set,tg:tgs,lkA};
   $("pjStatus").textContent=`${wkNo?"Wk "+wkNo+" · ":""}${rest.length}d left`;$("pjLgRow").hidden=true;
-  $("pjList").innerHTML=`<div class="mux">
+  $("pjList").innerHTML=`<div class="mux" style="--nd:${Math.max(1,rest.length)}">
     <div class="mtop">
       <div class="mwk"><button class="mar" data-mu="wk" data-x="-1"${canPrev?"":" disabled"} aria-label="Previous week">‹</button><span><b>${wkNo?"Week "+wkNo:"Week"}</b> ${sh(dates[0])}–${sh(dates[dates.length-1])}${isS?"":` <i>projection only</i>`}</span><button class="mar" data-mu="wk" data-x="1"${canNext?"":" disabled"} aria-label="Next week">›</button></div>
       <div class="muh"><div><b>${esc(nameA)}</b><i class="${O.won>O.lost?"up":O.won<O.lost?"dn":""}">${O.won}</i></div><span>${O.n-O.won-O.lost?`${O.n-O.won-O.lost} even`:"vs"}</span><div>${isS?`<b>${esc(nameB)}</b>`:`<select class="mop" data-mu-opp aria-label="Opponent">${teams.map(t=>`<option value="${t}"${t===opId?" selected":""}>${esc(ML.teams[t])}${t===sch?" (scheduled)":""}</option>`).join("")}</select>`}<i>${O.lost}</i></div></div>
@@ -3642,17 +3653,19 @@ function renderMU(){
     </tbody></table></div>
     <div class="mfs"><div class="msw"><div><b>${esc(nameB)}</b>${scout(opId)}</div><div><b>${esc(nameA)}</b>${scout(me)}</div></div>
     <p class="mhint">${isS?"Projected finals: Yahoo's totals so far (small gray \"now\", as of your sync) plus Proj for the days left.":"Projected finals for the whole week (Proj only)."} G = games that count${isS&&pA.gx?" (so far: Yahoo's starters who played; days left: "+(S.muLu==="y"&&lkA?"your lineups as set on Yahoo":"the best lineup each day")+")":""}. Small ranks mark where a team is top or bottom 3 of the ${nT} teams this week. Tick categories to <b>target</b> them: the lineup, sort and Cats then go by those only (ticking all but 3PM = punting 3PM). <b>Swing</b> (underlined) = still in play, 30–70%: where a pickup can flip the result; the Target these button ticks just those. The score always counts all 9.</p></div></div>
-    ${rest.length?myPlanSec(pctx,plan):""}
-    ${isS&&ML.cfg&&ML.cfg.pos?ilpSec({ps:mine.filter(o=>!o.pl),me,opp:oppR,oppId:opId,rest,days:[...rest,...(S.ilpH>=1?weekDates(off0+1):[]),...(S.ilpH>=2?weekDates(off0+2):[])],today,F,C,zo,fa,lk:lkA,P,odds:(ps,set)=>muOdds(cA,cB,pA,pB,muSimD(ps,rest,capA,F,set,C,[],null,null),B,off)}):""}
     <div class="msec mme"><div class="msh"><b>${esc(nameA)}</b><span>${gA} games left · by ${esc(lab)}</span></div>${hd(A,capA,"me")}
-      ${grp(mineAll,o=>row(o,A,o.pl||plOff[o.id]?"":o.nw?"undrop":"drop"))}${dropped.map(o=>row(o,A,"undo")).join("")}
+      ${grp(mineAll,o=>row(o,A,o.pl||plOff[o.id]?"":o.nw?"undrop":"drop"))}${dropped.map(o=>row(o,A,"undo")).join("")}${trow(mineAll,A)}
       <p class="mhint">Tap a game to start or sit him. <span class="dc s1"></span> counts · <span class="dc s2"></span> sits (no spot) · <span class="dc s3"></span> you started him · <span class="dc s4"></span> you sat him · <span class="dc ot"></span> out (injury report).</p></div>
     <div class="mcols">
     <div class="msec"><div class="msh"><b>Free agents</b><span>best for ${esc(lab)} · value × games</span></div>${hd(A,capA,"fa")}
       ${faShow.map(o=>row(o,{st:{[o.id]:Object.fromEntries(myDs(o).map(d=>[d,5]))}},"add",fullDays)).join("")||`<div class="empty">No free agents playing the days left.</div>`}
       ${fa.length>m.fa?`<button class="mmore" data-mu="more">Show more</button>`:""}</div>
     <div class="msec mopp${m.oo?" open":""}"><div class="msh" data-mu="opp"><b>${esc(nameB)}</b><span>${gB} games left</span></div><div class="mob">${hd(B,capB,"op")}
-      ${grp(oppR.map(o=>(o.v=pv(o),o)),o=>row(o,B,""))}</div></div>
+      ${grp(oppR.map(o=>(o.v=pv(o),o)),o=>row(o,B,""))}${trow(oppR,B)}</div></div>
+    </div>
+    <div class="mplans">
+    ${rest.length?myPlanSec(pctx,plan):""}
+    ${isS&&ML.cfg&&ML.cfg.pos?ilpSec({ps:mine.filter(o=>!o.pl),me,opp:oppR,oppId:opId,rest,days:[...rest,...(S.ilpH>=1?weekDates(off0+1):[]),...(S.ilpH>=2?weekDates(off0+2):[])],today,F,C,zo,fa,lk:lkA,P,odds:(ps,set)=>muOdds(cA,cB,pA,pB,muSimD(ps,rest,capA,F,set,C,[],null,null),B,off)}):""}
     </div>
     <p class="bzcap">${isS?`Yahoo's totals so far (synced ${at.toLocaleString([],{weekday:"short",hour:"numeric",minute:"2-digit"})}) plus`:"No Yahoo totals yet for this week, so it's"} Proj for the days left (${rest.length?sh(rest[0])+"–"+sh(rest[rest.length-1]):"none"}): everyone on the roster (IL players only once the injury report has them back), on days his team plays and he isn't listed out, at most each team's active spots a day, best first by your targets. Each game shows the opponent and his value that night. Free agents' games are dimmed on days your spots are full (he'd sit). Per g = his per-game value on your targets; <b>Cats</b> = how many more (or fewer) of your targeted categories you'd expect to win with him added, or without him. Rosters are as of your last sync; picks stay on this device, per week.</p></div>`;
   myPlanWire($("pjList"),pctx,m);
