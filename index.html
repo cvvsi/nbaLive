@@ -836,7 +836,10 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .ilpc{margin:8px 0;font:500 13px/1.45 var(--name)}.ilpc>div{padding:5px 0;border-top:1px solid var(--rule)}.ilpc .myd{display:inline-block;min-width:44px;font-weight:700}.ilpc em{font:500 9px/1 var(--num);color:var(--dim);font-style:normal}
 .smf{grid-column:1/-1;margin:4px 0 8px;justify-self:start}
 .smb{display:inline-block;font:700 9.5px/1 var(--name);text-transform:uppercase;letter-spacing:.06em;padding:3px 5px;border-radius:4px;margin-right:6px;vertical-align:1px}.smb.t2{background:var(--pos);color:var(--bg)}.smb.t1{border:1px solid var(--pos);color:var(--pos);padding:2px 4px}
-.smu{font-style:normal;color:var(--dim);margin-left:4px}.smev b{font-weight:600}
+.smu{font-style:normal;color:var(--dim);margin-left:4px}
+/* Smash: one table per night, so fix the column widths (auto layout sizes each table to its own text) */
+body[data-page="smash"] .dt{table-layout:fixed}body[data-page="smash"] .dt .drk{width:44px}body[data-page="smash"] .dt .dpl{width:22%}
+body[data-page="smash"] .dt .dcx{width:30%;overflow:hidden;text-overflow:ellipsis}body[data-page="smash"] .dt .vh{width:64px}.smev b{font-weight:600}
 .ilsc b small{font-size:13px;color:var(--pos);margin-left:3px}
 .ilst{font:500 13px/1.35 var(--name);padding:7px 10px;margin:4px 0;border-radius:6px;background:var(--cell)}.ilst b{margin-right:6px}.ilst.dn b{color:var(--neg)}.ilst.up b{color:var(--pos)}.ilst.wn b{color:var(--ball)}
 .ilpc>div{display:grid;grid-template-columns:44px 30px 1fr;align-items:baseline}.ilpc span:last-child em{font:600 9px/1 var(--num);text-transform:uppercase;color:var(--dim);font-style:normal;margin:0 4px 0 8px}.ilpc span:last-child em:first-child{margin-left:0}.ilpc span:last-child i{font:500 9px/1 var(--num);color:var(--dim);font-style:normal}
@@ -3398,9 +3401,9 @@ function ilpSec(X){
 // (you start them anyway).
 const SMK=16,SMTOP=[60,100],SMUP=.15,SMSKIP=75;
 const SMKEYS=["pts","reb","ast","stl","blk","tpm","to","fgm","fga","ftm","fta"];
-function smLine(X,q,d,e,cond){let m=minAt(X,q,d);const x=e.m&&e.m[X];if(cond&&x)m=Math.max(0,m-x[0]+x[1]);
+function smLine(X,q,d,e,cond){let m=minAt(X,q,d);const x=e.m&&e.m[X];if(cond&&x)m=Math.max(0,Math.min(42,m-x[0]+x[1]));
   let L=easeLine(lineAt(q,m),easeF(oppT(q.t,d)));const w=e.wo&&e.wo[X];
-  if(w&&w[0]>=1&&w[1]>0&&L.min>0){const a=w[0]/(w[0]+SMK),mm=(1-a)*L.min+a*w[1],o={min:mm};
+  if(w&&w[0]>=1&&w[1]>0&&L.min>0){const a=w[0]/(w[0]+SMK),mm=Math.min(42,(1-a)*L.min+a*w[1]),o={min:mm};
     SMKEYS.forEach((k,j)=>{o[k]=((1-a)*L[k]/L.min+a*w[2+j]/w[1])*mm});L={...L,...o}}
   return L}
 function renderSmash(){
