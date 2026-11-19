@@ -1091,7 +1091,12 @@ body[data-page="today"] .yattr,body[data-page="matchup"] .yattr,body[data-page="
      together; the sync time already sits in the top bar's league chip */
   .ruler.pjv>div,.ruler.rkv>div{display:flex;flex-wrap:wrap;align-items:center;column-gap:14px}
   .ruler.pjv>div>#subnav,.ruler.rkv>div>#subnav{flex-basis:100%}
-  .ruler.pjv .meta:not(.lgrow),.ruler.rkv .meta:not(.lgrow){flex:1;min-width:0}
+  /* the view switch (Season / Week / Today, or Szn / 14D / 7D / L3) stays at the far right; the
+     controls that come and go (Per g / Total, the week picker, All / Available / Mine) sit to its
+     left, so switching views never moves it */
+  .ruler.pjv .meta:not(.lgrow),.ruler.rkv .meta:not(.lgrow),.ruler.pjv .meta .sorts,.ruler.rkv .meta .sorts{display:contents}
+  #pjStatus,#rkStatus{order:0;flex:1;min-width:0}
+  #pjRow2,#pjSz,#pjWk,#rkSz{order:1}#pjLgRow,#rkLgRow{order:3}#pjView,#rkWin{order:4}
   .ruler .lgrow{padding:0}.ruler .lgrow .lgs{display:none}
 }
 @media (min-width:1100px){
