@@ -36,6 +36,9 @@ const u = 'https://sixthman-yahoo.saac-choi.workers.dev', key = process.env.RELA
         let info = ''; try { const j = JSON.parse(c); info = t === 'get_my_team' ? (j.roster || []).filter(p => p.proj_rank).length + ' of ' + (j.roster || []).length + ' matched to our data' : t === 'get_free_agents' ? (j.players || []).filter(p => p.proj_rank).length + ' of ' + (j.players || []).length + ' matched' : 'chance to win ' + j.chance_to_win_week + ', ' + (j.categories || []).length + ' categories'; } catch (e) { info = String(c).slice(0, 120); }
         console.log('  ' + t + ':', r.result && r.result.isError ? 'ERROR ' + String(c).slice(0, 160) : info);
       }
+      // play clips (worker/nba.js): status codes only
+      const pr = await (await fetch(u + '/nba/probe', { headers: { 'X-Relay-Key': key } })).json().catch(e => ({ error: e.message }));
+      console.log('nba clips:', JSON.stringify(pr));
       return;
     }
     console.log('try', i + 1, '->', r.status, o && o.error ? o.error : '');

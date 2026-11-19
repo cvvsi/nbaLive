@@ -1197,6 +1197,22 @@ body[data-page="today"] .yattr,body[data-page="matchup"] .yattr,body[data-page="
 .vchart .gx,.vchart .gy{font:500 10px var(--num);fill:var(--dim);text-anchor:middle}.gonk{display:inline-block;width:14px;height:4px;border-radius:2px;background:var(--ball);vertical-align:2px}.vchart .gtrk{fill:var(--cell)}.vchart .gstr{fill:var(--ball)}.vchart .gdot{fill:var(--ball);stroke:var(--panel);stroke-width:2}
 .vtip{font:500 12.5px/1.35 var(--name);color:var(--ink);min-height:18px;margin-top:6px}
 .tup{max-height:320px;overflow:auto;border:1px solid var(--rule);border-radius:10px;background:var(--panel)}.tup>div{display:grid;grid-template-columns:70px 1fr auto;gap:8px;padding:7px 10px;border-top:1px solid var(--rule);font:500 12.5px/1.3 var(--name)}.tup>div:first-child{border-top:0}
+.tup.clips>div{grid-template-columns:26px 64px 1fr auto;align-items:center}
+.clp{width:24px;height:24px;border:1px solid var(--rule);border-radius:50%;background:var(--panel);color:var(--ball);font:600 10px/1 var(--num);padding:0 0 0 2px;cursor:pointer}
+.clp:hover{border-color:var(--ball)}
+.clpall{float:right;border:1px solid var(--ball);border-radius:8px;background:none;color:var(--ball);font:600 12px/1 var(--name);padding:5px 9px;cursor:pointer}
+#clipBox{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center}#clipBox[hidden]{display:none}
+#clipBox .cbk{position:absolute;inset:0;background:color-mix(in srgb,var(--ink) 70%,transparent)}
+#clipBox .cbp{position:relative;width:min(760px,100vw - 16px);background:var(--panel);border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+#clipBox .cbv{position:relative;aspect-ratio:16/9;background:var(--ink)}#clipBox video{width:100%;height:100%;display:block}
+#clipBox .cbm{position:absolute;left:0;right:0;bottom:44%;text-align:center;color:var(--bg);font:500 13px/1.4 var(--name);pointer-events:none;padding:0 16px}
+#clipBox .cbm:empty{display:none}
+#clipBox .cbc{padding:9px 12px 2px;font:500 13px/1.35 var(--name);color:var(--ink)}#clipBox .cbc b{font:600 12px/1 var(--num);color:var(--dim);margin-right:8px}
+#clipBox .cbn{display:flex;align-items:center;gap:10px;padding:8px 12px 11px;font:500 12px/1 var(--name);color:var(--dim)}
+#clipBox .cbn i{font:500 12px/1 var(--num);font-style:normal;min-width:48px;text-align:center}
+#clipBox .cbn button{border:1px solid var(--rule);border-radius:8px;background:var(--panel);color:var(--ink);font:600 15px/1 var(--name);padding:6px 11px;cursor:pointer}
+#clipBox .cbn button:disabled{opacity:.35;cursor:default}#clipBox .cbn label{display:flex;align-items:center;gap:5px;margin-left:auto}
+#clipBox #cbX{font-size:12px}
 .tup i{font:500 11px/1.3 var(--num);font-style:normal;color:var(--dim)}.tup b{font:600 12px/1.3 var(--num)}.tup b.up{color:var(--pos)}.tup b.dn{color:var(--neg)}
 @media (max-width:600px){.tcg{grid-template-columns:repeat(5,1fr);gap:4px}.tcg>div{padding:8px 2px}.tcg b{font-size:15px}.tcg em{font-size:9.5px}.tsbt i{font-size:24px}.tlg.big{width:36px;height:36px}}
 .rgrid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}.rch{background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:14px 14px 10px;margin:0!important}
@@ -4597,7 +4613,7 @@ function playsOf(tn){const P=S.plays&&S.plays[tn.game];if(!P||!P.length)return n
     if(/rebound/i.test(T)&&me1&&!/team/i.test(txt))d.reb=1;
     if(/turnover|traveling|bad pass|lost ball/i.test(T)&&me1)d.to=1;
     if(/turnover|traveling|bad pass|lost ball/i.test(T)&&me2&&/ steals\)/.test(txt))d.stl=1;
-    if(Object.keys(d).length)out.push({t,lab:`${per<=4?"Q"+per:"OT"+(per-4)} ${clk}`,txt,d})}
+    if(Object.keys(d).length)out.push({t,lab:`${per<=4?"Q"+per:"OT"+(per-4)} ${clk}`,txt,d,per,cs:(mm||0)*60+(ss||0)})}
   return out}
 // Game minute of a play (0-48, overtimes after) and its "Q2 3:41" label.
 function ptT(p){const per=(p.period&&p.period.number)||1,clk=String((p.clock&&p.clock.displayValue)||"0:00"),[mm,ss]=clk.includes(":")?clk.split(":").map(Number):[0,parseFloat(clk)||0];
@@ -4681,7 +4697,8 @@ function psTonightGame(id,q,tn){const g=gameOf(q,tn),h=[];
           <circle id="psDot" r="4" cx="${X(now.t)}" cy="${Y(now.v)}" class="gdot"/></svg>
         <div class="vtip" id="psTip">Hover or drag along the chart to see his value at any moment and the play behind it.</div>
         <p class="stkn">${useSt?`<span class="gonk"></span> Strip along the bottom: on the floor (${Math.round(stM)} min, from the substitutions).`:""}${fnote} Solid: his value as the game went. Dashed: the pace to reach his projection by the final buzzer.</p>${miss.length?`<p class="lkr dn">Approximate: the play-by-play doesn't match his box score in ${miss.join(", ").toUpperCase()}.</p>`:""}</section>`);
-      h.push(`<section class="blk"><h3>Scoring updates <span>newest first${g&&g.state==="in"?" · refreshes every minute":""}</span></h3><div class="tup">${pts.slice(1).reverse().map(p=>`<div><i>${p.ev.lab}</i><span>${esc(p.ev.txt)}</span><b class="${p.dv>=0?"up":"dn"}">${p.dv>=0?"+":"−"}${Math.abs(p.dv).toFixed(2)}</b></div>`).join("")}</div></section>`)}
+      const cl=clipOn();if(cl)S.clipCtx={tn,ev};
+      h.push(`<section class="blk"><h3>Scoring updates <span>newest first${g&&g.state==="in"?" · refreshes every minute":""}</span>${cl?`<button type="button" class="clpall">▶ Watch his night</button>`:""}</h3>${cl?`<p class="stkn">▶ plays the clip from NBA.com. Watch his night plays every one in order.</p>`:""}<div class="tup${cl?" clips":""}">${pts.slice(1).reverse().map(p=>`<div>${cl?`<button type="button" class="clp" data-ci="${ev.indexOf(p.ev)}" aria-label="Watch: ${esc(p.ev.lab)} ${esc(p.ev.txt)}">▶</button>`:""}<i>${p.ev.lab}</i><span>${esc(p.ev.txt)}</span><b class="${p.dv>=0?"up":"dn"}">${p.dv>=0?"+":"−"}${Math.abs(p.dv).toFixed(2)}</b></div>`).join("")}</div></section>`)}
     else if(g&&g.state!=="pre")h.push(`<p class="lgk">No play-by-play for this game yet.</p>`)}
   h.push(rest);return h.join("")}
 // A smooth line through the points that never overshoots them (monotone cubic), so the curve stays honest.
@@ -4695,6 +4712,80 @@ function psChartBind(){const s=$("psChart");if(!s)return;const P=JSON.parse(s.da
   const mv=e=>{const r=s.getBoundingClientRect(),x=((e.touches?e.touches[0].clientX:e.clientX)-r.left)*(s.viewBox.baseVal.width/r.width);
     let b=P[0];for(const p of P)if(Math.abs(p[0]-x)<Math.abs(b[0]-x))b=p;dot.setAttribute("cx",b[0]);dot.setAttribute("cy",b[1]);tip.textContent=`${b[2]}  ·  his value then ${b[3]}`};
   s.addEventListener("mousemove",mv);s.addEventListener("touchmove",mv,{passive:true});s.addEventListener("touchstart",mv,{passive:true})}
+// Play clips (Nov 2026, prototype): each of his plays on the Tonight tab can play its video from NBA.com.
+// NBA.com keeps a clip per play-by-play action (game id + action number); the relay looks them up
+// (worker/nba.js), since stats.nba.com doesn't answer other sites' browsers. Only on a device with the
+// relay set up. ESPN's plays are matched to NBA.com's actions by period, clock (within 2 s), the kind
+// of play and the player (by "B. Adebayo"-style name on his team, else by which player's actions line
+// up with his plays).
+const clipOn=()=>{const R=store.get("relay",null);return!!(R&&R.u&&R.k)};
+const NBATRI={GS:"GSW",NY:"NYK",SA:"SAS",NO:"NOP",UTAH:"UTA",WSH:"WAS"},nbaTri=t=>NBATRI[t]||t;
+const CLIP={g:{},p:{},c:{}};
+async function clipApi(path){const R=store.get("relay",null);const r=await fetch(R.u.replace(/\/+$/,"")+path,{headers:{"X-Relay-Key":R.k}});
+  const j=await r.json().catch(()=>null);if(!r.ok)throw new Error((j&&j.error)||("relay "+r.status));return j}
+async function clipGid(date,team){const k=date;if(!CLIP.g[k])CLIP.g[k]=clipApi("/nba/games?d="+date).catch(e=>{delete CLIP.g[k];throw e});
+  const t=nbaTri(team),g=(await CLIP.g[k]).find(x=>x.away===t||x.home===t);return g?g.gid:null}
+async function clipPbp(gid,live){const c=CLIP.p[gid];if(c&&(!live||Date.now()-c.at<45e3))return c.a;
+  const j=await clipApi("/nba/pbp?gid="+gid),a=((j.game||{}).actions||[]).map(x=>{const m=/PT(\d+)M([\d.]+)S/.exec(x.clock||"");
+    return{n:x.actionNumber,per:x.period,cs:m?+m[1]*60+ +m[2]:null,pid:x.personId,ni:x.playerNameI||"",tri:x.teamTricode,ty:String(x.actionType||"").toLowerCase(),ast:x.assistPersonId||null}});
+  CLIP.p[gid]={a,at:Date.now()};return a}
+const clipNm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[.'’-]/g,"").replace(/\b(jr|sr|ii|iii|iv)\b/g,"").replace(/\s+/g," ").trim();
+const clipKey=n=>{const w=clipNm(n).split(" ");return w.length>1?w[0][0]+" "+w.slice(1).join(" "):w[0]};
+// What NBA.com action a play is, and whose: [types, "pid" | "ast"].
+function clipKind(d){if(d.fga)return[["2pt","3pt"],"pid"];if(d.fta)return[["freethrow"],"pid"];if(d.reb)return[["rebound"],"pid"];
+  if(d.to)return[["turnover"],"pid"];if(d.stl)return[["steal"],"pid"];if(d.blk)return[["block"],"pid"];if(d.ast)return[["2pt","3pt"],"ast"];return null}
+// ESPN plays -> NBA.com action numbers (null where no action lines up).
+function clipMatch(tn,ev,A){const tri=nbaTri(tn.team),key=clipKey(tn.name);
+  let pid=(A.find(a=>a.tri===tri&&a.ni&&clipKey(a.ni)===key)||{}).pid;
+  if(!pid){const vote={};for(const e of ev){const k=clipKind(e.d);if(!k||k[1]!=="pid")continue;
+      for(const a of A)if(a.tri===tri&&a.pid&&a.per===e.per&&Math.abs(a.cs-e.cs)<=2&&k[0].includes(a.ty))vote[a.pid]=(vote[a.pid]||0)+1}
+    pid=+(Object.entries(vote).sort((x,y)=>y[1]-x[1])[0]||[0])[0]||null}
+  if(!pid)return ev.map(()=>null);
+  const used=new Set();
+  return ev.map(e=>{const k=clipKind(e.d);if(!k)return null;let b=null;
+    for(const a of A){if(used.has(a.n)||a.per!==e.per||a.cs==null||!k[0].includes(a.ty)||(k[1]==="ast"?a.ast!==pid:a.pid!==pid))continue;
+      const dt=Math.abs(a.cs-e.cs);if(dt<=2&&(!b||dt<b.dt))b={n:a.n,dt}}
+    if(b){used.add(b.n);return b.n}return null})}
+async function clipUrl(gid,n){const k=gid+"|"+n;if(!CLIP.c[k])CLIP.c[k]=clipApi(`/nba/clip?gid=${gid}&ev=${n}`).catch(e=>{delete CLIP.c[k];throw e});return CLIP.c[k]}
+
+// The player: one overlay over everything, a queue of plays, prev / next, and "Watch his night" plays
+// the queue straight through. A clip that NBA.com won't play here is retried through the relay.
+const CB={q:[],i:0,all:false,gid:null,nums:null};
+function clipBox(){let b=$("clipBox");if(b)return b;b=document.createElement("div");b.id="clipBox";b.hidden=true;
+  b.innerHTML=`<div class="cbk"></div><div class="cbp" role="dialog" aria-modal="true" aria-label="Play clip">
+    <div class="cbv"><video id="cbVid" controls playsinline preload="auto"></video><div class="cbm" id="cbMsg"></div></div>
+    <div class="cbc"><b id="cbLab"></b><span id="cbTxt"></span></div>
+    <div class="cbn"><button type="button" id="cbPrev" aria-label="Previous play">‹</button><i id="cbCnt"></i><button type="button" id="cbNext" aria-label="Next play">›</button>
+      <label><input type="checkbox" id="cbAuto"> Play through</label><button type="button" id="cbX" aria-label="Close">Close</button></div></div>`;
+  document.body.appendChild(b);
+  const v=$("cbVid");b.querySelector(".cbk").onclick=clipClose;$("cbX").onclick=clipClose;
+  $("cbPrev").onclick=()=>clipGo(CB.i-1);$("cbNext").onclick=()=>clipGo(CB.i+1);$("cbAuto").onchange=e=>{CB.all=e.target.checked};
+  v.addEventListener("ended",()=>{if(CB.all&&CB.i<CB.q.length-1)clipGo(CB.i+1)});
+  v.addEventListener("error",()=>{const c=CB.cur;if(c&&c.px&&v.dataset.src!=="px"){v.dataset.src="px";v.src=c.px;v.play().catch(()=>{})}
+    else{$("cbMsg").textContent="NBA.com wouldn't play this clip.";if(CB.all&&CB.i<CB.q.length-1)setTimeout(()=>clipGo(CB.i+1),1200)}});
+  addEventListener("keydown",e=>{if(b.hidden)return;if(e.key==="Escape"){e.stopImmediatePropagation();clipClose()}
+    else if(e.key==="ArrowRight")clipGo(CB.i+1);else if(e.key==="ArrowLeft")clipGo(CB.i-1)},true);
+  return b}
+function clipClose(){const b=$("clipBox");if(!b)return;const v=$("cbVid");v.pause();v.removeAttribute("src");v.load();b.hidden=true;CB.tok=(CB.tok||0)+1}
+async function clipGo(i){if(i<0||i>=CB.q.length)return;CB.i=i;const e=CB.q[i],v=$("cbVid"),msg=$("cbMsg"),tok=CB.tok=(CB.tok||0)+1;
+  $("cbLab").textContent=e.lab;$("cbTxt").textContent=e.txt;$("cbCnt").textContent=`${i+1} / ${CB.q.length}`;
+  $("cbPrev").disabled=i===0;$("cbNext").disabled=i===CB.q.length-1;
+  v.pause();v.removeAttribute("src");v.removeAttribute("poster");msg.textContent="Loading the clip…";CB.cur=null;
+  try{const n=CB.nums[CB.ev.indexOf(e)];if(n==null)throw new Error("No NBA.com play lines up with this one.");
+    const c=await clipUrl(CB.gid,n);if(tok!==CB.tok)return;if(!c.mp4)throw new Error("NBA.com has no video for this play yet.");
+    CB.cur=c;msg.textContent="";if(c.th)v.poster=c.th;v.dataset.src="nba";v.src=c.mp4;v.play().catch(()=>{})}
+  catch(err){if(tok!==CB.tok)return;msg.textContent=err.message||String(err);if(CB.all&&i<CB.q.length-1)setTimeout(()=>{if(tok===CB.tok)clipGo(i+1)},1200)}}
+async function clipOpen(ci,all){const x=S.clipCtx;if(!x)return;const{tn,ev}=x,b=clipBox();b.hidden=false;
+  CB.ev=ev;CB.q=ev.filter(e=>clipKind(e.d));CB.all=all;$("cbAuto").checked=all;
+  const start=all?0:Math.max(0,CB.q.indexOf(ev[ci]));
+  $("cbLab").textContent=ev[ci]?ev[ci].lab:"";$("cbTxt").textContent=ev[ci]?ev[ci].txt:"";$("cbCnt").textContent="";$("cbMsg").textContent="Finding his plays on NBA.com…";
+  const tok=CB.tok=(CB.tok||0)+1;
+  try{const gid=await clipGid(S.date,tn.team);if(!gid)throw new Error("NBA.com has no game for "+tn.team+" on this date.");
+    const g=gameOf(null,tn),A=await clipPbp(gid,g&&g.state==="in");if(tok!==CB.tok)return;
+    CB.gid=gid;CB.nums=clipMatch(tn,ev,A);clipGo(start)}
+  catch(err){if(tok===CB.tok)$("cbMsg").textContent=err.message||String(err)}}
+document.addEventListener("click",e=>{const a=e.target.closest&&e.target.closest(".clp,.clpall");if(!a)return;e.preventDefault();e.stopPropagation();
+  a.classList.contains("clpall")?clipOpen(0,true):clipOpen(+a.dataset.ci,false)});
 // A collapsible section on the player page; open/closed is remembered per device.
 const PSDD=store.get("psDD",{});
 function psDD(k,title,sub,body,def){const open=PSDD[k]!=null?PSDD[k]:def;
