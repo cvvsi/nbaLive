@@ -1061,7 +1061,7 @@ body[data-page="today"] .yattr,body[data-page="matchup"] .yattr,body[data-page="
   .tnm{grid-column:1;grid-row:2;min-width:0}
   .tng{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:12px;margin-bottom:12px}.tng .gc{margin:0}
   .hzb .li{break-inside:avoid}.hzb{column-count:2;column-gap:28px}.hzb .bh{column-span:all}
-  #rkList,#pjList:not(.muw){max-width:1500px!important}
+  #rkList,#pjList:not(.muw),#bsList{max-width:1500px!important}
   #rkList .bzcap,#pjList .bzcap{max-width:110ch}
   .ruler>div{max-width:1500px!important}
 }
@@ -1116,7 +1116,17 @@ body[data-page="today"] .yattr,body[data-page="matchup"] .yattr,body[data-page="
   .bzwh{position:sticky;top:calc(var(--bar) + 38px);z-index:3;background:var(--bg);padding:8px 4px 6px}
   .bzwh span{font:600 10.5px/1 var(--name)!important;letter-spacing:.06em;color:var(--dim)!important;text-transform:uppercase}.bzwh .w1{text-align:left}
 }
+@media (min-width:1100px){
+  .lbdw{grid-column:1/-1;max-width:1500px;width:100%;margin:0 auto}
+  .dw.lbd{--dwg:36px minmax(210px,1fr) 50px 50px 56px 52px 52px 52px 42px 42px 42px 42px 58px 58px}
+  .dw.lbd .w1 .wy{font:500 12px/1.3 var(--name);color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dw.lbd .w1 .wy b{color:var(--ink)}.dw.lbd .w1 .wy b.good{color:var(--pos)}.dw.lbd .w1 .wy b.bad{color:var(--neg)}
+  .dw .wl{text-align:center;font:500 12.5px/1 var(--num);color:var(--ink)}.dw .wl.hi{color:var(--pos)}.dw .wl.lo,.dw .wl.na{color:var(--dim)}
+  .dw .wpj{font:600 15px/1 var(--num)}.dw .wpj.good{color:var(--pos)}.dw .wpj.bad{color:var(--neg)}
+  .dw.lbd .mt .bt{margin-left:0}.dw.lbd .mt .ij{font:700 9.5px/1 var(--name);color:var(--neg)}
+  .lbdw .pjh{padding:18px 4px 2px}
+}
 @media (min-width:1100px) and (max-width:1399px){
+  .dw.lbd{--dwg:32px minmax(160px,1fr) 44px 44px 50px 44px 44px 44px 36px 36px 36px 36px 50px 50px;column-gap:5px}
   .dw{--dwg:24px 32px minmax(130px,1fr) 32px 44px 44px 44px 36px 36px 36px 36px 50px 50px 52px;column-gap:5px}
   .dw .ws.wb{font-size:18px}.dw .ws{font-size:13px}.dw .ws.wp{font-size:12px}.dw .vl{font-size:14px}
   .dwx{grid-template-columns:minmax(0,1fr) 250px;gap:14px}
@@ -1943,6 +1953,23 @@ function lgBsRow(id,chip,cls,why){
     <div class="bo2r lbr"><span class="b2n">${hs(id)}<span class="b2t"><b class="nm">${esc(q.n)}</b><i>${esc(q.t)}${tags}</i></span></span>
       <span class="b2c">${now?"#"+now:"–"}</span><span class="b2c">${r3?"#"+r3:"–"}</span><span class="b2p ${cls==="good"||cls==="bad"?cls:""}">${hasPj(q)?"#"+x:"–"}</span></div>
     ${why?`<div class="lbw">${why}</div>`:""}</article>`}
+// Desktop Roster / Waivers rows in the Box look: headshot, name over team and tags, the reason on a
+// third line, Now / Last 3 / Proj, then his Proj per-game line (colored only at |z| >= 1).
+function lgBsRowW(id,chip,cls,why){
+  const q=G.players[id]||{n:id,t:""},B=S.bs,now=B.now[id],x=B.x[id],r3=S.rk&&S.rk.g3&&S.rk.g3[id],tr=BO&&BO.players[id]&&BO.players[id].trig;
+  const tags=[chip?`<span class="bt ${cls}">${chip}</span>`:"",ijTag(id),tr?`<span class="bt">${tr.bigjump?"Spike":"Role up"}</span>`:"",rkTagQ(q)].join("");
+  const l=q.xp?xpLine(q):null,z=q.x?zx(q):{},zc=k=>S.punt.has(k)?" off":z[k]>=1?" good":z[k]<=-1?" bad":"";
+  const val=k=>!l?"–":k==="fg"?pctT(l.fgm,l.fga):k==="ft"?pctT(l.ftm,l.fta):f1(l[k]),tier=r=>!r?"na":r<=TOP?"hi":r<=ROST?"":"lo";
+  return`<article class="dw lbd dtr" data-id="${esc(id)}" tabindex="0" aria-label="${esc(q.n)}: open details">${mug({eid:id},0)}
+    <div class="w1"><b class="nm">${esc(q.n)}</b><span class="mt">${esc(q.t)}${tags}</span>${why?`<span class="wy" title="${esc(String(why).replace(/<[^>]+>/g,""))}">${why}</span>`:""}</div>
+    <span class="wl ${tier(now)}">${now?"#"+now:"–"}</span><span class="wl ${tier(r3)}">${r3?"#"+r3:"–"}</span><span class="ws wpj ${cls==="good"||cls==="bad"?cls:""}">${hasPj(q)?"#"+x:"–"}</span>
+    ${DCOLS.map(k=>`<span class="ws ${BIG.includes(k)?"wb":k==="fg"||k==="ft"?"wp":""}${zc(k)}">${val(k)}</span>`).join("")}</article>`}
+const lgBsHeadW=(t,sub)=>`<div class="pjh">${t}${sub?` <span>${sub}</span>`:""}</div><div class="dw lbd dwh"><span></span><span class="w1">Player</span><span class="wl">Now</span><span class="wl">Last 3</span><span class="ws">Proj</span>${DCOLS.map(k=>`<span class="${BIG.includes(k)?"wb":k==="fg"||k==="ft"?"wp":""}">${CL[k].toUpperCase()}</span>`).join("")}</div>`;
+// The side column on desktop: Roster shows who you could add, Waivers who you could drop.
+function lgRail(kind){const B=S.bs,me=String(ML.me),nm=n=>n.replace(/^(\S)\S*\s/,"$1. ");
+  const ids=Object.keys(G.players).filter(id=>kind==="add"?lgOf(id)==null&&hasPj(G.players[id])&&!ijOut(ijOf(id)):lgOf(id)===me&&hasPj(G.players[id])).sort((a,b)=>kind==="add"?B.x[a]-B.x[b]:B.x[b]-B.x[a]).slice(0,10);
+  const row=id=>{const q=G.players[id],v=pjVal(zx(q));return`<div class="bsr" data-id="${esc(id)}"><b>${esc(nm(q.n))}</b><span class="t">${esc(q.t)}</span><span class="l">Proj #${B.x[id]}</span><span class="v ${vcls(v)}">${sgn(v)}</span></div>`};
+  return`<aside class="dws"><section class="bsb"><div class="bsh"><b>${kind==="add"?"Best pickups":"Your drop candidates"}</b><span>${kind==="add"?"free agents by Proj":"your lowest Proj"}</span></div>${ids.map(row).join("")||`<div class="bse">None.</div>`}</section></aside>`}
 function lgBsHead(t,sub){return`<div class="pjh">${t}${sub?` <span>${sub}</span>`:""}</div><div class="bo2r lbr bo2h"><span>Player</span><span>Now</span><span>Last 3</span><span>Proj</span></div>`}
 const firstSent=h=>{const m=String(h).replace(/^<p class="bsn">|<\/p>$/g,"").match(/^.*?[.;](?=\s|$)/);return m?m[0].replace(/;$/,"."):""};
 function renderLgBS(st){
@@ -1961,7 +1988,11 @@ function renderLgBS(st){
       else grp.steady.push([id,a.tag==="Hold"&&/^Hold for now/.test(a.parts&&a.parts[0]||"")?"Hold for now":"","",/^Hold for now/.test(a.parts&&a.parts[0]||"")?a.parts[0].replace(/^Hold for now: /,""):""])}
     const by=a=>a.sort((p,q)=>B.x[p[0]]-B.x[q[0]]);
     $("bsStatus").textContent=`${mine.length} players`;
-    const sec=(t,sub,a)=>a.length?lgBsHead(t,sub)+by(a).map(r=>lgBsRow(...r)).join(""):"";
+    const D=isDesk(),sec=(t,sub,a)=>a.length?(D?lgBsHeadW:lgBsHead)(t,sub)+by(a).map(r=>(D?lgBsRowW:lgBsRow)(...r)).join(""):"";
+    if(D){$("bsList").innerHTML=`<div class="lbdw"><p class="bzcap">Your roster, by what to do. <b>Now</b> = season rank, <b>Last 3</b> = the team's last 3 games, <b>Proj</b> = where the numbers say he's headed (minutes stay, shooting and per-minute luck drift back); the line is his Proj per game.</p><div class="dwx"><div class="dwm">`
+      +sec("Injured","Out on the injury report: ranked on the games he played",grp.inj)+sec("On the bubble","Proj outside "+ROST+": drop, or watch if the role is growing",grp.drop)
+      +sec("Running hot","Enjoy it, don't count on it",grp.hot)+sec("Slumping","Hold: the numbers say he comes back",grp.slump)+sec("Steady","Ranked about where he should be",grp.steady)
+      +`</div>${lgRail("add")}</div></div>`;return}
     $("bsList").innerHTML=`<div class="bo2w"><p class="bzcap">Your roster, by what to do. <b>Now</b> = season rank, <b>Last 3</b> = the team's last 3 games, <b>Proj</b> = where the numbers say he's headed (minutes stay, shooting and per-minute luck drift back).</p>`
       +`<div class="lbcols"><div>`+sec("Injured","Out on the injury report: ranked on the games he played",grp.inj)
       +sec("On the bubble","Proj outside "+ROST+": drop, or watch if the role is growing",grp.drop)
@@ -1974,6 +2005,12 @@ function renderLgBS(st){
     .sort((a,b)=>B.x[a]-B.x[b]).slice(0,40);
   const hurt=fa.filter(id=>ijOut(ijOf(id))),fit=fa.filter(id=>!ijOut(ijOf(id)));
   $("bsStatus").textContent=`${fa.length} FAs`;
+  const wRow=id=>{const v=B.v[id],q=G.players[id],x=B.x[id],r3=S.rk&&S.rk.g3&&S.rk.g3[id],why=firstSent(bsBlurb(q,v));
+    const [c,k]=v==="buy"?["Undervalued","good"]:v==="sell"?["Fluke","bad"]:r3&&r3<=ROST&&x<=ROST?["Real","good"]:["",""];return[id,c,k,why]};
+  if(isDesk()){$("bsList").innerHTML=`<div class="lbdw"><p class="bzcap">Free agents in your league, best <b>Proj</b> first: Proj inside 170, or a role that just grew. <b>Real</b> = Proj backs the hot start, <b>Fluke</b> = it's mostly shooting luck, <b>Undervalued</b> = his rank is hiding a better player. The line is his Proj per game.</p><div class="dwx"><div class="dwm">`
+    +lgBsHeadW("Waiver wire","Healthy")+fit.map(id=>lgBsRowW(...wRow(id))).join("")
+    +(hurt.length?lgBsHeadW("Injured","Stash only if you have an IL spot or a dead bench slot")+hurt.map(id=>lgBsRowW(id,B.x[id]<=ROST?"Stash":"",B.x[id]<=ROST?"good":"",injWhy(id))).join(""):"")
+    +`</div>${lgRail("drop")}</div></div>`;return}
   $("bsList").innerHTML=`<div class="bo2w"><p class="bzcap">Free agents in your league, best <b>Proj</b> first: Proj inside 170, or a role that just grew. <b>Real</b> = Proj backs the hot start, <b>Fluke</b> = it's mostly shooting luck, <b>Undervalued</b> = his rank is hiding a better player.</p>`
     +`<div class="lbcols"><div>`+lgBsHead("Waiver wire","Healthy")+fit.map(id=>{const v=B.v[id],q=G.players[id],now=B.now[id],x=B.x[id],r3=S.rk&&S.rk.g3&&S.rk.g3[id];
       const why=firstSent(bsBlurb(q,v));
@@ -4946,7 +4983,7 @@ $("pjWk").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjWk=Math.max(0
 document.querySelectorAll(".lgf").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>{S.lgF=b.dataset.k;store.set("lgF",S.lgF);renderPJ();renderRK()}));
 // Refresh: reload the page (keeps the tab via the hash); the icon spins until it does.
 $("rfBtn").onclick=()=>{$("rfBtn").classList.add("go");setTimeout(()=>location.reload(),120)};
-for(const l of ["pjList","rkList"])$(l).addEventListener("click",e=>{const r=e.target.closest(".dws .bsr[data-id]");if(r){e.stopPropagation();openSheet(r.dataset.id)}});
+for(const l of ["pjList","rkList","bsList"])$(l).addEventListener("click",e=>{const r=e.target.closest(".dws .bsr[data-id]");if(r){e.stopPropagation();openSheet(r.dataset.id)}});
 for(const l of ["pjList","rkList"])$(l).addEventListener("click",e=>{const h=e.target.closest("[data-dsort]");if(!h)return;e.stopPropagation();
   const k=h.dataset.dsort;if(S.dsort===k)S.ddir=-S.ddir;else{S.dsort=k;S.ddir=-1}renderPJ();renderRK()},true);
 DESK.addEventListener("change",()=>{if(S.players.length)render();paintDens();renderPJ();renderRK();renderSC();if(BZ)renderBZ();if(document.body.dataset.view==="bs")renderBS()});
