@@ -20,7 +20,7 @@ About 350 lookups a game, 6 at a time: a few minutes for a full night. Re-runnin
 the plays still missing a clip (clips appear on NBA.com a few hours after a game).
 """
 import json, os, re, sys, time, datetime
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
 import requests
 from nba_api.stats.endpoints import scoreboardv3, playbyplayv3
 from nba_api.live.nba.endpoints import playbyplay
@@ -178,11 +178,18 @@ def night(d):
                 raise SystemExit('NBA.com did not answer the video lookup: paste the line above into the chat.')
             PROBED[d] = True
         t = time.time()
-        with ThreadPoolExecutor(6) as ex:
-            for i, (r, v) in enumerate(zip(todo, ex.map(lambda r: video(gid, r[0]), todo)), 1):
-                r[7] = v
-                if i % 50 == 0:
-                    print(f'    {i} of {len(todo)} looked up, {sum(1 for x in todo[:i] if x[7])} with a clip', flush=True)
+        ex = ThreadPoolExecutor(6)
+        futs = [ex.submit(video, gid, r[0]) for r in todo]
+        for i, (r, f) in enumerate(zip(todo, futs), 1):
+            while True:  # short waits, so Ctrl+C gets through on Windows
+                try:
+                    r[7] = f.result(timeout=0.5)
+                    break
+                except FutureTimeout:
+                    pass
+            if i % 50 == 0:
+                print(f'    {i} of {len(todo)} looked up, {sum(1 for x in todo[:i] if x[7])} with a clip', flush=True)
+        ex.shutdown(wait=False)
         keep = [r for r in rows if r[7]]
         print(f'  {key} {gid}: {len(keep)} of {len(rows)} plays have a clip ({len(todo)} looked up, {time.time() - t:.0f} s)')
         if keep:
@@ -208,4 +215,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('Stopped.')
+        os._exit(1)  # don't wait for lookups still running
