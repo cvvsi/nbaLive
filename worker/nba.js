@@ -68,6 +68,23 @@ async function stream(req, url, env) {
   return new Response(r.body, { status: r.status, headers: out });
 }
 
+// Which headers each NBA.com host accepts from here: status and time per header set.
+async function variants() {
+  const sets = { none: {}, ua: { 'User-Agent': UA }, ua_ref: { 'User-Agent': UA, Referer: 'https://www.nba.com/' }, full: NBAH };
+  const d = new Date(Date.now() - 864e5 * 1.3).toISOString().slice(0, 10);
+  const urls = { cdn: 'https://cdn.nba.com/static/json/liveData/scoreboard/todaysScoreboard_00.json',
+    cdn_sched: 'https://cdn.nba.com/static/json/staticData/scheduleLeagueV2_1.json',
+    stats: 'https://stats.nba.com/stats/scoreboardv3?LeagueID=00&GameDate=' + d,
+    stats_js: 'https://stats.nba.com/js/data/leaders/00_daily_lineups_' + d.replace(/-/g, '') + '.json' };
+  const out = {};
+  for (const [k, u] of Object.entries(urls)) for (const [n, h] of Object.entries(sets)) {
+    const t = Date.now();
+    out[k + ':' + n] = await fetch(u, { headers: h, method: k === 'cdn_sched' ? 'HEAD' : 'GET', signal: AbortSignal.timeout(6000) })
+      .then(r => { r.body && r.body.cancel(); return r.status + ' ' + (Date.now() - t) + 'ms'; }).catch(e => 'ERR ' + (Date.now() - t) + 'ms');
+  }
+  return out;
+}
+
 // One request to each endpoint, statuses only (the smoke test prints them in the public Action log).
 async function probe(env, base) {
   const out = {}, t = async (k, f) => { try { out[k] = await f(); } catch (e) { out[k] = 'ERR ' + (e.message || e).slice(0, 120); } };
@@ -78,6 +95,7 @@ async function probe(env, base) {
   await t('clip', async () => { if (!gid) return 'skipped'; c = await clip(gid, '10', env, base); return c.mp4 ? 'mp4 on ' + new URL(c.mp4).hostname : 'no video'; });
   await t('video', async () => { if (!c || !c.mp4) return 'skipped'; const r = await fetch(c.mp4, { headers: { 'User-Agent': UA, Range: 'bytes=0-1023' } }); return r.status + ' ' + (r.headers.get('content-type') || '') + ' acao=' + (r.headers.get('access-control-allow-origin') || '-'); });
   await t('video_other_site', async () => { if (!c || !c.mp4) return 'skipped'; const r = await fetch(c.mp4, { headers: { 'User-Agent': UA, Range: 'bytes=0-1023', Referer: 'https://cvvsi.github.io/' } }); return String(r.status); });
+  out.variants = await variants();
   return out;
 }
 
