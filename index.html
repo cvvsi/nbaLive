@@ -184,7 +184,9 @@ body.hidebars .ruler{top:env(safe-area-inset-top,0px)}
 .mydr b{font-weight:600}.mydr i{font:500 11.5px/1 var(--name);font-style:normal;color:var(--dim);margin-left:4px}.mydr em{font:400 12px/1 var(--num);font-style:normal;color:var(--dim);text-align:right}.mydr.il{opacity:.55}
 .mydr input{width:18px;height:18px;accent-color:var(--ink)}
 .mysum{padding:10px 0 2px;border-top:1px solid var(--rule);font:500 13.5px/1.4 var(--name)}.mysum b{font:600 13.5px/1 var(--num)}
-@media (min-width:1100px){.my{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-items:start}.my .mytop{grid-column:1/-1}}
+@media (min-width:1100px){.my{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-items:start}.my .mytop{grid-column:1/-1}
+  .my.myw{max-width:1500px;grid-template-columns:minmax(0,1fr) clamp(320px,26vw,420px);gap:0 20px}.my.myw .mym{min-width:0;display:flex;flex-direction:column}.my.myw .mym>*{width:auto;align-self:stretch;box-sizing:border-box}
+  .my.myw .mys{position:sticky;top:calc(var(--bar) + 60px);max-height:calc(100vh - var(--bar) - 76px);overflow:auto}.my.myw .mys .msec{margin-top:14px}}
 .msec{margin-top:14px;background:var(--panel);border-radius:12px;padding:4px 10px 10px}
 .msh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:10px 0 6px;list-style:none;cursor:default}.msh::-webkit-details-marker{display:none}
 .msh b{font:700 15px/1.2 var(--name)}.msh span{font:500 12px/1.2 var(--name);color:var(--dim)}
@@ -3590,7 +3592,7 @@ function renderMy(){
   // 3 news on mine, last 36 hours
   const its=NW&&NW.items?NW.items.filter(i=>!i.q&&!i.x&&i.id&&lgOf(i.id)===me&&Date.now()-new Date(i.t)<36*36e5).slice(0,5):[];
   const news=`<section class="msec"><h3 class="myh">News on your players</h3><div class="mysub">${its.length?"last 36 hours":"nothing new since yesterday"}</div>${its.map(nwCard).join("")}</section>`;
-  el.innerHTML=`<div class="my">${top}${ton}${news}</div>`;
+  el.innerHTML=isDesk()?`<div class="my myw"><div class="mym">${top}${ton}</div><aside class="mys">${news}</aside></div>`:`<div class="my">${top}${ton}${news}</div>`;
   el.querySelectorAll(".my [data-id]").forEach(r=>r.onclick=()=>openSheet(r.dataset.id));
   el.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{openPage(b.dataset.go);paintNav()})}
 // ---- Matchup (Proj > Matchup; only with a synced league that has this week's matchup, ML.mu).
