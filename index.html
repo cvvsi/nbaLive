@@ -1065,6 +1065,38 @@ body[data-page="today"] .yattr,body[data-page="matchup"] .yattr,body[data-page="
   #rkList .bzcap,#pjList .bzcap{max-width:110ch}
   .ruler>div{max-width:1500px!important}
 }
+@media (min-width:1100px){
+  .dwt{grid-column:1/-1;min-width:0}
+  .dw{--dwg:30px 36px minmax(170px,1fr) 40px 54px 54px 54px 44px 44px 44px 44px 60px 60px 62px;display:grid;grid-template-columns:var(--dwg);align-items:center;column-gap:8px;padding:6px 4px;border-bottom:1px solid var(--rule)}
+  article.dw{cursor:pointer}article.dw:hover{background:color-mix(in srgb,var(--cell) 60%,transparent)}
+  .dw .rk{font:500 12px/1 var(--num);color:var(--dim);text-align:right}
+  .dw .mug{padding:0}.dw .mug .pos{display:none}
+  .dw .w1{min-width:0;display:flex;flex-direction:column;gap:3px}.dw .w1 .nm{font:600 15px/1.15 var(--name);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dw .w1 .mt{font:500 12px/1.2 var(--name);color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px}.dw .w1 .mt b{color:var(--ink);font-family:var(--num)}.dw .w1 .lgt{margin-left:0}
+  .dw .ws{text-align:right;font:500 14px/1 var(--num);font-variant-numeric:tabular-nums;color:var(--ink)}
+  .dw .ws.wb{font:700 20px/1 var(--name);letter-spacing:-.01em}.dw .ws.wp{font-size:13px}
+  .dw .ws.good{color:var(--pos)}.dw .ws.bad{color:var(--neg)}.dw .ws.off{opacity:.35}.dw .ws.mk{text-decoration:underline;text-underline-offset:3px}
+  .dw .vl{text-align:right;font:600 15px/1 var(--num)}.dw .vl.good{color:var(--pos)}.dw .vl.bad{color:var(--neg)}
+  .dwh{position:sticky;top:calc(var(--bar) + 38px);z-index:3;background:var(--bg);padding:8px 4px 6px;cursor:default}
+  .dwh span{font:600 10.5px/1 var(--name)!important;letter-spacing:.06em;color:var(--dim);text-transform:uppercase;text-align:right;cursor:pointer;user-select:none;white-space:nowrap}
+  .dwh span:hover{color:var(--ink)}.dwh span.on{color:var(--ball)}.dwh span.off{opacity:.4;text-decoration:line-through}.dwh .w1{text-align:left;flex-direction:row;cursor:default}
+  .dwx{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) clamp(280px,22vw,340px);gap:20px;align-items:start}
+  .dwm{min-width:0;display:grid;grid-template-columns:1fr}
+  .dws{position:sticky;top:calc(var(--bar) + 80px);max-height:calc(100vh - var(--bar) - 96px);overflow:auto;padding-top:6px}
+}
+@media (min-width:1100px){
+  /* one header line on the Players pages: status, the view's switches and All / Available / Mine
+     together; the sync time already sits in the top bar's league chip */
+  .ruler.pjv>div,.ruler.rkv>div{display:flex;flex-wrap:wrap;align-items:center;column-gap:14px}
+  .ruler.pjv>div>#subnav,.ruler.rkv>div>#subnav{flex-basis:100%}
+  .ruler.pjv .meta:not(.lgrow),.ruler.rkv .meta:not(.lgrow){flex:1;min-width:0}
+  .ruler .lgrow{padding:0}.ruler .lgrow .lgs{display:none}
+}
+@media (min-width:1100px) and (max-width:1399px){
+  .dw{--dwg:24px 32px minmax(130px,1fr) 32px 44px 44px 44px 36px 36px 36px 36px 50px 50px 52px;column-gap:5px}
+  .dw .ws.wb{font-size:18px}.dw .ws{font-size:13px}.dw .ws.wp{font-size:12px}.dw .vl{font-size:14px}
+  .dwx{grid-template-columns:minmax(0,1fr) 250px;gap:14px}
+}
 .dt{grid-column:1/-1;width:100%;border-collapse:separate;border-spacing:0;font:500 13px/1 var(--num);font-variant-numeric:tabular-nums;margin-top:6px;background:var(--panel);border-radius:10px}
 .dt th{position:sticky;top:calc(var(--bar) + 38px);z-index:2;background:var(--panel);font:600 11px/1 var(--name);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding:10px 6px;border-bottom:1px solid var(--rule);cursor:pointer;white-space:nowrap;user-select:none}
 .dt th:hover{color:var(--ink)}.dt th.on{color:var(--ball)}.dt th.off{opacity:.4;text-decoration:line-through}
@@ -2834,16 +2866,29 @@ const DESK=matchMedia("(min-width:1100px)");const isDesk=()=>DESK.matches;
 S.dsort=null;S.ddir=-1;
 const DCOLS=["pts","reb","ast","tpm","stl","blk","to","fg","ft"];
 function dheat(z){if(z==null||!isFinite(z))return"";const a=Math.abs(z);return a<.5?"":(z>0?"hp":"hn")+(a<1?1:a<2?2:3)}
+// Box's look for every desktop list (Nov 2026): one row per player on the page, headshot, name over
+// a meta line (team, the view's context, tags), PTS / REB / AST big, the rest small, FG% / FT%,
+// Value; the labels once, pinned; text colored only for a real strength or weakness (|z| >= 1),
+// no shaded cells. Click a label to sort (again to flip); a row opens the player page.
 function dtab(rows,ctxLab){
   const r=rows.slice();if(S.dsort){const k=S.dsort,f=o=>k==="v"?o.v:k==="min"?o.min:o.z?o.z[k]:0;r.sort((a,b)=>S.ddir*(f(a)-f(b))||0)}
-  const l=o=>o.l,val=(o,k)=>k==="fg"?pctT(o.l.fgm,o.l.fga):k==="ft"?pctT(o.l.ftm,o.l.fta):f1(o.l[k]);
-  const th=(k,lab,cls="")=>`<th class="${cls}${S.dsort===k?" on":""}${S.punt.has(k)?" off":""}" data-dsort="${k}">${lab}${S.dsort===k?(S.ddir<0?" ▾":" ▴"):""}</th>`;
-  return`<table class="dt"><thead><tr><th class="drk">#</th><th class="dpl">Player</th><th class="dcx">${ctxLab||""}</th>${th("min","MIN","n")}${DCOLS.map(k=>th(k,CL[k].toUpperCase(),"n"+(k==="pts"||k==="fg"?" sep":""))).join("")}${th("v","Value","n vh")}</tr></thead><tbody>
-  ${r.map(o=>`<tr class="dtr" data-id="${esc(o.id)}" tabindex="0"><td class="drk">${o.rank}</td>
-    <td class="dpl"><span class="pn">${hs(o.id)}<b>${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)}</span>${ijTag(o.id)}${rkTagQ(o.q)}${lgTagFA(o.id)}</span></td>
-    <td class="dcx">${o.dctx!=null?o.dctx:o.ctx||o.sdl||""}</td><td class="n">${Math.round(o.min||o.l.min||0)}</td>
-    ${DCOLS.map(k=>`<td class="n ${S.punt.has(k)?"off ":""}${dheat(o.z&&o.z[k])}${k==="pts"||k==="fg"?" sep":""}${o.mk&&o.mk[k]?" mk":""}">${val(o,k)}</td>`).join("")}
-    <td class="n vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</td></tr>`).join("")}</tbody></table>`}
+  const val=(o,k)=>k==="fg"?pctT(o.l.fgm,o.l.fga):k==="ft"?pctT(o.l.ftm,o.l.fta):f1(o.l[k]);
+  const zc=(o,k)=>{if(S.punt.has(k))return" off";const z=o.z&&o.z[k];return z>=1?" good":z<=-1?" bad":""};
+  const cls=k=>BIG.includes(k)?"wb":k==="fg"||k==="ft"?"wp":"";
+  const hd=(k,lab,c="")=>`<span class="${c}${S.dsort===k?" on":""}${S.punt.has(k)?" off":""}" data-dsort="${k}" role="button" tabindex="0">${lab}${S.dsort===k?(S.ddir<0?" ▾":" ▴"):""}</span>`;
+  return`<div class="dwt"><div class="dw dwh"><span></span><span></span><span class="w1">Player${ctxLab?` · ${ctxLab}`:""}</span>${hd("min","MIN")}${DCOLS.map(k=>hd(k,CL[k].toUpperCase(),cls(k))).join("")}${hd("v","Value","vl")}</div>
+  ${r.map(o=>`<article class="dw dtr" data-id="${esc(o.id)}" tabindex="0" aria-label="${esc(o.q.n)}: open details"><span class="rk">${o.rank}</span>${mug({eid:o.id},0)}
+    <div class="w1"><b class="nm">${esc(o.q.n)}</b><span class="mt">${esc(o.q.t)}${(c=>c?` · ${c}`:"")(o.dctx!=null?o.dctx:o.ctx||o.sdl||"")}${ijTag(o.id)}${rkTagQ(o.q)}${lgTagFA(o.id)}</span></div>
+    <span class="ws">${Math.round(o.min||o.l.min||0)}</span>${DCOLS.map(k=>`<span class="ws ${cls(k)}${zc(o,k)}${o.mk&&o.mk[k]?" mk":""}">${val(o,k)}</span>`).join("")}
+    <span class="vl ${vcls(o.v)}">${sgn(o.v,Math.abs(o.v)>=10?1:2)}</span></article>`).join("")}</div>`}
+// Desktop side column, like Box's: your players and the best free agents in the list on screen
+// (its own ranking), pinned while the list scrolls. Only with a synced league.
+function deskWrap(html,rows){if(!isDesk()||!ML||!rows||!rows.length)return html;
+  const me=String(ML.me),own=id=>lgOf(id),nm=n=>n.replace(/^(\S)\S*\s/,"$1. ");
+  const row=o=>`<div class="bsr" data-id="${esc(o.id)}"><b>${esc(nm(o.q.n))}</b><span class="t">${esc(o.q.t)}</span><span class="l">#${o.rank}</span><span class="v ${vcls(o.v)}">${sgn(o.v)}</span></div>`;
+  const mine=rows.filter(o=>own(o.id)===me),fa=rows.filter(o=>own(o.id)==null).slice(0,10);
+  const blk=(t,sub,L,e)=>`<section class="bsb"><div class="bsh"><b>${t}</b><span>${sub}</span></div>${L.length?L.map(row).join(""):`<div class="bse">${e}</div>`}</section>`;
+  return`<div class="dwx"><div class="dwm">${html}</div><aside class="dws">${mine.length?blk(esc(ML.teams[me]||"My team"),`${mine.length} in this list`,mine,""):""}${blk("Best free agents","in this list",fa,"No free agents here.")}</aside></div>`}
 const listHTML=(rows,ctxLab)=>isDesk()?dtab(rows,ctxLab):rows.map(card).join("");
 
 // Schedule grid (Proj > Week > Schedule): every team's games this week, opponent per day,
@@ -3419,7 +3464,7 @@ function renderSmash(){
   const split=(X,R)=>{const e=G.nm[R],w=e&&e.wo&&e.wo[X],h=e&&e.wi&&e.wi[X];if(!w)return"";const n=G.players[R]?esc(nmS(G.players[R].n)):"him";
     const ln=a=>`${Math.round(a[1])} min · ${f1(a[2])} pts · ${f1(a[3])} reb · ${f1(a[4])} ast · ${f1(a[7])} 3pm`;
     return`<div class="pjm smev">Without ${n}: <b>${w[0]} g</b> ${ln(w)}${h&&h[0]?` · with him: ${ln(h)}`:""}</div>`};
-  const secs=[];let nS=0,nG=0;
+  const secs=[],allR=[];let nS=0,nG=0;
   for(const d of days){const pick={};
     for(const[t,list]of Object.entries(C.byT)){if(!plays(t,d))continue;const nextD=(C.td[t]||[]).find(z=>z>=today);
       for(const[R,e]of list){const out=nmPh(R,e)[d]===-1,i=ijOf(R),cond=!out&&d===nextD&&!!i&&/question|doubt|day-to-day|gtd/i.test(i[0]);
@@ -3436,11 +3481,11 @@ function renderSmash(){
       const tag=`<span class="smb t${o.tier}">${o.tier===2?"Smash":"Good"}</span>`;
       const sn=o.R.map(R=>G.players[R]?esc(surname(G.players[R].n)):"?");o.ctx=`${tag}${o.cond?"if ":""}${sn[0]}${sn.length>1?` +${sn.length-1}`:""} ${o.cond?"sits":"out"}`;o.dctx=`${tag}${esc(opp(o.q.t,d))} · ${why} <i class="smu">usually #${o.urk}</i>`;
       o.sub=` · ${esc(opp(o.q.t,d))}`;o.foot=`<div class="pjm">${tag}${why} · usually #${o.urk}</div>`+o.R.map(R=>split(o.id,R)).join("")}
-    secs.push(`<div class="pjh">${dn(d)} <span>${rows.length}</span></div>`+listHTML(rows,"Spot"))}
+    secs.push(`<div class="pjh">${dn(d)} <span>${rows.length}</span></div>`+listHTML(rows,"Spot"));allR.push(...rows)}
   const flt=ML?`<div class="smf seg">${[["fa","Free agents"],["me","Mine"],["all","Everyone"]].map(([k,l])=>`<button data-smf="${k}" aria-pressed="${F===k}">${l}</button>`).join("")}</div>`:"";
   $("pjStatus").textContent=`${nS} smash · ${nG} good`;
   el.innerHTML=flt+`<p class="bzcap">Streaming nights when a regular sits, next 7 days. # = where that night's line would rank among everyone's per-game Proj. For every regular (24+ projected minutes) out on the injury report, or questionable for his next game ("if he sits"), each teammate's line that night: his extra minutes (next man up), the matchup, and how he actually played in the games that regular already missed this season, so a bigger role on offense shows, not just minutes (${SMK} such games count half). <b>Smash</b>: plays like a top-${SMTOP[0]} player and clearly better than his usual; <b>Good</b>: like a top-${SMTOP[1]}. Players already inside the top ${SMSKIP} are left out; your punts apply. A player shows on his best night when two regulars are out.</p>`
-    +(secs.join("")||`<div class="empty">No smash spots ${F==="fa"?"among free agents ":""}in the next 7 days.</div>`);
+    +(secs.length?deskWrap(secs.join(""),[...new Map(allR.sort((a,b)=>b.v-a.v).map(o=>[o.id,o])).values()]):`<div class="empty">No smash spots ${F==="fa"?"among free agents ":""}in the next 7 days.</div>`);
   el.querySelectorAll("[data-smf]").forEach(b=>b.onclick=e=>{e.stopPropagation();S.smF=b.dataset.smf;store.set("smF",S.smF);renderSmash()})}
 function renderMy(){
   const el=$("pjList");$("pjStatus").textContent="";$("pjAsOf").textContent="";
@@ -3820,16 +3865,16 @@ $("pjSz").hidden=S.pjView!=="season";
     const fo=lgFilter(out),fn=lgFilter(noline),fh=lgFilter(hurt);
     $("pjStatus").textContent=stat;
     fn.forEach(o=>o.rank="–");fh.forEach(o=>o.rank="–");
-    $("pjList").innerHTML=`<p class="bzcap">${cap}</p>`+listHTML(fo,"Opp")
+    $("pjList").innerHTML=deskWrap(`<p class="bzcap">${cap}</p>`+listHTML(fo,"Opp")
       +(fn.length?`<div class="pjh">No line posted, not on the injury report (${fn.length})</div>`+listHTML(fn,"Opp"):"")
-      +(fh.length?`<div class="pjh">Out tonight (${fh.length})</div>`+listHTML(fh,"Opp"):"");
+      +(fh.length?`<div class="pjh">Out tonight (${fh.length})</div>`+listHTML(fh,"Opp"):""),fo);
     return;
   }
   rows.forEach((o,i)=>{o.rank=i+1;if(o.min==null)o.min=o.l.min});
   rows=lgFilter(rows);paintLg();
   $("pjStatus").textContent=stat;
   const cl=S.pjView==="week"?"Games":"Left";if(S.pjView==="week")rows.forEach(o=>o.dctx=`<span class="wkc">${o.ctx}</span>`);   // no day strip on desktop: the Schedule tab has the days
-  $("pjList").innerHTML=rows.length?`<p class="bzcap">${cap}</p>`+listHTML(rows,cl):`<div class="empty">Nobody projected here.</div>`;
+  $("pjList").innerHTML=rows.length?deskWrap(`<p class="bzcap">${cap}</p>`+listHTML(rows,cl),rows):`<div class="empty">Nobody projected here.</div>`;
 }
 Promise.all(["data/schedule.json","data/props.json","data/injuries.json"].map(u=>fetch(u,{cache:"no-cache"}).then(r=>r.ok?r.json():null).catch(()=>null)))
   .then(([sc,pr,ij])=>{SC=sc;PR=pr;IJ=ij;S.tdays=null;S.prIx=undefined;
@@ -3862,6 +3907,7 @@ function renderRK(){
   $("rkList").innerHTML=`<p class="bzcap">Actual 9-cat value, ${span}. ${w==="g3"?"Per team game, so it already counts missed games."
     :tot?"<b>Total</b>: per-game value × games played, so time missed counts.":"<b>Per g</b>: value per game played, which ranks how well a player has played."} Stats are per game. Same pool and punts as the rank ladder; Proj is the forward-looking version.</p>`
     +(top.length?listHTML(top,"G"):`<div class="empty">Nobody here.</div>`);
+  if(top.length&&isDesk()&&ML){const el=$("rkList");el.innerHTML=deskWrap(el.innerHTML,top)}
 }
 
 // ---- Usage (Ranks > Usage): Basketball Monster's Usage Monster, league-wide instead of one team.
@@ -4862,6 +4908,7 @@ $("pjWk").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pjWk=Math.max(0
 document.querySelectorAll(".lgf").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>{S.lgF=b.dataset.k;store.set("lgF",S.lgF);renderPJ();renderRK()}));
 // Refresh: reload the page (keeps the tab via the hash); the icon spins until it does.
 $("rfBtn").onclick=()=>{$("rfBtn").classList.add("go");setTimeout(()=>location.reload(),120)};
+for(const l of ["pjList","rkList"])$(l).addEventListener("click",e=>{const r=e.target.closest(".dws .bsr[data-id]");if(r){e.stopPropagation();openSheet(r.dataset.id)}});
 for(const l of ["pjList","rkList"])$(l).addEventListener("click",e=>{const h=e.target.closest("[data-dsort]");if(!h)return;e.stopPropagation();
   const k=h.dataset.dsort;if(S.dsort===k)S.ddir=-S.ddir;else{S.dsort=k;S.ddir=-1}renderPJ();renderRK()},true);
 DESK.addEventListener("change",()=>{if(S.players.length)render();paintDens();renderPJ();renderRK();renderSC();if(BZ)renderBZ();if(document.body.dataset.view==="bs")renderBS()});
