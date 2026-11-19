@@ -834,15 +834,9 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .ilps b{color:var(--ink)}.ilps .dn{color:var(--neg)}.ilpl .ilpk span.chg,.ilpl .ilps span.chg{color:var(--ball);font-weight:700}
 .ilg tfoot th{text-align:left;color:var(--dim);font-size:10px;white-space:nowrap;padding-right:8px}.ilg tfoot td{border:0;color:var(--dim)}.ilg tfoot td.up{color:var(--pos)}
 .ilpc{margin:8px 0;font:500 13px/1.45 var(--name)}.ilpc>div{padding:5px 0;border-top:1px solid var(--rule)}.ilpc .myd{display:inline-block;min-width:44px;font-weight:700}.ilpc em{font:500 9px/1 var(--num);color:var(--dim);font-style:normal}
-.smf{margin:6px 0 10px}@media (min-width:1100px){.my.smx{display:block}.smg{display:grid;grid-template-columns:1fr 1fr;gap:0 28px;align-items:start}}.smc{padding:10px 0;border-top:1px solid var(--rule);cursor:pointer}.smc.t2{border-left:3px solid var(--pos);padding-left:9px}
-.smh{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.smh b{font:600 15px/1.2 var(--name)}.smh>i{font:500 11px/1 var(--num);color:var(--dim);font-style:normal}
-.smb{margin-left:auto;font:700 10px/1 var(--name);text-transform:uppercase;letter-spacing:.06em;padding:3px 6px;border-radius:4px}.smb.t2{background:var(--pos);color:var(--bg)}.smb.t1{border:1px solid var(--pos);color:var(--pos)}
-.smtk{font:500 10px/1 var(--name);font-style:normal;color:var(--dim)}
-.smw{font:500 13px/1.35 var(--name);margin-top:3px}.smw i{color:var(--dim);font-style:normal}
-.smds{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}.smd{font:600 11px/1 var(--name);padding:4px 6px;border-radius:4px;background:var(--cell)}.smd em{font:500 10px/1 var(--num);font-style:normal;color:var(--dim)}
-.smd.t2{background:color-mix(in srgb,var(--pos) 25%,transparent)}.smd.c{background:none;border:1px dashed var(--dim)}
-.smln{display:flex;flex-wrap:wrap;gap:4px 10px;font:500 10px/1.2 var(--name);color:var(--dim);text-transform:uppercase}.smln b{display:block;font:600 14px/1.1 var(--num);color:var(--ink)}
-.smev{margin-top:6px;font:500 12px/1.45 var(--num);color:var(--dim)}.smev b{font:600 12px/1 var(--name);color:var(--ink)}.smev i{font-style:normal}
+.smf{grid-column:1/-1;margin:4px 0 8px;justify-self:start}
+.smb{display:inline-block;font:700 9.5px/1 var(--name);text-transform:uppercase;letter-spacing:.06em;padding:3px 5px;border-radius:4px;margin-right:6px;vertical-align:1px}.smb.t2{background:var(--pos);color:var(--bg)}.smb.t1{border:1px solid var(--pos);color:var(--pos);padding:2px 4px}
+.smu{font-style:normal;color:var(--dim);margin-left:4px}.smev b{font-weight:600}
 .ilsc b small{font-size:13px;color:var(--pos);margin-left:3px}
 .ilst{font:500 13px/1.35 var(--name);padding:7px 10px;margin:4px 0;border-radius:6px;background:var(--cell)}.ilst b{margin-right:6px}.ilst.dn b{color:var(--neg)}.ilst.up b{color:var(--pos)}.ilst.wn b{color:var(--ball)}
 .ilpc>div{display:grid;grid-template-columns:44px 30px 1fr;align-items:baseline}.ilpc span:last-child em{font:600 9px/1 var(--num);text-transform:uppercase;color:var(--dim);font-style:normal;margin:0 4px 0 8px}.ilpc span:last-child em:first-child{margin-left:0}.ilpc span:last-child i{font:500 9px/1 var(--num);color:var(--dim);font-style:normal}
@@ -2703,8 +2697,12 @@ function luAdj(id,q,d){if(!LU||LU.date!==d||d!==etToday())return 0;const L=LU.te
 // backtest-depth.js, 3.9% less error per available game). szn: the rest-of-season average (Proj
 // rank, Season per game), which keeps Proj's minutes per game played: Season Total already
 // multiplies by availP, so counting the sat-out games there would count them twice.
+// Only below DMREG minutes: a regular's 1-2 game absences are rest or minor injuries that the
+// injury report already rules out on the day, so counting them again would charge him twice
+// (LeBron James came out 4.7 a game lower); coach's decisions are a bench player's thing.
+const DMREG=24;
 function minAt(id,q,d,szn){const ov=ovOn(id,d);if(ov!=null){const i=ijOf(id),cap=i&&i[5]&&i[5][d];return Math.min(42,cap||42,ov)}
-  const C=nmC(),lu=luAdj(id,q,d),base=(q.xp0||q.xp)[0]+(szn||lu>0?0:(q.dm||0));let up=0,dn=0,own=1;
+  const C=nmC(),lu=luAdj(id,q,d),b0=(q.xp0||q.xp)[0],base=b0+(szn||lu>0||b0>=DMREG?0:(q.dm||0));let up=0,dn=0,own=1;
   for(const[R,e]of C.byT[q.t]||[]){const p=nmPh(R,e)[d]||0;
     if(R===id){if(p>0)own=NMRET[p-1];continue}
     const x=e.m[id];if(!x)continue;
@@ -3409,42 +3407,35 @@ function renderSmash(){
   const C=nmC(),today=etToday(),days=Object.keys(SC.dates).filter(d=>d>=today).sort().slice(0,7);
   if(!days.length)return pjMsg("No games in the next week.");
   const x=ML?lgIx():null,me=ML&&String(ML.me),own=id=>!x?null:x.own[id]==null?"fa":x.own[id]===me?"me":"tk";
-  const all=Object.entries(G.players).filter(([,q])=>q.xp&&q.x),base=all.map(([,q])=>pjVal(zx(q))).sort((a,b)=>b-a);
-  const like=v=>1+base.filter(u=>u>v).length;
-  const nmS=n=>n.replace(/^(\S)\S*\s/,"$1. "),dn=d=>d===today?"Tonight":fmtDate(d).split(",")[0];
-  const by={};   // X -> {q, days: [{d, v, rk, tier, R[], cond, L, e}]}
+  const base=Object.values(G.players).filter(q=>q.xp&&q.x).map(q=>pjVal(zx(q))).sort((a,b)=>b-a),like=v=>1+base.filter(u=>u>v).length;
+  const nmS=n=>n.replace(/^(\S)\S*\s/,"$1. "),dn=d=>d===today?"Tonight":fmtDate(d).replace(/, \d{4}$/,"");
+  const F=ML?S.smF||(S.smF=store.get("smF","fa")):"all",keep=X=>F==="all"||own(X)===F;
+  const f1=v=>v.toFixed(1);
+  const split=(X,R)=>{const e=G.nm[R],w=e&&e.wo&&e.wo[X],h=e&&e.wi&&e.wi[X];if(!w)return"";const n=G.players[R]?esc(nmS(G.players[R].n)):"him";
+    const ln=a=>`${Math.round(a[1])} min · ${f1(a[2])} pts · ${f1(a[3])} reb · ${f1(a[4])} ast · ${f1(a[7])} 3pm`;
+    return`<div class="pjm smev">Without ${n}: <b>${w[0]} g</b> ${ln(w)}${h&&h[0]?` · with him: ${ln(h)}`:""}</div>`};
+  const secs=[];let nS=0,nG=0;
   for(const d of days){const pick={};
     for(const[t,list]of Object.entries(C.byT)){if(!plays(t,d))continue;const nextD=(C.td[t]||[]).find(z=>z>=today);
       for(const[R,e]of list){const out=nmPh(R,e)[d]===-1,i=ijOf(R),cond=!out&&d===nextD&&!!i&&/question|doubt|day-to-day|gtd/i.test(i[0]);
         if(!out&&!cond)continue;
         for(const X of new Set([...Object.keys(e.m||{}),...Object.keys(e.wo||{})])){const q=G.players[X];
-          if(!q||!q.xp||!q.x||q.t!==t||!avail(X,d))continue;
-          const L=smLine(X,q,d,e,cond),v=pjVal(pjZ(L)),u=pjVal(zx(q)),rk=like(v),urk=like(u);
-          if(urk<=SMSKIP||v-u<SMUP*.66)continue;
-          const tier=rk<=SMTOP[0]&&v-u>=SMUP?2:rk<=SMTOP[1]?1:0;if(!tier)continue;
-          const cur=pick[X];const ent={d,v,rk,urk,tier,R:[R],cond,L,e,u};
-          if(!cur)pick[X]=ent;else{if(!cur.R.includes(R))cur.R.push(R);if(v>cur.v)Object.assign(cur,{...ent,R:cur.R})}}}}
-    for(const[X,ent]of Object.entries(pick)){(by[X]||(by[X]={X,q:G.players[X],days:[]})).days.push(ent)}}
-  const F=ML?S.smF||(S.smF=store.get("smF","fa")):"all";
-  let rows=Object.values(by).filter(r=>F==="all"||(F==="fa"?own(r.X)==="fa":own(r.X)==="me"));
-  for(const r of rows){r.best=r.days.reduce((a,b)=>b.tier>a.tier||b.tier===a.tier&&b.v>a.v?b:a);r.n2=r.days.filter(z=>z.tier===2).length}
-  rows.sort((a,b)=>b.best.tier-a.best.tier||b.n2-a.n2||b.days.length-a.days.length||b.best.v-a.best.v);
-  const f1=v=>v.toFixed(1),tag=id=>{const o=own(id);return o==="fa"?`<i class="lgt fa">FA</i>`:o==="me"?`<i class="lgt">Mine</i>`:o==="tk"?`<i class="smtk">${esc(ML.teams[x.own[id]]||"taken")}</i>`:""};
-  const split=(X,R,e)=>{const w=e.wo&&e.wo[X],h=e.wi&&e.wi[X],n=G.players[R]?nmS(G.players[R].n):"him";if(!w)return"";
-    const ln=a=>`${Math.round(a[1])} min · ${f1(a[2])} pts · ${f1(a[3])} reb · ${f1(a[4])} ast · ${f1(a[7])} 3pm`;
-    return`<div class="smev"><b>Without ${esc(n)}</b> <i>${w[0]} g</i> ${ln(w)}${h&&h[0]?`<br><b>With him</b> <i>${h[0]} g</i> ${ln(h)}`:""}</div>`};
-  const card=r=>{const b=r.best,L=b.L,q=r.q,why=b.R.map(R=>{const n=G.players[R]?esc(nmS(G.players[R].n)):"a regular";return b.cond?`if ${n} sits (${esc(ijOf(R)[0])})`:`${n} out`}).join(", ");
-    const chips=r.days.map(z=>`<span class="smd t${z.tier}${z.cond?" c":""}" title="${z.cond?"If he sits":"He's out"} · plays like #${z.rk}">${dn(z.d)} <em>${esc(opp(q.t,z.d))}</em></span>`).join("");
-    return`<div class="smc t${b.tier}" data-id="${r.X}"><div class="smh"><b>${esc(q.n)}</b><i>${esc(q.t)}${posOf(r.X)?" · "+esc(posOf(r.X)):""}</i>${tag(r.X)}<span class="smb t${b.tier}">${b.tier===2?"Smash":"Good"}</span></div>
-      <div class="smw">${why} · plays like <b>#${b.rk}</b> <i>(usually #${b.urk})</i></div>
-      <div class="smds">${chips}</div>
-      <div class="smln"><span><b>${Math.round(L.min)}</b>MIN</span>${["pts","reb","ast","tpm","stl","blk","to"].map(k=>`<span><b>${f1(L[k])}</b>${CATS.find(c=>c.k===k).l}</span>`).join("")}<span><b>${L.fga?(L.fgm/L.fga).toFixed(3).replace(/^0/,""):"–"}</b>FG%</span></div>
-      ${b.R.map(R=>split(r.X,R,G.nm[R])).join("")}</div>`};
-  const flt=ML?`<div class="seg mysg smf">${[["fa","Free agents"],["me","Mine"],["all","Everyone"]].map(([k,l])=>`<button data-smf="${k}" aria-pressed="${F===k}">${l}</button>`).join("")}</div>`:"";
-  el.innerHTML=`<div class="my smx"><section class="msec"><h3 class="myh">Smash spots</h3><div class="mysub">next 7 days · ${rows.filter(r=>r.best.tier===2).length} smash, ${rows.filter(r=>r.best.tier===1).length} good</div>
-    <p class="stkn">Streaming nights when a regular sits. For every regular (24+ projected minutes) out on the injury report in the next 7 days, or questionable for his next game ("if he sits"), each teammate's line that night: the extra minutes he gets (next man up), the matchup, and how he actually played in the games that regular already missed this season, so a bigger role on offense shows, not just minutes (the more such games, the more it counts: ${SMK} games = half). <b>Plays like #n</b> = where that line would rank among everyone's per-game projection. <b>Smash</b>: like a top-${SMTOP[0]} player and clearly better than his usual; <b>Good</b>: like a top-${SMTOP[1]} player. Players already ranked inside ${SMSKIP} are left out. Your punts apply. Day chips: green = smash that night, outlined = if he sits.</p>
-    ${flt}${rows.length?`<div class="smg">${rows.map(card).join("")}</div>`:`<div class="mye">No smash spots ${F==="fa"?"among free agents ":""}in the next 7 days.</div>`}</section></div>`;
-  el.querySelectorAll(".smc[data-id]").forEach(c=>c.onclick=()=>openSheet(c.dataset.id));
+          if(!q||!q.xp||!q.x||q.t!==t||!avail(X,d)||!keep(X))continue;
+          const L=smLine(X,q,d,e,cond),z=pjZ(L),v=pjVal(z),u=pjVal(zx(q)),rk=like(v),urk=like(u);
+          if(urk<=SMSKIP)continue;const tier=rk<=SMTOP[0]&&v-u>=SMUP?2:rk<=SMTOP[1]&&v-u>=SMUP*.66?1:0;if(!tier)continue;
+          const c=pick[X];if(c){if(!c.R.includes(R))c.R.push(R);if(v<=c.v)continue}
+          pick[X]={id:X,q,l:L,z,v,min:L.min,rank:rk,urk,tier,cond,R:c?c.R:[R],d}}}}
+    const rows=Object.values(pick).sort((a,b)=>b.tier-a.tier||b.v-a.v);if(!rows.length)continue;
+    for(const o of rows){o.tier===2?nS++:nG++;
+      const why=o.R.map(R=>{const n=G.players[R]?esc(nmS(G.players[R].n)):"a regular";return o.cond?`if ${n} sits`:`${n} out`}).join(", ");
+      const tag=`<span class="smb t${o.tier}">${o.tier===2?"Smash":"Good"}</span>`;
+      const sn=o.R.map(R=>G.players[R]?esc(surname(G.players[R].n)):"?");o.ctx=`${tag}${o.cond?"if ":""}${sn[0]}${sn.length>1?` +${sn.length-1}`:""} ${o.cond?"sits":"out"}`;o.dctx=`${tag}${esc(opp(o.q.t,d))} · ${why} <i class="smu">usually #${o.urk}</i>`;
+      o.sub=` · ${esc(opp(o.q.t,d))}`;o.foot=`<div class="pjm">${tag}${why} · usually #${o.urk}</div>`+o.R.map(R=>split(o.id,R)).join("")}
+    secs.push(`<div class="pjh">${dn(d)} <span>${rows.length}</span></div>`+listHTML(rows,"Spot"))}
+  const flt=ML?`<div class="smf seg">${[["fa","Free agents"],["me","Mine"],["all","Everyone"]].map(([k,l])=>`<button data-smf="${k}" aria-pressed="${F===k}">${l}</button>`).join("")}</div>`:"";
+  $("pjStatus").textContent=`${nS} smash · ${nG} good`;
+  el.innerHTML=flt+`<p class="bzcap">Streaming nights when a regular sits, next 7 days. # = where that night's line would rank among everyone's per-game Proj. For every regular (24+ projected minutes) out on the injury report, or questionable for his next game ("if he sits"), each teammate's line that night: his extra minutes (next man up), the matchup, and how he actually played in the games that regular already missed this season, so a bigger role on offense shows, not just minutes (${SMK} such games count half). <b>Smash</b>: plays like a top-${SMTOP[0]} player and clearly better than his usual; <b>Good</b>: like a top-${SMTOP[1]}. Players already inside the top ${SMSKIP} are left out; your punts apply. A player shows on his best night when two regulars are out.</p>`
+    +(secs.join("")||`<div class="empty">No smash spots ${F==="fa"?"among free agents ":""}in the next 7 days.</div>`);
   el.querySelectorAll("[data-smf]").forEach(b=>b.onclick=e=>{e.stopPropagation();S.smF=b.dataset.smf;store.set("smF",S.smF);renderSmash()})}
 function renderMy(){
   const el=$("pjList");$("pjStatus").textContent="";$("pjAsOf").textContent="";
