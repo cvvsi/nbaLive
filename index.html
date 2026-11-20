@@ -540,6 +540,12 @@ body.sheetopen.hidebars .bar{transform:none}
 .thead{display:flex;align-items:baseline;gap:7px;padding:10px 0 6px;border-bottom:1px solid var(--rule)}
 .thead b{font:700 13px/1 var(--name);text-transform:uppercase;letter-spacing:.07em}
 .thead span{font:500 11px/1 var(--num);color:var(--dim)}
+#courtBtn{white-space:nowrap}
+.thead.ocg{margin-top:6px;flex-wrap:wrap}.thead.ocg .live{color:var(--neg)}
+.ocs{display:flex;align-items:baseline;gap:7px;padding:8px 0 4px;grid-column:1/-1}
+.ocs b{font:700 12px/1 var(--name);color:var(--ball);letter-spacing:.06em}.ocs span{font:500 10.5px/1 var(--name);color:var(--dim)}
+.ocb{display:flex;flex-wrap:wrap;gap:4px 10px;padding:4px 0 8px;grid-column:1/-1;font:500 12px/1.3 var(--name);color:var(--ink)}
+.ocb i{font-style:normal;color:var(--dim)}.ocb button{all:unset;cursor:pointer}.ocb button.dim{opacity:.6}.ocb .num{font:500 11px/1 var(--num);color:var(--dim)}
 /* Buy/Sell rows: Now / Proj / LY ranks, then this season's rates (per 36) heat-colored by how far
    they sit from last season's. Open a row to see last season's number under each one. */
 .rkh.r3,.rks.r3{grid-template-columns:repeat(3,27px)}
@@ -1290,7 +1296,7 @@ button,a,input,select,textarea,label,summary,[role=button]{touch-action:manipula
     <div class="meta">
       <span id="status" class="num">Loading</span>
       <div class="sort" id="sortSeg">
-        <button data-k="value" aria-pressed="true">Value</button><button data-k="min">Min</button><button data-k="usg">Usg</button><button data-k="movers" id="moversBtn" hidden>Movers</button><button id="teamBtn" aria-pressed="false" title="Group by team">Teams</button>
+        <button data-k="value" aria-pressed="true">Value</button><button data-k="min">Min</button><button data-k="usg">Usg</button><button data-k="movers" id="moversBtn" hidden>Movers</button><button id="teamBtn" aria-pressed="false" title="Group by team">Teams</button><button id="courtBtn" aria-pressed="false" title="Who's on the floor right now, game by game">On court</button>
       </div>
     </div>
     <div class="rkh" id="rkh" hidden><span>Szn</span><span>14</span><span>7</span><span>3G</span></div>
@@ -1398,7 +1404,8 @@ const SCATS=CATS;
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const S={date:null,events:[],players:[],game:"all",punt:new Set(store.get("punt",[])),
-  pool:+store.get("pool",10),roleWin:store.get("roleWin","season"),sort:"value",open:new Set(),timer:null,updated:null,err:null};
+  pool:+store.get("pool",10),roleWin:store.get("roleWin","season"),sort:"value",open:new Set(),timer:null,updated:null,err:null,zero:[],
+  grp:(v=>v==="team"||v==="court"?v:"")(store.get("bxGrp",""))};
 // ---- My league (Yahoo), kept on this device only. league.html's bookmarklet reads the rosters
 // from Yahoo with the user's own login and opens the site with them in the URL hash (never sent to
 // a server); it's saved in localStorage and the hash is cleared. Nothing league-related shows on
@@ -1539,7 +1546,7 @@ async function loadDate(d,auto){
     return renderList(evs.length?`${evs.length} games tonight. Stats show up at tip-off.`:"No NBA games on this date.")}
   const boxes=await Promise.all(started.map(e=>getJSON(`${API}/summary?event=${e.id}`).then(j=>({e,j})).catch(()=>null)));
   // keep each game's play-by-play for the player card's Tonight tab (value chart, scoring updates)
-  S.plays={};const ps=[];for(const b of boxes){if(b){ps.push(...parseBox(b.e,b.j));S.plays[b.e.id]=b.j.plays||[]}}
+  S.plays={};S.zero=[];const ps=[];for(const b of boxes){if(b){ps.push(...parseBox(b.e,b.j,S.zero));S.plays[b.e.id]=b.j.plays||[]}}
   S.players=ps;
   if(!S.events.some(e=>e.id===S.game))S.game="all";
   // schedule the next live refresh first, so an error while drawing can't freeze the scores
@@ -1548,7 +1555,7 @@ async function loadDate(d,auto){
 }
 
 function split(s){const [m,a]=String(s||"0-0").split("-").map(Number);return[m||0,a||0]}
-function parseBox(ev,j){
+function parseBox(ev,j,zero){
   const out=[];const teams=(j.boxscore&&j.boxscore.players)||[];
   for(const t of teams){
     const abbr=t.team.abbreviation,opp=abbr===ev.home?ev.away:ev.home;
@@ -1560,13 +1567,16 @@ function parseBox(ev,j){
     const rows=[];
     for(const a of st.athletes){
       if(a.didNotPlay||!a.stats||!a.stats.length)continue;
-      const s=a.stats,min=parseFloat(s[I.min])||0;if(min<=0)continue;
+      const s=a.stats,min=parseFloat(s[I.min])||0;if(min<=0&&!(zero&&ev.state==="in"))continue;
       const [fgm,fga]=split(s[I.fg]),[tpm,tpa]=split(s[I.tp]),[ftm,fta]=split(s[I.ft]);
       rows.push({id:(a.athlete.id||a.athlete.displayName)+"",eid:a.athlete.id||"",name:a.athlete.displayName,pos:(a.athlete.position||{}).abbreviation||"",
         team:abbr,opp,home:abbr===ev.home,game:ev.id,starter:!!a.starter,min,
         pts:+s[I.pts]||0,reb:+s[I.reb]||0,ast:+s[I.ast]||0,stl:+s[I.stl]||0,blk:+s[I.blk]||0,to:+s[I.to]||0,
         pf:+s[I.pf]||0,pm:parseInt(s[I.pm])||0,fgm,fga,tpm,tpa,ftm,fta});
     }
+    // a player who just checked in shows 0 minutes (ESPN rounds down): kept apart for the On court view only
+    if(zero)for(const r of rows.filter(r=>r.min<=0)){r.usg=0;zero.push(r)}
+    rows.splice(0,rows.length,...rows.filter(r=>r.min>0));
     const T=rows.reduce((o,r)=>(o.min+=r.min,o.fga+=r.fga,o.fta+=r.fta,o.to+=r.to,o),{min:0,fga:0,fta:0,to:0});
     for(const r of rows){const tp=T.fga+.44*T.fta+T.to;
       r.usg=tp&&r.min?100*((r.fga+.44*r.fta+r.to)*(T.min/5))/(r.min*tp):0}
@@ -1586,12 +1596,14 @@ function compute(){
   for(const c of SCATS){const k=src[c.k],m=sum(base,k)/base.length;
     const sd=Math.sqrt(base.reduce((a,p)=>a+(p[k]-m)**2,0)/base.length)||1;S.zst.st[c.k]=[k,m,sd];
     for(const p of P){(p.z||(p.z={}))[c.k]=(c.k==="to"?-1:1)*(p[k]-m)/sd}}
+  for(const p of S.zero){p.fgi=0;p.fti=0;p.z={};for(const c of SCATS){const[k,m,sd]=S.zst.st[c.k];p.z[c.k]=(c.k==="to"?-1:1)*(p[k]-m)/sd}}
   scoreValue();
 }
 function scoreValue(){
   const act=SCATS.filter(c=>!S.punt.has(c.k));
   for(const p of S.players)p.value=act.length?act.reduce((a,c)=>a+p.z[c.k],0)/act.length:0;
   [...S.players].sort((a,b)=>b.value-a.value).forEach((p,i)=>p.rank=i+1);
+  for(const p of S.zero){p.value=act.length?act.reduce((a,c)=>a+p.z[c.k],0)/act.length:0;p.rank="–"}
 }
 
 // ---- multi-day ranks: data/rankings.json, built nightly by build-rankings.js. It stores
@@ -1707,11 +1719,13 @@ function render(){
   setWarn();
   const t=S.updated?S.updated.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}):"";
   setStatus(`${rows.length} · ${live?live+" live · ":""}${t}`);
-  $("teamBtn").setAttribute("aria-pressed",S.byTeam);
+  $("teamBtn").setAttribute("aria-pressed",S.grp==="team");$("courtBtn").setAttribute("aria-pressed",S.grp==="court");
   // Grouped: teams ordered by their best player, rows inside each team keeping the
   // active sort, plus a position-within-team counter. Flat list is the default.
   let out;
-  if(S.byTeam){
+  const W=isDesk()&&BXWIDE,card=(p,i)=>W?prowW(p):prow(p,i);
+  if(S.grp==="court")out=courtView(rows,card);
+  else if(S.grp==="team"){
     const teams=[];
     for(const p of rows){let g=teams.find(x=>x.team===p.team);
       if(!g){g={team:p.team,opp:p.opp,home:p.home,rows:[]};teams.push(g)}
@@ -1728,6 +1742,34 @@ function render(){
   $("list").innerHTML=(isDesk()&&BXWIDE?prowWHead():"")+out.join("");
   renderBxSide();
 }
+// On court: for each game, the five on the floor for each team right now (the closing five once it's over),
+// the same cards as the list, then the rest of the team as one line. From ESPN's play-by-play: in the latest
+// period, a player's last substitution says in or out ("A enters the game for B": participants [A, B]);
+// quarter-start lineups aren't logged, so a player with no substitution yet counts as on if he's in any play
+// of the period, then if he was on at the end of the last one, then the team's starters, then minutes.
+function onCourt(gid,team){
+  const P=(S.plays&&S.plays[gid])||[],ps=[...S.players,...S.zero].filter(p=>p.game===gid&&p.team===team);
+  const ids=p=>(p.participants||[]).map(x=>String((x.athlete&&x.athlete.id)||"")),isSub=p=>/substitution/i.test((p.type&&p.type.text)||"");
+  const per=P.reduce((m,p)=>Math.max(m,(p.period&&p.period.number)||1),0);
+  // 2 = known on (subbed in, or in a play), -1 = subbed out, 0 = not seen this period
+  const seen=k=>{const o={};for(const p of P){if(((p.period&&p.period.number)||1)!==k)continue;const a=ids(p);
+      if(isSub(p)){if(a[0])o[a[0]]=2;if(a[1])o[a[1]]=-1}else for(const x of a)if(x&&o[x]==null)o[x]=2}return o};
+  const cur=per?seen(per):{},prev=per>1?seen(per-1):{};
+  const sc=p=>{const id=String(p.eid),c=cur[id];if(c!=null)return c===2?4:-9;if(prev[id]===2)return 2;return(per<=1||per===3)&&p.starter?1:0};
+  const live=ps.map(p=>[p,sc(p)]).filter(x=>x[1]>-9).sort((a,b)=>b[1]-a[1]||b[0].min-a[0].min||b[0].starter-a[0].starter);
+  const on=new Set(live.slice(0,5).map(x=>x[0]));
+  return{on:ps.filter(p=>on.has(p)),bench:ps.filter(p=>!on.has(p)&&p.min>0),sure:live.slice(0,5).every(x=>x[1]>=2)}}
+function courtView(rows,card){const key=p=>S.sort==="movers"?p.value:sortKey(p),out=[],sk=new Set(rows),evs=S.events.filter(e=>e.state!=="pre"&&(S.game==="all"||e.id===S.game))
+    .sort((a,b)=>(a.state==="in"?0:1)-(b.state==="in"?0:1));
+  if(!evs.length)return[`<div class="empty">No games under way.</div>`];
+  for(const e of evs){const P=(S.plays&&S.plays[e.id])||[],last=P[P.length-1],brk=last&&/end (period|of)/i.test((last.type&&last.type.text)||"")&&e.state==="in";
+    out.push(`<div class="thead ocg"><b>${e.away} ${e.as} · ${e.home} ${e.hs}</b><span class="${e.state==="in"?"live":""}">${e.state==="in"?"● ":""}${esc(e.state==="post"?"Final":e.detail||"")}</span><span>${e.state==="post"?"closing five":brk?"last five on":"on the floor"}</span></div>`);
+    for(const t of [e.away,e.home]){const c=onCourt(e.id,t),on=c.on.sort((a,b)=>key(b)-key(a));
+      out.push(`<div class="ocs"><b>${t}</b><span>${on.length<5?"lineup not in the play-by-play yet":c.sure?"":"best guess until the next whistle"}</span></div>`);
+      on.forEach((p,i)=>out.push(card(p,i+1)));
+      const bn=c.bench.sort((a,b)=>key(b)-key(a));
+      if(bn.length)out.push(`<div class="ocb"><i>Bench</i>${bn.map(p=>`<button data-id="${esc(p.id)}" class="${sk.has(p)?"":"dim"}">${esc(p.name.replace(/^(\S)\S*\s/,"$1. "))} <span class="num">${p.pts}p ${Math.round(p.min)}m</span></button>`).join("")}</div>`)}}
+  return out}
 // Desktop side column on the Box tab: what tonight means for you. My team (your players who played,
 // one line each, plus their totals), Pickup watch (free agents in your league with a good night or a
 // role change; without a synced league, anyone outside the top 130 on the season) and your
@@ -4959,9 +5001,9 @@ function parseLog(j){
   return out;
 }
 function cardOpen(e,list){
-  const a=e.target.closest(".cd[data-id],.mr[data-id],.dtr[data-id]");if(!a)return;
+  const a=e.target.closest(".cd[data-id],.mr[data-id],.dtr[data-id],.ocb [data-id]");if(!a)return;
   const id=a.dataset.id;
-  if(list==="list"){const p=S.players.find(x=>x.id===id);openSheet(p?p.eid||p.id:id,p)}
+  if(list==="list"){const p=S.players.find(x=>x.id===id)||S.zero.find(x=>x.id===id);openSheet(p?p.eid||p.id:id,p)}
   else openSheet(id,null);
 }
 
@@ -5049,7 +5091,8 @@ addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("sheet").hidden)setSheet(
 $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
 $("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>setSort(b.dataset.k));
 $("bxSide").addEventListener("click",e=>{if(e.target.closest("[data-bxmin]")){store.set("bxOppMin",!store.get("bxOppMin",false));renderBxSide();return}const r=e.target.closest("[data-id]");if(!r)return;const p=S.players.find(x=>x.id===r.dataset.id);if(p)openSheet(p.eid||p.id,p)});
-$("teamBtn").onclick=()=>{S.byTeam=!S.byTeam;store.set("byTeam",S.byTeam);render()};
+const setGrp=g=>{S.grp=S.grp===g?"":g;store.set("bxGrp",S.grp);render()};
+$("teamBtn").onclick=()=>setGrp("team");$("courtBtn").onclick=()=>setGrp("court");
 function paintGw(){$("gwSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===S.gw))}
 $("gwSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.gw=+b.dataset.v;store.set("gw",S.gw);paintGw();
   rankWindows();rankBS();renderBS();renderBZ();renderPJ();renderRK();renderSC();if(S.players.length)render();renderSheet()});
