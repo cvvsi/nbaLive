@@ -25,16 +25,20 @@
  *               thing the relay stores (Cloudflare KV, binding OV): your own numbers, not Yahoo's
  *               data. {espn id: {m, until, at, n, t}}; expired ones are dropped. /sync carries them
  *               too (ov), and the analyst applies them.
+ * GET /sched, POST /sched {kind, add, drop, at, wd}, POST /sched/cancel {id} -> scheduled pickups
+ *               (worker/sched.js): moves you line up that the relay makes on Yahoo from its
+ *               once-a-minute timer. Needs the Yahoo app at Read/Write and a login with fspt-w.
  * POST /mcp/<RELAY_KEY> (or /mcp with an "X-Relay-Key: <RELAY_KEY>" or "Authorization: Bearer" header) -> the fantasy analyst, an
  *               MCP server with read-only tools over the same data (worker/analyst.js).
  *
  * Deployed by .github/workflows/relay.yml (Actions -> Yahoo relay). */
 
 import { mcp } from './analyst.js';
+import { schedGet, schedAdd, schedCancel, runDue } from './sched.js';
 
 const API = 'https://fantasysports.yahooapis.com/fantasy/v2';
 const SPOT_OFF = /^(BN|IL\+?|IR\+?|NA)$/i;
-let tok = null, lkey = null; // access token {at, exp}; league key, both per isolate
+let tok = null, lkey = null, myTid = null; // access token {at, exp}; league key, both per isolate
 
 class HttpErr extends Error { constructor(status, msg) { super(msg); this.status = status; } }
 
@@ -92,6 +96,13 @@ async function leagueKey(env) {
   return lkey = (want || ls[0]).league_key;
 }
 
+// your team id in the league (cached per isolate)
+async function myTeam(env, lk) {
+  if (myTid) return myTid;
+  const fc = await yf(env, `/league/${lk}/teams`);
+  for (const t of items(pick(fc.league, 'teams'))) { const tm = flat(t.team[0]); if (+tm.is_owned_by_current_login === 1) return myTid = String(tm.team_id); }
+  throw new HttpErr(502, 'Could not find your team in the league.');
+}
 const days = (a, b) => { const o = []; for (let d = new Date(a + 'T12:00:00Z'); d <= new Date(b + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + 1)) o.push(d.toISOString().slice(0, 10)); return o; };
 const statList = t => items((pick(t, 'team_stats') || {}).stats).map(s => s.stat);
 const teamIds = m => items((m['0'] || {}).teams).map(t => t.team);
@@ -317,6 +328,10 @@ function keyOk(a, b) {
 }
 
 export default {
+  // the once-a-minute timer: scheduled pickups (worker/sched.js); nothing to do costs one KV read
+  async scheduled(ev, env, ctx) {
+    ctx.waitUntil(runDue(env, { token, yf, items, flat, pick, leagueKey, myTeam, HttpErr }).catch(e => console.log('sched:', e.message)));
+  },
   async fetch(req, env) {
     const origin = req.headers.get('Origin') || '';
     const allow = String(env.ALLOW_ORIGINS || '').split(',').map(x => x.trim()).filter(Boolean);
@@ -340,6 +355,10 @@ export default {
     try {
       if (url.pathname === '/sync' && req.method === 'GET') return json(await buildSync(env));
       if (url.pathname === '/wire' && req.method === 'GET') return json(await buildWire(env));
+      const deps = { token, yf, items, flat, pick, leagueKey, myTeam, HttpErr };
+      if (url.pathname === '/sched' && req.method === 'GET') return json(await schedGet(env));
+      if (url.pathname === '/sched' && req.method === 'POST') return json(await schedAdd(env, await req.json().catch(() => null), deps));
+      if (url.pathname === '/sched/cancel' && req.method === 'POST') return json(await schedCancel(env, String(((await req.json().catch(() => null)) || {}).id || '')));
       if (url.pathname === '/minutes' && req.method === 'GET') return json(await ovGet(env));
       if (url.pathname === '/minutes' && req.method === 'POST') return json(await ovSet(env, await req.json().catch(() => null)));
       return json({ error: 'Not found' }, 404);
