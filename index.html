@@ -2055,7 +2055,7 @@ function renderBS(){
   $("bsSort").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===st));
   $("bsUnit").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.u===S.bsUnit));
   $("bsStatus").textContent=`${ids.length} · vs ${G.seasons[0]}`;
-  $("bsAsOf").textContent=`Season thru ${fmtDate(G.asOf).replace(/^\w+, /,"")}`;
+  $("bsAsOf").textContent=`Season thru ${fmtDate((G.asOf0||G.asOf)).replace(/^\w+, /,"")}`;
   $("bsList").innerHTML=ids.length?ids.map(bsRow).join("")
     :`<div class="empty">No ${st==="buy"?"buy-low":"sell-high"} flags with these punts. Sort by Proj to see everyone.</div>`;
 }
@@ -2093,7 +2093,7 @@ const firstSent=h=>{const m=String(h).replace(/^<p class="bsn">|<\/p>$/g,"").mat
 function renderLgBS(st){
   $("bsSort").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===st));
   const B=S.bs,me=String(ML.me),ids=Object.keys(G.players);
-  $("bsAsOf").textContent=`Season thru ${fmtDate(G.asOf).replace(/^\w+, /,"")}`;
+  $("bsAsOf").textContent=`Season thru ${fmtDate((G.asOf0||G.asOf)).replace(/^\w+, /,"")}`;
   if(st==="mine"){
     const mine=ids.filter(id=>lgOf(id)===me),grp={inj:[],drop:[],hot:[],slump:[],steady:[]};
     for(const id of mine){const a=analyst(id),v=B.v[id],q=G.players[id],x=B.x[id];
@@ -2234,7 +2234,7 @@ function renderBuild(){
   const tk=ML.rs||ML.at;if(T.at!==tk){T.at=tk;T.done=[];T.drops=[];T.pick=null}
   if(!SC||!S.bs){el.innerHTML=`<div class="empty">Loading…</div>`;return}
   const ctx=tbCtx();
-  $("bsAsOf").textContent=`Proj thru ${fmtDate(G.asOf).replace(/^\w+, /,"")}`;
+  $("bsAsOf").textContent=`Proj thru ${fmtDate((G.asOf0||G.asOf)).replace(/^\w+, /,"")}`;
   if(!ctx){el.innerHTML=`<div class="empty">No games left in this window. Try 2 weeks.</div>`;$("bsStatus").textContent="";return}
   const ros=tbRoster(ctx),cur=tbScore(ctx,ros);T.drops=T.drops.filter(id=>ros.some(o=>o.id===id));
   const drops=ros.filter(o=>T.drops.includes(o.id)),adds=T.pick&&drops.length?T.pick.map(ctx.P):null;
@@ -2570,7 +2570,7 @@ Needs ${BSMIN_GP}+ games and a baseline. The percentage rule scales with rank: #
 <b>Box scores only.</b> Injuries, trades and new teammates aren't modeled.<br>
 <b>The K values are fitted</b> on three past seasons (2023-24 to 2025-26): for each stat, the K whose first 5–20 games best predicted the rest of the season, checked on a season it wasn't fitted on. They're averages: any one player can beat them.</p>
 
-<p class="dim">Rebuilt every morning through last night (now through ${fmtDate(G.asOf).replace(/^\w+, /,"")}). The short version: before reacting to a few games, compare per-minute numbers with last season's.</p>
+<p class="dim">Rebuilt every morning through last night (now through ${fmtDate((G.asOf0||G.asOf)).replace(/^\w+, /,"")}). The short version: before reacting to a few games, compare per-minute numbers with last season's.</p>
 <button class="x" id="bsHelpX">Close</button>`;
   $("bsHelpX").onclick=()=>toggleHelp(false);
 }
@@ -2950,7 +2950,7 @@ function nmC(){if(S.nm&&S.nm.g===G&&S.nm.ij===IJ&&S.nm.sc===SC)return S.nm;
 // from a 5+ game absence (1-6), 0 normal.
 function nmPh(R,e){const C=nmC();if(C.ph[R])return C.ph[R];
   const ph={},len=G.nmLen||5;let streak=e.n||0,k=e.n?null:(e.bk??null);
-  for(const d of C.td[e.t]||[]){if(d<=G.asOf)continue;
+  for(const d of C.td[e.t]||[]){if(d<=(G.asOf0||G.asOf))continue;
     if(!avail(R,d)){ph[d]=-1;streak++;k=null;continue}
     if(streak>=len)k=0;streak=0;
     if(k!=null){k++;ph[d]=k<=NMRET.length?k:0;if(k>NMRET.length)k=null}else ph[d]=0}
@@ -4072,7 +4072,7 @@ $("pjSz").hidden=S.pjView!=="season";
   if(S.pjView==="mu"){$("pjAsOf").textContent="";return renderMU()}
   const today=etToday(),all=Object.entries(G.players).filter(([,q])=>q.xp&&q.xp[0]>=8);
   const sh=d=>fmtDate(d).replace(/^\w+, /,"");
-  $("pjAsOf").textContent=`Proj thru ${sh(G.asOf)}`;
+  $("pjAsOf").textContent=`Proj thru ${sh((G.asOf0||G.asOf))}`;
   let rows=[],cap="",stat="";
   if(S.pjView==="season"){
     const SV=sznVals(all),left=id=>{if(!SC)return null;const i=ijOf(id);if(ijOut(i)&&!i[1])return"?";return SV[id].ds.length};
@@ -4081,7 +4081,7 @@ $("pjSz").hidden=S.pjView!=="season";
       return{id,q,l:sv.l,min:sv.m,v:tot?val0(sv.z,G.zp)*(g==="?"?0:g)*availP(id,q):sv.v,hi:1,foot:nmNote(id,q,sv.ds,sv.m)+ijNote(id),sdl:g!=null?g+"g":"",z:sv.z,ctx:g!=null?`<b>${g}</b> g left`:"",
         side:g!=null?`<div class="pjside"><b>${g}</b><i>games left</i></div>`:""}}).sort((a,b)=>b.v-a.v).slice(0,250);
     stat=`${rows.length} · ${tot?"total":"per game"}`;
-    cap=`Rest of season, per game: Proj's line (this season's minutes, rates blended toward a two-season baseline), with minutes shifted while a teammate is out and eased back when he returns. ${tot?"<b>Total</b>: per-game value × games left × the share of them he's likely to play (about 76% for anyone healthy, a little less after a season of missed games, a little more after a full one), so time missed counts.":"<b>Per g</b>: value per game, which ranks quality."} Games left are on the right, counted from any expected return on ESPN's injury report. Proj through ${sh(G.asOf)}; tap the ⓘ on Buy/Sell for how it's built.`;
+    cap=`Rest of season, per game: Proj's line (this season's minutes, rates blended toward a two-season baseline), with minutes shifted while a teammate is out and eased back when he returns. ${tot?"<b>Total</b>: per-game value × games left × the share of them he's likely to play (about 76% for anyone healthy, a little less after a season of missed games, a little more after a full one), so time missed counts.":"<b>Per g</b>: value per game, which ranks quality."} Games left are on the right, counted from any expected return on ESPN's injury report. Proj through ${sh((G.asOf0||G.asOf))}; tap the ⓘ on Buy/Sell for how it's built.`;
   }else if(S.pjView==="week"){
     if(!SC)return pjMsg("No schedule yet: it's built with the nightly rankings.");
     const ds=weekDates(S.pjWk),live=ds.filter(d=>d>=today);
@@ -4214,7 +4214,7 @@ function efbFreeze(){if(!G||!R)return;const hist=store.get("efbHist",[]),day=etT
     for(const r of X.rows){const id=r.id,q=id&&G.players[id],rq=id&&R.players[id];if(!q)continue;
       if(q.xp){const l=pjLine("ours",id,q);o[id]=EFBF.map(k=>+(+l[k]||0).toFixed(2))}
       const w=rq&&rq.w&&rq.w.season,lv=rq&&rq.l&&rq.l.season;if(w&&lv){const L={};R.lf.forEach((k,i)=>L[k]=lv[i]);b[id]=[w[0],...EFBF.map(k=>+(((k==="min"?w[1]:L[k])||0)*w[0]).toFixed(1))]}}
-    E.o=o;E.b=b;E.oa=G.asOf;E.ba=R.asOf;ch=true}
+    E.o=o;E.b=b;E.oa=(G.asOf0||G.asOf);E.ba=R.asOf;ch=true}
   if(ch)store.set("efbHist",hist)}
 // Score one snapshot: players with 5+ games since and a line from both. Per category: mean absolute
 // error per game (FG%/FT% in points, weighted by the attempts since), the same at the minutes he

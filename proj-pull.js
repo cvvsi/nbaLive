@@ -13,7 +13,7 @@ const SITES = {
     name: 'Basketball Monster',
     home: 'https://basketballmonster.com/',
     login: 'https://basketballmonster.com/login.aspx',
-    proj: process.env.BBM_URL || 'https://basketballmonster.com/playerrankings.aspx',
+    proj: process.env.BBM_URL || 'https://basketballmonster.com/projections.aspx',
     user: process.env.BBM_USER, pass: process.env.BBM_PASS,
   },
   efb: {
@@ -251,7 +251,10 @@ async function pull(key) {
         const med = k => { const v = sn.r.map(x => +x[F.indexOf(k)]).filter(x => x > 0).sort((a, b) => a - b); return v.length ? v[v.length >> 1] : '-'; };
         log(`  medians: g ${med('g')} · mpg ${med('mpg')} · pts ${med('pts')} · fg% ${med('fg')}`);
         if (key === 'bbm') { const ls = await links(page, /projection/i); log(`  projection links: ${ls.map(path).join(' | ') || 'none'}`); }
+        // a rest-of-season projection lists most of the season's games left; season stats so far don't
+        const gl = med('g');
         if (sn.r.length < 100) log('  too few rows: not sent');
+        else if (!(gl >= 25)) log(`  median games ${gl}: looks like stats so far, not a projection; not sent`);
         else if (process.env.DRY) { log('  dry run: not sent'); ok = true; }
         else {
           const res = await fetch(RELAY.replace(/\/+$/, '') + '/proj', { method: 'POST',
