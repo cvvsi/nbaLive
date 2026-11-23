@@ -1281,6 +1281,10 @@ button,a,input,select,textarea,label,summary,[role=button]{touch-action:manipula
   <div><h3>Rank by</h3>
     <div class="seg" id="gwSeg"><button data-v="0">Z-score</button><button data-v="1">Weekly weights</button></div>
   </div>
+  <div id="psBlk" hidden><h3>Projection</h3>
+    <div class="seg" id="psSeg"></div>
+    <p class="stkn">Which projection drives every Proj number on the site: ranks, Proj, Week, Today, Schedule, Matchup, the streaming plan, IL+ and Build. <b>Sixth</b> is our model, <b>Scout</b> is Elite Fantasy Basketball's category projections, <b>Lab</b> is Basketball Monster's Josh Projections, and <b>Blend</b> averages the three, stat by stat. Scout and Lab come in each morning with your own logins and show only on your devices. Their minutes become the base that next-man-up and your overrides adjust; a player one of them doesn't list keeps ours. The player page's Projection tab shows all of them side by side.</p>
+  </div>
   <div><h3>Compare against</h3>
     <div class="seg" id="poolSeg">
       <button data-v="0">Everyone</button><button data-v="10">10+ min</button><button data-v="15">15+ min</button><button data-v="20">20+ min</button>
@@ -1444,12 +1448,50 @@ let ML=store.get("league",null);S.lgF=ML?store.get("lgF","all"):"all";
 let MOV=store.get("mov",{});
 const ovRec=id=>MOV&&MOV[id]&&(!MOV[id].until||MOV[id].until>=etToday())?MOV[id]:null;
 const ovOn=(id,d)=>{const r=MOV&&MOV[id];return r&&(!r.until||d<=r.until)?r.m:null};
-function applyOv(){if(typeof G==="undefined"||!G||!G.players)return;let n=0;
+function applyOv(){if(typeof G==="undefined"||!G||!G.players)return;let n=0,ns=0;
   for(const q of Object.values(G.players))if(q.xp0){q.xp=q.xp0;q.x=q.x0;delete q.xp0;delete q.x0}
+  // the projection source (Punt sheet > Projection): the model's line is kept as xpM / xM, and
+  // the chosen line replaces xp / x before overrides rescale it to your minutes
+  const ps=pjSrc();
+  for(const[id,q]of Object.entries(G.players)){if(!q.xp)continue;if(!q.xpM){q.xpM=q.xp;q.xM=q.x}q.xp=q.xpM;q.x=q.xM;
+    if(ps==="ours")continue;const L=pjLine(ps,id,q);if(!L)continue;const z=pjZ(L);
+    q.xp=G.xpf.map(k=>L[k]);q.x=[q.xM[0],L.min,...G.cats.map(c=>z[c])];ns++}
   for(const id of Object.keys(MOV||{})){const q=G.players[id],r=ovRec(id);if(!q||!q.xp||!r||!(q.xp[0]>0))continue;
     const l=lineAt(q,r.m),z=pjZ(l);q.xp0=q.xp;q.x0=q.x;q.xp=G.xpf.map(k=>l[k]);q.x=[q.x[0],r.m,...G.cats.map(c=>z[c])];n++}
   // caches keyed on G.asOf (plans, Build) recompute
-  if(G.asOf0==null)G.asOf0=G.asOf;G.asOf=G.asOf0+(n?"|ov"+JSON.stringify(MOV).length+n:"")}
+  if(G.asOf0==null)G.asOf0=G.asOf;G.asOf=G.asOf0+(n?"|ov"+JSON.stringify(MOV).length+n:"")+(ns?"|ps"+ps+ns+(pjAt(ps)||""):"")}
+// ---- Outside projections (Nov 2026): Scout = Elite Fantasy Basketball's category projections,
+// Lab = Basketball Monster's Josh Projections, both rest of season per game, read each morning with
+// your own logins by the Projections job (proj-pull.js) and kept in your relay. A device with the
+// relay set up fetches them with its key (GET /proj, projFetch()) and keeps the latest in
+// localStorage (efb, bbm; one a day in efbHist / bbmHist): nobody without your key sees them.
+// Punt sheet > Projection (psrc) picks the line behind every Proj number: Sixth (our model), Scout,
+// Lab or Blend (all three averaged stat by stat, makes and attempts apart; a player one of them
+// lacks is averaged over the rest). The chosen minutes become the base that next-man-up, tonight's
+// lineups and your overrides adjust, as with the model's; a player a source lacks keeps ours.
+const PJS={ours:"Sixth",efb:"Scout",bbm:"Lab",mix:"Blend"},PJAGE=3*3600e3;
+S.psrc=store.get("psrc","ours");
+function pjHave(k){return k==="ours"||(k==="mix"?!!(store.get("efb",null)||store.get("bbm",null)):!!store.get(k,null))}
+function pjSrc(){return pjHave(S.psrc)?S.psrc:"ours"}
+function pjAt(k){const E=k==="mix"?null:store.get(k,null);return E?E.at:k==="mix"?[pjAt("efb"),pjAt("bbm")].join():null}
+function pjSnap(k){return k==="bbm"?bbmIx():k==="efb"?efbIx():null}
+// source k's per-game line for one player, in Proj's fields (min, pts, ..., fgm, fga, ftm, fta), or null
+function pjLine(k,id,q){
+  if(k==="ours"){const P=q&&(q.xpM||q.xp0||q.xp);if(!P)return null;const o={};G.xpf.forEach((f,i)=>o[f]=+P[i]||0);return o}
+  if(k==="mix"){const ls=["ours","efb","bbm"].filter(pjHave).map(s=>pjLine(s,id,q)).filter(Boolean);if(ls.length<2)return null;
+    const o={};for(const f of G.xpf)o[f]=ls.reduce((a,l)=>a+l[f],0)/ls.length;return o}
+  const X=pjSnap(k),r=X&&X.byId[id];if(!r)return null;const l=r.l;
+  if(!(l.min>0)||[l.pts,l.reb,l.ast,l.fga].some(v=>v==null||isNaN(v)))return null;
+  const o={};for(const f of G.xpf)o[f]=+l[f]||0;return o}
+async function projFetch(force){const R0=store.get("relay",null);if(!R0||!R0.u||!R0.k)return;
+  if(!force&&Date.now()-store.get("projAt",0)<PJAGE)return;
+  try{const r=await fetch(R0.u.replace(/\/+$/,"")+"/proj",{headers:{"X-Relay-Key":R0.k},cache:"no-store"}),o=await r.json().catch(()=>null);
+    if(!r.ok||!o||o.error)return;store.set("projAt",Date.now());let ch=false;
+    for(const k of["efb","bbm"]){const E=o[k],cur=store.get(k,null);if(!E||!Array.isArray(E.r)||!E.r.length||cur&&cur.at===E.at)continue;
+      store.set(k,E);const hk=k+"Hist",day=String(E.at).slice(0,10),h=store.get(hk,[]).filter(x=>String(x.at).slice(0,10)!==day);h.push(E);store.set(hk,h.slice(k==="efb"?-12:-10));ch=true}
+    if(ch&&typeof G!=="undefined"&&G)pjRefresh()}catch(e){}}
+function pjRefresh(){applyOv();rankBS();renderBS();renderBZ();renderPJ();renderRK();renderSC();if(S.players.length)render();renderSheet();paintPs();paintGear()}
+function paintGear(){const s=pjSrc();$("gear").textContent=(S.punt.size?`Punt ${S.punt.size}`:"Punt")+(s!=="ours"?" · "+PJS[s]:"")}
 function ovSetLocal(o){MOV=o||{};store.set("mov",MOV);applyOv();
   rankBS();renderBS();renderPJ();renderRK();renderSC();if(S.players.length){scoreValue();render()}renderSheet()}
 // save / clear one override through the relay (m null = clear)
@@ -1712,7 +1754,7 @@ function renderCats(){
 }
 // One punt toggle for the whole site (the Punt sheet and Build's punt row): everything re-ranks.
 function togglePunt(k){S.punt.has(k)?S.punt.delete(k):S.punt.add(k);store.set("punt",[...S.punt]);
-  $("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
+  paintGear();
   renderCats();rankWindows();rankBS();renderBS();renderBZ();paintDens();renderPJ();renderRK();renderSC();if(S.players.length){scoreValue();render()}renderSheet()}
 function setSort(k){S.sort=k;renderCats();render()}
 // Movers: only flagged players, biggest rank jumps first (a minutes jump counts as a riser
@@ -4170,7 +4212,7 @@ function efbFreeze(){if(!G||!R)return;const hist=store.get("efbHist",[]),day=etT
   for(const E of hist){if(E.o||String(new Date(E.at).toLocaleDateString("en-CA",{timeZone:"America/New_York"}))!==day)continue;
     const X=efbParse(E);if(!X)continue;const o={},b={};
     for(const r of X.rows){const id=r.id,q=id&&G.players[id],rq=id&&R.players[id];if(!q)continue;
-      if(q.xp){const l=xpLine(q);o[id]=EFBF.map(k=>+(+l[k]||0).toFixed(2))}
+      if(q.xp){const l=pjLine("ours",id,q);o[id]=EFBF.map(k=>+(+l[k]||0).toFixed(2))}
       const w=rq&&rq.w&&rq.w.season,lv=rq&&rq.l&&rq.l.season;if(w&&lv){const L={};R.lf.forEach((k,i)=>L[k]=lv[i]);b[id]=[w[0],...EFBF.map(k=>+(((k==="min"?w[1]:L[k])||0)*w[0]).toFixed(1))]}}
     E.o=o;E.b=b;E.oa=G.asOf;E.ba=R.asOf;ch=true}
   if(ch)store.set("efbHist",hist)}
@@ -4213,21 +4255,21 @@ function renderEFBScore(){
   const sh=at=>new Date(at).toLocaleDateString([],{month:"short",day:"numeric"});
   const scored=ready.map(E=>({E,s:efbScore(E)})).filter(x=>x.s);
   const ok=scored.filter(x=>x.s.n>=30);
-  const head=`<p class="stkn">Each EFB sync is a snapshot: EFB's projection, ours and every player's season totals that day. Once players have ${EFBMIN}+ games since, both are scored against what they did. <b>Per game</b> = the average miss per game (FG% and FT% in percentage points, weighted by attempts). <b>At his minutes</b> = the same with each projection rescaled to the minutes he actually played, so it scores production apart from playing time; the gap between the two is the minutes call. <b>Ours closer</b> = the share of players where our number was nearer. <b>Order</b> = rank correlation of projected and actual value on our scale (1 = perfect), and how many of each one's top ${ROST} (or half the players, if fewer) actually finished there. Short windows are mostly luck: read it at 2, 4 and 8 weeks, and look for gaps that hold up across snapshots.</p>`;
-  if(!ok.length){const next=ready.length?`Your first snapshot is from <b>${sh(ready[0].at)}</b>; results appear once its players have ${EFBMIN}+ games since (about 10 days).`:hist.length?`The snapshots saved so far don't have our side frozen in (they're from before the scorecard). Sync EFB again and it starts today.`:"Sync EFB to start.";
-    el.innerHTML=head+`<div class="empty" style="padding:24px 0">${next} Sync EFB every day or two to add snapshots. ${hist.length} saved on this device.</div>`;return}
+  const head=`<p class="stkn">Each Scout sync is a snapshot: Scout's projection, ours and every player's season totals that day. Once players have ${EFBMIN}+ games since, both are scored against what they did. <b>Per game</b> = the average miss per game (FG% and FT% in percentage points, weighted by attempts). <b>At his minutes</b> = the same with each projection rescaled to the minutes he actually played, so it scores production apart from playing time; the gap between the two is the minutes call. <b>Ours closer</b> = the share of players where our number was nearer. <b>Order</b> = rank correlation of projected and actual value on our scale (1 = perfect), and how many of each one's top ${ROST} (or half the players, if fewer) actually finished there. Short windows are mostly luck: read it at 2, 4 and 8 weeks, and look for gaps that hold up across snapshots.</p>`;
+  if(!ok.length){const next=ready.length?`Your first snapshot is from <b>${sh(ready[0].at)}</b>; results appear once its players have ${EFBMIN}+ games since (about 10 days).`:hist.length?`The snapshots saved so far don't have our side frozen in (they're from before the scorecard). Sync Scout again and it starts today.`:"Sync Scout to start.";
+    el.innerHTML=head+`<div class="empty" style="padding:24px 0">${next} Sync Scout every day or two to add snapshots. ${hist.length} saved on this device.</div>`;return}
   const pick=S.efbSnap&&ok.find(x=>x.E.at===S.efbSnap)||ok[0],r=pick.s;
   const f=(k,v)=>v==null||!isFinite(v)?"–":k==="fg"||k==="ft"?v.toFixed(2):v.toFixed(2);
   const lab={min:"MIN",pts:"PTS",tpm:"3PM",reb:"REB",ast:"AST",stl:"STL",blk:"BLK",to:"TO",fg:"FG%",ft:"FT%"};
   const b2=(o,e)=>[o<e?"on":"",e<o?"on":""];
-  const tbl=`<div class="efst"><div class="efsr efsh"><span>Category</span><span>Per game<i>ours · EFB</i></span><span>At his minutes<i>ours · EFB</i></span><span>Ours closer</span></div>`
+  const tbl=`<div class="efst"><div class="efsr efsh"><span>Category</span><span>Per game<i>ours · Scout</i></span><span>At his minutes<i>ours · Scout</i></span><span>Ours closer</span></div>`
     +r.rows.map(x=>{const[a,b]=b2(x.o,x.e),[c,d]=b2(x.ao,x.ae),off=x.k!=="min"&&S.punt.has(x.k);
       return`<div class="efsr${off?" off":""}"><span>${lab[x.k]}</span><span><b class="${a}">${f(x.k,x.o)}</b> · <b class="${b}">${f(x.k,x.e)}</b></span><span>${x.k==="min"?"–":`<b class="${c}">${f(x.k,x.ao)}</b> · <b class="${d}">${f(x.k,x.ae)}</b>`}</span><span>${x.win==null?"–":Math.round(100*x.win)+"%"}</span></div>`}).join("")+`</div>`;
   const ml=(t,a,side)=>`<div class="efml"><div class="tbh">${t}</div>${a.length?a.map(m=>`<div class="efmr dtr" data-id="${esc(m.p.id)}" tabindex="0"><b>${esc(m.p.n)}</b> <i>${esc(m.p.t)} · ${m.p.dg}g</i><span>${esc(m.w)}</span></div>`).join(""):`<p class="tbhint">None by a clear margin.</p>`}</div>`;
   el.innerHTML=head+`<div class="usbar"><span class="tbml">Snapshot</span><div class="seg" id="efSnap">${ok.map(x=>`<button data-v="${esc(x.E.at)}" aria-pressed="${x===pick}">${sh(x.E.at)}</button>`).join("")}</div></div>`
     +`<div class="efsum"><span><b>${r.n}</b> players with ${EFBMIN}+ games since ${sh(r.snap.at)}</span><span>avg <b>${r.dg.toFixed(1)}</b> games each</span>`
-    +`<span>order: ours <b>${r.spO.toFixed(3)}</b> · EFB <b>${r.spE.toFixed(3)}</b></span><span>top ${r.N} hits: ours <b>${r.hitO}</b> · EFB <b>${r.hitE}</b></span></div>`+tbl
-    +`<div class="efms">${ml("EFB was closer on",r.efbBetter)}${ml("We were closer on",r.oursBetter)}</div>`
+    +`<span>order: ours <b>${r.spO.toFixed(3)}</b> · Scout <b>${r.spE.toFixed(3)}</b></span><span>top ${r.N} hits: ours <b>${r.hitO}</b> · Scout <b>${r.hitE}</b></span></div>`+tbl
+    +`<div class="efms">${ml("Scout was closer on",r.efbBetter)}${ml("We were closer on",r.oursBetter)}</div>`
     +`<div class="usbar"><button class="tbgo" id="efCopy">Copy results</button><span class="tbhint" id="efCopyM" style="margin:0 0 0 8px"></span></div>`;
   el.querySelectorAll("#efSnap button").forEach(b=>b.onclick=()=>{S.efbSnap=b.dataset.v;renderEFBScore()});
   $("efCopy").onclick=async()=>{const out={snapshot:r.snap.at,oursAsOf:r.snap.oa,games:R.asOf,players:r.n,avgGames:+r.dg.toFixed(1),punts:[...S.punt],
@@ -4246,24 +4288,26 @@ function renderEFBScore(){
 S.efbMode=store.get("efbMode","diff");S.efbSort=store.get("efbSort","er");S.efbDir=1;
 const EFBK=["min","pts","tpm","reb","ast","stl","blk","to","fg","ft"],EFBL={min:"MIN",pts:"PTS",tpm:"3PM",reb:"REB",ast:"AST",stl:"STL",blk:"BLK",to:"TO",fg:"FG%",ft:"FT%"};
 const efbIx=()=>efbParse(store.get("efb",null));
-function efbParse(E){if(!E||!G)return null;const C=S.efbPC||(S.efbPC={});if(C[E.at]&&C[E.at].g===G)return C[E.at];
+function efbParse(E){if(!E||!G)return null;const C=S.efbPC||(S.efbPC={}),ck=(E.src||"efb")+E.at;if(C[ck]&&C[ck].g===G)return C[ck];
   const full={},tlf={};for(const[id,q]of Object.entries(G.players)){if(!q.n)continue;const k=lgKey(q.n),w=k.split(" ");(full[k]||(full[k]=[])).push(id);(tlf[`${q.t}|${w[w.length-1]}|${w[0][0]}`]||(tlf[`${q.t}|${w[w.length-1]}|${w[0][0]}`]=[])).push(id)}
   const F=E.f,ix=k=>F.indexOf(k),rows=E.r.map(r=>{const v=k=>{const x=r[ix(k)];return x===""||x==null?null:+x};
     const n=r[ix("name")],t=SRTEAM[String(r[ix("team")]||"").toLowerCase()]||r[ix("team")],k=lgKey(n),w=k.split(" ");
     let c=full[k]||[];if(c.length!==1)c=c.filter(id=>G.players[id].t===t);if(!c.length)c=tlf[`${t}|${w[w.length-1]}|${w[0][0]}`]||[];
     const mpg=v("mpg"),fga=v("fga"),fta=v("fta"),l={min:mpg,pts:v("pts"),tpm:v("tpm"),reb:v("reb"),ast:v("ast"),stl:v("stl"),blk:v("blk"),to:v("to"),fga,fta,fgm:fga*(v("fg")||0)/100,ftm:fta*(v("ft")||0)/100};
     return{n,t,id:c[0]||null,inj:r[ix("inj")]||"",g:v("g"),own:v("rank"),l}}).filter(o=>o.l.min>0);
-  return C[E.at]={at:E.at,g:G,rows,n:E.r.length}}
+  const byId={};for(const r of rows)if(r.id&&!byId[r.id])byId[r.id]=r;
+  return C[ck]={at:E.at,g:G,rows,n:E.r.length,byId}}
+const bbmIx=()=>efbParse(store.get("bbm",null));
 const efbViewSeg=()=>`<div class="usbar"><div class="seg" id="efView"><button data-v="cmp" aria-pressed="${S.efbView!=="score"}">Compare</button><button data-v="score" aria-pressed="${S.efbView==="score"}">Scorecard</button></div></div>`;
 function efbViewWire(){const v=$("efView");if(v)v.querySelectorAll("button").forEach(b=>b.onclick=()=>{S.efbView=b.dataset.v;store.set("efbView",S.efbView);renderRK()})}
 function renderEFB(){
   const X=efbIx(),E=store.get("efb",null);paintLg();efbFreeze();
   if(X&&S.efbView==="score"){$("rkStatus").textContent="Scorecard";$("rkList").innerHTML=efbViewSeg()+`<div id="efScore"></div>`;efbViewWire();renderEFBScore();return}
-  if(!X){$("rkList").innerHTML=`<div class="empty">${E?"Loading…":"No EFB projections on this device. Run the EFB bookmark from league.html."}</div>`;$("rkStatus").textContent="";return}
-  const val=l=>pjVal(pjZ(l)),line=id=>G.players[id]&&G.players[id].xp?xpLine(G.players[id]):null;
+  if(!X){$("rkList").innerHTML=`<div class="empty">${E?"Loading…":"No Scout projections on this device. Run the Scout bookmark from league.html."}</div>`;$("rkStatus").textContent="";return}
+  const val=l=>pjVal(pjZ(l)),line=id=>G.players[id]&&G.players[id].xp?pjLine("ours",id,G.players[id]):null,swp=pjSrc()!=="ours";
   // EFB's line ranked on our scale, among EFB's own list
   const ev=X.rows.map(o=>[o,val(o.l)]).sort((a,b)=>b[1]-a[1]);ev.forEach(([o],i)=>o.er=i+1);
-  const rows=X.rows.map(o=>{const ol=o.id&&line(o.id),or=o.id&&S.bs&&S.bs.x[o.id]||null,ez=pjZ(o.l),oz=ol?pjZ(ol):null;
+  const rows=X.rows.map(o=>{const ol=o.id&&line(o.id),or=o.id&&S.bs&&(swp&&ol&&S.bs.xs?1+S.bs.xs.filter(x=>x>val(ol)).length:S.bs.x[o.id])||null,ez=pjZ(o.l),oz=ol?pjZ(ol):null;
     const pc=(m,a)=>a>0?100*m/a:null,get=(l,k)=>k==="fg"?pc(l.fgm,l.fga):k==="ft"?pc(l.ftm,l.fta):l[k];
     const c={};for(const k of EFBK){const e=get(o.l,k),u=ol?get(ol,k):null,zk=k==="fg"?"fg":k==="ft"?"ft":k;
       c[k]={e,u,d:u!=null&&e!=null?u-e:null,dz:oz&&k!=="min"?oz[zk]-ez[zk]:null}}
@@ -4275,16 +4319,16 @@ function renderEFB(){
   const both=rows.filter(o=>o.or),t130=both.filter(o=>o.er<=ROST),ov=t130.filter(o=>o.or<=ROST).length,med=a=>{const s=[...a].sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:0};
   const mg=med(t130.map(o=>Math.abs(o.gap))),mb=t130.length?t130.reduce((a,o)=>a+(o.c.min.d||0),0)/t130.length:0;
   const d=new Date(E.at),sh=`${d.toLocaleDateString([],{month:"short",day:"numeric"})}, ${d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
-  $("rkStatus").textContent=`${shown.length} · EFB ${sh}`;$("rkAsOf").textContent=`EFB saved ${sh}`;
+  $("rkStatus").textContent=`${shown.length} · Scout ${sh}`;$("rkAsOf").textContent=`Scout saved ${sh}`;
   const f=(k,v)=>v==null?"–":k==="fg"||k==="ft"?v.toFixed(1):k==="min"?v.toFixed(1):v.toFixed(k==="pts"?1:2);
   const cell=(k,c)=>{if(S.efbMode==="efb")return f(k,c.e);if(S.efbMode==="ours")return f(k,c.u);if(c.d==null)return"–";
     const big=k==="min"?Math.abs(c.d)>=2:c.dz!=null&&Math.abs(c.dz)>=.5,good=(k==="to"?-c.d:c.d)>0;
     return`<span class="${big?(good?"usup":"usdn"):""}">${c.d>0?"+":c.d<0?"−":""}${f(k,Math.abs(c.d))}</span>`};
-  const cols=[["er","EFB #"],["or","Ours #"],["gap","Gap"],...EFBK.map(x=>[x,EFBL[x]])];
+  const cols=[["er","Scout #"],["or","Ours #"],["gap","Gap"],...EFBK.map(x=>[x,EFBL[x]])];
   const head=`<div class="ustr ush"><span>Player</span>${cols.map(([c,l])=>`<button data-ef="${c}" aria-pressed="${c===k}">${l}${c===k?(dir>0?" ↓":" ↑"):""}</button>`).join("")}</div>`;
-  $("rkList").innerHTML=efbViewSeg()+`<p class="bzcap">EFB's rest-of-season projections next to ours. Both lines are scored on our scale with your punts, so a rank gap is a gap in the projection itself. <b>Gap</b> = how many spots higher we rank him (▲) or EFB does (▼). <b>Diff</b> shows ours minus EFB per game, green or red only when it's half a z-score or more (2+ for minutes). Kept on this device only; refresh it by running the EFB bookmark on their projections page.</p>`
-    +`<div class="efsum"><span><b>${ov}</b> of EFB's top ${ROST} are in ours</span><span>median gap <b>${mg}</b> spots</span><span>minutes: ours <b>${mb>=0?"+":"−"}${Math.abs(mb).toFixed(1)}</b> a game</span><span>${X.rows.length} EFB players, ${X.rows.filter(o=>o.id).length} matched</span></div>`
-    +`<div class="usbar"><span class="tbml">Show</span><div class="seg" id="efMode">${[["diff","Diff"],["efb","EFB"],["ours","Ours"]].map(([v,l])=>`<button data-v="${v}" aria-pressed="${v===S.efbMode}">${l}</button>`).join("")}</div></div>`
+  $("rkList").innerHTML=efbViewSeg()+`<p class="bzcap">Scout's rest-of-season projections next to ours. Both lines are scored on our scale with your punts, so a rank gap is a gap in the projection itself. <b>Gap</b> = how many spots higher we rank him (▲) or Scout does (▼). <b>Diff</b> shows ours minus Scout per game, green or red only when it's half a z-score or more (2+ for minutes). Kept on this device only; refresh it by running the Scout bookmark on their projections page.</p>`
+    +`<div class="efsum"><span><b>${ov}</b> of Scout's top ${ROST} are in ours</span><span>median gap <b>${mg}</b> spots</span><span>minutes: ours <b>${mb>=0?"+":"−"}${Math.abs(mb).toFixed(1)}</b> a game</span><span>${X.rows.length} Scout players, ${X.rows.filter(o=>o.id).length} matched</span></div>`
+    +`<div class="usbar"><span class="tbml">Show</span><div class="seg" id="efMode">${[["diff","Diff"],["efb","Scout"],["ours","Ours"]].map(([v,l])=>`<button data-v="${v}" aria-pressed="${v===S.efbMode}">${l}</button>`).join("")}</div></div>`
     +`<div class="usw"><div class="ust" style="--usc:${cols.length}">${head}${shown.map(o=>`<div class="ustr ${o.id?"dtr":""}" ${o.id?`data-id="${esc(o.id)}" tabindex="0"`:""}><span class="usn"><b>${esc(o.n)}</b><i>${esc(o.t)}${o.id?ijTag(o.id)+lgTagFA(o.id):o.inj?` <span class="ij">${esc(o.inj.slice(0,3).toUpperCase())}</span>`:""}</i></span>`
       +`<span class="${k==="er"?"on":""}">#${o.er}</span><span class="${k==="or"?"on":""}">${o.or?"#"+o.or:"–"}</span><span>${o.gap==null?"–":o.gap>0?"▲"+o.gap:o.gap<0?"▼"+(-o.gap):"="}</span>${EFBK.map(x=>`<span class="${x===k?"on":""}">${cell(x,o.c[x])}</span>`).join("")}</div>`).join("")}</div></div>`;
   efbViewWire();
@@ -4308,7 +4352,7 @@ const NAV=[
     {k:"rise",l:"Rise",v:"bs",open:()=>{S.bsSort="bo"}},
     {k:"buysell",l:"Buy/Sell",v:"bs",nolg:1,open:()=>{if(!["buy","sell","x","now"].includes(S.bsSort))S.bsSort="buy"}},
     {k:"buzz",l:"Buzz",v:"bz"},
-    {k:"efb",l:"EFB",v:"rk",efb:1,open:()=>{}}]},
+    {k:"efb",l:"Scout",v:"rk",efb:1,open:()=>{}}]},
   {k:"league",l:"My League",lg:1,pages:[
     {k:"today",l:"Today",v:"pj",open:()=>{S.pjView="my"}},
     {k:"matchup",l:"Matchup",v:"pj",open:()=>{S.pjView="mu"}},
@@ -4885,7 +4929,7 @@ function renderSheet(){
           const att=k==="fg"?` <em>${f1(q.att[0]/q.now[0])} att</em>`:k==="ft"?` <em>${f1(q.att[2]/q.now[0])} att</em>`:"";
           return`<div class="${nh(k).trim()}"><b>${v}</b><i>${CL[k].toUpperCase()}${att}</i></div>`}).join("")}
           <div class="role"><b>${f1(r("mpg"))}</b><i>MIN</i></div><div class="role"><b>${Math.round(r("usg"))}%</b><i>USAGE</i></div></div></section>`)}
-    h.push(ovHTML(id,q));h.push(linesHTML(id,q,rq));setTimeout(ovPreview,0);h.push(luckHTML(id,q,rq));
+    h.push(ovHTML(id,q));h.push(linesHTML(id,q,rq));h.push(pjCmpHTML(id,q));setTimeout(ovPreview,0);h.push(luckHTML(id,q,rq));
     if(q){const wk=psWeekProj(id,q);
       if(wk)h.push(psDD("week","This week",wk.sub,wk.html,true));
       h.push(psDD("proj","Proj vs this season","per game · rest of season",stickHTML(q,B,id),false));
@@ -4943,13 +4987,13 @@ function ovPreview(){const box=document.querySelector(".ovb");if(!box||!S.ps)ret
   const r=ovRank(id,q,ovEff(id,q,m,end)),mr=ovRank(id,q,ovEff(id,q,null));
   el.innerHTML=r?`Proj <b class="${r<=TOP?"up":r<=ROST?"":"dn"}">#${r}</b> <i>model #${mr}</i>`:""}
 function ovHTML(id,q){if(!q||!q.xp||!store.get("relay",null))return"";const r=ovRec(id),model=(q.xp0||q.xp)[0];
-  let efb=null;try{const X=efbIx(),e=X&&X.rows.find(x=>x.id===id);if(e)efb=e.l.min}catch(e){}
+  const oth=[];try{for(const k of["efb","bbm"]){const X=pjSnap(k),e=X&&X.byId[id];if(e&&e.l.min>0)oth.push([k,e.l.min])}}catch(e){}
   const f=v=>(Math.round(v*10)/10).toFixed(1),t=etToday();
   // which span the saved override is: none = ROS, an end a week / 2 / 4 from when it was set, else a date
   const span=!r||!r.until?"ros":r.sp&&OVSPAN.some(([k])=>k===r.sp)?r.sp:(OVSPAN.find(([k,,n])=>n&&r.at&&dPlus(String(r.at).slice(0,10),n)===r.until)||["date"])[0];
   const m0=r?r.m:Math.round(model*10)/10;
   return`<section class="blk ovb" data-span="${span}"><h3>Minutes${r?` <i class="ovt">yours</i>`:""}</h3>
-    <div class="ovr"><span>Model <b>${f(model)}</b></span>${efb?`<span>EFB <b>${f(efb)}</b>${Math.abs(efb-m0)>=1?` <button class="ovx" data-ov="efb" data-v="${f(efb)}">Use</button>`:""}</span>`:""}${r?`<span>Yours <b>${f(r.m)}</b> · ${r.until?"until "+fmtDate(r.until).replace(/^\w+, /,""):"ROS"}</span>`:""}</div>
+    <div class="ovr"><span>${pjSrc()==="ours"?"Model":PJS[pjSrc()]} <b>${f(model)}</b></span>${oth.map(([k,v])=>`<span>${PJS[k]} <b>${f(v)}</b>${Math.abs(v-m0)>=1?` <button class="ovx" data-ov="use" data-v="${f(v)}">Use</button>`:""}</span>`).join("")}${r?`<span>Yours <b>${f(r.m)}</b> · ${r.until?"until "+fmtDate(r.until).replace(/^\w+, /,""):"ROS"}</span>`:""}</div>
     <div class="ovst"><button class="ovsb" data-ovs="-1" aria-label="One minute less">−</button><input id="ovM" type="number" inputmode="decimal" min="0" max="48" step="0.5" value="${m0}"><button class="ovsb" data-ovs="1" aria-label="One minute more">+</button><span class="ovp"></span></div>
     <div class="ovsp"><span>How long</span>${OVSPAN.map(([k,l])=>`<button data-ovu="${k}" aria-pressed="${k===span}">${l}</button>`).join("")}<input id="ovU" type="date" min="${t}" value="${span==="date"&&r?r.until:""}"${span==="date"?"":" hidden"}></div>
     <div class="ovf"><button class="ovx sv" data-ov="save">Save</button>${r?`<button class="ovx dn" data-ov="clear">Clear</button>`:""}</div>
@@ -4986,6 +5030,22 @@ function linesHTML(id,q,rq){
     ${rows.map(x=>`<tr class="${x.sel?"sel":""}${x.wi?" wi":""}"><td><b>${x.lab}</b><i>${[x.g!=null?x.g+"g":"",x.tot?"totals":Math.round(x.l.min)+" min",x.sub].filter(Boolean).map(esc).join(" · ")}</i></td>${LNK.map(k=>`<td class="${cc(x.z&&x.z[k],k)}">${cv(x.l,k,x.tot)}</td>`).join("")}<td class="rk ${tr(x.r)}">${x.r||"–"}${x.of?`<i class="rof">of ${x.of}</i>`:""}</td></tr>`).join("")}</table></div>
     <p class="stkn">${S.psLn==="proj"?"Each game at that night's minutes (teammates in or out) and opponent, the same line as Today, Week and Schedule. <b>This week</b> and <b>Next week</b> are week totals (games left × his line each night; FG% and FT% stay percentages), ranked against everyone playing that week, so a 4-game week beats a 2-game one. The other rows are per game, ranked where that line would sit on the season scale; Rest of season is his Proj rank. <i>At 30 minutes</i> is a what-if: the same per-minute numbers, 30 minutes a game."
       :"What he's done, per game. Rank = his rank in that window, as on the Ranks tab."} Green / red = a real strength or weakness in that line (per game).</p></section>`}
+// All the projections side by side (only on a device with Scout or Lab): each one's rest-of-season
+// per-game line, ranked where it would sit on the season scale (punts and weights in), the one
+// driving the site highlighted, and each outside site's own rank for him.
+function pjCmpHTML(id,q){if(!q||!q.xp||!(pjHave("efb")||pjHave("bbm")))return"";
+  const B=S.bs,xr=l=>{const v=pjVal(pjZ(l));return B&&B.xs?1+B.xs.filter(x=>x>v).length:null},cur=pjSrc();
+  const rows=["ours","efb","bbm","mix"].filter(pjHave).map(k=>{const l=pjLine(k,id,q),X=k==="efb"||k==="bbm"?pjSnap(k):null,r=X&&X.byId[id];
+    return{k,l,z:l&&pjZ(l),r:l&&xr(l),own:r&&r.own,inj:r&&r.inj}});
+  const cv=(l,k)=>k==="fg"?(l.fga?Math.round(100*l.fgm/l.fga):"–"):k==="ft"?(l.fta?Math.round(100*l.ftm/l.fta):"–"):f1(l[k]);
+  const cc=(z,k)=>S.punt.has(k)?"off":z==null?"":z>=.75?"g":z<=-.75?"b":"";
+  const tr=r=>!r?"":r<=TOP?"up":r<=ROST?"":"dn";
+  const ago=k=>{const a=pjAt(k);if(!a)return"";const h=(Date.now()-new Date(a))/36e5;return h<20?"today":Math.round(h/24)+"d ago"};
+  const mins=rows.filter(x=>x.l).map(x=>x.l.min),spread=mins.length>1?Math.max(...mins)-Math.min(...mins):0;
+  return`<section class="blk"><h3>Projections <span>rest of season, per game</span></h3><div class="plnw"><table class="pln"><tr><th></th>${LNK.map(k=>`<th class="${S.punt.has(k)?"off":""}">${LNL[k]}</th>`).join("")}<th>Rank</th></tr>
+    ${rows.map(x=>`<tr class="${x.k===cur?"sel":""}"><td><b>${PJS[x.k]}</b><i>${x.l?[Math.round(x.l.min)+" min",x.own?"their #"+x.own:"",x.k==="efb"||x.k==="bbm"?ago(x.k):"",x.inj?esc(x.inj):""].filter(Boolean).join(" · "):"not listed"}</i></td>${x.l?LNK.map(k=>`<td class="${cc(x.z&&x.z[k],k)}">${cv(x.l,k)}</td>`).join("")+`<td class="rk ${tr(x.r)}">${x.r||"–"}</td>`:`<td colspan="${LNK.length+1}"></td>`}</tr>`).join("")}</table></div>
+    ${spread>=3?`<p class="lgk">The minutes differ by ${Math.round(spread)} a game: most of the gap between these lines is playing time. If you know better, set it in Minutes above.</p>`:""}
+    <p class="stkn">Each projection's rest-of-season line per game, all scored on our scale with your punts, so Rank is where that line would sit among everyone's Proj. <b>Sixth</b> = our model, <b>Scout</b> = Elite Fantasy Basketball, <b>Lab</b> = Basketball Monster (Josh Projections), <b>Blend</b> = the three averaged. "their #" is the site's own rank. The highlighted row is the one driving the site; change it in Punt › Projection.</p></section>`}
 // Luck check: what his season would be at the minutes he's played if he'd played to his projection,
 // against what he did. Proj already leans partly on this season, so the gap understates the luck a bit.
 function luckHTML(id,q,rq){
@@ -5095,7 +5155,7 @@ $("psBody").addEventListener("click",e=>{
     const d=$("ovU");d.hidden=ou.dataset.ovu!=="date";if(!d.hidden&&!d.value)d.value=dPlus(etToday(),21);ovPreview();return}
   const ob=e.target.closest("[data-ov]");if(ob&&S.ps&&S.ps.id){const id=S.ps.id,a=ob.dataset.ov,box=ob.closest(".ovb"),sp=box&&box.dataset.span||"ros",
     days=(OVSPAN.find(([k])=>k===sp)||[])[2],u=sp==="date"?($("ovU")||{}).value||"":days?dPlus(etToday(),days):"";
-    if(a==="clear")ovSave(id,null);else if(a==="efb"){$("ovM").value=ob.dataset.v;ovPreview()}
+    if(a==="clear")ovSave(id,null);else if(a==="use"){$("ovM").value=ob.dataset.v;ovPreview()}
     else{const v=parseFloat(($("ovM")||{}).value);if(!(v>=0&&v<=48)){alert("Enter minutes between 0 and 48.");return}ovSave(id,v,u,sp)}return}
   const p=e.target.closest(".wwo [data-id]");if(p)openSheet(p.dataset.id,null)});
 document.addEventListener("input",e=>{if(e.target&&(e.target.id==="ovM"||e.target.id==="ovU"))ovPreview()});
@@ -5152,7 +5212,7 @@ function setSheet(o){$("sheet").hidden=!o;$("sheetBg").hidden=!o;$("gear").setAt
 $("gear").onclick=()=>setSheet($("sheet").hidden);
 $("sheetBg").onclick=()=>setSheet(false);
 addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("sheet").hidden)setSheet(false)});
-$("gear").textContent=S.punt.size?`Punt ${S.punt.size}`:"Punt";
+paintGear();
 $("sortSeg").querySelectorAll("button[data-k]").forEach(b=>b.onclick=()=>setSort(b.dataset.k));
 $("bxSide").addEventListener("click",e=>{if(e.target.closest("[data-bxmin]")){store.set("bxOppMin",!store.get("bxOppMin",false));renderBxSide();return}const r=e.target.closest("[data-id]");if(!r)return;const p=S.players.find(x=>x.id===r.dataset.id);if(p)openSheet(p.eid||p.id,p)});
 const setGrp=g=>{S.grp=S.grp===g?"":g;store.set("bxGrp",S.grp);render()};
@@ -5161,6 +5221,12 @@ function paintGw(){$("gwSeg").querySelectorAll("button").forEach(b=>b.setAttribu
 $("gwSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.gw=+b.dataset.v;store.set("gw",S.gw);paintGw();
   rankWindows();rankBS();renderBS();renderBZ();renderPJ();renderRK();renderSC();if(S.players.length)render();renderSheet()});
 paintGw();
+function paintPs(){const ks=["ours","efb","bbm","mix"].filter(pjHave),cur=pjSrc(),el=$("psSeg");$("psBlk").hidden=ks.length<2;
+  el.innerHTML=ks.map(k=>`<button data-v="${k}" aria-pressed="${k===cur}">${PJS[k]}</button>`).join("");
+  el.querySelectorAll("button").forEach(b=>b.onclick=()=>{S.psrc=b.dataset.v;store.set("psrc",S.psrc);pjRefresh()})}
+paintPs();paintGear();
+setTimeout(()=>projFetch(),900);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)projFetch()});
 function paintPool(){$("poolSeg").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===S.pool))}
 $("poolSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.pool=+b.dataset.v;store.set("pool",S.pool);paintPool();
   if(S.players.length){compute();render()}});

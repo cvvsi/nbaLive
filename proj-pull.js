@@ -180,6 +180,9 @@ async function readBBM(page) {
   if (ros && !/rest of (the )?season|\bros\b/i.test(ros.sel)) { await choose(page, ros.id, ros.opts.find(o => /rest of (the )?season|\bros\b/i.test(o))); log('  picked rest of season'); }
   // 3. as many players as it offers
   ss = await selects(page);
+  const pf = ss.find(s => s.opts.includes('All Players'));
+  if (pf && pf.sel !== 'All Players') { await choose(page, pf.id, 'All Players'); log('  picked All Players'); }
+  ss = await selects(page);
   const cnt = ss.find(s => s.opts.length >= 3 && s.opts.every(o => /^(all|top )?\s*\d+$|^all( players)?$/i.test(o)));
   if (cnt) {
     const best = cnt.opts.find(o => /^all/i.test(o)) || cnt.opts.slice().sort((a, b) => +b.replace(/\D/g, '') - +a.replace(/\D/g, ''))[0];
@@ -203,6 +206,15 @@ async function readBBM(page) {
     }).filter(o => o.name && o.name !== 'Name');
     return { hs: hs.filter(Boolean), rows };
   }, BBMK).catch(() => null);
+}
+
+async function links(page, re) {
+  const out = new Set();
+  for (const f of page.frames()) {
+    const hs = await f.$$eval('a[href]', as => as.map(a => a.href)).catch(() => []);
+    for (const h of hs) if (re.test(h)) out.add(h.split(/[?#]/)[0]);
+  }
+  return [...out];
 }
 
 // Rows -> the snapshot the page reads: {v, src, at, f, r}, numbers as plain strings, percentages as 0-100.
@@ -235,6 +247,10 @@ async function pull(key) {
       else {
         const sn = snap(key, t), miss = F.filter(k => !t.hs.includes(k));
         log(`  table: ${t.rows.length} rows, ${sn.r.length} with minutes · fields missing: ${miss.join(', ') || 'none'}`);
+        // league-wide medians only (no player's numbers): projections show ~60+ games left, season stats ~15
+        const med = k => { const v = sn.r.map(x => +x[F.indexOf(k)]).filter(x => x > 0).sort((a, b) => a - b); return v.length ? v[v.length >> 1] : '-'; };
+        log(`  medians: g ${med('g')} · mpg ${med('mpg')} · pts ${med('pts')} · fg% ${med('fg')}`);
+        if (key === 'bbm') { const ls = await links(page, /projection/i); log(`  projection links: ${ls.map(path).join(' | ') || 'none'}`); }
         if (sn.r.length < 100) log('  too few rows: not sent');
         else if (process.env.DRY) { log('  dry run: not sent'); ok = true; }
         else {
