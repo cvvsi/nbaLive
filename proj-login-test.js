@@ -63,19 +63,54 @@ async function signIn(page, s) {
     }
     return false;
   }
-  const { f, p } = pf;
-  const u = f.locator('input[type=email]:visible, input[type=text]:visible, input:not([type]):visible').first();
+  // Pick the login form, not a sign-up form or a search box: mark each password field's form and
+  // prefer one whose fields don't look like registration (reg_, register, confirm, signup).
+  const { f } = pf;
+  const pick = await f.evaluate(() => {
+    const vis = e => !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
+    const forms = [...document.querySelectorAll('input[type=password]')].filter(vis).map(p => p.form || p.closest('div,section') || document.body);
+    const uniq = [...new Set(forms)];
+    const info = uniq.map((fm, i) => {
+      const ins = [...fm.querySelectorAll('input')].filter(vis);
+      const desc = ins.map(e => `${e.type}:${e.name || e.id || '-'}`).join(', ');
+      const reg = /reg|register|signup|sign_up|confirm|password2|first.?name/i.test(desc + ' ' + (fm.id || '') + ' ' + (fm.className || ''));
+      const pws = ins.filter(e => e.type === 'password').length;
+      return { i, desc, reg, pws };
+    });
+    const best = info.filter(x => !x.reg && x.pws === 1)[0] || info.filter(x => !x.reg)[0] || info[0];
+    uniq.forEach((fm, i) => fm.setAttribute('data-sm-form', i === best.i ? 'login' : 'other'));
+    const fm = uniq[best.i];
+    const btns = [...fm.querySelectorAll('button, input[type=submit], input[type=button], a')].filter(vis).map(b => (b.innerText || b.value || '').trim().slice(0, 30)).filter(Boolean);
+    return { forms: info.map(x => (x.reg ? '[sign-up] ' : '') + x.desc), btns };
+  }).catch(e => null);
+  if (!pick) { log('  could not read the login form'); return false; }
+  log(`  forms with a password: ${pick.forms.join('  ||  ')}`);
+  log(`  buttons in the login form: ${pick.btns.join(', ') || 'none'}`);
+  const fm = f.locator('[data-sm-form=login]');
+  const u = fm.locator('input[type=email]:visible, input[type=text]:visible, input:not([type]):visible').first();
+  const p = fm.locator('input[type=password]:visible').first();
   if (!(await u.count())) { log('  password field found but no username field'); return false; }
   await u.fill(s.user);
   await p.fill(s.pass);
+  const btn = fm.locator('button[type=submit]:visible, input[type=submit]:visible, button:visible, input[type=button]:visible')
+    .filter({ hasNotText: /register|sign ?up|forgot/i }).first();
+  const how = (await btn.count()) ? 'button' : 'Enter';
   await Promise.all([
-    page.waitForLoadState('domcontentloaded').catch(() => {}),
-    p.press('Enter'),
+    page.waitForNavigation({ timeout: 15000 }).catch(() => {}),
+    how === 'button' ? btn.click() : p.press('Enter'),
   ]);
-  await page.waitForTimeout(6000);
+  await page.waitForTimeout(5000);
   const still = await findPass(page);
-  const err = await page.locator('text=/invalid|incorrect|wrong password|captcha|not recognized/i').first().count().catch(() => 0);
-  log(`  after sign-in: ${path(page.url())} · password field still showing: ${!!still} · error text: ${!!err}`);
+  log(`  submitted with ${how} · now on ${path(page.url())} · password field still showing: ${!!still}`);
+  if (still) {
+    // The site's own message, if any (GitHub masks the username if it appears).
+    const msg = await page.locator('.woocommerce-error, .mepr_error, .error, .alert, [role=alert], .validation-summary-errors, span[style*="color:Red"], .text-danger')
+      .allInnerTexts().catch(() => []);
+    const m = msg.map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean).join(' | ').slice(0, 200);
+    log(`  site message: ${m || 'none'}`);
+    const cap = await page.locator('iframe[src*="recaptcha"], iframe[src*="hcaptcha"], iframe[src*="turnstile"], .g-recaptcha, .cf-turnstile').count().catch(() => 0);
+    log(`  captcha on the page: ${cap ? 'yes' : 'no'}`);
+  }
   return !still;
 }
 
