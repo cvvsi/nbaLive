@@ -82,6 +82,7 @@ function card(S, L, row, opts = {}) {
   const tw = week(0).filter(d => d >= etDay()), nw = week(1);
   const o = { name, nba: yt, owner: team ? (team === L.me ? 'you' : L.teams[team] || team) : 'free agent', slot: slot || undefined,
     positions: el || undefined, yahoo_tag: tag || undefined };
+  if (!team) Object.assign(o, wire(L, yp));
   if (!q) return { ...o, note: 'not in Sixth Man\'s player data (no recent minutes)' };
   Object.assign(o, { proj_rank: q.pr, season_rank: q.sr, rank_14d: q.r14, rank_7d: q.r7, gp: q.gp, mpg: q.mpg,
     mpg_last3: q.m3 != null ? q.m3 : undefined, min_change_last3: q.dm3 != null ? q.dm3 : undefined, injury: injTxt(S, id) || undefined,
@@ -92,14 +93,26 @@ function card(S, L, row, opts = {}) {
   return o;
 }
 
+// Free agent or waivers, from the relay's wire read (fa rows: [..., 'W' | 'FA' | '', waiver date]).
+// A waiver player can only be claimed until his date; claims run in waiver order that morning.
+function wire(L, yp) {
+  const f = yp != null && (L.fa || []).find(x => x[0] === String(yp)), today = etDay();
+  if (f && f[5] === 'W' && !(f[6] && f[6] < today)) {
+    const me = L.wt && L.wt[L.me];
+    return { owner: 'on waivers', waivers: { clears: f[6] || 'unknown', how_to_get_him: 'put in a waiver claim before he clears (claims run in waiver order that morning' +
+      (me && me[0] != null ? `; you are #${me[0]}` : '') + '), or wait and add him as a free agent after he clears, but any team that claimed him, even behind you in the order, gets him first' } };
+  }
+  return f && f[5] === 'FA' || (L.wvOk && (!f || f[5] !== 'W')) ? { owner: 'free agent (add any time, first come)' } : {};
+}
+
 // ---- tools
 const TOOLS = [
   { name: 'get_my_team', description: 'Your roster: each player\'s Yahoo slot today, eligible positions and injury tag, Sixth Man\'s ranks (Proj = rest-of-season per-game 9-cat rank among all NBA players; season, 14-day, 7-day), minutes trend, injury report, Proj per-game line, and games left this week / next week. Also adds used this week and roster limits.',
     inputSchema: { type: 'object', properties: {} } },
   { name: 'get_matchup', description: 'This week\'s head-to-head: both teams\' category totals so far (with FG/FT made-attempted), games played so far, each team\'s Yahoo lineup with games for every day left, and a projection of the finals with a win chance per category and for the week (Proj per-game lines over the games left, as the lineups are set on Yahoo).',
     inputSchema: { type: 'object', properties: {} } },
-  { name: 'get_free_agents', description: 'Available players (free agents and waivers; Yahoo\'s best 150 by its season rank) with Sixth Man ranks, Proj line, injury, eligible positions and games left this week / next week. Filter by position; sort by proj (rest of season), week (games left this week, then proj), last14 or season.',
-    inputSchema: { type: 'object', properties: { position: { type: 'string', description: 'PG, SG, G, SF, PF, F or C' }, sort: { type: 'string', enum: ['proj', 'week', 'last14', 'season'] }, limit: { type: 'number', description: 'default 25, max 60' }, include_injured: { type: 'boolean', description: 'include players out on the injury report (default false)' } } } },
+  { name: 'get_free_agents', description: 'Available players (Yahoo\'s best 150 by its season rank, plus everyone on waivers), each marked free agent (add any time) or on waivers (claim only, until the date he clears), with Sixth Man ranks, Proj line, injury, eligible positions and games left this week / next week. Filter by position; sort by proj (rest of season), week (games left this week, then proj), last14 or season.',
+    inputSchema: { type: 'object', properties: { position: { type: 'string', description: 'PG, SG, G, SF, PF, F or C' }, sort: { type: 'string', enum: ['proj', 'week', 'last14', 'season'] }, limit: { type: 'number', description: 'default 25, max 60' }, include_injured: { type: 'boolean', description: 'include players out on the injury report (default false)' }, availability: { type: 'string', enum: ['all', 'free_agents', 'waivers'], description: 'default all' } } } },
   { name: 'get_player', description: 'Everything on one player by name: who rosters him in your league, Yahoo positions and tag, Sixth Man ranks and Proj line, minutes trend, injury report, games this week and next, and his news from the last 3 days.',
     inputSchema: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] } },
   { name: 'get_team', description: 'Any team in your league by name (or part of it) or id: its roster with the same player details as get_my_team (lines left out to keep it short).',
@@ -121,7 +134,9 @@ async function call(name, a, deps, env) {
   const limits = () => { const pos = (L.cfg && L.cfg.pos) || {}; return { active: Object.entries(pos).filter(([k]) => ACT(k)).reduce((s, [, n]) => s + n, 0), bench: pos.BN || 0, il_in_settings: Object.entries(pos).filter(([k]) => /^(IL|IR)/i.test(k)).reduce((s, [, n]) => s + n, 0), il_this_league: 3, roster_max: 16 }; };
 
   if (name === 'get_my_team') {
+    const wp = L.wt && L.wt[L.me];
     return { team: L.teams[L.me], week: L.mu && L.mu.week, adds_used_this_week: L.adds && L.adds[L.me], max_weekly_adds: L.cfg && L.cfg.maxAdds,
+      waiver_priority: wp && wp[0] != null ? `#${wp[0]} of ${Object.values(L.wt).filter(v => v[0] != null).length}` : undefined, waiver_settings: L.cfg && L.cfg.wv,
       roster_size: mine.length, limits: limits(), roster: mine.map(r => card(S, L, r)).sort((x, y) => (x.proj_rank || 999) - (y.proj_rank || 999)) };
   }
   if (name === 'get_team') {
@@ -137,13 +152,15 @@ async function call(name, a, deps, env) {
       if (!id) return { error: 'No player matches "' + a.name + '".' };
       row = [null, S.A.p[id].n, S.A.p[id].t, null, '', '', '']; }
     const o = card(S, L, row), id = espnId(S, row[1], row[2]);
-    if (row[3] == null && !(L.fa || []).some(f => f[1] === row[1])) o.owner = 'free agent or outside Yahoo\'s best 150 available';
+    if (row[3] == null && !(L.fa || []).some(f => f[1] === row[1])) o.owner = L.wvOk ? 'free agent (add any time, first come)' : 'free agent or outside Yahoo\'s best 150 available';
     o.news = id ? ((S.N && S.N.items) || []).filter(n => n.id === id).slice(0, 6).map(n => ({ when: n.t, headline: n.h, detail: n.d, source: { rw: 'RotoWire', rtw: 'Rotoworld', bbm: 'Basketball Monster' }[n.src] || n.src })) : [];
     return o;
   }
   if (name === 'get_free_agents') {
     const pos = a.position ? String(a.position).toUpperCase() : null, lim = Math.min(60, a.limit || 25);
     let rows = (L.fa || []).filter(f => !pos || String(f[3]).split(',').includes(pos)).map(f => card(S, L, [f[0], f[1], f[2], null, '', f[3], f[4]]));
+    if (a.availability === 'waivers') rows = rows.filter(o => o.waivers);
+    else if (a.availability === 'free_agents') rows = rows.filter(o => !o.waivers);
     if (!a.include_injured) rows = rows.filter(o => !(o.injury && /^out/i.test(o.injury)));
     const by = { proj: o => o.proj_rank || 999, last14: o => o.rank_14d || 999, season: o => o.season_rank || 999 }[a.sort] ;
     rows.sort(a.sort === 'week' ? (x, y) => (y.games_left_this_week || []).length - (x.games_left_this_week || []).length || (x.proj_rank || 999) - (y.proj_rank || 999) : (x, y) => (by || (o => o.proj_rank || 999))(x) - (by || (o => o.proj_rank || 999))(y));
@@ -234,7 +251,8 @@ function matchup(S, L, today) {
 }
 
 const INSTRUCTIONS = `You are a fantasy basketball analyst for the user's own Yahoo league, with their league read live from Yahoo and Sixth Man's projections.
-League: 10 teams, head-to-head, 9 categories (FG%, FT%, 3PTM, PTS, REB, AST, ST, BLK, TO; fewer turnovers wins). Weekly matchups Mon-Sun, 4 adds a week. Lineup: PG, SG, G, SF, PF, F, C, C, Util, Util (10 active), 3 bench; this league allows 3 IL players (13 + 3 = 16 at most).
+League: 10 teams, head-to-head, 9 categories (FG%, FT%, 3PTM, PTS, REB, AST, ST, BLK, TO; fewer turnovers wins). Weekly matchups Mon-Sun, 4 adds a week.
+Free agents vs waivers: a free agent can be added any time (first come). A player on waivers (just dropped) can only be claimed until the date he clears; claims run in waiver order that morning and a claim that lands sends that team to the back of the order. Skipping the claim to keep priority means waiting until he clears and then racing to add him, and any team's claim (even one behind in the order) gets him first. When you recommend a pickup, say which it is, and for a waiver player whether he's worth the claim. Lineup: PG, SG, G, SF, PF, F, C, C, Util, Util (10 active), 3 bench; this league allows 3 IL players (13 + 3 = 16 at most).
 Sixth Man ranks are plain 9-cat per-game ranks among all NBA players: proj_rank = rest of season (the best guide for adds and drops), season_rank, rank_14d, rank_7d. Inside 100 = a starter in a 10-team league, 101-130 = bench/streamer, beyond 130 = waiver level. Weekly value = games x per-game quality: a 4-game streamer can beat a better 2-game player for one week.
 Minutes overrides: the user can set a player's minutes by hand on Sixth Man (minutes_override on a player); the Proj line and the matchup projection use them, proj_rank stays the model's. When you think the model's minutes are off (an injury-shortened game, a restriction ending, a starter returning), say so and suggest an override.
 IL+ trick (the user uses it): a player with a Yahoo injury tag (Q, P, D, O, INJ, GTD) can be moved to IL; lineups can be preset days or weeks ahead and hold even after he's healthy, as long as there are no adds or drops. Each day the IL slots should hold tagged players who don't play that day; tagged players whose games overlap block each other. Any add or drop can reset preset lineups, and once a parked player loses his tag adds/drops are blocked. Use get_il_plus for this.
