@@ -80,6 +80,15 @@ async function signIn(page, s) {
     const best = info.filter(x => !x.reg && x.pws === 1)[0] || info.filter(x => !x.reg)[0] || info[0];
     uniq.forEach((fm, i) => fm.setAttribute('data-sm-form', i === best.i ? 'login' : 'other'));
     const fm = uniq[best.i];
+    // Some sites (ASP.NET) wrap the whole page in one form: the username is the text field just
+    // before the password, and the button the first "Log in / Sign in" after it.
+    const pw = [...fm.querySelectorAll('input[type=password]')].find(vis);
+    const all = [...fm.querySelectorAll('input, button, a')].filter(vis), at = all.indexOf(pw);
+    const un = all.slice(0, at).reverse().find(e => e.tagName === 'INPUT' && /^(text|email|)$/.test(e.getAttribute('type') || ''));
+    const sb = all.slice(at + 1).find(e => /^\s*(log ?in|sign ?in|submit)\s*$/i.test(e.innerText || e.value || ''))
+      || all.slice(at + 1).find(e => e.type === 'submit');
+    if (un) un.setAttribute('data-sm-user', '1');
+    if (sb) sb.setAttribute('data-sm-btn', '1');
     const btns = [...fm.querySelectorAll('button, input[type=submit], input[type=button], a')].filter(vis).map(b => (b.innerText || b.value || '').trim().slice(0, 30)).filter(Boolean);
     return { forms: info.map(x => (x.reg ? '[sign-up] ' : '') + x.desc), btns };
   }).catch(e => null);
@@ -87,13 +96,12 @@ async function signIn(page, s) {
   log(`  forms with a password: ${pick.forms.join('  ||  ')}`);
   log(`  buttons in the login form: ${pick.btns.join(', ') || 'none'}`);
   const fm = f.locator('[data-sm-form=login]');
-  const u = fm.locator('input[type=email]:visible, input[type=text]:visible, input:not([type]):visible').first();
+  const u = fm.locator('[data-sm-user]').first();
   const p = fm.locator('input[type=password]:visible').first();
   if (!(await u.count())) { log('  password field found but no username field'); return false; }
   await u.fill(s.user);
   await p.fill(s.pass);
-  const btn = fm.locator('button[type=submit]:visible, input[type=submit]:visible, button:visible, input[type=button]:visible')
-    .filter({ hasNotText: /register|sign ?up|forgot/i }).first();
+  const btn = fm.locator('[data-sm-btn]').first();
   const how = (await btn.count()) ? 'button' : 'Enter';
   await Promise.all([
     page.waitForNavigation({ timeout: 15000 }).catch(() => {}),
