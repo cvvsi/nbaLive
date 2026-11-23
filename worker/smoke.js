@@ -28,8 +28,6 @@ const u = 'https://sixthman-yahoo.saac-choi.workers.dev', key = process.env.RELA
         '(with a date', (o.fa || []).filter(x => x[5] === 'W' && x[6]).length + ') | unknown', (o.fa || []).filter(x => !x[5]).length, '| waiver list complete', !!o.wvOk,
         '| priorities read', Object.values(o.wt || {}).filter(v => v[0] != null).length, '| waiver settings', o.cfg && o.cfg.wv && o.cfg.wv.type ? 'read' : 'not read');
       const w = await fetch(u + '/wire', { headers: { 'X-Relay-Key': key } }), wj = await w.json().catch(() => null);
-      const sc = await fetch(u + '/sched', { headers: { 'X-Relay-Key': key } }), scj = await sc.json().catch(() => null);
-      console.log('/sched:', sc.status, Array.isArray(scj) ? scj.filter(j => j.state === 'pending').length + ' pending' : (scj && scj.error) || 'FAILED');
       console.log('/wire:', w.status, wj && wj.wire ? `${wj.fa.length} available, ${wj.p.length} rostered` : (wj && wj.error) || 'FAILED');
       console.log('schedule weeks:', Object.keys(o.sched).length, '| categories:', (o.cfg.cats || []).join(' '), '| positions:', Object.keys(o.cfg.pos || {}).join(' '));
       // the analyst (MCP): handshake, tool list, and one call each to the two main tools (sizes only)

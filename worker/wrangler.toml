@@ -7,10 +7,6 @@ main = "yahoo-relay.js"
 compatibility_date = "2025-06-01"
 workers_dev = true
 
-# Once a minute: scheduled pickups (sched.js). With nothing scheduled a run is one KV read.
-[triggers]
-crons = ["* * * * *"]
-
 [vars]
 # Pages allowed to call the relay from a browser. The relay key is the real lock.
 ALLOW_ORIGINS = "https://sixthmanhoops.app,https://cvvsi.github.io,http://localhost:8000"
