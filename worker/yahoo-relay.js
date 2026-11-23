@@ -25,6 +25,8 @@
  *               thing the relay stores (Cloudflare KV, binding OV): your own numbers, not Yahoo's
  *               data. {espn id: {m, until, at, n, t}}; expired ones are dropped. /sync carries them
  *               too (ov), and the analyst applies them.
+ * GET /proj, POST /proj {v, src: efb|bbm, at, f, r} -> the latest EFB / BBM projections, sent each
+ *               morning by the Projections job (proj-pull.js) with your own logins; for your devices.
  * POST /mcp/<RELAY_KEY> (or /mcp with an "X-Relay-Key: <RELAY_KEY>" or "Authorization: Bearer" header) -> the fantasy analyst, an
  *               MCP server with read-only tools over the same data (worker/analyst.js).
  *
@@ -308,6 +310,25 @@ async function ovSet(env, b) {
   return o;
 }
 
+// Outside projections (KV keys "proj:efb", "proj:bbm"): the latest snapshot from each site, sent by
+// the daily Projections job (proj-pull.js) with your own logins. {v, src, at, f, r}. Your own
+// subscriptions' numbers, kept for your devices only, behind the relay key like everything else.
+const PSRC = ['efb', 'bbm'];
+async function projGet(env) {
+  const o = {};
+  if (!env.OV) return o;
+  for (const s of PSRC) { const x = await env.OV.get('proj:' + s, 'json'); if (x) o[s] = x; }
+  return o;
+}
+async function projSet(env, b) {
+  if (!env.OV) throw new HttpErr(500, 'No storage (the OV KV binding): re-run Actions -> Yahoo relay.');
+  if (!b || !PSRC.includes(b.src) || !Array.isArray(b.f) || !Array.isArray(b.r) || b.r.length < 50) throw new HttpErr(400, 'Bad projections snapshot.');
+  if (b.r.length > 1500 || b.f.length > 40) throw new HttpErr(400, 'Snapshot too big.');
+  const s = { v: 1, src: b.src, at: String(b.at || new Date().toISOString()).slice(0, 30), f: b.f.map(String), r: b.r.map(x => (x || []).map(v => String(v == null ? '' : v).slice(0, 40))) };
+  await env.OV.put('proj:' + b.src, JSON.stringify(s));
+  return { ok: true, src: s.src, at: s.at, n: s.r.length };
+}
+
 // Constant-time compare, so the key can't be guessed a character at a time.
 function keyOk(a, b) {
   if (!a || !b || b.length < 16) return false;
@@ -342,6 +363,8 @@ export default {
       if (url.pathname === '/wire' && req.method === 'GET') return json(await buildWire(env));
       if (url.pathname === '/minutes' && req.method === 'GET') return json(await ovGet(env));
       if (url.pathname === '/minutes' && req.method === 'POST') return json(await ovSet(env, await req.json().catch(() => null)));
+      if (url.pathname === '/proj' && req.method === 'GET') return json(await projGet(env));
+      if (url.pathname === '/proj' && req.method === 'POST') return json(await projSet(env, await req.json().catch(() => null)));
       return json({ error: 'Not found' }, 404);
     } catch (e) {
       return json({ error: e.message || String(e) }, e.status || 500);
