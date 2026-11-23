@@ -22,7 +22,7 @@ const CATS = ['fg', 'ft', 'tpm', 'pts', 'reb', 'ast', 'stl', 'blk', 'to'];
 const WINDOWS = { season: 0, d30: 30, d14: 14, d7: 7 };
 // Per-game stat line per window (l[window], fields LF), for the Ranks tab's cards.
 const LF = ['pts', 'reb', 'ast', 'stl', 'blk', 'tpm', 'to', 'fgm', 'fga', 'ftm', 'fta'];
-const POOL = 130, ITER = 4, G3 = 3;
+const POOL = 130, ITER = 4, G3 = 3, G3WIN = 10;
 const CACHE = '.cache/games.json', OUT = 'data/rankings.json', REG = 'data/regression.json', HIST = 'data/history.json';
 const CACHE_V = 5;   // bump when parseBox's row shape changes, so stale cached rows are refetched (4: starter flag, 5: position)
 
@@ -585,27 +585,38 @@ async function main() {
       if (p.tpos) (players[p.id].u || (players[p.id].u = {}))[w] = Math.round(1000 * p.use / p.tpos) / 10;
     }
   }
-  // g3: each team's last 3 games, per team game. Calendar windows hold 2-4 games depending
-  // on the schedule; this is the "3 straight decent games" read, with DNPs as zeros.
+  // g3: each player's last 3 games PLAYED, per game played. A rest night or a DNP is skipped,
+  // not counted as a zero, so a regular who sat one doesn't sink (changed Nov 23, 2026; it used
+  // to be the team's last 3 with misses as zeros). Only games within his team's last G3WIN, so
+  // a long absence leaves him with no L3 rank instead of a stale one.
+  // m3: games he missed of his current team's last 3 (only when 1+), for the "missed" notes.
   const byTeam = {};
   for (const g of games) for (const t of new Set(g.rows.map(r => r.team))) (byTeam[t] || (byTeam[t] = [])).push(g);
-  const last = {}, teamGames = {};
+  const last = {}, recentT = {};
   for (const [t, gs] of Object.entries(byTeam)) {
     gs.sort((a, b) => a.date < b.date ? -1 : 1);
-    last[t] = new Set(gs.slice(-G3)); teamGames[t] = Math.min(G3, gs.length);
+    last[t] = new Set(gs.slice(-G3)); recentT[t] = new Set(gs.slice(-G3WIN));
   }
-  const g3 = games.map(g => ({ rows: g.rows.filter(r => last[r.team] && last[r.team].has(g)) }));
-  windows.g3 = { games: G3, perTeamGame: true, to: asOf };
-  const s3 = rankWindow(g3, teamGames); windows.g3.zp = poolOut(s3.pool);
+  const pick = new Set(), seen = {}, inLast = {};
+  for (const g of [...games].sort((a, b) => a.date < b.date ? 1 : -1)) for (const r of g.rows) {
+    if (recentT[r.team].has(g) && (seen[r.id] || 0) < G3) { pick.add(r); seen[r.id] = (seen[r.id] || 0) + 1; }
+    if (r.team === players[r.id].t && last[r.team].has(g)) inLast[r.id] = (inLast[r.id] || 0) + 1;
+  }
+  for (const [id, q] of Object.entries(players)) {
+    const m = Math.min(G3, (byTeam[q.t] || []).length) - (inLast[id] || 0); if (m > 0) q.m3 = m;
+  }
+  const g3 = games.map(g => ({ rows: g.rows.filter(r => pick.has(r)) }));
+  windows.g3 = { games: G3, perPlayer: true, within: G3WIN, to: asOf };
+  const s3 = rankWindow(g3); windows.g3.zp = poolOut(s3.pool);
   for (const p of s3) {
     players[p.id].w.g3 = [p.gp, Math.round(p.min * 10) / 10, ...CATS.map(c => r2(p.z[c]))];
     (players[p.id].l || (players[p.id].l = {})).g3 = LF.map(k => r2(p[k]));
     if (p.tpos) (players[p.id].u || (players[p.id].u = {})).g3 = Math.round(1000 * p.use / p.tpos) / 10;
   }
-  // pm: minutes per game played BEFORE those 3, the baseline for the role-change flag.
+  // pm: minutes per game played BEFORE his last 3, the baseline for the role-change flag.
   // (Comparing against the season would dilute the jump with the very games that show it.)
   const before = {};
-  for (const g of games) for (const r of g.rows) if (!last[r.team].has(g)) {
+  for (const g of games) for (const r of g.rows) if (!pick.has(r)) {
     const b = before[r.id] || (before[r.id] = { gp: 0, min: 0 }); b.gp++; b.min += r.min;
   }
   for (const [id, b] of Object.entries(before)) players[id].pm = Math.round(b.min / b.gp * 10) / 10;

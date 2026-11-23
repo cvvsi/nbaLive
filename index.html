@@ -1281,7 +1281,7 @@ button,a,input,select,textarea,label,summary,[role=button]{touch-action:manipula
   </div>
   <div><p><b>Value</b> is a player's average z-score across your active categories, relative to everyone in the comparison pool who played that day. FG% and FT% count makes above or below average on their attempts, so volume matters. Turnovers count against. Tap a player to see the z-score under each stat.</p>
     <p style="margin-top:8px"><b>Weekly weights</b> re-rank everyone for a weekly head-to-head. A z-score treats every category alike; over one week some swing far more than others, so a lead in them wins less often. Each z-score is multiplied by how much of it holds up over a week, measured on three seasons: assists 71%, rebounds and threes 68%, blocks 65%, points 60%, turnovers 58%, FT% 56%, FG% 55%, steals 44%. Steals specialists drop, steady scorers and passers rise. Z-score is the standard ranking most fantasy sites use. A single night's Value on the Box tab is never weighted.</p>
-    <p style="margin-top:8px"><b>Szn / 14 / 7 / 3G</b> beside each name are 9-cat ranks: per-game over the season and the last 14 and 7 days, and over the team's last 3 games with any game the player missed counted as zero, so resting doesn't flatter anyone. All are against a top-130 pool with your punts applied, rebuilt every morning through last night.</p>
+    <p style="margin-top:8px"><b>Szn / 14 / 7 / 3G</b> beside each name are 9-cat ranks: per-game over the season and the last 14 and 7 days, and over his last 3 games played (a night he sat is skipped, so a rest day doesn't sink a regular). All are against a top-130 pool with your punts applied, rebuilt every morning through last night.</p>
     <p style="margin-top:8px"><b>Movers.</b> A green L3 box means the last-3 rank is at least 40% better than the season rank (inside the top 130); red means at least 40% worse for someone inside 130 on the season. <b style="color:var(--ball)">▲n</b> after minutes means n more minutes a game over the last 3 than before them, usually the first sign of a new role. The Movers sort shows only flagged players.</p>
     <p style="margin-top:8px"><b>Buy/Sell</b> asks whether a start is real by comparing this season's per-minute numbers with last season's. Tap the <b>i</b> on that tab for the full explanation.</p>
     <p style="margin-top:8px"><b>Buzz</b> is Yahoo's most added and dropped players for the day across all Yahoo leagues, next to your Szn / 3G / Proj ranks. <b>Follow</b> or <b>Fade</b> comes only from those numbers and the minutes trend: a real minutes jump or an Proj inside 130 says follow; a season and Proj outside 130 with no new minutes says fade. For drops, <b>Panic</b> means the numbers say he's still worth a spot and <b>Agree</b> means the role really shrank. It knows nothing about news, so a <b>Check</b> (missed games) is worth a look.</p></div>
@@ -1608,7 +1608,7 @@ function scoreValue(){
 
 // ---- multi-day ranks: data/rankings.json, built nightly by build-rankings.js. It stores
 // per-window z-scores rather than ranks so punts re-rank here exactly like tonight's Value.
-// g3 = the team's last 3 games, with games the player missed counted as zero nights.
+// g3 = his last 3 games played (within his team's last 10), per game played; a DNP is skipped.
 const WINS=[{k:"season",l:"Szn",n:"Season"},{k:"d14",l:"14",n:"L14"},{k:"d7",l:"7",n:"L7"},{k:"g3",l:"3G",n:"3G"}];
 // League: 10 teams. TOP = starting spots (10 x 10), ROST = rostered players (10 x 13).
 const TOP=100,ROST=130;
@@ -1870,7 +1870,7 @@ const rkTxt=r=>r?`<span class="${r<=TOP?"hi":r<=ROST?"":"lo"}">${r}</span>`:"–
 function detailHTML(id,tn,lite){
   const q=G&&G.players[id],rq=R&&R.players[id],B=S.bs,v=B&&B.v[id],ranks=[],flags=[];
   if(tn&&rq)for(const w of WINS)if(rq.w[w.k])
-    ranks.push(chip(w.n,`${rkTxt(S.rk[w.k][id])}<i>${w.k==="g3"?rq.w.g3[0]+"/3":rq.w[w.k][0]}g</i>`));
+    ranks.push(chip(w.n,`${rkTxt(S.rk[w.k][id])}<i>${rq.w[w.k][0]}g</i>`));
   if(q&&B){
     if(!tn)ranks.push(chip("Now",rkTxt(B.now[id])));
     ranks.push(chip(q.rk&&!q.b?"Proj·R":"Proj",hasPj(q)?rkTxt(B.x[id]):"–",v==="buy"?"good":v==="sell"?"bad":""),chip("LY",rkTxt(B.ly[id])));
@@ -1878,7 +1878,7 @@ function detailHTML(id,tn,lite){
     if(c&&c[0])flags.push(chip("Blowouts",`${c[0]} of ${gp}<i>${d1(c[1])} min${c[2]?` vs ${d1(c[3])}`:""}</i>`,"flag"));
     if(c&&c[4])flags.push(chip("5+ fouls",`${c[4]} of ${gp}`,"flag"));
   }
-  if(rq&&rq.w.g3&&rq.pm!=null){const miss=3-rq.w.g3[0],d=rq.w.g3[1]-rq.pm;
+  if(rq&&rq.w.g3&&rq.pm!=null){const miss=rq.m3||0,d=rq.w.g3[1]-rq.pm;
     if(miss)flags.push(chip("Missed",`${miss} of last 3`,"flag"));
     else if(Math.abs(d)>=3)flags.push(chip("Last 3",`${Math.round(rq.w.g3[1])} min<i>${Math.round(rq.pm)} before</i>`,d>0?"good":"bad"))}
   if(lite)return(flags.length?`<div class="chips">${flags.join("")}</div>`:"")+cmpTable(q);
@@ -2038,11 +2038,11 @@ function renderLgBS(st){
     const by=a=>a.sort((p,q)=>B.x[p[0]]-B.x[q[0]]);
     $("bsStatus").textContent=`${mine.length} players`;
     const D=isDesk(),sec=(t,sub,a)=>a.length?(D?lgBsHeadW:lgBsHead)(t,sub)+by(a).map(r=>(D?lgBsRowW:lgBsRow)(...r)).join(""):"";
-    if(D){$("bsList").innerHTML=`<div class="lbdw"><p class="bzcap">Your roster, by what to do. <b>Now</b> = season rank, <b>Last 3</b> = the team's last 3 games, <b>Proj</b> = where the numbers say he's headed (minutes stay, shooting and per-minute luck drift back); the line is his Proj per game.</p><div class="dwx"><div class="dwm">`
+    if(D){$("bsList").innerHTML=`<div class="lbdw"><p class="bzcap">Your roster, by what to do. <b>Now</b> = season rank, <b>Last 3</b> = his last 3 games played, <b>Proj</b> = where the numbers say he's headed (minutes stay, shooting and per-minute luck drift back); the line is his Proj per game.</p><div class="dwx"><div class="dwm">`
       +sec("Injured","Out on the injury report: ranked on the games he played",grp.inj)+sec("On the bubble","Proj outside "+ROST+": drop, or watch if the role is growing",grp.drop)
       +sec("Running hot","Enjoy it, don't count on it",grp.hot)+sec("Slumping","Hold: the numbers say he comes back",grp.slump)+sec("Steady","Ranked about where he should be",grp.steady)
       +`</div>${lgRail("add")}</div></div>`;return}
-    $("bsList").innerHTML=`<div class="bo2w"><p class="bzcap">Your roster, by what to do. <b>Now</b> = season rank, <b>Last 3</b> = the team's last 3 games, <b>Proj</b> = where the numbers say he's headed (minutes stay, shooting and per-minute luck drift back).</p>`
+    $("bsList").innerHTML=`<div class="bo2w"><p class="bzcap">Your roster, by what to do. <b>Now</b> = season rank, <b>Last 3</b> = his last 3 games played, <b>Proj</b> = where the numbers say he's headed (minutes stay, shooting and per-minute luck drift back).</p>`
       +`<div class="lbcols"><div>`+sec("Injured","Out on the injury report: ranked on the games he played",grp.inj)
       +sec("On the bubble","Proj outside "+ROST+": drop, or watch if the role is growing",grp.drop)
       +sec("Running hot","Enjoy it, don't count on it",grp.hot)
@@ -2307,7 +2307,7 @@ function boRow(o){
   // the note icon rides on the name line, so a row with several tags (Starter, Spike, Rookie...) keeps its shape
   const head=`<span class="b2n">${hs(o.id)}<span class="b2t"><span class="b2nl"><b class="nm">${esc(q.n)}</b>${note}</span><i>${esc(q.t)}${tags}</i></span></span>`;
   if(isDesk()){
-    // the last-3 per-game line (per team game, a missed game counts as zero), the same window as the trigger
+    // the last-3 per-game line (his last 3 games played), the same window as the trigger
     const rq=R&&R.players[o.id],lv=rq&&rq.l&&rq.l.g3,l={};if(lv)R.lf.forEach((k,i)=>l[k]=lv[i]);
     const f1=v=>v==null||!lv?"–":v.toFixed(1),pc=(m,a)=>lv&&a>0?(m>=a?"1.000":(m/a).toFixed(3).slice(1)):"–";
     const since=p.since&&p.since.trig?fmtDate(p.since.trig).replace(/^\w+, /,""):"";
@@ -2326,7 +2326,7 @@ function renderBO(){
   const T=BOR.trigger||{},pc=t=>T[t]?Math.round(100*T[t].hits/T[t].cases):null,one=v=>v?`about 1 in ${Math.max(2,Math.round(100/v))}`:"";
   $("bsStatus").textContent=`${rows.length} rising`;
   $("bsAsOf").textContent=`Thru ${fmtDate(BO.asOf).replace(/^\w+, /,"")}`;
-  $("bsList").innerHTML=`<p class="bzcap">Players outside the top ${BO_FLOOR} whose role just grew: 6+ more minutes a game over the last 3 (to 22+), moved into the starting five, or 5+ points more usage with 3+ more minutes (to 24+). On desktop, <b>Szn · 30D · 14D · 7D · L3</b> = his 9-cat rank in each window (green inside 100), then Proj, then his <b>last 3 games</b> per game (a missed game counts as zero) and the day the role change started. Sorted by <b>Proj</b>, which already counts the new minutes. Min, Usg% and Rank read <b>season → last 3 games</b>. <b>Spike</b> = 10+ more minutes, which held up about half as often (mostly injury fill-ins). In past seasons, of players in this spot, ${pc("top80")}% from #${BO_FLOOR+1}–80, ${pc("fringe")}% from #81–${ROST} and ${pc("deep")}% from outside ${ROST} were top-${ROST} over their next 20 games (${one(pc("deep"))} for the deep ones): most role bumps fade, so check why the minutes came.</p>`
+  $("bsList").innerHTML=`<p class="bzcap">Players outside the top ${BO_FLOOR} whose role just grew: 6+ more minutes a game over the last 3 (to 22+), moved into the starting five, or 5+ points more usage with 3+ more minutes (to 24+). On desktop, <b>Szn · 30D · 14D · 7D · L3</b> = his 9-cat rank in each window (green inside 100), then Proj, then his <b>last 3 games</b> played, per game, and the day the role change started. Sorted by <b>Proj</b>, which already counts the new minutes. Min, Usg% and Rank read <b>season → last 3 games</b>. <b>Spike</b> = 10+ more minutes, which held up about half as often (mostly injury fill-ins). In past seasons, of players in this spot, ${pc("top80")}% from #${BO_FLOOR+1}–80, ${pc("fringe")}% from #81–${ROST} and ${pc("deep")}% from outside ${ROST} were top-${ROST} over their next 20 games (${one(pc("deep"))} for the deep ones): most role bumps fade, so check why the minutes came.</p>`
     +(rows.length?(isDesk()?(`<div class="bo2w bo3w"><div class="bo3r bo3h"><span>Player</span><span>Min</span><span>Usg%</span><span>Szn</span><span>30D</span><span>14D</span><span>7D</span><span>L3</span><span>Proj</span><span>PTS</span><span>REB</span><span>AST</span><span>3PM</span><span>STL</span><span>BLK</span><span>TO</span><span>FG%</span><span>FT%</span><span>Since</span></div>${rows.map(boRow).join("")}</div>`)
       :`<div class="bo2w"><div class="bo2r bo2h"><span>Player</span><span>Min</span><span>Usg%</span><span>Proj</span></div>${rows.map(boRow).join("")}</div>`):`<div class="empty">No one outside the top ${BO_FLOOR} has a growing role right now.</div>`);
 }
@@ -2553,11 +2553,11 @@ function analyst(id,tn){
     s.push(`Some of this is garbage time: ${cx[0]} of ${gp} games have been blowouts, with ${d1(cx[1])} minutes in them against ${d1(cx[3])} in closer games.`);
   else if(cx[0]&&!cx[2]&&gp>=2)s.push("Every game so far has been a blowout, so the minutes may not show the real role yet.");
   if(cx[4]&&cx[4]>=Math.max(1,gp*.25))s.push(`Foul trouble (5+ fouls) in ${cx[4]} of ${gp} games has cost minutes too.`);
-  // The 3G window counts missed games as zeros, so a "minutes drop" there is often absences;
-  // the note can't see injuries, so it says so and points at the injury report.
-  if(rq&&rq.w.g3&&rq.pm!=null){const d=rq.w.g3[1]-rq.pm,miss=3-rq.w.g3[0];
+  // The L3 window is his last 3 games played; m3 = games he missed of the team's last 3.
+  // The note can't see injuries, so it points at the injury report.
+  if(rq&&rq.w.g3&&rq.pm!=null){const d=rq.w.g3[1]-rq.pm,miss=rq.m3||0;
     if(miss&&d<0)s.push(`Missed ${miss} of the team's last 3 games; worth checking the injury report.`);
-    else if(Math.abs(d)>=5)s.push(`Minutes have ${d>0?"jumped":"dropped"} to ${Math.round(rq.w.g3[1])} a game over the team's last 3 (${Math.round(rq.pm)} before).`)}
+    else if(Math.abs(d)>=5)s.push(`Minutes have ${d>0?"jumped":"dropped"} to ${Math.round(rq.w.g3[1])} a game over his last 3 (${Math.round(rq.pm)} before).`)}
 
   const hot=[],cold=[];
   if(b){
@@ -2599,7 +2599,7 @@ function analyst(id,tn){
         :`The projected line grades out ${g>0?"better":"worse"} (#${x}) than the current rank (#${now}).`)}
   }
   if(mv&&(mv.hot||mv.cold)&&rq&&rq.w.g3)
-    s.push(`Trending ${mv.hot?"up":"down"}: #${S.rk.g3[id]} over the team's last 3 games against #${now} on the season.`);
+    s.push(`Trending ${mv.hot?"up":"down"}: #${S.rk.g3[id]} over his last 3 games against #${now} on the season.`);
   // Category profile, and a punt build it suits.
   const zs=act.map(k=>({k,z:q.now[zi(k)]})),str=zs.filter(o=>o.z>=.75).sort((a,c)=>c.z-a.z).slice(0,3),
     weak=zs.filter(o=>o.z<=-.75).sort((a,c)=>a.z-c.z).slice(0,2);
@@ -2689,7 +2689,7 @@ function bzId(row){
 function bzRead(id,drop){
   const rq=R&&R.players[id];if(!rq||!S.rk)return{t:"",c:"dim",why:"not in my ranks yet"};
   const g=rq.w.g3,rs=S.rk.season[id],r3=g?S.rk.g3[id]:0,q=G&&G.players[id],B=S.bs;
-  const x=hasPj(q)&&B?B.x[id]:0,v=B&&B.v[id],miss=g?3-g[0]:3,mu=g&&rq.pm!=null?g[1]-rq.pm:0;
+  const x=hasPj(q)&&B?B.x[id]:0,v=B&&B.v[id],miss=g?rq.m3||0:3,mu=g&&rq.pm!=null?g[1]-rq.pm:0;
   const outs=rs>ROST&&(!x||x>ROST);
   if(miss>=2)return{t:"Check",c:"dim",why:`missed ${miss} of last 3: check news`};
   if(!drop){
@@ -4032,8 +4032,8 @@ Promise.all(["data/schedule.json","data/props.json","data/injuries.json"].map(u=
 
 // ---- Ranks tab: what actually happened, per window (rankings.json: z-scores w[window] and
 // the per-game line l[window]). Per g ranks how well a player played; Total = per-game value x
-// games played, so missed games count. L3 is per team game (a missed game is a zero), which
-// already counts absences, so it has no Total. Same cards, punts and pool as everywhere.
+// games played, so missed games count. L3 is his last 3 games played (a DNP is skipped); it
+// has no Total. Same cards, punts and pool as everywhere.
 S.rkWin=store.get("rkWin","season");S.rkSz=store.get("rkSz","pg");
 function renderRK(){
   $("rkWin").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.rkWin));
@@ -4050,11 +4050,11 @@ function renderRK(){
   for(const[id,q]of Object.entries(R.players)){const a=q.w[w],lv=q.l&&q.l[w];if(!a||!lv)continue;
     const z=Object.fromEntries(R.cats.map((c,i)=>[c,a[2+i]])),pv=pjVal(z),l={};R.lf.forEach((k,i)=>l[k]=lv[i]);
     rows.push({id,q,l,min:a[1],v:tot?val0(z,W.zp)*a[0]:pv,foot:ijNote(id),sdl:a[0]+"g",z,ctx:`<b>${a[0]}</b> g`,
-      side:`<div class="pjside"><b>${a[0]}</b><i>${w==="g3"?"of last 3":"games"}</i></div>`})}
+      side:`<div class="pjside"><b>${a[0]}</b><i>games</i></div>`})}
   rows.sort((a,b)=>b.v-a.v);rows.forEach((o,i)=>o.rank=i+1);const top=lgFilter(rows).slice(0,250);paintLg();
-  const span=w==="season"?"this season":w==="g3"?"each team's last 3 games (a missed game counts as zero)":`${sh(W.from)}–${sh(W.to)}`;
+  const span=w==="season"?"this season":w==="g3"?"each player's last 3 games played":`${sh(W.from)}–${sh(W.to)}`;
   $("rkStatus").textContent=`${rows.length} · ${tot?"total":"per game"}`;
-  $("rkList").innerHTML=`<p class="bzcap">Actual 9-cat value, ${span}. ${w==="g3"?"Per team game, so it already counts missed games."
+  $("rkList").innerHTML=`<p class="bzcap">Actual 9-cat value, ${span}. ${w==="g3"?"Per game played: a night he sat is skipped, not a zero."
     :tot?"<b>Total</b>: per-game value × games played, so time missed counts.":"<b>Per g</b>: value per game played, which ranks how well a player has played."} Stats are per game. Same pool and punts as the rank ladder; Proj is the forward-looking version.</p>`
     +(top.length?listHTML(top,"G"):`<div class="empty">Nobody here.</div>`);
   if(top.length&&isDesk()&&ML){const el=$("rkList");el.innerHTML=deskWrap(el.innerHTML,top)}
@@ -4081,7 +4081,7 @@ function renderUS(){
   const k=S.usSort==="d"&&w==="season"?"usg":S.usSort,low=k==="rk"||k==="to",dir=(low?-1:1)*S.usDir;
   rows.sort((a,b)=>((b[k]??-1e9)-(a[k]??-1e9))*dir);
   const shown=lgFilter(rows).slice(0,300);paintLg();
-  const span=w==="season"?"this season":w==="g3"?"each team's last 3 games":`${sh(W.from)}–${sh(W.to)}`;
+  const span=w==="season"?"this season":w==="g3"?"each player's last 3 games played":`${sh(W.from)}–${sh(W.to)}`;
   $("rkStatus").textContent=`${rows.length} · ${S.usMin}+ min`;
   const cols=USCOL.filter(([c])=>c!=="d"||w!=="season");
   const fmt=(c,o)=>{const v=o[c];if(v==null)return"–";
@@ -4803,7 +4803,7 @@ function renderSheet(){
     {const nl=newsLine(id);if(nl)h.push(nl)}
     if(rq&&S.rk){const m=S.mv[id];
       h.push(`<section class="blk"><h3>${9-S.punt.size}-cat rank <span>top ${TOP} start · top ${ROST} rostered</span></h3><div class="tiles">${WINS.map(w=>{const a=rq.w[w.k];
-        return tile({season:"Season",d14:"14 days",d7:"7 days",g3:"Last 3"}[w.k],a?S.rk[w.k][id]:0,a?(w.k==="g3"?a[0]+"/3 played":a[0]+"g · "+Math.round(a[1])+"m"):"",w.k==="g3"&&m?(m.hot?"up":m.cold?"dn":""):"")}).join("")}</div>
+        return tile({season:"Season",d14:"14 days",d7:"7 days",g3:"Last 3"}[w.k],a?S.rk[w.k][id]:0,a?a[0]+"g · "+Math.round(a[1])+"m":"",w.k==="g3"&&m?(m.hot?"up":m.cold?"dn":""):"")}).join("")}</div>
         ${q&&B?`<div class="tiles t3">${tile("Now",B.now[id],"this season")}${tile("Projected",hasPj(q)?B.x[id]:0,q.b?"if luck evens out":q.rk?"rookie estimate":"no baseline",B.v[id]==="buy"?"up":B.v[id]==="sell"?"dn":"")}${tile("Last season",B.ly[id],"final rank")}</div>`:""}</section>`);const rc=rankChart(id);if(rc)h.push(`<section class="blk rkblk">${rc}</section>`)}
     {const pc=psPct(id,q),dl=psDaily(id,q);if(pc&&dl)h.push(`<div class="ov2">${pc}${dl}</div>`);else h.push(pc+dl)}
     if(a.text)h.push(`<section class="blk"><h3>The read <span>from the numbers, 10-team league</span></h3>${readHTML(a)}</section>`);
@@ -4849,7 +4849,7 @@ function readHTML(a){
 // ---- Lines (player page > Projection): every window as one per-game line, like a box score.
 // Projected: next game, this week, next week (each game at that night's minutes and opponent:
 // lineOn()), rest of season (Proj) and at 30 minutes (same rates, a what-if). Actual: season, 14 and
-// 7 days, the team's last 3 (a missed game = 0) and last season. Rank = where that per-game line
+// 7 days, his last 3 games played and last season. Rank = where that per-game line
 // ranks on the Proj scale (projected rows) or in that window (actual rows), punts applied. A number is
 // green or red only when the category is a real strength or weakness in that line (|z| >= 0.75).
 // Projected / Actual is remembered per device (psLn).
@@ -4907,9 +4907,9 @@ function linesHTML(id,q,rq){
     for(const x of rows){if(!x.z)x.z=pjZ(x.l);if(x.r==null&&!x.tot)x.r=xr(x.l)}}
   if(S.psLn==="act"){
     const lf=R&&R.lf,ci=k=>2+R.cats.indexOf(k);
-    for(const[w,lab,sub]of[["season","Season",""],["d14","Last 14 days",""],["d7","Last 7 days",""],["g3","Last 3","team's last 3, a missed game = 0"]]){
+    for(const[w,lab,sub]of[["season","Season",""],["d14","Last 14 days",""],["d7","Last 7 days",""],["g3","Last 3","last 3 games played"]]){
       const a=rq&&rq.w[w],L=rq&&rq.l&&rq.l[w];if(!a||!L||!lf)continue;const l={min:a[1]};lf.forEach((k,i)=>l[k]=L[i]);
-      rows.push({lab,sub,g:w==="g3"?a[0]+"/3":a[0],l,z:Object.fromEntries(LNK.map(k=>[k,a[ci(k)]])),r:S.rk&&S.rk[w]&&S.rk[w][id],sel:w==="season"})}
+      rows.push({lab,sub,g:a[0],l,z:Object.fromEntries(LNK.map(k=>[k,a[ci(k)]])),r:S.rk&&S.rk[w]&&S.rk[w][id],sel:w==="season"})}
     if(q&&q.b&&G.ly&&G.ly[id]){const F=G.rates,b=k=>q.b[F.indexOf(k)],mp=b("mpg"),pg=k=>b(k)*mp/36,ly=G.ly[id];
       const l={min:mp,pts:pg("pts"),reb:pg("reb"),ast:pg("ast"),tpm:pg("tpm"),stl:pg("stl"),blk:pg("blk"),to:pg("to"),fga:pg("fga"),fgm:pg("fga")*b("fg")/100,fta:pg("fta"),ftm:pg("fta")*b("ft")/100};
       rows.push({lab:"Last season",sub:q.bs===G.seasons[0]?"":q.bs,g:q.bgp,l,z:Object.fromEntries(LNK.map(k=>[k,ly[2+G.cats.indexOf(k)]])),r:B&&B.ly?B.ly[id]:null})}}

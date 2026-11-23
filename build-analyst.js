@@ -18,9 +18,9 @@ const ids = [...new Set([...Object.keys(R.players), ...Object.keys(G.players)])]
 const pr = rankBy(ids, id => { const x = G.players[id] && G.players[id].x; return x ? mean(x.slice(2)) : null; });
 const sr = rankBy(ids, id => win(id, 'season')), r14 = rankBy(ids, id => win(id, 'd14')), r7 = rankBy(ids, id => win(id, 'd7'));
 const r1 = v => Math.round(v * 10) / 10, out = {};
-// Minutes over the team's last 3 games, per game he played (the window counts a missed game as 0),
-// and the change from his minutes per game before them (pm: the site's role-change baseline).
-const last3 = a => { const g = a.w && a.w.g3; if (!g || !g[0]) return {}; const m = g[1] * 3 / g[0];
+// Minutes over his last 3 games played (the window is per game played), and the change from his
+// minutes per game before them (pm: the site's role-change baseline).
+const last3 = a => { const g = a.w && a.w.g3; if (!g || !g[0]) return {}; const m = g[1];
   return { m3: r1(m), g3: g[0], dm3: a.pm != null ? r1(m - a.pm) : null }; };
 for (const id of ids) {
   const a = R.players[id] || {}, g = G.players[id] || {}, s = a.w && a.w.season;
