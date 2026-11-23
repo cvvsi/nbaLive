@@ -747,6 +747,16 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .pln tr.sel td{background:color-mix(in oklab,var(--ball) 7%,var(--panel))}.pln tr.wi td:first-child b{font-style:italic}
 .pln.lk td:first-child b{font-size:13px}
 @media (max-width:480px){table.pln{font-size:11px}.pln td{padding:8px 1px}.pln th{padding:0 1px 6px;font-size:8.5px}.pln td:first-child{max-width:70px}.pln td:first-child b{font-size:12.5px}.pln td.rk{padding-left:4px}}
+.schb{font:600 10.5px/1 var(--name);padding:4px 7px;border:1px solid var(--ball);color:var(--ball);border-radius:5px;margin-left:2px}.schb.on{background:var(--ball);color:var(--bg)}
+.scl{margin:6px 0 4px}.scr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:7px 4px;border-bottom:1px solid var(--rule);font:500 13px/1.3 var(--name)}
+.scr i{font-style:normal;color:var(--dim)}.scr span{display:block;font-size:11.5px;color:var(--dim)}.scr em{font:700 10px/1 var(--name);letter-spacing:.06em;text-transform:uppercase;font-style:normal;color:var(--dim)}
+.scr.done em{color:var(--pos)}.scr.missed em,.scr.failed em{color:var(--neg)}.scr.pending em{color:var(--ball)}.scr button{font:600 12px/1 var(--name);padding:6px 9px;border:1px solid var(--rule);border-radius:6px}.scl .neg{color:var(--neg);font-style:normal}
+.schf{position:fixed;inset:0;z-index:90;background:color-mix(in srgb,var(--ink) 35%,transparent);display:flex;align-items:center;justify-content:center;padding:16px}
+.schp{background:var(--bg);border:1px solid var(--rule);border-radius:12px;padding:16px;width:min(420px,100%);display:grid;gap:12px}
+.schp h3{margin:0;font:700 17px/1.25 var(--name)}.schp h3 span{display:block;font:500 12.5px/1.3 var(--name);color:var(--dim);margin-top:3px}
+.schl{display:grid;gap:4px;font:600 12px/1.2 var(--name);color:var(--dim)}.schl input,.schl select{font:500 14px/1.2 var(--name);padding:8px;border:1px solid var(--rule);border-radius:6px;background:var(--bg);color:var(--ink);min-width:0}
+.schn{margin:0;font:500 12.5px/1.4 var(--name);color:var(--dim)}.schbtn{display:flex;gap:8px;justify-content:flex-end}.schbtn button{font:600 14px/1 var(--name);padding:10px 14px;border:1px solid var(--rule);border-radius:8px}
+#schGo{background:var(--ball);border-color:var(--ball);color:var(--bg)}#schGo:disabled{opacity:.6}
 .bt.wv{color:var(--ball);border-color:var(--ball)}.bt.fa{color:var(--dim);border-color:var(--rule)}
 .wvh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px;padding:6px 4px 8px;border-bottom:1px solid var(--rule);margin-bottom:4px}
 .wvs{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;font:500 13px/1.3 var(--name);color:var(--dim)}.wvs b{font:600 14px/1 var(--num);color:var(--ink)}
@@ -1470,16 +1480,16 @@ function lgIx(){
   const full={},tlf={},seen=new Set();
   for(const[id,q]of src){if(seen.has(id)||!q||!q.n)continue;seen.add(id);const k=lgKey(q.n),w=k.split(" ");
     (full[k]||(full[k]=[])).push([id,q.t]);const t=`${q.t}|${w[w.length-1]}|${w[0][0]}`;(tlf[t]||(tlf[t]=[])).push([id,q.t])}
-  const own={},slot={},eid={},el={},ys={},av={},miss=[];
+  const own={},slot={},eid={},el={},ys={},av={},yid={},miss=[];
   const find=(name,yt)=>{const t=YT[yt]||yt,k=lgKey(name),w=k.split(" ");let c=full[k]||[];
     if(c.length!==1)c=c.filter(x=>x[1]===t);
     if(!c.length)c=(tlf[`${t}|${w[w.length-1]}|${w[0][0]}`]||[]);return c.length?c[0][0]:null};
   for(const[yp,name,yt,ft,sl,pe,pst]of ML.p){const id=find(name,yt);
-    if(id){own[id]=String(ft);slot[id]=sl||"";eid[yp]=id;if(pe)el[id]=String(pe).split(",");ys[id]=pst||""}else miss.push(name)}
+    if(id){own[id]=String(ft);slot[id]=sl||"";eid[yp]=id;yid[id]=yp;if(pe)el[id]=String(pe).split(",");ys[id]=pst||""}else miss.push(name)}
   // available players from the relay (fa): Yahoo's eligible positions and status tags for pickups
   // (relay v2: plus 'W' / 'FA' and the waiver date; wvOf())
-  for(const[,name,yt,pe,pst,ty,wd]of ML.fa||[]){const id=find(name,yt);if(id&&own[id]==null){if(pe)el[id]=String(pe).split(",");ys[id]=pst||"";if(ty)av[id]=[ty,wd||""]}}
-  return LGX={n:src.length,own,slot,eid,el,ys,av,miss};
+  for(const[yp,name,yt,pe,pst,ty,wd]of ML.fa||[]){const id=find(name,yt);if(id&&own[id]==null){yid[id]=yp;if(pe)el[id]=String(pe).split(",");ys[id]=pst||"";if(ty)av[id]=[ty,wd||""]}}
+  return LGX={n:src.length,own,slot,eid,el,ys,av,yid,miss};
 }
 const lgOf=id=>{const x=lgIx();return x?(x.own[id]||null):undefined};
 const lgTag=id=>ML&&lgOf(id)===String(ML.me)?`<i class="lgt">Mine</i>`:"";
@@ -2024,7 +2034,7 @@ function renderBS(){
 function lgBsRow(id,chip,cls,why){
   const q=G.players[id]||{n:id,t:""},B=S.bs,now=B.now[id],x=B.x[id],r3=S.rk&&S.rk.g3&&S.rk.g3[id];
   const tr=BO&&BO.players[id]&&BO.players[id].trig;
-  const tags=[wvTag(id,1),chip?`<span class="bt ${cls}">${chip}</span>`:"",typeof ijTag==="function"?ijTag(id):"",tr?`<span class="bt">${tr.bigjump?"Spike":"Role up"}</span>`:"",rkTagQ(q)].join("");
+  const tags=[wvTag(id,1),chip?`<span class="bt ${cls}">${chip}</span>`:"",typeof ijTag==="function"?ijTag(id):"",schBtn(id),tr?`<span class="bt">${tr.bigjump?"Spike":"Role up"}</span>`:"",rkTagQ(q)].join("");
   return`<article class="cd bo2 lb" data-id="${esc(id)}" tabindex="0" aria-label="${esc(q.n)}: open details">
     <div class="bo2r lbr"><span class="b2n">${hs(id)}<span class="b2t"><b class="nm">${esc(q.n)}</b><i>${esc(q.t)}${tags}</i></span></span>
       <span class="b2c">${now?"#"+now:"–"}</span><span class="b2c">${r3?"#"+r3:"–"}</span><span class="b2p ${cls==="good"||cls==="bad"?cls:""}">${hasPj(q)?"#"+x:"–"}</span></div>
@@ -2033,7 +2043,7 @@ function lgBsRow(id,chip,cls,why){
 // third line, Now / Last 3 / Proj, then his Proj per-game line (colored only at |z| >= 1).
 function lgBsRowW(id,chip,cls,why){
   const q=G.players[id]||{n:id,t:""},B=S.bs,now=B.now[id],x=B.x[id],r3=S.rk&&S.rk.g3&&S.rk.g3[id],tr=BO&&BO.players[id]&&BO.players[id].trig;
-  const tags=[wvTag(id,1),chip?`<span class="bt ${cls}">${chip}</span>`:"",ijTag(id),tr?`<span class="bt">${tr.bigjump?"Spike":"Role up"}</span>`:"",rkTagQ(q)].join("");
+  const tags=[wvTag(id,1),chip?`<span class="bt ${cls}">${chip}</span>`:"",ijTag(id),schBtn(id),tr?`<span class="bt">${tr.bigjump?"Spike":"Role up"}</span>`:"",rkTagQ(q)].join("");
   const l=q.xp?xpLine(q):null,z=q.x?zx(q):{},zc=k=>S.punt.has(k)?" off":z[k]>=1?" good":z[k]<=-1?" bad":"";
   const val=k=>!l?"–":k==="fg"?pctT(l.fgm,l.fga):k==="ft"?pctT(l.ftm,l.fta):f1(l[k]),tier=r=>!r?"na":r<=TOP?"hi":r<=ROST?"":"lo";
   return`<article class="dw lbd dtr" data-id="${esc(id)}" tabindex="0" aria-label="${esc(q.n)}: open details">${mug({eid:id},0)}
@@ -2091,7 +2101,7 @@ function renderLgBS(st){
   const hRow=id=>[id,B.x[id]<=ROST?"Stash":"",B.x[id]<=ROST?"good":"",wy(id,injWhy(id))];
   const none=`<div class="empty">${wf==="w"?"Nobody worth a look is on waivers right now.":"No one in this list."}</div>`;
   const cap=`<p class="bzcap">FA = add any time · W = on waivers, claim by the day shown. Free agents and players on waivers in your league, best <b>Proj</b> first: Proj inside 170, or a role that just grew. <b>FA</b> = free agent: add him any time, first come. <b>W</b> = on waivers until the day shown: put in a claim (claims run in waiver order the morning he clears${(ML.cfg&&ML.cfg.wv&&ML.cfg.wv.type==="R")||!(ML.cfg&&ML.cfg.wv&&ML.cfg.wv.faab)?"; one that lands sends you to the back of the order":""}), or keep your priority and add him as a free agent once he clears, but then any team that claimed him, even one behind you in the order, gets him first, and after that it's first come. <b>Real</b> = Proj backs the hot start, <b>Fluke</b> = it's mostly shooting luck, <b>Undervalued</b> = his rank is hiding a better player.${isDesk()?" The line is his Proj per game.":""}</p>`;
-  const head=wvHead(known);
+  const head=wvHead(known)+schList();
   if(isDesk()){$("bsList").innerHTML=`<div class="lbdw">${cap}${head}<div class="dwx"><div class="dwm">`
     +(fit.length?lgBsHeadW("Waiver wire","Healthy")+fit.map(id=>lgBsRowW(...wRow(id))).join(""):none)
     +(hurt.length?lgBsHeadW("Injured","Stash only if you have an IL spot or a dead bench slot")+hurt.map(id=>lgBsRowW(...hRow(id))).join(""):"")
@@ -2111,9 +2121,59 @@ function wvHead(known){const pr=wvPri(),R=store.get("relay",null),at=wireAt(),us
     <span class="wvt">${S.wvBusy?"Reading the wire…":S.wvErr?`<em>Couldn't read the wire: ${esc(S.wvErr)}</em>`:`Wire read ${ago}`}</span>${R?`<button id="wvRf"${S.wvBusy?" disabled":""}>Refresh</button>`:""}</div>
     ${known?`<div class="seg" id="wvF">${[["all","All"],["fa","Free agents"],["w","On waivers"]].map(([v,l])=>`<button data-v="${v}" aria-pressed="${S.wvF===v}">${l}</button>`).join("")}</div>`
       :R?"":`<div class="wvn">Free agent or waivers isn't known from a bookmark sync: set up the relay on the league page to see it.</div>`}</div>`}
-function wvWire(){const r=$("wvRf");if(r)r.onclick=()=>wireSync(true);
+function wvWire(){const r=$("wvRf");if(r)r.onclick=()=>wireSync(true);schWire();
   const f=$("wvF");if(f)f.querySelectorAll("button").forEach(b=>b.onclick=()=>{S.wvF=b.dataset.v;store.set("wvF",S.wvF);renderBS()});
   wireSync(false)}
+// ---- Scheduled pickups (relay: worker/sched.js). Moves the relay makes on Yahoo for you from its
+// once-a-minute timer: "when he clears" for a player on waivers (the add goes in the moment Yahoo
+// lists him as a free agent, so you keep your priority; a claim another team put in still gets him
+// first), or an add at a time you pick (or now). Each with an optional drop. Needs the Yahoo app at
+// Read/Write. The list is read from the relay (GET /sched) when the Waivers page opens.
+const relayU=()=>{const R=store.get("relay",null);return R&&R.u&&R.k?R:null};
+async function schApi(path,body){const R=relayU();
+  const r=await fetch(R.u.replace(/\/+$/,"")+path,body?{method:"POST",headers:{"X-Relay-Key":R.k,"Content-Type":"application/json"},body:JSON.stringify(body)}:{headers:{"X-Relay-Key":R.k},cache:"no-store"});
+  const o=await r.json().catch(()=>null);
+  if(r.status===404)throw new Error("the relay needs a redeploy (Actions → Yahoo relay)");
+  if(!r.ok||!Array.isArray(o))throw new Error(o&&o.error||"the relay answered "+r.status);return o}
+function schLoad(force){if(!relayU()||S.schBusy||(!force&&S.schAt&&Date.now()-S.schAt<60e3))return;S.schBusy=1;
+  schApi("/sched").then(a=>{S.sch=a;S.schErr=null}).catch(e=>S.schErr=String(e.message||e)).finally(()=>{S.schBusy=0;S.schAt=Date.now();if(document.body.dataset.page==="waivers"){const y=scrollY;renderBS();scrollTo(0,y)}})}
+const schBtn=id=>{if(!relayU()||!wvOf(id))return"";const x=lgIx();if(!x||!x.yid[id])return"";
+  const on=(S.sch||[]).some(j=>j.state==="pending"&&j.add.id===String(x.yid[id]));
+  return`<button class="schb${on?" on":""}" data-sch="${esc(id)}" aria-label="Schedule a pickup">${on?"Scheduled":"Schedule"}</button>`};
+function schList(){if(!relayU())return"";const a=(S.sch||[]).slice().sort((p,q)=>(q.state==="pending")-(p.state==="pending")||String(q.made).localeCompare(String(p.made)));
+  const st={pending:"Pending",done:"Done",missed:"Missed",failed:"Failed",cancelled:"Cancelled"};
+  const when=j=>j.kind==="clear"?`when he clears${j.wd?" ("+wvDay(j.wd)+")":""}`:`at ${new Date(j.at).toLocaleString([],{weekday:"short",hour:"numeric",minute:"2-digit"})}`;
+  const rows=a.map(j=>`<div class="scr ${j.state}"><div><b>${esc(j.add.n)}</b>${j.drop?` <i>for ${esc(j.drop.n)}</i>`:""}<span>${when(j)}${j.res?` · ${esc(j.res)}`:""}</span></div><em>${st[j.state]||j.state}</em>${j.state==="pending"?`<button data-schx="${esc(j.id)}">Cancel</button>`:"<span></span>"}</div>`).join("");
+  return`<section class="scl"><div class="pjh">Scheduled pickups <span>${S.schErr?`<em class="neg">${esc(S.schErr)}</em>`:a.length?"made on Yahoo by the relay":"none yet: tap Schedule on a player"}</span></div>${rows}</section>`}
+function schWire(){schLoad(false);
+  document.querySelectorAll("[data-sch]").forEach(b=>b.onclick=e=>{e.stopPropagation();schForm(b.dataset.sch)});
+  document.querySelectorAll("[data-schx]").forEach(b=>b.onclick=async()=>{b.disabled=true;try{S.sch=await schApi("/sched/cancel",{id:b.dataset.schx})}catch(e){alert("Couldn't cancel: "+e.message)}renderBS()})}
+// The form: when (as soon as he clears / now, or at a time) and who to drop.
+function schForm(id){const x=lgIx(),q=G.players[id],v=wvOf(id),me=String(ML.me),B=S.bs;
+  const mine=Object.keys(x.own).filter(i=>x.own[i]===me&&x.yid[i]).map(i=>({i,il:/^(IL|IR)/.test(x.slot[i]||""),r:B&&B.x&&B.x[i]||999,n:(G.players[i]||{}).n||i}))
+    .sort((a,b)=>a.il-b.il||b.r-a.r);
+  const pad=n=>String(n).padStart(2,"0"),t0=new Date(Date.now()+60*60e3),loc=`${t0.getFullYear()}-${pad(t0.getMonth()+1)}-${pad(t0.getDate())}T${pad(t0.getHours())}:00`;
+  const el=document.createElement("div");el.className="schf";el.setAttribute("role","dialog");el.setAttribute("aria-label","Schedule a pickup");
+  el.innerHTML=`<div class="schp"><h3>Pick up ${esc(q.n)} <span>${esc(q.t)} · ${v.w?`on waivers${v.d?" until "+esc(fmtDate(v.d)):""}`:"free agent"}</span></h3>
+    <div class="seg" id="schK">${v.w?`<button data-v="clear" aria-pressed="true">When he clears${v.d?" ("+wvDay(v.d)+")":""}</button>`:`<button data-v="now" aria-pressed="true">Now</button>`}<button data-v="time" aria-pressed="false">At a time</button></div>
+    <label class="schl" id="schTL" hidden>Time (your device's clock) <input type="datetime-local" id="schT" value="${loc}"></label>
+    <label class="schl">Drop <select id="schD"><option value="">No drop (I have an open spot)</option>${mine.map(o=>`<option value="${o.i}"${o===mine[0]?" selected":""}>${esc(o.n)}${o.il?" (IL)":""} · Proj ${o.r<999?"#"+o.r:"–"}</option>`).join("")}</select></label>
+    <p class="schn" id="schN"></p>
+    <div class="schbtn"><button id="schGo">Schedule</button><button id="schNo">Cancel</button></div></div>`;
+  document.body.appendChild(el);let k=v.w?"clear":"now";
+  const note=()=>{el.querySelector("#schN").innerHTML=k==="clear"?`The relay checks every minute from midnight ET on ${v.d?fmtDate(v.d):"his waiver date"} and adds him the moment Yahoo lists him as a free agent, so your waiver priority stays. A claim another team put in still gets him first; then this shows as missed.`
+    :k==="now"?"Goes in on Yahoo right away.":v.w?"At that time: if he's still on waivers it becomes a waiver claim (that uses your priority); if he has cleared, a plain add.":"At that time the relay adds him on Yahoo, if he's still a free agent and you have an add left.";
+    el.querySelector("#schTL").hidden=k!=="time";el.querySelectorAll("#schK button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===k))};note();
+  el.querySelectorAll("#schK button").forEach(b=>b.onclick=()=>{k=b.dataset.v;note()});
+  const close=()=>el.remove();el.onclick=e=>{if(e.target===el)close()};el.querySelector("#schNo").onclick=close;
+  el.querySelector("#schGo").onclick=async()=>{const go=el.querySelector("#schGo"),d=el.querySelector("#schD").value;
+    const at=k==="time"?new Date(el.querySelector("#schT").value):k==="now"?new Date():null;
+    if(at&&isNaN(at)){alert("Pick a time.");return}
+    if(k==="time"&&at<Date.now()-60e3){alert("That time has passed.");return}
+    go.disabled=true;go.textContent="Saving…";
+    try{S.sch=await schApi("/sched",{kind:k==="clear"?"clear":"time",add:{id:x.yid[id],n:q.n,t:q.t},drop:d?{id:x.yid[d],n:(G.players[d]||{}).n||""}:null,at:at&&at.toISOString(),wd:v.w?v.d:null});
+      close();const j=S.sch.find(z=>z.add.id===String(x.yid[id]));if(j&&j.state==="failed")alert(`${q.n}: ${j.res}`);if(k==="now"&&j&&j.state==="done")wireSync(true);renderBS()}
+    catch(e){go.disabled=false;go.textContent="Schedule";alert("Couldn't schedule: "+e.message)}}}
 // The waiver order (relay): every team by priority with its adds this week and moves this season.
 function wvOrder(){const w=ML.wt;if(!w||!Object.values(w).some(v=>v[0]!=null))return"";const fb=ML.cfg&&ML.cfg.wv&&ML.cfg.wv.faab,me=String(ML.me);
   const ts=Object.keys(w).filter(t=>w[t][0]!=null).sort((a,b)=>w[a][0]-w[b][0]);
