@@ -24,6 +24,11 @@ const u = 'https://sixthman-yahoo.saac-choi.workers.dev', key = process.env.RELA
       const tags = {}; for (const p of o.p) if (p[6]) tags[p[6]] = (tags[p[6]] || 0) + 1;
       console.log('Yahoo status tags league-wide:', JSON.stringify(tags), '| mine tagged:', o.p.filter(p => p[3] === o.me && p[6]).length, 'of', o.p.filter(p => p[3] === o.me).length);
       console.log('available players read:', (o.fa || []).length, '| with positions:', (o.fa || []).filter(x => x[3]).length, '| tagged:', (o.fa || []).filter(x => x[4]).length);
+      console.log('wire: free agents', (o.fa || []).filter(x => x[5] === 'FA').length, '| on waivers', (o.fa || []).filter(x => x[5] === 'W').length,
+        '(with a date', (o.fa || []).filter(x => x[5] === 'W' && x[6]).length + ') | unknown', (o.fa || []).filter(x => !x[5]).length, '| waiver list complete', !!o.wvOk,
+        '| priorities read', Object.values(o.wt || {}).filter(v => v[0] != null).length, '| waiver settings', o.cfg && o.cfg.wv && o.cfg.wv.type ? 'read' : 'not read');
+      const w = await fetch(u + '/wire', { headers: { 'X-Relay-Key': key } }), wj = await w.json().catch(() => null);
+      console.log('/wire:', w.status, wj && wj.wire ? `${wj.fa.length} available, ${wj.p.length} rostered` : (wj && wj.error) || 'FAILED');
       console.log('schedule weeks:', Object.keys(o.sched).length, '| categories:', (o.cfg.cats || []).join(' '), '| positions:', Object.keys(o.cfg.pos || {}).join(' '));
       // the analyst (MCP): handshake, tool list, and one call each to the two main tools (sizes only)
       const call = async (id, method, params) => (await fetch(u + '/mcp/' + encodeURIComponent(key), { method: 'POST', headers: { 'Content-Type': 'application/json' },

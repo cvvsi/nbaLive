@@ -747,6 +747,13 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .pln tr.sel td{background:color-mix(in oklab,var(--ball) 7%,var(--panel))}.pln tr.wi td:first-child b{font-style:italic}
 .pln.lk td:first-child b{font-size:13px}
 @media (max-width:480px){table.pln{font-size:11px}.pln td{padding:8px 1px}.pln th{padding:0 1px 6px;font-size:8.5px}.pln td:first-child{max-width:70px}.pln td:first-child b{font-size:12.5px}.pln td.rk{padding-left:4px}}
+.bt.wv{color:var(--ball);border-color:var(--ball)}.bt.fa{color:var(--dim);border-color:var(--rule)}
+.wvh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px;padding:6px 4px 8px;border-bottom:1px solid var(--rule);margin-bottom:4px}
+.wvs{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;font:500 13px/1.3 var(--name);color:var(--dim)}.wvs b{font:600 14px/1 var(--num);color:var(--ink)}
+.wvt em{font-style:normal;color:var(--neg)}.wvh button#wvRf{font:600 12.5px/1 var(--name);padding:7px 11px;border:1px solid var(--rule);border-radius:6px;color:var(--ball)}.wvh button#wvRf:disabled{opacity:.5}
+.wvh .seg button{padding:7px 10px;font-size:12.5px}.wvn{font:500 12px/1.35 var(--name);color:var(--dim)}
+.wvo{margin-top:14px}.wvr{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:6px;align-items:baseline;padding:6px 4px;border-bottom:1px solid var(--rule);font:500 13px/1.3 var(--name)}
+.wvr b{font:600 12.5px/1 var(--num);color:var(--dim)}.wvr span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wvr i{font:500 12px/1 var(--num);font-style:normal;color:var(--dim)}.wvr.me span,.wvr.me b{color:var(--ball);font-weight:700}
 .bt{font:700 9.5px/1 var(--name);letter-spacing:.07em;text-transform:uppercase;color:var(--ink);border:1px solid var(--ink);border-radius:4px;padding:2px 4px;margin-left:4px;flex:none}.bt.cau{color:var(--neg);border-color:var(--neg)}.bt.good{color:var(--pos);border-color:var(--pos)}.bt.bad{color:var(--neg);border-color:var(--neg)}.bt.warn{color:var(--ball);border-color:var(--ball)}
 .bo2r.lbr{grid-template-columns:minmax(0,1fr) 46px 46px 46px}
 .bo2 .ij{font:700 9.5px/1 var(--name);letter-spacing:.07em;color:var(--neg);border:1px solid var(--neg);border-radius:4px;padding:2px 4px;flex:none}.bo2 .ij.dtd{color:var(--ball);border-color:var(--ball)}
@@ -1463,22 +1470,44 @@ function lgIx(){
   const full={},tlf={},seen=new Set();
   for(const[id,q]of src){if(seen.has(id)||!q||!q.n)continue;seen.add(id);const k=lgKey(q.n),w=k.split(" ");
     (full[k]||(full[k]=[])).push([id,q.t]);const t=`${q.t}|${w[w.length-1]}|${w[0][0]}`;(tlf[t]||(tlf[t]=[])).push([id,q.t])}
-  const own={},slot={},eid={},el={},ys={},miss=[];
+  const own={},slot={},eid={},el={},ys={},av={},miss=[];
   const find=(name,yt)=>{const t=YT[yt]||yt,k=lgKey(name),w=k.split(" ");let c=full[k]||[];
     if(c.length!==1)c=c.filter(x=>x[1]===t);
     if(!c.length)c=(tlf[`${t}|${w[w.length-1]}|${w[0][0]}`]||[]);return c.length?c[0][0]:null};
   for(const[yp,name,yt,ft,sl,pe,pst]of ML.p){const id=find(name,yt);
     if(id){own[id]=String(ft);slot[id]=sl||"";eid[yp]=id;if(pe)el[id]=String(pe).split(",");ys[id]=pst||""}else miss.push(name)}
   // available players from the relay (fa): Yahoo's eligible positions and status tags for pickups
-  for(const[,name,yt,pe,pst]of ML.fa||[]){const id=find(name,yt);if(id&&own[id]==null){if(pe)el[id]=String(pe).split(",");ys[id]=pst||""}}
-  return LGX={n:src.length,own,slot,eid,el,ys,miss};
+  // (relay v2: plus 'W' / 'FA' and the waiver date; wvOf())
+  for(const[,name,yt,pe,pst,ty,wd]of ML.fa||[]){const id=find(name,yt);if(id&&own[id]==null){if(pe)el[id]=String(pe).split(",");ys[id]=pst||"";if(ty)av[id]=[ty,wd||""]}}
+  return LGX={n:src.length,own,slot,eid,el,ys,av,miss};
 }
 const lgOf=id=>{const x=lgIx();return x?(x.own[id]||null):undefined};
 const lgTag=id=>ML&&lgOf(id)===String(ML.me)?`<i class="lgt">Mine</i>`:"";
 // Buzz: also flag free agents (taken by another team: nothing, to keep the rows quiet).
 const lgTagFA=id=>{if(!ML||!id)return"";const t=lgOf(id);return t==null?`<i class="lgt fa">FA</i>`:t===String(ML.me)?`<i class="lgt">Mine</i>`:""};
 const lgFilter=rows=>!ML||S.lgF==="all"?rows:rows.filter(o=>{const t=lgOf(o.id);return S.lgF==="mine"?t===String(ML.me):t==null});
-function lgLine(id){if(!ML)return"";const t=lgOf(id);
+// ---- Free agent or waivers (from the relay; a bookmark sync can't tell them apart). On Yahoo a free
+// agent can be added any time, first come. A player on waivers (just dropped, or caught by the
+// league's waiver rule) can only be claimed until his waiver date: claims run in waiver order the
+// morning he clears (on a rolling list a claim that lands sends you to the back), then he's a free
+// agent. Skip the claim and you wait for him to clear and race everyone to add him, and any team's
+// claim, even one behind you in the order, gets him first.
+// wvOf(id): null = rostered or not known; {w:0} = free agent; {w:1, d} = on waivers until d.
+const wireAt=()=>ML?(ML.wat&&ML.wat>ML.at?ML.wat:ML.at):null;
+const etDayOf=t=>new Intl.DateTimeFormat("en-CA",{timeZone:"America/New_York"}).format(new Date(t));
+function wvOf(id){if(!ML||!ML.fa||lgOf(id)!=null)return null;const x=lgIx(),a=x&&x.av[id],today=etToday();
+  // a date already past (or today's, read before today) means he has cleared since the wire was read
+  if(a&&a[0]==="W"&&!(a[1]&&(a[1]<today||(a[1]===today&&etDayOf(wireAt())<today))))return{w:1,d:a[1]};
+  return a||ML.wvOk?{w:0}:null}
+const wvDay=d=>{if(!d)return"";const t=etToday();return d===t?"today":d===shift(t,1)?"tmrw":d<=shift(t,6)?fmtDate(d).split(",")[0]:fmtDate(d).replace(/^\w+, /,"")};
+// the first day a pickup can play for you: today for a free agent, the day he clears for a claim
+const wvFirst=id=>{const v=wvOf(id);return v&&v.w?(v.d||shift(etToday(),1)):etToday()};
+const wvTag=(id,fa)=>{const v=wvOf(id);if(!v)return"";
+  return v.w?`<span class="bt wv" title="On waivers${v.d?" until "+esc(fmtDate(v.d)):""}: claim him, or add him after he clears">W${v.d?" · "+wvDay(v.d):""}</span>`:fa?`<span class="bt fa" title="Free agent: add any time">FA</span>`:""};
+// your waiver priority: [yours, teams in the order] from the relay (wt: team -> [priority, moves, FAAB])
+function wvPri(){const w=ML&&ML.wt,m=w&&w[String(ML.me)];if(!m||m[0]==null)return null;return[m[0],Object.values(w).filter(v=>v[0]!=null).length]}
+function lgLine(id){if(!ML)return"";const t=lgOf(id),wv=t==null?wvOf(id):null,pr=wvPri();
+  if(wv)return wv.w?`<div class="lgown"><b>On waivers</b>${wv.d?` until ${esc(fmtDate(wv.d))}`:""}: claim him${pr?` (you're #${pr[0]} of ${pr[1]})`:""}, or add him once he clears</div>`:`<div class="lgown"><b>Free agent</b>: add him any time</div>`;
   return t==null?`<div class="lgown">Available in your league</div>`:t===String(ML.me)?`<div class="lgown me">On <b>${esc(ML.teams[t]||"your team")}</b> (you)</div>`:`<div class="lgown">On <b>${esc(ML.teams[t]||"team "+t)}</b></div>`}
 function paintLg(){
   for(const r of ["pjLgRow","rkLgRow"]){const el=$(r);if(!el)continue;el.hidden=!ML;if(!ML)continue;
@@ -1997,7 +2026,7 @@ function renderBS(){
 function lgBsRow(id,chip,cls,why){
   const q=G.players[id]||{n:id,t:""},B=S.bs,now=B.now[id],x=B.x[id],r3=S.rk&&S.rk.g3&&S.rk.g3[id];
   const tr=BO&&BO.players[id]&&BO.players[id].trig;
-  const tags=[chip?`<span class="bt ${cls}">${chip}</span>`:"",typeof ijTag==="function"?ijTag(id):"",tr?`<span class="bt">${tr.bigjump?"Spike":"Role up"}</span>`:"",rkTagQ(q)].join("");
+  const tags=[wvTag(id,1),chip?`<span class="bt ${cls}">${chip}</span>`:"",typeof ijTag==="function"?ijTag(id):"",tr?`<span class="bt">${tr.bigjump?"Spike":"Role up"}</span>`:"",rkTagQ(q)].join("");
   return`<article class="cd bo2 lb" data-id="${esc(id)}" tabindex="0" aria-label="${esc(q.n)}: open details">
     <div class="bo2r lbr"><span class="b2n">${hs(id)}<span class="b2t"><b class="nm">${esc(q.n)}</b><i>${esc(q.t)}${tags}</i></span></span>
       <span class="b2c">${now?"#"+now:"–"}</span><span class="b2c">${r3?"#"+r3:"–"}</span><span class="b2p ${cls==="good"||cls==="bad"?cls:""}">${hasPj(q)?"#"+x:"–"}</span></div>
@@ -2006,7 +2035,7 @@ function lgBsRow(id,chip,cls,why){
 // third line, Now / Last 3 / Proj, then his Proj per-game line (colored only at |z| >= 1).
 function lgBsRowW(id,chip,cls,why){
   const q=G.players[id]||{n:id,t:""},B=S.bs,now=B.now[id],x=B.x[id],r3=S.rk&&S.rk.g3&&S.rk.g3[id],tr=BO&&BO.players[id]&&BO.players[id].trig;
-  const tags=[chip?`<span class="bt ${cls}">${chip}</span>`:"",ijTag(id),tr?`<span class="bt">${tr.bigjump?"Spike":"Role up"}</span>`:"",rkTagQ(q)].join("");
+  const tags=[wvTag(id,1),chip?`<span class="bt ${cls}">${chip}</span>`:"",ijTag(id),tr?`<span class="bt">${tr.bigjump?"Spike":"Role up"}</span>`:"",rkTagQ(q)].join("");
   const l=q.xp?xpLine(q):null,z=q.x?zx(q):{},zc=k=>S.punt.has(k)?" off":z[k]>=1?" good":z[k]<=-1?" bad":"";
   const val=k=>!l?"–":k==="fg"?pctT(l.fgm,l.fga):k==="ft"?pctT(l.ftm,l.fta):f1(l[k]),tier=r=>!r?"na":r<=TOP?"hi":r<=ROST?"":"lo";
   return`<article class="dw lbd dtr" data-id="${esc(id)}" tabindex="0" aria-label="${esc(q.n)}: open details">${mug({eid:id},0)}
@@ -2017,8 +2046,8 @@ const lgBsHeadW=(t,sub)=>`<div class="pjh">${t}${sub?` <span>${sub}</span>`:""}<
 // The side column on desktop: Roster shows who you could add, Waivers who you could drop.
 function lgRail(kind){const B=S.bs,me=String(ML.me),nm=n=>n.replace(/^(\S)\S*\s/,"$1. ");
   const ids=Object.keys(G.players).filter(id=>kind==="add"?lgOf(id)==null&&hasPj(G.players[id])&&!ijOut(ijOf(id)):lgOf(id)===me&&hasPj(G.players[id])).sort((a,b)=>kind==="add"?B.x[a]-B.x[b]:B.x[b]-B.x[a]).slice(0,10);
-  const row=id=>{const q=G.players[id],v=pjVal(zx(q));return`<div class="bsr" data-id="${esc(id)}"><b>${esc(nm(q.n))}</b><span class="t">${esc(q.t)}</span><span class="l">Proj #${B.x[id]}</span><span class="v ${vcls(v)}">${sgn(v)}</span></div>`};
-  return`<aside class="dws"><section class="bsb"><div class="bsh"><b>${kind==="add"?"Best pickups":"Your drop candidates"}</b><span>${kind==="add"?"free agents by Proj":"your lowest Proj"}</span></div>${ids.map(row).join("")||`<div class="bse">None.</div>`}</section></aside>`}
+  const row=id=>{const q=G.players[id],v=pjVal(zx(q));return`<div class="bsr" data-id="${esc(id)}"><b>${esc(nm(q.n))}${kind==="add"?wvTag(id):""}</b><span class="t">${esc(q.t)}</span><span class="l">Proj #${B.x[id]}</span><span class="v ${vcls(v)}">${sgn(v)}</span></div>`};
+  return`<aside class="dws"><section class="bsb"><div class="bsh"><b>${kind==="add"?"Best pickups":"Your drop candidates"}</b><span>${kind==="add"?"free agents by Proj":"your lowest Proj"}</span></div>${ids.map(row).join("")||`<div class="bse">None.</div>`}</section>${kind==="drop"?wvOrder():""}</aside>`}
 function lgBsHead(t,sub){return`<div class="pjh">${t}${sub?` <span>${sub}</span>`:""}</div><div class="bo2r lbr bo2h"><span>Player</span><span>Now</span><span>Last 3</span><span>Proj</span></div>`}
 const firstSent=h=>{const m=String(h).replace(/^<p class="bsn">|<\/p>$/g,"").match(/^.*?[.;](?=\s|$)/);return m?m[0].replace(/;$/,"."):""};
 function renderLgBS(st){
@@ -2049,25 +2078,62 @@ function renderLgBS(st){
       +sec("Slumping","Hold: the numbers say he comes back",grp.slump)
       +`</div><div>`+sec("Steady","Ranked about where he should be",grp.steady)+`</div></div></div>`;
     return}
-  // Waivers: free agents worth a look
-  const fa=ids.filter(id=>lgOf(id)==null&&hasPj(G.players[id])&&G.players[id].now[0]>=BSMIN_GP&&(B.x[id]<=170||(BO&&BO.players[id]&&BO.players[id].trig)))
-    .sort((a,b)=>B.x[a]-B.x[b]).slice(0,40);
+  // Waivers: free agents worth a look, each marked FA (add now) or W (claim, or wait till he clears)
+  const fa0=ids.filter(id=>lgOf(id)==null&&hasPj(G.players[id])&&G.players[id].now[0]>=BSMIN_GP&&(B.x[id]<=170||(BO&&BO.players[id]&&BO.players[id].trig)))
+    .sort((a,b)=>B.x[a]-B.x[b]).slice(0,60);
+  const known=fa0.some(id=>wvOf(id)),wf=known?S.wvF:"all";
+  const fa=fa0.filter(id=>{const v=wvOf(id);return wf==="all"||(wf==="w"?v&&v.w:!(v&&v.w))}).slice(0,40);
   const hurt=fa.filter(id=>ijOut(ijOf(id))),fit=fa.filter(id=>!ijOut(ijOf(id)));
-  $("bsStatus").textContent=`${fa.length} FAs`;
+  const nW=fa0.filter(id=>{const v=wvOf(id);return v&&v.w}).length;
+  $("bsStatus").textContent=`${fa.length} available${known?` · ${nW} on waivers`:""}`;
+  // a waiver player's reason leads with the claim deadline
+  const wy=(id,why)=>{const v=wvOf(id);return v&&v.w?`<b>Claim by ${v.d?wvDay(v.d):"his waiver date"}</b>, or add him after he clears. ${why}`:why};
   const wRow=id=>{const v=B.v[id],q=G.players[id],x=B.x[id],r3=S.rk&&S.rk.g3&&S.rk.g3[id],why=firstSent(bsBlurb(q,v));
-    const [c,k]=v==="buy"?["Undervalued","good"]:v==="sell"?["Fluke","bad"]:r3&&r3<=ROST&&x<=ROST?["Real","good"]:["",""];return[id,c,k,why]};
-  if(isDesk()){$("bsList").innerHTML=`<div class="lbdw"><p class="bzcap">Free agents in your league, best <b>Proj</b> first: Proj inside 170, or a role that just grew. <b>Real</b> = Proj backs the hot start, <b>Fluke</b> = it's mostly shooting luck, <b>Undervalued</b> = his rank is hiding a better player. The line is his Proj per game.</p><div class="dwx"><div class="dwm">`
-    +lgBsHeadW("Waiver wire","Healthy")+fit.map(id=>lgBsRowW(...wRow(id))).join("")
-    +(hurt.length?lgBsHeadW("Injured","Stash only if you have an IL spot or a dead bench slot")+hurt.map(id=>lgBsRowW(id,B.x[id]<=ROST?"Stash":"",B.x[id]<=ROST?"good":"",injWhy(id))).join(""):"")
-    +`</div>${lgRail("drop")}</div></div>`;return}
-  $("bsList").innerHTML=`<div class="bo2w"><p class="bzcap">Free agents in your league, best <b>Proj</b> first: Proj inside 170, or a role that just grew. <b>Real</b> = Proj backs the hot start, <b>Fluke</b> = it's mostly shooting luck, <b>Undervalued</b> = his rank is hiding a better player.</p>`
-    +`<div class="lbcols"><div>`+lgBsHead("Waiver wire","Healthy")+fit.map(id=>{const v=B.v[id],q=G.players[id],now=B.now[id],x=B.x[id],r3=S.rk&&S.rk.g3&&S.rk.g3[id];
-      const why=firstSent(bsBlurb(q,v));
-      const [c,k]=v==="buy"?["Undervalued","good"]:v==="sell"?["Fluke","bad"]:r3&&r3<=ROST&&x<=ROST?["Real","good"]:["",""];
-      return lgBsRow(id,c,k,why)}).join("")
+    const [c,k]=v==="buy"?["Undervalued","good"]:v==="sell"?["Fluke","bad"]:r3&&r3<=ROST&&x<=ROST?["Real","good"]:["",""];return[id,c,k,wy(id,why)]};
+  const hRow=id=>[id,B.x[id]<=ROST?"Stash":"",B.x[id]<=ROST?"good":"",wy(id,injWhy(id))];
+  const none=`<div class="empty">${wf==="w"?"Nobody worth a look is on waivers right now.":"No one in this list."}</div>`;
+  const cap=`<p class="bzcap">FA = add any time · W = on waivers, claim by the day shown. Free agents and players on waivers in your league, best <b>Proj</b> first: Proj inside 170, or a role that just grew. <b>FA</b> = free agent: add him any time, first come. <b>W</b> = on waivers until the day shown: put in a claim (claims run in waiver order the morning he clears${(ML.cfg&&ML.cfg.wv&&ML.cfg.wv.type==="R")||!(ML.cfg&&ML.cfg.wv&&ML.cfg.wv.faab)?"; one that lands sends you to the back of the order":""}), or keep your priority and add him as a free agent once he clears, but then any team that claimed him, even one behind you in the order, gets him first, and after that it's first come. A pickup in the streaming plan counts from the day he can be yours. <b>Real</b> = Proj backs the hot start, <b>Fluke</b> = it's mostly shooting luck, <b>Undervalued</b> = his rank is hiding a better player.${isDesk()?" The line is his Proj per game.":""}</p>`;
+  const head=wvHead(known);
+  if(isDesk()){$("bsList").innerHTML=`<div class="lbdw">${cap}${head}<div class="dwx"><div class="dwm">`
+    +(fit.length?lgBsHeadW("Waiver wire","Healthy")+fit.map(id=>lgBsRowW(...wRow(id))).join(""):none)
+    +(hurt.length?lgBsHeadW("Injured","Stash only if you have an IL spot or a dead bench slot")+hurt.map(id=>lgBsRowW(...hRow(id))).join(""):"")
+    +`</div>${lgRail("drop")}</div></div>`;wvWire();return}
+  $("bsList").innerHTML=`<div class="bo2w">${cap}${head}`
+    +`<div class="lbcols"><div>`+(fit.length?lgBsHead("Waiver wire","Healthy")+fit.map(id=>lgBsRow(...wRow(id))).join(""):none)
     +`</div><div>`+(hurt.length?lgBsHead("Injured","Stash only if you have an IL spot or a dead bench slot")
-      +hurt.map(id=>lgBsRow(id,B.x[id]<=ROST?"Stash":"",B.x[id]<=ROST?"good":"",injWhy(id))).join(""):"")+`</div></div></div>`;
+      +hurt.map(id=>lgBsRow(...hRow(id))).join(""):"")+wvOrder()+`</div></div></div>`;wvWire();
 }
+// The Waivers page's top strip: your waiver priority, adds left, when the wire was read (Refresh
+// reads it again from Yahoo through the relay), and All / Free agents / On waivers.
+S.wvF=store.get("wvF","all");
+function wvHead(known){const pr=wvPri(),R=store.get("relay",null),at=wireAt(),used=ML.adds&&ML.adds[ML.me],t=new Date(at);
+  const age=at?Math.round((Date.now()-t)/60e3):null,ago=age==null?"":age<1?"just now":age<60?age+" min ago":t.toLocaleString([],{weekday:"short",hour:"numeric",minute:"2-digit"});
+  const fb=ML.cfg&&ML.cfg.wv&&ML.cfg.wv.faab,me=ML.wt&&ML.wt[String(ML.me)];
+  return`<div class="wvh"><div class="wvs">${pr?`<span>${fb?"FAAB":"Waiver priority"} <b>${fb&&me&&me[2]!=null?"$"+me[2]:"#"+pr[0]}</b>${fb?"":` of ${pr[1]}`}</span>`:""}${used!=null?`<span><b>${Math.max(0,myMax()-used)}</b> of ${myMax()} adds left</span>`:""}
+    <span class="wvt">${S.wvBusy?"Reading the wire…":S.wvErr?`<em>Couldn't read the wire: ${esc(S.wvErr)}</em>`:`Wire read ${ago}`}</span>${R?`<button id="wvRf"${S.wvBusy?" disabled":""}>Refresh</button>`:""}</div>
+    ${known?`<div class="seg" id="wvF">${[["all","All"],["fa","Free agents"],["w","On waivers"]].map(([v,l])=>`<button data-v="${v}" aria-pressed="${S.wvF===v}">${l}</button>`).join("")}</div>`
+      :R?"":`<div class="wvn">Free agent or waivers isn't known from a bookmark sync: set up the relay on the league page to see it.</div>`}</div>`}
+function wvWire(){const r=$("wvRf");if(r)r.onclick=()=>wireSync(true);
+  const f=$("wvF");if(f)f.querySelectorAll("button").forEach(b=>b.onclick=()=>{S.wvF=b.dataset.v;store.set("wvF",S.wvF);renderBS()});
+  wireSync(false)}
+// The waiver order (relay): every team by priority with its adds this week and moves this season.
+function wvOrder(){const w=ML.wt;if(!w||!Object.values(w).some(v=>v[0]!=null))return"";const fb=ML.cfg&&ML.cfg.wv&&ML.cfg.wv.faab,me=String(ML.me);
+  const ts=Object.keys(w).filter(t=>w[t][0]!=null).sort((a,b)=>w[a][0]-w[b][0]);
+  return`<section class="wvo"><div class="pjh">Waiver order <span>${fb?"FAAB left · ":""}adds this week · moves this season</span></div>${ts.map(t=>`<div class="wvr${t===me?" me":""}"><b>#${w[t][0]}</b><span>${esc(ML.teams[t]||"Team "+t)}${t===me?" (you)":""}</span><i>${fb&&w[t][2]!=null?"$"+w[t][2]+" · ":""}${ML.adds&&ML.adds[t]!=null?ML.adds[t]+"/"+myMax():"–"} · ${w[t][1]!=null?w[t][1]:"–"}</i></div>`).join("")}</section>`}
+// Read the wire again (relay GET /wire: rosters, adds, waiver order, the available list), a fraction
+// of a full sync. On the Waivers page it runs by itself when the copy is over WIREAGE old; Refresh
+// forces it. Rosters come along so a player someone just added drops off the list.
+const WIREAGE=5*60e3;
+async function wireSync(force){const R=store.get("relay",null);if(!R||!R.u||!R.k||!ML||S.wvBusy)return;
+  if(!force&&(Date.now()-new Date(wireAt())<WIREAGE||Date.now()-(S.wvTry||0)<WIREAGE))return;
+  S.wvBusy=1;S.wvTry=Date.now();S.wvErr=null;const again=()=>{if(document.body.dataset.page==="waivers"){const y=scrollY;renderBS();scrollTo(0,y)}};again();
+  try{const r=await fetch(R.u.replace(/\/+$/,"")+"/wire",{headers:{"X-Relay-Key":R.k},cache:"no-store"}),o=await r.json().catch(()=>null);
+    if(r.status===404)throw new Error("the relay needs a redeploy (Actions → Yahoo relay)");
+    if(!r.ok||!o||!o.wire||!Array.isArray(o.p)||!o.p.length)throw new Error(o&&o.error||"the relay answered "+r.status);
+    Object.assign(ML,{p:o.p,adds:o.adds,fa:o.fa,wvOk:o.wvOk,wt:o.wt,wat:o.at});if(ML.cfg)ML.cfg.wv=o.wv;
+    lgSave(ML);LGX=null}
+  catch(e){S.wvErr=String(e.message||e)}
+  finally{S.wvBusy=0;again()}}
 // ---- Build (Buy/Sell > Build; synced league): BBM's add/drop finder on our numbers. Pick a player
 // to drop and every free agent is ranked by your Win% with him in that spot, or start from the best
 // drop x add combos across the roster. Every team's synced roster is played out over the horizon
@@ -2224,7 +2290,7 @@ function tbRenderAdd(ctx,ros,cur,drops){
       const prev=k>1&&S.tbCo[k-1]&&S.tbCo[k-1][0],less=prev&&top[0]&&prev.s.cats>=top[0].s.cats-.0005?`<div class="tbhint">Move ${k} doesn't add anything: the best ${k-1}-move set is ${tbPct(prev.s.cats)}.</div>`:"";
       const nm=a=>a.map(o=>esc(o.q.n)),rk=a=>a.map(o=>"#"+(S.bs.x[o.id]||"–")).join(" ");
       $("tbAdd").innerHTML=tabs+nk+`<div class="tbhint">${hint}</div>`+kl+less+(top.length?head(k===1?"Move":`${k} moves`)+top.map((x,i)=>
-        row(i+1,x.d.map(o=>o.id).join(",")+">"+x.a.map(o=>o.id).join(","),`−${nm(x.d).join(", −")} <s>→</s> +${nm(x.a).join(", +")}`,`Proj ${rk(x.d)} → ${rk(x.a)}`,x.s,tbWhy(cur,x.s))).join("")
+        row(i+1,x.d.map(o=>o.id).join(",")+">"+x.a.map(o=>o.id).join(","),`−${nm(x.d).join(", −")} <s>→</s> +${x.a.map(o=>esc(o.q.n)+wvTag(o.id)).join(", +")}`,`Proj ${rk(x.d)} → ${rk(x.a)}`,x.s,tbWhy(cur,x.s))).join("")
         :`<div class="tbhint">No ${k===1?"single drop and add":`set of ${k} moves`} beats your current team right now.</div>`);
       $("tbAdd").querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const[d,a]=b.dataset.k.split(">");T.drops=d.split(",");T.pick=a.split(",");if(k===1)T.tab="drop";renderBuild()});
       wire()});
@@ -2237,7 +2303,7 @@ function tbRenderAdd(ctx,ros,cur,drops){
     else if(T.fs==="p")rows.sort((a,b)=>(S.bs.x[a.adds[0].id]||1e4)-(S.bs.x[b.adds[0].id]||1e4));
     $("tbAdd").innerHTML=tabs+`<div class="tbhint">Every free agent in his spot (top ${P.length} by Proj). Tap one to see your team with him.</div>`
       +(n===1?`<div class="tbsort"><span class="tbml">Sort</span><div class="seg" id="tbFs"><button data-v="w" aria-pressed="${T.fs==="w"}">Win% after</button><button data-v="p" aria-pressed="${T.fs==="p"}">Proj</button></div></div>`:"")
-      +head(n===2?"Pair":"Player")+rows.map((r,i)=>row(i+1,r.adds.map(o=>o.id).join(","),r.adds.map(o=>esc(o.q.n)+ijTag(o.id)).join(" + "),r.adds.map(o=>tbSub(ctx,o)).join(" / "),r.s,tbWhy(cur,r.s))).join("");
+      +head(n===2?"Pair":"Player")+rows.map((r,i)=>row(i+1,r.adds.map(o=>o.id).join(","),r.adds.map(o=>esc(o.q.n)+ijTag(o.id)+wvTag(o.id)).join(" + "),r.adds.map(o=>tbSub(ctx,o)).join(" / "),r.s,tbWhy(cur,r.s))).join("");
     $("tbAdd").querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{T.pick=b.dataset.k.split(",");renderBuild()});
     const fs=$("tbFs");if(fs)fs.querySelectorAll("button").forEach(b=>b.onclick=()=>{T.fs=b.dataset.v;renderBuild()})}
   $("tbTab").querySelectorAll("button").forEach(b=>b.onclick=()=>{T.tab=b.dataset.v;renderBuild()});
@@ -3342,7 +3408,8 @@ function myDrops(ctx){const sv=store.get("myDrop",{})[myKey(ctx)],on=new Set(ctx
 // category (or 1 point of win chance); the three best distinct sets of pickups are kept.
 function myPlan(ctx,n){
   const o=S.myO,drops=[...myDrops(ctx)],sc=e=>o.goal==="win"?e.win+e.exp/1e3:e.obj+e.win/1e3,eps=o.goal==="win"?.01:.03,onB=new Set(ctx.base.map(p=>p.id));
-  const days=o.same?ctx.rest:ctx.rest.filter(d=>d>ctx.today),gd=(q,id)=>days.filter(d=>plays(q.t,d)&&avail(id,d));
+  // a player on waivers counts only from the day he clears (a claim lands that morning)
+  const days=o.same?ctx.rest:ctx.rest.filter(d=>d>ctx.today),gd=(q,id)=>{const f=wvFirst(id);return days.filter(d=>d>=f&&plays(q.t,d)&&avail(id,d))};
   const fa=Object.entries(G.players).filter(([id,q])=>ctx.x.own[id]==null&&!onB.has(id)&&q.xp&&q.xp[0]>=12&&!(o.noq&&ijOf(id))).map(([id,q])=>{const ds=gd(q,id);return{id,ds,v:ds.reduce((a,d)=>a+val0(muLine(id,q,d,ctx.C).z,G.zp),0)}})
     .filter(x=>x.ds.length).sort((a,b)=>b.v-a.v).slice(0,MYFA);
   const s0=myEval(ctx,[]);let beam=[{moves:[],...s0}],best=beam[0];const all=[];
@@ -3382,7 +3449,8 @@ function myPlanSec(ctx,applied){
   const nm=id=>esc(G.players[id]?G.players[id].n:id),rk=id=>S.bs&&S.bs.x&&S.bs.x[id]?"#"+S.bs.x[id]:"–",g=(id,d)=>ctx.rest.filter(t=>t>=d&&plays(G.players[id].t,t)&&avail(id,t)).length;
   const sh=d=>d===ctx.today?"Today":fmtDate(d).split(",")[0],when=d=>{if(o.same)return sh(d);const i=ctx.dates.indexOf(d);return sh(i>0?ctx.dates[i-1]:d)};
   const flips=(a,b)=>{const up=[],dn=[];b.rows.forEach((r,i)=>{const q=a.rows[i];if(r.p==null||q.p==null)return;if(q.p<=.5&&r.p>.5)up.push(r.l);if(q.p>.5&&r.p<=.5)dn.push(r.l)});return(up.length?` Flips <b>${up.join(", ")}</b> your way.`:"")+(dn.length?` Gives up ${dn.join(", ")}.`:"")};
-  const moveRow=(m,stp)=>`<div class="mym"><div class="myd">${when(m.d)}</div><div class="mymv"><div data-id="${m.add}"><em class="add">Add</em> <b>${nm(m.add)}</b> <i>${esc(G.players[m.add].t)} · ${g(m.add,m.d)} game${g(m.add,m.d)>1?"s":""} · Proj ${rk(m.add)}</i></div>
+  const wvM=id=>{const v=wvOf(id);return v&&v.w?v:null};
+  const moveRow=(m,stp)=>`<div class="mym"><div class="myd">${wvM(m.add)?"Claim now":when(m.d)}</div><div class="mymv"><div data-id="${m.add}"><em class="add">${wvM(m.add)?"Claim":"Add"}</em> <b>${nm(m.add)}</b> <i>${esc(G.players[m.add].t)} · ${wvM(m.add)?`on waivers, yours ${wvDay(m.d)==="today"?"today":"from "+wvDay(m.d)} · `:""}${g(m.add,m.d)} game${g(m.add,m.d)>1?"s":""} · Proj ${rk(m.add)}</i></div>
     <div data-id="${m.drop}"><em class="drop">Drop</em> ${nm(m.drop)} <i>Proj ${rk(m.drop)}</i></div></div><div class="myg">${stp>=0?"+":"−"}${Math.abs(stp).toFixed(2)}<i>cats</i></div></div>`;
   const planHTML=(b,s0)=>b.moves.map((m,i)=>moveRow(m,myEval(ctx,b.moves.slice(0,i+1)).exp-(i?myEval(ctx,b.moves.slice(0,i)).exp:s0.exp))).join("");
   const use=(b,i)=>mySame(b.moves,applied)?`<button class="myuse on" data-pl="x">In the grid ✓ · Clear</button>`:`<button class="myuse" data-pl="${i}">Use this plan</button>`;
@@ -3399,7 +3467,7 @@ function myPlanSec(ctx,applied){
   const ros=[...ctx.base].sort((a,b)=>(S.bs&&S.bs.x?(S.bs.x[a.id]||999)-(S.bs.x[b.id]||999):0));
   const seg=(k,opts)=>`<div class="seg mysg">${opts.map(([v,l])=>`<button data-myo="${k}" data-v="${v}" aria-pressed="${String(o[k])===String(v)}">${l}</button>`).join("")}</div>`;
   return`<section class="msec mpln"><h3 class="myh">Streaming plan</h3><div class="mysub">adds left this ${ctx.dates&&ctx.dates.length>7?`matchup (${ctx.dates.length/7|0} weeks)`:"week"}${ctx.tg&&ctx.tg.length&&o.goal==="cats"?` · going after your targets`:""}</div><div class="myadd"><button data-add="-1" aria-label="One fewer">−</button><b>${n}</b><button data-add="1" aria-label="One more">+</button></div>
-    <p class="stkn">The best use of the adds you have left this week (your league allows ${myMax()}${myUsed(ctx)!=null?`; ${myUsed(ctx)} used, read from Yahoo`:"; set how many remain"}). Each move counts from its day: a streamer can be added for his games and dropped later for someone else's. Only players you tick as droppable, and streamers the plan itself added, are dropped. <b>Most categories</b> goes for the most expected categories (only the ones you've ticked as targets above, if any); <b>Win the week</b> for the best chance at 5 of 9, which can mean giving up a category you're losing anyway. <b>Same day</b>: a pickup can play the day you make it; <b>Next day</b>: from the day after, so the plan gives the day to make the move. <b>Use this plan</b> puts its moves into the grid below as what-ifs, each from its day, so you can see every game it adds; Clear or Reset takes them out. It starts from the roster shown, including your own what-if adds and drops. Scored against this week's opponent on our projections; only your best ${ctx.capA} count on a crowded day; positions aren't checked.</p>
+    <p class="stkn">The best use of the adds you have left this week (your league allows ${myMax()}${myUsed(ctx)!=null?`; ${myUsed(ctx)} used, read from Yahoo`:"; set how many remain"}). Each move counts from its day: a streamer can be added for his games and dropped later for someone else's. Only players you tick as droppable, and streamers the plan itself added, are dropped. <b>Most categories</b> goes for the most expected categories (only the ones you've ticked as targets above, if any); <b>Win the week</b> for the best chance at 5 of 9, which can mean giving up a category you're losing anyway. <b>Same day</b>: a pickup can play the day you make it; <b>Next day</b>: from the day after, so the plan gives the day to make the move. A player on waivers can only be claimed: he counts from the morning he clears, and the plan says <b>Claim</b> (put it in now) instead of a day. <b>Use this plan</b> puts its moves into the grid below as what-ifs, each from its day, so you can see every game it adds; Clear or Reset takes them out. It starts from the roster shown, including your own what-if adds and drops. Scored against this week's opponent on our projections; only your best ${ctx.capA} count on a crowded day; positions aren't checked.</p>
     <div class="myopt">${seg("goal",[["cats","Most categories"],["win","Win the week"]])}${seg("same",[[1,"Same day"],[0,"Next day"]])}<button class="mychk" data-myo="noq" data-v="${o.noq?0:1}" aria-pressed="${!!o.noq}">Skip injured</button></div>
     ${body}
     <details class="mydd"${store.get("myDD",0)?" open":""}><summary>Who can be dropped <i>${drops.size} ticked</i></summary>
@@ -3877,7 +3945,7 @@ function renderMU(){
   const trow=(ps,T)=>{const t={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0,fgm:0,fga:0,ftm:0,fta:0};let n=0;for(const o of ps){if(o.il&&!rest.some(d=>cnt(T.st[o.id]&&T.st[o.id][d])))continue;const r=ptot(o,T);n+=r.n;for(const k in t)t[k]+=r.t[k]}
     return`<div class="mr mtot"><div class="mn"><b>Days left total</b></div><span class="mgp">${n}</span><div class="md"></div><div class="mcat">${CATS.map(c=>`<span>${cf(c.k,t)}</span>`).join("")}</div><div class="mval"></div><span></span></div>`};
   const row=(o,T,act,full)=>{const dl2=o.d!=null&&act!=="undo"?`<i class="${o.d>=.05?"up":o.d<=-.05?"dn":""}">${Math.abs(o.d)<.05?"0.0":(o.d>0?"+":"−")+Math.abs(o.d).toFixed(1)}</i>`:"";
-    return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${esc(nm(o.q.n))}</b><i>${esc(o.q.t)} · ${o.il?(b=>`<em class="ilb">${b?"back "+dl(b):"out all wk"}</em>`)(rest.find(d=>plays(o.q.t,d)&&avail(o.id,d))):esc(posOf(o.id)||"–")}${o.pl?` <em>plan add</em>`:o.nw?` <em>what-if add</em>`:""}${plOff[o.id]?` <em>plan drop ${dl(plOff[o.id])}</em>`:""}${act==="undo"?` <em>what-if drop</em>`:""}</i></div>
+    return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${esc(nm(o.q.n))}${wvTag(o.id)}</b><i>${esc(o.q.t)} · ${o.il?(b=>`<em class="ilb">${b?"back "+dl(b):"out all wk"}</em>`)(rest.find(d=>plays(o.q.t,d)&&avail(o.id,d))):esc(posOf(o.id)||"–")}${o.pl?` <em>plan add</em>`:o.nw?` <em>what-if add</em>`:""}${plOff[o.id]?` <em>plan drop ${dl(plOff[o.id])}</em>`:""}${act==="undo"?` <em>what-if drop</em>`:""}</i></div>
       ${act==="undo"?`<span class="mgp"></span><div class="md"></div><div class="mcat"></div>`:(c=>c[0]+`<div class="md">${cells(o,T,act==="drop"||act==="undrop",full)}</div>`+c[1])(catC(o,T))}
       <div class="mval"><b class="${o.v>=1?"up":o.v<=-1?"dn":""}">${sg(o.v)}</b>${dl2}</div>
       ${act?`<button class="mb" data-mu="${act}" data-x="${o.id}" aria-label="${act}">${act==="add"?"+":act==="undo"?"↺":"−"}</button>`:"<span></span>"}</div>`};

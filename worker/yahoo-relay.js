@@ -14,8 +14,12 @@
  *               settings (cfg), each player's eligible positions and status (p[i][5], p[i][6]),
  *               and both matchup teams' lineups for every day of the week (lu: team -> date ->
  *               {yahoo player id: [slot, played]}; played is 1 / 0 for days already played, from
- *               Yahoo's own stats for that day, null for days to come), and the best 150
- *               available players with their eligible positions and status tags (fa).
+ *               Yahoo's own stats for that day, null for days to come), the best 150
+ *               available players plus everyone on waivers, each with eligible positions, status
+ *               tag, and whether he's a free agent or on waivers until a date (fa, wvOk), each
+ *               team's waiver priority, moves and FAAB (wt), and the waiver settings (cfg.wv).
+ *
+ * GET /wire  -> just the wire, for a refresh from the Waivers page: rosters, adds, wt, wv, fa, wvOk.
  *
  * GET /minutes, POST /minutes {id, m, until, n, t} (m null = clear) -> your minutes overrides, the one
  *               thing the relay stores (Cloudflare KV, binding OV): your own numbers, not Yahoo's
@@ -108,7 +112,7 @@ async function buildSync(env) {
   const scored = cats.filter(c => +c.enabled !== 0 && +c.is_only_display_stat !== 1);
   const cfg = { name: meta.name, season: meta.season, teams: +meta.num_teams || null, week: +meta.current_week || null,
     endWeek: +meta.end_week || null, maxAdds: +s.max_weekly_adds || null, maxSeasonAdds: +s.max_adds || null,
-    pos, cats: scored.map(c => c.display_name), playoffStart: +s.playoff_start_week || null };
+    pos, cats: scored.map(c => c.display_name), playoffStart: +s.playoff_start_week || null, wv: waiverCfg(s) };
 
   // teams and rosters (today's lineup slots)
   const teams = {}, act = {}, adds = {}, p = [];
@@ -175,21 +179,82 @@ async function buildSync(env) {
     await Promise.all(jobs);
   }
 
-  // The best 150 available players (free agents and waivers) by Yahoo's season rank, with their
-  // eligible positions and status tags, for pickups in the IL+ optimizer: [id, name, team, positions, tag].
-  const fa = [];
-  const pages = await Promise.all([0, 25, 50, 75, 100, 125].map(st =>
-    yf(env, `/league/${lk}/players;status=A;sort=AR;start=${st};count=25`).catch(() => null)));
-  for (const fc of pages) {
-    if (!fc) continue;
+  const wire = await readWire(env, lk);
+  return { v: 1, src: 'api', lid: String(meta.league_id), at: new Date().toISOString(), me, teams, p, act, mu, sched, adds, cfg, lu,
+    ...wire, wt: wireTeams(ro), ov: await ovGet(env) };
+}
+
+// ---- The wire: who is available, and whether as a free agent or on waivers. A free agent can be
+// added any time (first come); a player on waivers (just dropped, or under the league's waiver rule)
+// can only be claimed until his waiver date, when claims are processed in waiver order (a claim by
+// anyone, even last in the order, beats not claiming), and he becomes a free agent after.
+// fa rows: [id, name, team, positions, status tag, 'W' | 'FA' | '', waiver date 'YYYY-MM-DD' | ''].
+// The best 150 available by Yahoo's season rank, plus everyone on waivers (wvOk: that list was read
+// in full, so an unowned player not on it is a free agent).
+async function readWire(env, lk) {
+  // ownership (type + waiver date) is a player sub-resource; if Yahoo refuses it on a collection,
+  // read plain pages and rely on the waiver list for who is on waivers. Tried once, on the first
+  // waiver page, so a refusal doesn't double every call (the free plan allows 50 per request).
+  const first = 'status=W;sort=AR;start=0;count=25';
+  let own = true, w0 = await yf(env, `/league/${lk}/players;${first}/ownership`).catch(() => null);
+  if (!w0) { own = false; w0 = await yf(env, `/league/${lk}/players;${first}`).catch(() => null); }
+  const page = q => yf(env, `/league/${lk}/players;${q}${own ? '/ownership' : ''}`).then(fc => [fc, own]).catch(() => [null, own]);
+  const n = fc => fc ? items(pick(fc.league, 'players')).length : 0;
+  // more waiver pages only while each comes back full (usually there are fewer than 25)
+  const wvP = async () => { const out = [[w0, own]]; let last = w0;
+    for (let st = 25; last && n(last) === 25 && st < 100; st += 25) { const [fc] = await page(`status=W;sort=AR;start=${st};count=25`); out.push([fc, own]); last = fc; }
+    return out; };
+  const [av, wv] = await Promise.all([Promise.all([0, 25, 50, 75, 100, 125].map(st => page(`status=A;sort=AR;start=${st};count=25`))), wvP()]);
+  const rows = new Map(), wvOk = wv.every(([fc]) => fc) && n(wv[wv.length - 1][0]) < 25;
+  const add = (fc, own, onW) => {
     for (const x of items(pick(fc.league, 'players'))) {
-      const pm = flat(x.player[0]);
-      fa.push([String(pm.player_id), (pm.name && pm.name.full) || '', String(pm.editorial_team_abbr || '').toUpperCase(),
-        (pm.eligible_positions || []).map(e => e.position).filter(Boolean).join(','), pm.status || '']);
+      const pm = flat(x.player[0]), id = String(pm.player_id), o = own ? flat(pick(x.player, 'ownership')) : {};
+      const ty = onW ? 'W' : o.ownership_type === 'waivers' ? 'W' : o.ownership_type === 'freeagents' ? 'FA' : '';
+      const prev = rows.get(id);
+      if (prev) { if (ty === 'W') { prev[5] = 'W'; prev[6] = o.waiver_date || prev[6]; } continue; }
+      rows.set(id, [id, (pm.name && pm.name.full) || '', String(pm.editorial_team_abbr || '').toUpperCase(),
+        (pm.eligible_positions || []).map(e => e.position).filter(Boolean).join(','), pm.status || '', ty, ty === 'W' ? String(o.waiver_date || '') : '']);
+    }
+  };
+  for (const [fc, own] of av) if (fc) add(fc, own, false);
+  for (const [fc, own] of wv) if (fc) add(fc, own, true);
+  const fa = [...rows.values()];
+  // with the waiver list read in full, anyone available who isn't on it is a free agent
+  if (wvOk) for (const r of fa) if (r[5] !== 'W') r[5] = 'FA';
+  return { fa, wvOk };
+}
+// Each team's waiver priority (1 = first claim), moves this season and FAAB budget left.
+function wireTeams(ro) {
+  const o = {};
+  for (const t of items(pick(ro.league, 'teams'))) {
+    const tm = flat(t.team[0]);
+    o[String(tm.team_id)] = [tm.waiver_priority != null ? +tm.waiver_priority : null, tm.number_of_moves != null ? +tm.number_of_moves : null,
+      tm.faab_balance != null && tm.faab_balance !== '' ? +tm.faab_balance : null];
+  }
+  return o;
+}
+// The league's waiver settings as Yahoo states them: type (R = rolling list; FR / FAAB variants),
+// rule (when free agents go on waivers), days a dropped player stays on waivers, FAAB on/off.
+const waiverCfg = s => ({ type: s.waiver_type || null, rule: s.waiver_rule || null,
+  days: s.waiver_time != null && s.waiver_time !== '' ? +s.waiver_time : null, faab: +s.uses_faab === 1 });
+
+// GET /wire: just the wire, for a refresh on the Waivers page (a fraction of a full sync's calls):
+// rosters (so a player someone just added drops off), adds used, waiver order, the available list.
+async function buildWire(env) {
+  const lk = await leagueKey(env);
+  const [st, ro, wire] = await Promise.all([yf(env, `/league/${lk}/settings`), yf(env, `/league/${lk}/teams/roster`), readWire(env, lk)]);
+  const s = flat(pick(st.league, 'settings')), p = [], adds = {};
+  for (const t of items(pick(ro.league, 'teams'))) {
+    const tm = flat(t.team[0]), id = String(tm.team_id);
+    if (tm.roster_adds && tm.roster_adds.value != null) adds[id] = +tm.roster_adds.value;
+    for (const x of items(((pick(t.team, 'roster') || {})['0'] || {}).players)) {
+      const pm = flat(x.player[0]), sp = flat(pick(x.player, 'selected_position'));
+      p.push([String(pm.player_id), (pm.name && pm.name.full) || '', String(pm.editorial_team_abbr || '').toUpperCase(),
+        id, sp.position || '', (pm.eligible_positions || []).map(e => e.position).filter(Boolean).join(','), pm.status || '']);
     }
   }
-
-  return { v: 1, src: 'api', lid: String(meta.league_id), at: new Date().toISOString(), me, teams, p, act, mu, sched, adds, cfg, lu, fa, ov: await ovGet(env) };
+  if (!p.length) throw new HttpErr(502, 'Yahoo returned no rosters.');
+  return { v: 1, wire: 1, at: new Date().toISOString(), p, adds, wv: waiverCfg(s), wt: wireTeams(ro), ...wire };
 }
 
 // One team's lineup on one day: {player id: [slot, played]}. With stats (days already played) it
@@ -274,6 +339,7 @@ export default {
     if (!keyOk(req.headers.get('X-Relay-Key') || '', env.RELAY_KEY || '')) return json({ error: 'Wrong or missing relay key.' }, 401);
     try {
       if (url.pathname === '/sync' && req.method === 'GET') return json(await buildSync(env));
+      if (url.pathname === '/wire' && req.method === 'GET') return json(await buildWire(env));
       if (url.pathname === '/minutes' && req.method === 'GET') return json(await ovGet(env));
       if (url.pathname === '/minutes' && req.method === 'POST') return json(await ovSet(env, await req.json().catch(() => null)));
       return json({ error: 'Not found' }, 404);
