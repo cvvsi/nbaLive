@@ -1500,8 +1500,6 @@ function wvOf(id){if(!ML||!ML.fa||lgOf(id)!=null)return null;const x=lgIx(),a=x&
   if(a&&a[0]==="W"&&!(a[1]&&(a[1]<today||(a[1]===today&&etDayOf(wireAt())<today))))return{w:1,d:a[1]};
   return a||ML.wvOk?{w:0}:null}
 const wvDay=d=>{if(!d)return"";const t=etToday();return d===t?"today":d===shift(t,1)?"tmrw":d<=shift(t,6)?fmtDate(d).split(",")[0]:fmtDate(d).replace(/^\w+, /,"")};
-// the first day a pickup can play for you: today for a free agent, the day he clears for a claim
-const wvFirst=id=>{const v=wvOf(id);return v&&v.w?(v.d||shift(etToday(),1)):etToday()};
 const wvTag=(id,fa)=>{const v=wvOf(id);if(!v)return"";
   return v.w?`<span class="bt wv" title="On waivers${v.d?" until "+esc(fmtDate(v.d)):""}: claim him, or add him after he clears">W${v.d?" · "+wvDay(v.d):""}</span>`:fa?`<span class="bt fa" title="Free agent: add any time">FA</span>`:""};
 // your waiver priority: [yours, teams in the order] from the relay (wt: team -> [priority, moves, FAAB])
@@ -2092,7 +2090,7 @@ function renderLgBS(st){
     const [c,k]=v==="buy"?["Undervalued","good"]:v==="sell"?["Fluke","bad"]:r3&&r3<=ROST&&x<=ROST?["Real","good"]:["",""];return[id,c,k,wy(id,why)]};
   const hRow=id=>[id,B.x[id]<=ROST?"Stash":"",B.x[id]<=ROST?"good":"",wy(id,injWhy(id))];
   const none=`<div class="empty">${wf==="w"?"Nobody worth a look is on waivers right now.":"No one in this list."}</div>`;
-  const cap=`<p class="bzcap">FA = add any time · W = on waivers, claim by the day shown. Free agents and players on waivers in your league, best <b>Proj</b> first: Proj inside 170, or a role that just grew. <b>FA</b> = free agent: add him any time, first come. <b>W</b> = on waivers until the day shown: put in a claim (claims run in waiver order the morning he clears${(ML.cfg&&ML.cfg.wv&&ML.cfg.wv.type==="R")||!(ML.cfg&&ML.cfg.wv&&ML.cfg.wv.faab)?"; one that lands sends you to the back of the order":""}), or keep your priority and add him as a free agent once he clears, but then any team that claimed him, even one behind you in the order, gets him first, and after that it's first come. A pickup in the streaming plan counts from the day he can be yours. <b>Real</b> = Proj backs the hot start, <b>Fluke</b> = it's mostly shooting luck, <b>Undervalued</b> = his rank is hiding a better player.${isDesk()?" The line is his Proj per game.":""}</p>`;
+  const cap=`<p class="bzcap">FA = add any time · W = on waivers, claim by the day shown. Free agents and players on waivers in your league, best <b>Proj</b> first: Proj inside 170, or a role that just grew. <b>FA</b> = free agent: add him any time, first come. <b>W</b> = on waivers until the day shown: put in a claim (claims run in waiver order the morning he clears${(ML.cfg&&ML.cfg.wv&&ML.cfg.wv.type==="R")||!(ML.cfg&&ML.cfg.wv&&ML.cfg.wv.faab)?"; one that lands sends you to the back of the order":""}), or keep your priority and add him as a free agent once he clears, but then any team that claimed him, even one behind you in the order, gets him first, and after that it's first come. <b>Real</b> = Proj backs the hot start, <b>Fluke</b> = it's mostly shooting luck, <b>Undervalued</b> = his rank is hiding a better player.${isDesk()?" The line is his Proj per game.":""}</p>`;
   const head=wvHead(known);
   if(isDesk()){$("bsList").innerHTML=`<div class="lbdw">${cap}${head}<div class="dwx"><div class="dwm">`
     +(fit.length?lgBsHeadW("Waiver wire","Healthy")+fit.map(id=>lgBsRowW(...wRow(id))).join(""):none)
@@ -2290,7 +2288,7 @@ function tbRenderAdd(ctx,ros,cur,drops){
       const prev=k>1&&S.tbCo[k-1]&&S.tbCo[k-1][0],less=prev&&top[0]&&prev.s.cats>=top[0].s.cats-.0005?`<div class="tbhint">Move ${k} doesn't add anything: the best ${k-1}-move set is ${tbPct(prev.s.cats)}.</div>`:"";
       const nm=a=>a.map(o=>esc(o.q.n)),rk=a=>a.map(o=>"#"+(S.bs.x[o.id]||"–")).join(" ");
       $("tbAdd").innerHTML=tabs+nk+`<div class="tbhint">${hint}</div>`+kl+less+(top.length?head(k===1?"Move":`${k} moves`)+top.map((x,i)=>
-        row(i+1,x.d.map(o=>o.id).join(",")+">"+x.a.map(o=>o.id).join(","),`−${nm(x.d).join(", −")} <s>→</s> +${x.a.map(o=>esc(o.q.n)+wvTag(o.id)).join(", +")}`,`Proj ${rk(x.d)} → ${rk(x.a)}`,x.s,tbWhy(cur,x.s))).join("")
+        row(i+1,x.d.map(o=>o.id).join(",")+">"+x.a.map(o=>o.id).join(","),`−${nm(x.d).join(", −")} <s>→</s> +${nm(x.a).join(", +")}`,`Proj ${rk(x.d)} → ${rk(x.a)}`,x.s,tbWhy(cur,x.s))).join("")
         :`<div class="tbhint">No ${k===1?"single drop and add":`set of ${k} moves`} beats your current team right now.</div>`);
       $("tbAdd").querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const[d,a]=b.dataset.k.split(">");T.drops=d.split(",");T.pick=a.split(",");if(k===1)T.tab="drop";renderBuild()});
       wire()});
@@ -2303,7 +2301,7 @@ function tbRenderAdd(ctx,ros,cur,drops){
     else if(T.fs==="p")rows.sort((a,b)=>(S.bs.x[a.adds[0].id]||1e4)-(S.bs.x[b.adds[0].id]||1e4));
     $("tbAdd").innerHTML=tabs+`<div class="tbhint">Every free agent in his spot (top ${P.length} by Proj). Tap one to see your team with him.</div>`
       +(n===1?`<div class="tbsort"><span class="tbml">Sort</span><div class="seg" id="tbFs"><button data-v="w" aria-pressed="${T.fs==="w"}">Win% after</button><button data-v="p" aria-pressed="${T.fs==="p"}">Proj</button></div></div>`:"")
-      +head(n===2?"Pair":"Player")+rows.map((r,i)=>row(i+1,r.adds.map(o=>o.id).join(","),r.adds.map(o=>esc(o.q.n)+ijTag(o.id)+wvTag(o.id)).join(" + "),r.adds.map(o=>tbSub(ctx,o)).join(" / "),r.s,tbWhy(cur,r.s))).join("");
+      +head(n===2?"Pair":"Player")+rows.map((r,i)=>row(i+1,r.adds.map(o=>o.id).join(","),r.adds.map(o=>esc(o.q.n)+ijTag(o.id)).join(" + "),r.adds.map(o=>tbSub(ctx,o)).join(" / "),r.s,tbWhy(cur,r.s))).join("");
     $("tbAdd").querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{T.pick=b.dataset.k.split(",");renderBuild()});
     const fs=$("tbFs");if(fs)fs.querySelectorAll("button").forEach(b=>b.onclick=()=>{T.fs=b.dataset.v;renderBuild()})}
   $("tbTab").querySelectorAll("button").forEach(b=>b.onclick=()=>{T.tab=b.dataset.v;renderBuild()});
@@ -3408,8 +3406,7 @@ function myDrops(ctx){const sv=store.get("myDrop",{})[myKey(ctx)],on=new Set(ctx
 // category (or 1 point of win chance); the three best distinct sets of pickups are kept.
 function myPlan(ctx,n){
   const o=S.myO,drops=[...myDrops(ctx)],sc=e=>o.goal==="win"?e.win+e.exp/1e3:e.obj+e.win/1e3,eps=o.goal==="win"?.01:.03,onB=new Set(ctx.base.map(p=>p.id));
-  // a player on waivers counts only from the day he clears (a claim lands that morning)
-  const days=o.same?ctx.rest:ctx.rest.filter(d=>d>ctx.today),gd=(q,id)=>{const f=wvFirst(id);return days.filter(d=>d>=f&&plays(q.t,d)&&avail(id,d))};
+  const days=o.same?ctx.rest:ctx.rest.filter(d=>d>ctx.today),gd=(q,id)=>days.filter(d=>plays(q.t,d)&&avail(id,d));
   const fa=Object.entries(G.players).filter(([id,q])=>ctx.x.own[id]==null&&!onB.has(id)&&q.xp&&q.xp[0]>=12&&!(o.noq&&ijOf(id))).map(([id,q])=>{const ds=gd(q,id);return{id,ds,v:ds.reduce((a,d)=>a+val0(muLine(id,q,d,ctx.C).z,G.zp),0)}})
     .filter(x=>x.ds.length).sort((a,b)=>b.v-a.v).slice(0,MYFA);
   const s0=myEval(ctx,[]);let beam=[{moves:[],...s0}],best=beam[0];const all=[];
@@ -3449,8 +3446,7 @@ function myPlanSec(ctx,applied){
   const nm=id=>esc(G.players[id]?G.players[id].n:id),rk=id=>S.bs&&S.bs.x&&S.bs.x[id]?"#"+S.bs.x[id]:"–",g=(id,d)=>ctx.rest.filter(t=>t>=d&&plays(G.players[id].t,t)&&avail(id,t)).length;
   const sh=d=>d===ctx.today?"Today":fmtDate(d).split(",")[0],when=d=>{if(o.same)return sh(d);const i=ctx.dates.indexOf(d);return sh(i>0?ctx.dates[i-1]:d)};
   const flips=(a,b)=>{const up=[],dn=[];b.rows.forEach((r,i)=>{const q=a.rows[i];if(r.p==null||q.p==null)return;if(q.p<=.5&&r.p>.5)up.push(r.l);if(q.p>.5&&r.p<=.5)dn.push(r.l)});return(up.length?` Flips <b>${up.join(", ")}</b> your way.`:"")+(dn.length?` Gives up ${dn.join(", ")}.`:"")};
-  const wvM=id=>{const v=wvOf(id);return v&&v.w?v:null};
-  const moveRow=(m,stp)=>`<div class="mym"><div class="myd">${wvM(m.add)?"Claim now":when(m.d)}</div><div class="mymv"><div data-id="${m.add}"><em class="add">${wvM(m.add)?"Claim":"Add"}</em> <b>${nm(m.add)}</b> <i>${esc(G.players[m.add].t)} · ${wvM(m.add)?`on waivers, yours ${wvDay(m.d)==="today"?"today":"from "+wvDay(m.d)} · `:""}${g(m.add,m.d)} game${g(m.add,m.d)>1?"s":""} · Proj ${rk(m.add)}</i></div>
+  const moveRow=(m,stp)=>`<div class="mym"><div class="myd">${when(m.d)}</div><div class="mymv"><div data-id="${m.add}"><em class="add">Add</em> <b>${nm(m.add)}</b> <i>${esc(G.players[m.add].t)} · ${g(m.add,m.d)} game${g(m.add,m.d)>1?"s":""} · Proj ${rk(m.add)}</i></div>
     <div data-id="${m.drop}"><em class="drop">Drop</em> ${nm(m.drop)} <i>Proj ${rk(m.drop)}</i></div></div><div class="myg">${stp>=0?"+":"−"}${Math.abs(stp).toFixed(2)}<i>cats</i></div></div>`;
   const planHTML=(b,s0)=>b.moves.map((m,i)=>moveRow(m,myEval(ctx,b.moves.slice(0,i+1)).exp-(i?myEval(ctx,b.moves.slice(0,i)).exp:s0.exp))).join("");
   const use=(b,i)=>mySame(b.moves,applied)?`<button class="myuse on" data-pl="x">In the grid ✓ · Clear</button>`:`<button class="myuse" data-pl="${i}">Use this plan</button>`;
@@ -3467,7 +3463,7 @@ function myPlanSec(ctx,applied){
   const ros=[...ctx.base].sort((a,b)=>(S.bs&&S.bs.x?(S.bs.x[a.id]||999)-(S.bs.x[b.id]||999):0));
   const seg=(k,opts)=>`<div class="seg mysg">${opts.map(([v,l])=>`<button data-myo="${k}" data-v="${v}" aria-pressed="${String(o[k])===String(v)}">${l}</button>`).join("")}</div>`;
   return`<section class="msec mpln"><h3 class="myh">Streaming plan</h3><div class="mysub">adds left this ${ctx.dates&&ctx.dates.length>7?`matchup (${ctx.dates.length/7|0} weeks)`:"week"}${ctx.tg&&ctx.tg.length&&o.goal==="cats"?` · going after your targets`:""}</div><div class="myadd"><button data-add="-1" aria-label="One fewer">−</button><b>${n}</b><button data-add="1" aria-label="One more">+</button></div>
-    <p class="stkn">The best use of the adds you have left this week (your league allows ${myMax()}${myUsed(ctx)!=null?`; ${myUsed(ctx)} used, read from Yahoo`:"; set how many remain"}). Each move counts from its day: a streamer can be added for his games and dropped later for someone else's. Only players you tick as droppable, and streamers the plan itself added, are dropped. <b>Most categories</b> goes for the most expected categories (only the ones you've ticked as targets above, if any); <b>Win the week</b> for the best chance at 5 of 9, which can mean giving up a category you're losing anyway. <b>Same day</b>: a pickup can play the day you make it; <b>Next day</b>: from the day after, so the plan gives the day to make the move. A player on waivers can only be claimed: he counts from the morning he clears, and the plan says <b>Claim</b> (put it in now) instead of a day. <b>Use this plan</b> puts its moves into the grid below as what-ifs, each from its day, so you can see every game it adds; Clear or Reset takes them out. It starts from the roster shown, including your own what-if adds and drops. Scored against this week's opponent on our projections; only your best ${ctx.capA} count on a crowded day; positions aren't checked.</p>
+    <p class="stkn">The best use of the adds you have left this week (your league allows ${myMax()}${myUsed(ctx)!=null?`; ${myUsed(ctx)} used, read from Yahoo`:"; set how many remain"}). Each move counts from its day: a streamer can be added for his games and dropped later for someone else's. Only players you tick as droppable, and streamers the plan itself added, are dropped. <b>Most categories</b> goes for the most expected categories (only the ones you've ticked as targets above, if any); <b>Win the week</b> for the best chance at 5 of 9, which can mean giving up a category you're losing anyway. <b>Same day</b>: a pickup can play the day you make it; <b>Next day</b>: from the day after, so the plan gives the day to make the move. <b>Use this plan</b> puts its moves into the grid below as what-ifs, each from its day, so you can see every game it adds; Clear or Reset takes them out. It starts from the roster shown, including your own what-if adds and drops. Scored against this week's opponent on our projections; only your best ${ctx.capA} count on a crowded day; positions aren't checked.</p>
     <div class="myopt">${seg("goal",[["cats","Most categories"],["win","Win the week"]])}${seg("same",[[1,"Same day"],[0,"Next day"]])}<button class="mychk" data-myo="noq" data-v="${o.noq?0:1}" aria-pressed="${!!o.noq}">Skip injured</button></div>
     ${body}
     <details class="mydd"${store.get("myDD",0)?" open":""}><summary>Who can be dropped <i>${drops.size} ticked</i></summary>
@@ -3945,7 +3941,7 @@ function renderMU(){
   const trow=(ps,T)=>{const t={pts:0,reb:0,ast:0,stl:0,blk:0,tpm:0,to:0,fgm:0,fga:0,ftm:0,fta:0};let n=0;for(const o of ps){if(o.il&&!rest.some(d=>cnt(T.st[o.id]&&T.st[o.id][d])))continue;const r=ptot(o,T);n+=r.n;for(const k in t)t[k]+=r.t[k]}
     return`<div class="mr mtot"><div class="mn"><b>Days left total</b></div><span class="mgp">${n}</span><div class="md"></div><div class="mcat">${CATS.map(c=>`<span>${cf(c.k,t)}</span>`).join("")}</div><div class="mval"></div><span></span></div>`};
   const row=(o,T,act,full)=>{const dl2=o.d!=null&&act!=="undo"?`<i class="${o.d>=.05?"up":o.d<=-.05?"dn":""}">${Math.abs(o.d)<.05?"0.0":(o.d>0?"+":"−")+Math.abs(o.d).toFixed(1)}</i>`:"";
-    return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${esc(nm(o.q.n))}${wvTag(o.id)}</b><i>${esc(o.q.t)} · ${o.il?(b=>`<em class="ilb">${b?"back "+dl(b):"out all wk"}</em>`)(rest.find(d=>plays(o.q.t,d)&&avail(o.id,d))):esc(posOf(o.id)||"–")}${o.pl?` <em>plan add</em>`:o.nw?` <em>what-if add</em>`:""}${plOff[o.id]?` <em>plan drop ${dl(plOff[o.id])}</em>`:""}${act==="undo"?` <em>what-if drop</em>`:""}</i></div>
+    return`<div class="mr${o.il?" il":""}${act==="undo"?" gone":""}${o.nw?" nw":""}" data-id="${o.id}"><div class="mn"><b>${esc(nm(o.q.n))}</b><i>${esc(o.q.t)} · ${o.il?(b=>`<em class="ilb">${b?"back "+dl(b):"out all wk"}</em>`)(rest.find(d=>plays(o.q.t,d)&&avail(o.id,d))):esc(posOf(o.id)||"–")}${o.pl?` <em>plan add</em>`:o.nw?` <em>what-if add</em>`:""}${plOff[o.id]?` <em>plan drop ${dl(plOff[o.id])}</em>`:""}${act==="undo"?` <em>what-if drop</em>`:""}</i></div>
       ${act==="undo"?`<span class="mgp"></span><div class="md"></div><div class="mcat"></div>`:(c=>c[0]+`<div class="md">${cells(o,T,act==="drop"||act==="undrop",full)}</div>`+c[1])(catC(o,T))}
       <div class="mval"><b class="${o.v>=1?"up":o.v<=-1?"dn":""}">${sg(o.v)}</b>${dl2}</div>
       ${act?`<button class="mb" data-mu="${act}" data-x="${o.id}" aria-label="${act}">${act==="add"?"+":act==="undo"?"↺":"−"}</button>`:"<span></span>"}</div>`};
