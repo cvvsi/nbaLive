@@ -1,0 +1,47 @@
+# Sign-in test for the automatic BBM / EFB projections pull. Signs in to each site with the
+# BBM_USER / BBM_PASS and EFB_USER / EFB_PASS repo secrets in a headless browser, opens the
+# projections page and counts rows. Saves nothing; the log shows only steps, page paths, column
+# labels and row counts (the repo and its logs are public, and both sites are paid).
+name: Projections login test
+
+on:
+  workflow_dispatch:
+    inputs:
+      site:
+        description: Which site
+        type: choice
+        options: [both, bbm, efb]
+        default: both
+      efb_url:
+        description: EFB projections page address (optional; otherwise it looks for one)
+        required: false
+      bbm_url:
+        description: BBM projections page address (optional)
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install a browser
+        run: |
+          npm install --no-save --no-package-lock playwright@1.49.1
+          npx playwright install --with-deps chromium
+      - name: Sign in and count rows
+        env:
+          SITE: ${{ inputs.site }}
+          EFB_URL: ${{ inputs.efb_url }}
+          BBM_URL: ${{ inputs.bbm_url }}
+          BBM_USER: ${{ secrets.BBM_USER }}
+          BBM_PASS: ${{ secrets.BBM_PASS }}
+          EFB_USER: ${{ secrets.EFB_USER }}
+          EFB_PASS: ${{ secrets.EFB_PASS }}
+        run: node proj-login-test.js
