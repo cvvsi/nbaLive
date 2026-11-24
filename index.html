@@ -863,7 +863,7 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .fxdw span:last-child{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .fxdc{text-align:center;font:600 14px/1 var(--num);color:var(--ink);padding:6px 0;border-radius:6px}.fxdc.mod{background:var(--cell)}.fxdc.on{box-shadow:inset 0 0 0 1.5px var(--ball)}
 .fxd5{font:500 12px/1 var(--num);color:var(--dim);text-align:center;white-space:nowrap}.fxd5 em{font-style:normal;color:var(--ink)}.fxd5 sup{color:var(--ball);font-size:8.5px}
-.fxd .fxr{margin:0;text-align:center;font-size:12.5px}
+.fxd .fxr{margin:0;text-align:center;font-size:12.5px}.fxr small{display:block;font:500 10.5px/1.3 var(--name);color:var(--dim);margin-top:2px}.fxc .fxr small{display:inline;margin-left:4px}
 .fxda{display:flex;flex-direction:column;gap:5px;min-width:0}.fxdv,.fxdt{display:flex;flex-wrap:wrap;align-items:center;gap:5px}
 .fxda .ovx{padding:6px 9px;font-size:11.5px}.fxda .fxst .ovsb{width:26px;height:26px;font-size:14px}.fxda .fxst b{min-width:34px;font-size:13.5px}
 .fxsel{flex:none;width:132px;font:600 11.5px/1 var(--name);color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:999px;padding:6px 8px;cursor:pointer}
@@ -4458,6 +4458,10 @@ function fxOutRanks(){const key=[pjAt("efb"),pjAt("bbm"),[...S.punt].join(),S.gw
     X.rows.filter(r=>r.id&&r.l.min>0).map(r=>[r.id,pjVal(pjZ(r.l))]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>o[k][id]=i+1)}
   return S.fxOR=o}
 function fxOut(id){const o={};for(const k of["efb","bbm"]){try{const X=pjSnap(k),e=X&&X.byId[id];if(e&&e.l.min>0)o[k]=e.l.min}catch(e){}}return o}
+// Blend, the default suggestion: his recent minutes (L5, else L3), Scout and Lab averaged; with only
+// one of them, that one averaged with the model, so one noisy source moves it halfway
+function fxBlend(r,o,mod){const v=[r.rec,o.efb,o.bbm].filter(x=>x!=null);if(!v.length)return null;
+  return v.length>=2?v.reduce((a,b)=>a+b,0)/v.length:mod!=null?(v[0]+mod)/2:v[0]}
 const fxMed=a=>{const s=[...a].sort((x,y)=>x-y),n=s.length;return n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2};
 // One player's card, or null. kind: auto (applied by itself), review (auto, not yet approved),
 // ended / ending / off (your override), start, up, down, out (Scout + Lab).
@@ -4477,17 +4481,20 @@ function fxFlag(id,q,OR){if(!q||!q.xp||!hasPj(q))return null;
   if(mod==null)return null;   // out through the next week, or no games
   const rec=r.nrec>=3?r.rec:null,tri=[rec,o.efb,o.bbm];
   if(tri.every(v=>v!=null)){const mx=Math.max(...tri),mn=Math.min(...tri),mean=(tri[0]+tri[1]+tri[2])/3;
-    if(mx-mn<=FXAGREE&&Math.abs(mean-mod)>=FXGAP)return done({...base,kind:"auto",m:fxH(mean),lab:"all three",
+    if(mx-mn<=FXAGREE&&Math.abs(mean-mod)>=FXGAP)return done({...base,kind:"auto",m:fxH(mean),lab:"Blend",
       why:`Scout ${fxM(o.efb)}, Lab ${fxM(o.bbm)} and his last ${r.nrec} (${fxM(rec)}) agree; the model has ${fxM(mod)}.`})}
   const tmTxt=op?`; ${op.n} is out`:"";
   if(st.newS&&(rec==null||rec>=mod-1)){const src=[[rec,r.l5!=null?"L5":"L3"],[o.efb,"Scout"],[o.bbm,"Lab"]].filter(([v])=>v!=null&&v>mod+.5),up=src.map(([v])=>v),m=up.length?fxMed(up):mod+4;
-    if(m-mod>=2)return done({...base,kind:"start",m:fxH(m),lab:up.length===1?src[0][1]:up.length?"median":"model +4",
+    // a source has to back the bump (model +4 only when there's nothing to go on), and the Blend
+    // of them all has to be 1+ above the model
+    const bm=fxBlend(r,o,mod),none=rec==null&&o.efb==null&&o.bbm==null;
+    if((up.length||none)&&m-mod>=2&&(none||bm-mod>=1))return done({...base,kind:"start",m:fxH(none?mod+4:bm),lab:none?"model +4":"Blend",
       why:`${st.inF?`In NBA.com's five tonight (${st.status||"Expected"})`:"Started his last game"} after ${Math.max(0,st.st-1)} starts in his ${st.n-1} before${tmTxt}. Model ${fxM(mod)}.`})}
   if(rec!=null&&Math.abs(rec-mod)>=FXGAP&&!(r.l5!=null&&r.l3!=null&&Math.sign(r.l5-mod)!==Math.sign(r.l3-mod)))
-    return done({...base,kind:rec>mod?"up":"down",m:fxH(rec),lab:r.l5!=null?"L5":"L3",why:`${fxM(rec)} a game over his last ${r.nrec}, the model has ${fxM(mod)}${tmTxt}.`});
+    return done({...base,kind:rec>mod?"up":"down",m:fxH(fxBlend(r,o,mod)),lab:"Blend",why:`${fxM(rec)} a game over his last ${r.nrec}, the model has ${fxM(mod)}${tmTxt}.`});
   const os=[o.efb,o.bbm].filter(v=>v!=null),both=os.length===2&&Math.sign(os[0]-mod)===Math.sign(os[1]-mod)&&os.every(v=>Math.abs(v-mod)>=FXGAP);
   if(both||(os.length===1&&Math.abs(os[0]-mod)>=FXGAP+1)){const m=os.reduce((a,b)=>a+b,0)/os.length;
-    return done({...base,kind:"out",m:fxH(m),lab:os.length===2?"Scout + Lab":o.efb!=null?"Scout":"Lab",
+    return done({...base,kind:"out",m:fxH(fxBlend(r,o,mod)),lab:"Blend",
       why:`${os.length===2?`Scout ${fxM(o.efb)} and Lab ${fxM(o.bbm)} both have`:`${o.efb!=null?"Scout":"Lab"} has`} ${m>mod?"more":"fewer"} minutes than the model (${fxM(mod)})${rec!=null?`; his last ${r.nrec}: ${fxM(rec)}`:""}.`})}
   return null}
 // the span a card starts on: a fill-in's is tied to the teammate, Scout / Lab ROS, the rest 2 weeks
@@ -4531,9 +4538,9 @@ function fxParts(f,desk){const q=f.q,o=f.o,r=f.r,id=f.id,rp=R&&R.players[id],L5=
   const ev=[["Yours",f.ov?f.ov.m:null,"ov"],["Model",f.mod,"mod"],["Scout",o.efb,"efb"],["Lab",o.bbm,"bbm"],[L5,r.rec,"rec"],["Season",r.szn,"szn"]];
   // the same choices on every row, in the same order (a missing source greyed out); the suggested
   // one is the dark button, or its own button first when it's none of them (a median, model +4)
-  const bl=[r.rec,o.efb,o.bbm].filter(x=>x!=null),ch=[[r.rec,L5],[o.efb,"Scout"],[o.bbm,"Lab"],[bl.length>=2?bl.reduce((a,b)=>a+b,0)/bl.length:null,"Blend"]].map(([v,l])=>[v!=null?fxH(v):null,l]);
+  const ch=[[r.rec,L5],[o.efb,"Scout"],[o.bbm,"Lab"],[fxBlend(r,o,f.mod),"Blend"]].map(([v,l])=>[v!=null?fxH(v):null,l]);
   if(f.ov)ch.push([f.mod!=null?fxH(f.mod):null,"Model"]);
-  const ovKind=["review","ending","ended"].includes(f.kind),hit=ovKind?-1:ch.findIndex(([v])=>v!=null&&Math.abs(v-f.m)<.25);
+  const ovKind=["review","ending","ended"].includes(f.kind),hit=ovKind?-1:f.lab==="Blend"?3:ch.findIndex(([v])=>v!=null&&Math.abs(v-f.m)<.25);
   const prim={review:["approve",`Approve ${fxM(f.m)}`],ending:["use",`Extend ${fxM(f.ov&&f.ov.m)}`],ended:["clear","Clear"]}[f.kind]||(hit<0?["use",`Use ${fxM(f.m)} <i>${esc(f.lab)}</i>`]:null);
   const chip=([v,l],i)=>v==null?`<button class="ovx fxc0" disabled>${l} –</button>`:`<button class="ovx fxch${i===hit?" sv":""}" data-fx="use" data-v="${v}">${desk?"":"Use "}${fxM(v)} <i>${esc(l)}</i></button>`;
   const vals=(prim?`<button class="ovx sv" data-fx="${prim[0]}"${prim[0]==="use"?` data-v="${f.kind==="ending"?f.ov.m:f.m}"`:""}>${prim[1]}</button>`:"")
@@ -4545,7 +4552,7 @@ function fxParts(f,desk){const q=f.q,o=f.o,r=f.r,id=f.id,rp=R&&R.players[id],L5=
   const tl=k=>k==="tm"?`Until ${String(tmN).replace(/\s+(Jr\.?|Sr\.?|II|III|IV)$/i,"").split(" ").slice(-1)[0]} back`:(FXSPAN.find(([x])=>x===k)||[])[1];
   const spH=desk?`<select class="fxsel" data-fxsel aria-label="How long">${spans.map(([k])=>`<option value="${k}"${k===f.sp?" selected":""}>${esc(tl(k))}</option>`).join("")}</select>`
     :`<div class="ovsp fxsp"><span>For</span>${spans.map(([k])=>`<button data-fxs="${k}" aria-pressed="${k===f.sp}"${k==="tm"?` title="Counts only while ${esc(tmN)} is out"`:""}>${esc(tl(k))}</button>`).join("")}</div>`;
-  const rk=`<span class="fxr">#${f.r0||"–"} <span class="${f.r1<f.r0?"up":f.r1>f.r0?"dn":""}">→ #${f.r1||"–"}</span></span>`;
+  const rk=`<span class="fxr">${fxRkH(f.r0,f.r1,f.cm)}</span>`;
   const m5=r.m5?r.m5.map((v,i)=>`<em>${v}</em>${r.s5&&r.s5[i]==="1"?"<sup>S</sup>":""}`).join(" "):"";
   const name=`<button class="fxn" data-open="${esc(id)}">${esc(q.n)}</button>`,meta=`${esc(q.t)}${rp&&rp.p?" "+esc(rp.p):""}${ijTag(id)}${ML?lgTagFA(id):""}`;
   return{ev,vals,step,last,spH,rk,m5,name,meta,kind:`<span class="fxk">${FXK[f.kind]}</span>`,why:esc(f.why)}}
@@ -4563,7 +4570,7 @@ function fxRowD(f){const P=fxParts(f,1);
     +P.ev.map(([,v,k])=>`<span class="fxdc${v!=null&&k!=="mod"&&Math.abs(v-f.cm)<.75?" on":""}${k==="mod"?" mod":""}">${v!=null?fxM(v):"–"}</span>`).join("")
     +`<span class="fxd5">${P.m5||"–"}</span>${P.rk}<div class="fxda"><div class="fxdv">${P.vals}</div><div class="fxdt">${P.step}${P.spH}${P.last}</div></div></div>`}
 function fxList(a){if(!isDesk())return`<div class="fxg">${a.map(fxCard).join("")}</div>`;
-  return`<div class="fxdl"><div class="fxd fxdh"><span>Player</span>${FXDH.map(x=>`<span>${x}</span>`).join("")}<span>Last 5 min</span><span>Proj rank</span><span>Fix</span></div>${a.map(fxRowD).join("")}</div>`}
+  return`<div class="fxdl"><div class="fxd fxdh"><span>Player</span>${FXDH.map(x=>`<span>${x}</span>`).join("")}<span>Last 5 min</span><span>Proj rank now → fixed</span><span>Fix</span></div>${a.map(fxRowD).join("")}</div>`}
 function fxRow(id,r){const q=G.players[id],nm=q?q.n:r.n||id,sp=r.tm?`while ${r.tmn||"teammate"} is out`:r.until?"to "+fmtDate(r.until).replace(/^\w+, /,""):"ROS";
   return`<div class="fxl" data-fxid="${esc(id)}"><button class="fxn" data-open="${esc(id)}">${esc(nm)}</button><i>${esc(q?q.t:r.t||"")}</i><b>${fxM(r.m)}</b><span>${q?fxM((q.xp0||q.xp)[0])+" model":""}</span><span>${esc(sp)}</span><span class="fxsrc">${r.src==="auto"?(r.ok?"auto ✓":"auto"):"yours"}</span><button class="ovx dn" data-fx="clear">Clear</button></div>`}
 function renderFix(){const el=$("rkList");paintLg();$("rkAsOf").textContent="";
@@ -4608,9 +4615,12 @@ async function fxClick(e){const b=e.target.closest("[data-fx],[data-fxs],[data-o
   if(a==="keep"){busy();return ovSave(id,ov.m,dPlus(t,14),"w2",{src:ov.src||"fix",ok:1,why:ov.why})}
   if(a==="extend"){busy();return ovSave(id,ov.m,dPlus(t,14),"w2",{src:ov.src||"fix",ok:ov.ok,why:ov.why,...(ov.tm?{tm:ov.tm,tmn:ov.tmn}:{})})}
   if(a==="lapse"){c.remove();await fxNo(id,ov.m,3);renderFix();return}}
+// "#248 → #246 at 26.5": his Proj rank now (the model's, or with the override being reviewed) and
+// at the minutes picked on this row
+const fxRkH=(a,b,m)=>`#${a||"–"} <span class="${b<a?"up":b>a?"dn":""}">→ #${b||"–"}</span><small>at ${fxM(m)}</small>`;
 function fxPrev(c,f){if(!f)return;const m=+c.dataset.m,{r0,r1}=fxRanks(f,m,c.dataset.sp),el=c.querySelector(".fxr");
   c.querySelectorAll(".fxev span,.fxdc").forEach((x,i)=>{const v=parseFloat((x.querySelector("b")||x).textContent);x.classList.toggle("on",!x.classList.contains("mod")&&i!==1&&v>=0&&Math.abs(v-m)<.75)});
-  if(el)el.innerHTML=`#${r0||"–"} <span class="${r1<r0?"up":r1>r0?"dn":""}">→ #${r1||"–"}</span>`}
+  if(el)el.innerHTML=fxRkH(r0,r1,m)}
 function bsMsg(m){$("bsList").innerHTML=`<div class="empty">${esc(m)}</div>`;$("bsStatus").textContent=""}
 // ---- Navigation (Nov 2026): five sections by what you're doing, each with one row of pages.
 // Box · Players (Ranks, Proj, Usage, Rise, Buy/Sell without a league, Buzz) · My League (only with
