@@ -233,7 +233,8 @@ async function pull(key) {
   const s = SITES[key];
   log(`\n== ${s.name}`);
   if (!s.user || !s.pass) { log(`  skipped: ${key.toUpperCase()}_USER / ${key.toUpperCase()}_PASS secrets not set`); return false; }
-  const browser = await chromium.launch();
+  // GitHub's runners come with Google Chrome: use it, and fall back to Playwright's own browser
+  const browser = await chromium.launch({ channel: 'chrome' }).catch(() => chromium.launch());
   const page = await browser.newPage({ userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36', viewport: { width: 1400, height: 1000 } });
   let ok = false;
   try {

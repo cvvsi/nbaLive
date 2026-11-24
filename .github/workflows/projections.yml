@@ -35,7 +35,8 @@ jobs:
       - name: Install a browser
         run: |
           npm install --no-save --no-package-lock playwright@1.49.1
-          npx playwright install --with-deps chromium
+          # the runner's own Chrome needs no download; only without it fetch Playwright's
+          command -v google-chrome >/dev/null || npx playwright install --with-deps chromium
       - name: Sign in, read, send to the relay
         env:
           SITE: ${{ inputs.site || 'both' }}
