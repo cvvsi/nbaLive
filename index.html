@@ -1515,6 +1515,17 @@ async function projFetch(force){const R0=store.get("relay",null);if(!R0||!R0.u||
     if(ch&&typeof G!=="undefined"&&G)pjRefresh()}catch(e){}}
 function pjRefresh(){applyOv();rankBS();renderBS();renderBZ();renderPJ();renderRK();renderSC();if(S.players.length)render();renderSheet();paintPs();paintGear();fxAutoSoon()}
 function paintGear(){const s=pjSrc();$("gear").textContent=(S.punt.size?`Punt ${S.punt.size}`:"Punt")+(s!=="ours"?" · "+PJS[s]:"")}
+// Everyone else (no relay on the device) gets the overrides you set or approved, read from the
+// relay's public list (GET /public/minutes, no key; automatic fixes you haven't approved stay off it).
+// Your own devices keep the full list from the sync and your saves.
+const OVPUB="https://sixthman-yahoo.saac-choi.workers.dev/public/minutes",OVPUBAGE=10*60e3;
+async function ovPublic(force){const R0=store.get("relay",null);if(R0&&R0.u&&R0.k)return;
+  if(!force&&Date.now()-store.get("ovPubAt",0)<OVPUBAGE)return;
+  try{const r=await fetch(OVPUB,{cache:"no-cache"}),o=await r.json().catch(()=>null);if(!r.ok||!o||o.error||typeof o!=="object")return;
+    store.set("ovPubAt",Date.now());if(JSON.stringify(o)===JSON.stringify(MOV||{}))return;
+    if(typeof G!=="undefined"&&G)ovSetLocal(o);else{MOV=o;store.set("mov",o)}}catch(e){}}
+setTimeout(()=>ovPublic(true),700);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)ovPublic()});
 function ovSetLocal(o){MOV=o||{};store.set("mov",MOV);applyOv();
   rankBS();renderBS();renderPJ();renderRK();renderSC();if(S.players.length){scoreValue();render()}renderSheet()}
 // save / clear one override through the relay (m null = clear)

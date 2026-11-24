@@ -25,6 +25,8 @@
  *               thing the relay stores (Cloudflare KV, binding OV): your own numbers, not Yahoo's
  *               data. {espn id: {m, until, at, n, t}}; expired ones are dropped. /sync carries them
  *               too (ov), and the analyst applies them. GET / POST /minutes/no: the Fix page's dismissals.
+ * GET /public/minutes (no key) -> the overrides you set or approved, without the reason text, so every
+ *               visitor's page uses your minutes too.
  * GET /proj, POST /proj {v, src: efb|bbm, at, f, r} -> the latest EFB / BBM projections, sent each
  *               morning by the Projections job (proj-pull.js) with your own logins; for your devices.
  * POST /mcp/<RELAY_KEY> (or /mcp with an "X-Relay-Key: <RELAY_KEY>" or "Authorization: Bearer" header) -> the fantasy analyst, an
@@ -386,6 +388,16 @@ export default {
 
     const url = new URL(req.url);
     if (url.pathname === '/') return json({ ok: true, relay: 'sixthman-yahoo' });
+    // No key: the minutes overrides you set or approved, for everyone who opens the site (your own
+    // numbers, no Yahoo data; the reason text is left out, since it quotes Scout's and Lab's).
+    if (url.pathname === '/public/minutes' && req.method === 'GET') {
+      try {
+        const o = await ovGet(env), out = {};
+        for (const [id, r] of Object.entries(o)) if (r.src !== 'auto' || r.ok)
+          out[id] = { m: r.m, until: r.until, sp: r.sp, at: r.at, n: r.n, t: r.t, ...(r.tm ? { tm: r.tm, tmn: r.tmn } : {}) };
+        return new Response(JSON.stringify(out), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60', ...cors } });
+      } catch (e) { return json({ error: e.message || String(e) }, 500); }
+    }
     // The analyst (MCP): the key in the path, for a claude.ai custom connector (a URL only), or as a Bearer token.
     const mp = url.pathname.match(/^\/mcp(?:\/([^/]+))?\/?$/);
     if (mp) {
