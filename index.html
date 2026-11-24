@@ -877,6 +877,7 @@ body[data-page="fix"] .fxc.fx-review,body[data-page="fix"] .fxc.fx-auto{border-c
 body[data-page="fix"] .fxd.fx-review{box-shadow:none}
 body[data-page="fix"] .fxev span.on,body[data-page="fix"] .fxdc.on{box-shadow:none}
 body[data-page="fix"] .fxm5 sup,body[data-page="fix"] .fxd5 sup{color:var(--dim)}
+.fxch,.fxc0{min-width:76px;justify-content:center}.fxc0{opacity:.4;cursor:default}
 .ilg{overflow-x:auto;margin:6px 0 4px}.ilg table{border-collapse:collapse;font:500 12px/1.2 var(--name)}
 .ilg th{font-weight:600;color:var(--dim);font-size:10px;padding:3px 4px;text-align:center}
 .ilg tbody th{text-align:left;color:var(--ink);font-size:12px;white-space:nowrap;padding-right:8px}.ilg tbody th i{font:500 10px/1 var(--num);color:var(--dim);font-style:normal}
@@ -4528,13 +4529,15 @@ const FXK={auto:"Auto",review:"Check",ended:"Teammate back",ending:"Ending",off:
 // primary action and the last button change (Approve / Undo, Extend / Let it end, Clear / Keep).
 function fxParts(f,desk){const q=f.q,o=f.o,r=f.r,id=f.id,rp=R&&R.players[id],L5=r.l5!=null?"L5":"L3",ovK=["ended","ending"].includes(f.kind);
   const ev=[["Yours",f.ov?f.ov.m:null,"ov"],["Model",f.mod,"mod"],["Scout",o.efb,"efb"],["Lab",o.bbm,"bbm"],[L5,r.rec,"rec"],["Season",r.szn,"szn"]];
-  const first=ovK?[f.ov.m,"yours"]:[f.m,f.lab],ch=[first],bl=[r.rec,o.efb,o.bbm].filter(x=>x!=null);
-  for(const[v,l]of[[r.rec,L5],[o.efb,"Scout"],[o.bbm,"Lab"],[bl.length>=2?bl.reduce((a,b)=>a+b,0)/bl.length:null,"Blend"],[ovK&&f.mod!=null?f.mod:null,"Model"]])
-    if(v!=null&&ch.every(([x])=>Math.abs(fxH(v)-x)>=.5))ch.push([fxH(v),l]);
-  const prim={review:["approve",`Approve ${fxM(f.m)}`],ending:["use",`Extend ${fxM(f.ov&&f.ov.m)}`],ended:["clear","Clear"]}[f.kind];
-  const btn=(v,l,i)=>`<button class="ovx${i===0&&!prim?" sv":""}" data-fx="use" data-v="${v}">${desk?"":"Use "}${fxM(v)} <i>${esc(l)}</i></button>`;
-  const vals=(prim?`<button class="ovx sv" data-fx="${prim[0]}"${prim[0]==="use"?` data-v="${f.ov.m}"`:""}>${prim[1]}</button>`:"")
-    +ch.map((x,i)=>[x,i]).filter(([,i])=>!(i===0&&["review","ending"].includes(f.kind))).map(([[v,l],i])=>f.kind==="ended"&&i===0?`<button class="ovx" data-fx="use" data-v="${v}">Keep ${fxM(v)}</button>`:btn(v,l,i)).join("");
+  // the same choices on every row, in the same order (a missing source greyed out); the suggested
+  // one is the dark button, or its own button first when it's none of them (a median, model +4)
+  const bl=[r.rec,o.efb,o.bbm].filter(x=>x!=null),ch=[[r.rec,L5],[o.efb,"Scout"],[o.bbm,"Lab"],[bl.length>=2?bl.reduce((a,b)=>a+b,0)/bl.length:null,"Blend"]].map(([v,l])=>[v!=null?fxH(v):null,l]);
+  if(f.ov)ch.push([f.mod!=null?fxH(f.mod):null,"Model"]);
+  const ovKind=["review","ending","ended"].includes(f.kind),hit=ovKind?-1:ch.findIndex(([v])=>v!=null&&Math.abs(v-f.m)<.25);
+  const prim={review:["approve",`Approve ${fxM(f.m)}`],ending:["use",`Extend ${fxM(f.ov&&f.ov.m)}`],ended:["clear","Clear"]}[f.kind]||(hit<0?["use",`Use ${fxM(f.m)} <i>${esc(f.lab)}</i>`]:null);
+  const chip=([v,l],i)=>v==null?`<button class="ovx fxc0" disabled>${l} –</button>`:`<button class="ovx fxch${i===hit?" sv":""}" data-fx="use" data-v="${v}">${desk?"":"Use "}${fxM(v)} <i>${esc(l)}</i></button>`;
+  const vals=(prim?`<button class="ovx sv" data-fx="${prim[0]}"${prim[0]==="use"?` data-v="${f.kind==="ending"?f.ov.m:f.m}"`:""}>${prim[1]}</button>`:"")
+    +(f.kind==="ended"?`<button class="ovx" data-fx="use" data-v="${f.ov.m}">Keep ${fxM(f.ov.m)}</button>`:"")+ch.map(chip).join("");
   const step=`<span class="fxst"><button class="ovsb" data-fx="dn" aria-label="Half a minute less">−</button><b class="fxv">${fxM(+f.cm)}</b><button class="ovsb" data-fx="upm" aria-label="Half a minute more">+</button><button class="ovx" data-fx="save">Save</button></span>`;
   const last={review:`<button class="ovx dn" data-fx="undo">Undo</button>`,ending:`<button class="ovx fxsk" data-fx="lapse">Let it end</button>`,ended:""}[f.kind]
     ??(f.ov?`<button class="ovx dn" data-fx="clear">Clear</button>`:`<button class="ovx fxsk" data-fx="skip">Skip</button>`);
