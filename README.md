@@ -129,6 +129,16 @@ On the Injuries tab, a **News** block lists the newest items (All / Mine / My ma
 
 The note a news item leaves in an injury entry replaces the previous news note instead of stacking on it (`apply()` removes every known item's note first), so re-applying the same items changes nothing. Before Nov 2026 each run prepended the notes again, so the notes kept growing and `injuries.json` was committed every 15 minutes.
 
+## Outside projections: Scout, Lab and Blend (Nov 2026)
+
+Two paid projections the owner subscribes to sit next to ours, for the owner's devices only. **Scout** = Elite Fantasy Basketball's Category League Projections; **Lab** = Basketball Monster's Josh Projections (projections.aspx, All Players; Bonus Projections ignored). Both are rest of season, per game. ("Sixth" is our own model.)
+
+- **Daily pull** (`proj-pull.js`, *Actions → Projections*, `.github/workflows/projections.yml`, 8:47am ET): a headless browser signs in to each site with the owner's logins (repo secrets `EFB_USER` / `EFB_PASS`, `BBM_USER` / `BBM_PASS`), reads the projections table and sends it to the relay (`POST /proj`, kept in its KV storage as `proj:efb` / `proj:bbm`, behind `RELAY_KEY`). Nothing is committed, and the log shows only steps, menu and column labels, row counts and league-wide medians (the repo and its logs are public; both sites are paid). A table whose median games is under 25 (stats so far, not a projection) or with under 100 rows isn't sent. *Dry run* reads without sending. Neither site logs you out of your own browser when it runs.
+- **On the site** (`projFetch()`, `pjLine()`, `pjCmpHTML()` in `index.html`): a device with the relay set up fetches them (`GET /proj`, every 3 hours at most) into `localStorage` (`efb`, `bbm`, one a day in `efbHist` / `bbmHist`). Anyone else sees none of it. The EFB bookmark still works.
+- **Punt sheet → Projection** (`psrc`): Sixth / Scout / Lab / **Blend** (the three averaged stat by stat, makes and attempts apart; a player one of them lacks is averaged over the rest) decides which line drives every Proj number: ranks, Proj, Week, Today, Schedule, Matchup, the streaming plan, IL+ and Build (`applyOv()` swaps each player's `xp` / `x`, the model's kept as `xpM` / `xM`). The chosen minutes become the base that next-man-up, tonight's lineups and minutes overrides adjust. The Punt button shows the source when it isn't Sixth.
+- **Player page → Projection → Projections**: all four lines side by side, each ranked on our scale with your punts, with each site's own rank, the one driving the site highlighted, and a note when the minutes differ by 3+ (most of a gap is usually minutes). The Minutes box shows Scout's and Lab's minutes with **Use**.
+- The EFB page (Players → Scout) and its scorecard compare Scout against Sixth, whatever the Projection setting.
+
 ## Yahoo Buzz Index
 
 `fetch-buzz.js` runs in its own Action (`.github/workflows/buzz.yml`) at 4:37, 5:37 and 6:37am ET (after Yahoo's ~3am waivers), 12:37 and 3:37pm, games or not, and also inside the Rankings and Props jobs. It writes `data/buzz.json`: yesterday's (final) and today's (so far, under `today`) most added and most dropped players across all Yahoo leagues, from the public [Buzz Index](https://basketball.fantasysports.yahoo.com/nba/buzzindex) page (no login). Each row has adds, drops, trades and % rostered / started. The page is parsed from HTML, so if Yahoo changes its layout the run fails with "No rows parsed" and the rankings are unaffected. Run it by hand from *Actions → Buzz → Run workflow*. The morning report judges each move as Follow or Fade.
@@ -144,6 +154,7 @@ GitHub's own scheduled runs proved unreliable here (Rankings 8+ hours late, or s
 | Props | `13 16,18 * * *` | `.../workflows/props.yml/dispatches` | `{"ref":"main","inputs":{"mode":"run"}}` |
 | Injuries | `31 12,17,18 * * *` | `.../workflows/injuries.yml/dispatches` | `{"ref":"main"}` |
 | News | `*/15 0,1,9-23 * * *` | `.../workflows/news.yml/dispatches` | `{"ref":"main"}` |
+| Projections | `47 8 * * *` | `.../workflows/projections.yml/dispatches` | `{"ref":"main"}` |
 
 Headers on each: `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`, `Content-Type: application/json`. Success is `204 No Content`; failures email the account.
 
