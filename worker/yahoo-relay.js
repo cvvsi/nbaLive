@@ -21,10 +21,10 @@
  *
  * GET /wire  -> just the wire, for a refresh from the Waivers page: rosters, adds, wt, wv, fa, wvOk.
  *
- * GET /minutes, POST /minutes {id, m, until, n, t} (m null = clear) -> your minutes overrides, the one
+ * GET /minutes, POST /minutes {id, m, until, n, t, src, ok, why, tm} or {batch: [...]} (m null = clear) -> your minutes overrides, the one
  *               thing the relay stores (Cloudflare KV, binding OV): your own numbers, not Yahoo's
  *               data. {espn id: {m, until, at, n, t}}; expired ones are dropped. /sync carries them
- *               too (ov), and the analyst applies them.
+ *               too (ov), and the analyst applies them. GET / POST /minutes/no: the Fix page's dismissals.
  * GET /proj, POST /proj {v, src: efb|bbm, at, f, r} -> the latest EFB / BBM projections, sent each
  *               morning by the Projections job (proj-pull.js) with your own logins; for your devices.
  * POST /mcp/<RELAY_KEY> (or /mcp with an "X-Relay-Key: <RELAY_KEY>" or "Authorization: Bearer" header) -> the fantasy analyst, an
@@ -292,21 +292,58 @@ async function ovGet(env) {
   for (const id of Object.keys(o)) if (o[id].until && o[id].until < t) delete o[id];
   return o;
 }
+// One record from a POST body: m (0-48), until (YYYY-MM-DD or null), sp (how the end was picked),
+// plus from the Fix page: src ("auto" = applied by the page when Scout, Lab and his last 5 agree;
+// "fix" = picked on the Fix page), ok (you approved an auto one), why (the reason, short), and tm /
+// tmn (a teammate: the override counts only while he's out, the page checks the injury report).
+function ovRecOf(b) {
+  const m = Math.round(+b.m * 10) / 10;
+  if (!(m >= 0 && m <= 48)) throw new HttpErr(400, 'Minutes must be 0-48.');
+  const until = /^\d{4}-\d{2}-\d{2}$/.test(b.until || '') ? b.until : null;
+  const sp = /^(w1|w2|w4|date|tm)$/.test(b.sp || '') && until ? b.sp : undefined;  // how the end was picked, for the page
+  const r = { m, until, sp, at: new Date().toISOString(), n: String(b.n || '').slice(0, 60), t: String(b.t || '').slice(0, 5) };
+  if (b.src === 'auto' || b.src === 'fix') r.src = b.src;
+  if (b.ok) r.ok = 1;
+  if (b.why) r.why = String(b.why).slice(0, 100);
+  const tm = String(b.tm || '').replace(/[^0-9]/g, '');
+  if (tm) { r.tm = tm; r.tmn = String(b.tmn || '').slice(0, 40); }
+  return r;
+}
+// POST /minutes: one {id, m, ...} (m null = clear) or {batch: [{id, m, ...}, ...]} in one write.
 async function ovSet(env, b) {
   if (!env.OV) throw new HttpErr(500, 'No storage for overrides (the OV KV binding): re-run Actions -> Yahoo relay.');
-  const id = String(b && b.id || '').replace(/[^0-9]/g, '');
-  if (!id) throw new HttpErr(400, 'Missing player id.');
+  const list = b && Array.isArray(b.batch) ? b.batch.slice(0, 60) : [b];
   const o = await ovGet(env);
-  if (b.m == null || b.m === '') delete o[id];
-  else {
-    const m = Math.round(+b.m * 10) / 10;
-    if (!(m >= 0 && m <= 48)) throw new HttpErr(400, 'Minutes must be 0-48.');
-    const until = /^\d{4}-\d{2}-\d{2}$/.test(b.until || '') ? b.until : null;
-    const sp = /^(w1|w2|w4|date)$/.test(b.sp || '') && until ? b.sp : undefined;  // how the end was picked, for the page
-    o[id] = { m, until, sp, at: new Date().toISOString(), n: String(b.n || '').slice(0, 60), t: String(b.t || '').slice(0, 5) };
+  for (const x of list) {
+    const id = String(x && x.id || '').replace(/[^0-9]/g, '');
+    if (!id) throw new HttpErr(400, 'Missing player id.');
+    if (x.m == null || x.m === '') delete o[id]; else o[id] = ovRecOf(x);
   }
   if (Object.keys(o).length > 300) throw new HttpErr(400, 'Too many overrides.');
   await env.OV.put('ov', JSON.stringify(o));
+  return o;
+}
+// Dismissals from the Fix page (KV key "ovno"): {espn id: {m, until, at}}: a suggestion you skipped
+// or an automatic override you undid, so no device suggests or applies it again until the date
+// (or until the numbers move well away from m). GET /minutes/no, POST /minutes/no {id, m, until}
+// or {batch: [...]}, m null = forget it.
+async function noGet(env) {
+  if (!env.OV) return {};
+  const o = (await env.OV.get('ovno', 'json')) || {}, t = etToday();
+  for (const id of Object.keys(o)) if (!o[id].until || o[id].until < t) delete o[id];
+  return o;
+}
+async function noSet(env, b) {
+  if (!env.OV) throw new HttpErr(500, 'No storage for overrides (the OV KV binding): re-run Actions -> Yahoo relay.');
+  const list = b && Array.isArray(b.batch) ? b.batch.slice(0, 60) : [b], o = await noGet(env);
+  for (const x of list) {
+    const id = String(x && x.id || '').replace(/[^0-9]/g, '');
+    if (!id) throw new HttpErr(400, 'Missing player id.');
+    if (x.m == null || x.m === '' || !/^\d{4}-\d{2}-\d{2}$/.test(x.until || '')) { delete o[id]; continue; }
+    o[id] = { m: Math.round(+x.m * 10) / 10, until: x.until, at: new Date().toISOString() };
+  }
+  if (Object.keys(o).length > 400) throw new HttpErr(400, 'Too many dismissals.');
+  await env.OV.put('ovno', JSON.stringify(o));
   return o;
 }
 
@@ -363,6 +400,8 @@ export default {
       if (url.pathname === '/wire' && req.method === 'GET') return json(await buildWire(env));
       if (url.pathname === '/minutes' && req.method === 'GET') return json(await ovGet(env));
       if (url.pathname === '/minutes' && req.method === 'POST') return json(await ovSet(env, await req.json().catch(() => null)));
+      if (url.pathname === '/minutes/no' && req.method === 'GET') return json(await noGet(env));
+      if (url.pathname === '/minutes/no' && req.method === 'POST') return json(await noSet(env, await req.json().catch(() => null)));
       if (url.pathname === '/proj' && req.method === 'GET') return json(await projGet(env));
       if (url.pathname === '/proj' && req.method === 'POST') return json(await projSet(env, await req.json().catch(() => null)));
       return json({ error: 'Not found' }, 404);

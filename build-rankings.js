@@ -613,6 +613,19 @@ async function main() {
     (players[p.id].l || (players[p.id].l = {})).g3 = LF.map(k => r2(p[k]));
     if (p.tpos) (players[p.id].u || (players[p.id].u = {})).g3 = Math.round(1000 * p.use / p.tpos) / 10;
   }
+  // m5 / s5: minutes and starts in his last 5 games played (oldest first, the same last-10-team-games
+  // rule as g3), for the Fix page's evidence (L5, and whether the minutes came as a starter).
+  {
+    const last10 = {}, seen5 = {};
+    for (const [t, gs] of Object.entries(byTeam)) last10[t] = new Set(gs.slice(-G3WIN));
+    for (const g of [...games].sort((a, b) => a.date < b.date ? 1 : -1)) for (const r of g.rows) {
+      if (!last10[r.team].has(g) || !players[r.id]) continue;
+      const s = seen5[r.id] || (seen5[r.id] = []); if (s.length < 5) s.push(r);
+    }
+    for (const [id, s] of Object.entries(seen5)) {
+      s.reverse(); players[id].m5 = s.map(r => Math.round(r.min)); players[id].s5 = s.map(r => r.st ? 1 : 0).join('');
+    }
+  }
   // pm: minutes per game played BEFORE his last 3, the baseline for the role-change flag.
   // (Comparing against the season would dilute the jump with the very games that show it.)
   const before = {};

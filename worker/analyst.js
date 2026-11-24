@@ -64,10 +64,12 @@ function injTxt(S, id) {
 }
 // His Proj line as an object; with a minutes override of yours (L.ov, set on the site), at your
 // minutes: per-minute rates stay the model's, counts scale.
+// an override tied to a teammate (tm, from the Fix page) counts only while he's out
+const ovOf = (S, L, id) => { const v = L && L.ov && L.ov[id]; return v && !(v.tm && !out(S, v.tm, etDay())) ? v : null; };
 function xpObj(S, L, id) {
   const q = S.A.p[id]; if (!q || !q.xp) return null;
   const o = {}; S.A.xpf.forEach((f, i) => o[f] = q.xp[i]);
-  const ov = L && L.ov && L.ov[id];
+  const ov = ovOf(S, L, id);
   if (ov && o.min > 0) { const f = ov.m / o.min; for (const k in o) o[k] = k === 'min' ? ov.m : o[k] * f; }
   return o;
 }
@@ -87,8 +89,8 @@ function card(S, L, row, opts = {}) {
   Object.assign(o, { proj_rank: q.pr, season_rank: q.sr, rank_14d: q.r14, rank_7d: q.r7, gp: q.gp, mpg: q.mpg,
     mpg_last3: q.m3 != null ? q.m3 : undefined, min_change_last3: q.dm3 != null ? q.dm3 : undefined, injury: injTxt(S, id) || undefined,
     games_left_this_week: games(S, id, q.t, tw).map(d => d.slice(5)), games_next_week: games(S, id, q.t, nw).length });
-  const ov = L.ov && L.ov[id];
-  if (ov) o.minutes_override = { yours: ov.m, model: q.xp ? q.xp[0] : null, until: ov.until || 'until cleared', note: 'set by you on Sixth Man; the Proj line below uses it, proj_rank is still the model\'s' };
+  const ov = ovOf(S, L, id);
+  if (ov) o.minutes_override = { yours: ov.m, model: q.xp ? q.xp[0] : null, until: ov.tm ? `while ${ov.tmn || 'a teammate'} is out (by ${ov.until})` : ov.until || 'until cleared', set_by: ov.src === 'auto' ? (ov.ok ? 'applied automatically, approved by you' : 'applied automatically (Scout, Lab and his last 5 games agree), not yet reviewed') : undefined, note: 'set by you on Sixth Man; the Proj line below uses it, proj_rank is still the model\'s' };
   if (opts.line !== false) o.proj_per_game = projLine(S, id, L);
   return o;
 }

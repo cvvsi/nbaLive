@@ -814,7 +814,7 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .subnav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
 .subnav:empty,.subnav[hidden]{display:none!important}
 /* controls the new pages make redundant */
-#pjMuBtn,body[data-page="smash"] #pjView,body[data-page="smash"] #pjLgRow,body[data-page="smash"] #pjSz,body[data-page="smash"] #pjWk,body[data-page="smash"] #pjRow2,body[data-page="matchup"] #pjView,body[data-page="today"] #pjView,body[data-page="today"] #pjLgRow,#rkSz [data-k="usg"],body[data-page="usage"] #rkSz,body[data-page="efb"] #rkSz,body[data-page="efb"] #rkWin,body:not([data-page="buysell"]) #bsSort{display:none!important}
+#pjMuBtn,body[data-page="smash"] #pjView,body[data-page="smash"] #pjLgRow,body[data-page="smash"] #pjSz,body[data-page="smash"] #pjWk,body[data-page="smash"] #pjRow2,body[data-page="matchup"] #pjView,body[data-page="today"] #pjView,body[data-page="today"] #pjLgRow,#rkSz [data-k="usg"],body[data-page="usage"] #rkSz,body[data-page="efb"] #rkSz,body[data-page="efb"] #rkWin,body[data-page="fix"] #rkSz,body[data-page="fix"] #rkWin,body[data-page="fix"] #rkLgRow,body:not([data-page="buysell"]) #bsSort{display:none!important}
 .lgchip{flex:none;display:flex;align-items:center;gap:6px;height:30px;padding:0 7px;border:1px solid var(--rule);border-radius:7px;color:var(--dim);text-decoration:none;font:500 11px/1 var(--num);position:relative}
 .lgchip svg{width:16px;height:16px}
 .lgchip.busy{opacity:.55}
@@ -830,6 +830,28 @@ table.pln{width:100%;border-collapse:collapse;font:500 12.5px/1 var(--num)}
 .ovsp input{font:500 13px/1.2 var(--num);color:var(--ink);background:var(--cell);border:1px solid var(--rule);border-radius:6px;padding:5px 7px}
 .ovf{display:flex;gap:8px;margin-top:12px}.ovx.sv{background:var(--ball);border-color:var(--ball);color:var(--panel)}
 .ovx{font:600 12px/1 var(--name);color:var(--ink);background:none;border:1px solid var(--rule);border-radius:999px;padding:7px 12px;cursor:pointer}.ovx.dn{color:var(--neg);border-color:var(--neg)}
+/* Fix page (Players > Fix) */
+.fxsec{margin-top:6px}.fxsec h3,.fxsec>summary{font:600 12px/1 var(--name);text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin:14px 0 8px;cursor:pointer}.fxsec h3 i,.fxsec>summary i{font:600 12px/1 var(--num);font-style:normal;color:var(--ink);margin-left:4px}
+.fxg{display:grid;gap:10px;grid-template-columns:1fr}
+.fxc{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:12px;min-width:0}.fxc.busy{opacity:.5;pointer-events:none}
+.fxc.fx-review,.fxc.fx-auto{border-color:var(--ball)}
+.fxh{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px}.fxh>i{font:500 12px/1.2 var(--name);font-style:normal;color:var(--dim)}
+.fxn{font:600 16px/1.2 var(--name);color:var(--ink);background:none;border:0;padding:0;cursor:pointer;text-align:left}.fxn:hover{text-decoration:underline}
+.fxk{font:600 10px/1 var(--num);text-transform:uppercase;letter-spacing:.04em;color:var(--ball);border:1px solid var(--ball);border-radius:4px;padding:3px 5px}
+.fxr{margin-left:auto;font:600 13px/1 var(--num);color:var(--dim);white-space:nowrap}.fxr .up{color:var(--pos)}.fxr .dn{color:var(--neg)}
+.fxwhy{font:500 13px/1.4 var(--name);color:var(--dim);margin:6px 0 8px}
+.fxev{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px}
+.fxev span{background:var(--cell);border-radius:6px;padding:5px 2px;text-align:center;font:500 10.5px/1.2 var(--name);color:var(--dim)}.fxev b{display:block;font:600 14px/1.3 var(--num);color:var(--ink)}
+.fxev span.on{box-shadow:inset 0 0 0 1.5px var(--ball)}
+.fxm5{font:500 12px/1.4 var(--num);color:var(--dim);margin-top:6px}.fxm5 em{font-style:normal;color:var(--ink)}.fxm5 sup{color:var(--ball);font-size:9px;margin-left:1px}.fxm5 i{font:500 11px/1 var(--name);margin-left:6px}
+.fxa{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px}.fxa .ovx i{font-style:normal;font-weight:500;opacity:.75;margin-left:2px}
+.fxst{display:inline-flex;align-items:center;gap:4px}.fxst .ovsb{width:30px;height:30px;font-size:16px}.fxst b{font:600 15px/1 var(--num);min-width:38px;text-align:center;color:var(--ink)}
+.fxsp{margin-top:8px}.fxsp button{padding:6px 8px}
+.fxl{display:grid;grid-template-columns:minmax(0,1.6fr) 44px 46px 78px minmax(0,1.4fr) 54px auto;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--rule);font:500 12.5px/1.3 var(--name);color:var(--dim)}
+.fxl>i{font-style:normal}.fxl>b{font:600 14px/1 var(--num);color:var(--ink)}.fxl .fxn{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fxsrc{font:600 10.5px/1 var(--num)}
+@media (max-width:640px){.fxl{grid-template-columns:minmax(0,1fr) 40px auto auto;row-gap:2px}.fxl>i,.fxl>span:nth-of-type(1){display:none}}
+.fxerr{font:500 13px/1.4 var(--name);color:var(--neg);margin:6px 0}.fxft{font:500 12.5px/1 var(--name);color:var(--dim);margin:14px 0}
+@media (min-width:1100px){.fxg{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .ilg{overflow-x:auto;margin:6px 0 4px}.ilg table{border-collapse:collapse;font:500 12px/1.2 var(--name)}
 .ilg th{font-weight:600;color:var(--dim);font-size:10px;padding:3px 4px;text-align:center}
 .ilg tbody th{text-align:left;color:var(--ink);font-size:12px;white-space:nowrap;padding-right:8px}.ilg tbody th i{font:500 10px/1 var(--num);color:var(--dim);font-style:normal}
@@ -1446,8 +1468,9 @@ let ML=store.get("league",null);S.lgF=ML?store.get("lgF","all"):"all";
 // the streaming plan, IL+ and Build all follow; minAt() gives exactly your number on the dates it
 // covers (no next-man-up shifts), the model's after its end date.
 let MOV=store.get("mov",{});
-const ovRec=id=>MOV&&MOV[id]&&(!MOV[id].until||MOV[id].until>=etToday())?MOV[id]:null;
-const ovOn=(id,d)=>{const r=MOV&&MOV[id];return r&&(!r.until||d<=r.until)?r.m:null};
+// tm (from the Fix page): the override counts only on dates that teammate is out on the injury report
+const ovRec=id=>{const r=MOV&&MOV[id],t=etToday();return r&&(!r.until||r.until>=t)&&!(r.tm&&avail(r.tm,t))?r:null};
+const ovOn=(id,d)=>{const r=MOV&&MOV[id];return r&&(!r.until||d<=r.until)&&!(r.tm&&avail(r.tm,d))?r.m:null};
 function applyOv(){if(typeof G==="undefined"||!G||!G.players)return;let n=0,ns=0;
   for(const q of Object.values(G.players))if(q.xp0){q.xp=q.xp0;q.x=q.x0;delete q.xp0;delete q.x0}
   // the projection source (Punt sheet > Projection): the model's line is kept as xpM / xM, and
@@ -1490,18 +1513,20 @@ async function projFetch(force){const R0=store.get("relay",null);if(!R0||!R0.u||
     for(const k of["efb","bbm"]){const E=o[k],cur=store.get(k,null);if(!E||!Array.isArray(E.r)||!E.r.length||cur&&cur.at===E.at)continue;
       store.set(k,E);const hk=k+"Hist",day=String(E.at).slice(0,10),h=store.get(hk,[]).filter(x=>String(x.at).slice(0,10)!==day);h.push(E);store.set(hk,h.slice(k==="efb"?-12:-10));ch=true}
     if(ch&&typeof G!=="undefined"&&G)pjRefresh()}catch(e){}}
-function pjRefresh(){applyOv();rankBS();renderBS();renderBZ();renderPJ();renderRK();renderSC();if(S.players.length)render();renderSheet();paintPs();paintGear()}
+function pjRefresh(){applyOv();rankBS();renderBS();renderBZ();renderPJ();renderRK();renderSC();if(S.players.length)render();renderSheet();paintPs();paintGear();fxAutoSoon()}
 function paintGear(){const s=pjSrc();$("gear").textContent=(S.punt.size?`Punt ${S.punt.size}`:"Punt")+(s!=="ours"?" · "+PJS[s]:"")}
 function ovSetLocal(o){MOV=o||{};store.set("mov",MOV);applyOv();
   rankBS();renderBS();renderPJ();renderRK();renderSC();if(S.players.length){scoreValue();render()}renderSheet()}
 // save / clear one override through the relay (m null = clear)
-async function ovSave(id,m,until,sp){const R0=store.get("relay",null);if(!R0||!R0.u||!R0.k){alert("Set up the relay on league.html first: overrides are shared through it.");return}
+// x: the Fix page's extra fields (src, ok, why, tm, tmn)
+async function ovSave(id,m,until,sp,x){const R0=store.get("relay",null);if(!R0||!R0.u||!R0.k){alert("Set up the relay on league.html first: overrides are shared through it.");return false}
   const q=G&&G.players[id];
-  const r=await fetch(R0.u.replace(/\/+$/,"")+"/minutes",{method:"POST",headers:{"X-Relay-Key":R0.k,"Content-Type":"application/json"},
-    body:JSON.stringify({id,m,until:until||null,sp:sp||null,n:q?q.n:"",t:q?q.t:""})}).catch(e=>({ok:false,statusText:e.message}));
+  try{ovSetLocal(await relayPost("/minutes",{id,m,until:until||null,sp:sp||null,n:q?q.n:"",t:q?q.t:"",...(x||{})}));return true}
+  catch(e){alert("Couldn't save the override: "+e.message);return false}}
+async function relayPost(path,body){const R0=store.get("relay",null);if(!R0||!R0.u||!R0.k)throw new Error("Set up the relay on league.html first.");
+  const r=await fetch(R0.u.replace(/\/+$/,"")+path,{method:"POST",headers:{"X-Relay-Key":R0.k,"Content-Type":"application/json"},body:JSON.stringify(body)}).catch(e=>({ok:false,statusText:e.message}));
   const o=r.json?await r.json().catch(()=>null):null;
-  if(!r.ok||!o||o.error){alert("Couldn't save the override: "+((o&&o.error)||r.statusText||r.status));return}
-  ovSetLocal(o)}
+  if(!r.ok||!o||o.error)throw new Error((o&&o.error)||r.statusText||String(r.status));return o}
 const YT={GSW:"GS",NOP:"NO",NYK:"NY",SAS:"SA",PHO:"PHX",UTA:"UTAH",WAS:"WSH",BRK:"BKN",CHO:"CHA"};
 const lgKey=n=>String(n).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z ]/g,"").replace(/\b(jr|sr|ii|iii|iv|v)\b/g,"").replace(/\s+/g," ").trim();
 let LGX=null;
@@ -4147,6 +4172,7 @@ function renderRK(){
   $("rkSz").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.k===S.rkSz));
   if(!R)return;
   if(document.body.dataset.page==="efb")return renderEFB();
+  if(document.body.dataset.page==="fix")return renderFix();
   if(S.rkSz==="usg")return renderUS();
   $("rkAsOf").textContent=`Thru ${fmtDate(R.asOf).replace(/^\w+, /,"")}`;
   if(!R.lf){$("rkList").innerHTML=`<div class="empty">Stat lines arrive with the next rankings build.</div>`;$("rkStatus").textContent="";return}
@@ -4335,6 +4361,198 @@ function renderEFB(){
   $("efMode").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.efbMode=b.dataset.v;store.set("efbMode",S.efbMode);renderRK()});
   $("rkList").querySelectorAll("[data-ef]").forEach(b=>b.onclick=e=>{e.stopPropagation();const c=b.dataset.ef;if(S.efbSort===c)S.efbDir=-S.efbDir;else{S.efbSort=c;S.efbDir=1}store.set("efbSort",S.efbSort);renderRK()});
 }
+// ---- Fix (Players > Fix, Nov 2026; renderFix(), fxFlag(), fxAuto()): reconcile Proj's minutes with
+// what's happening, in as few taps as possible. Only on a device with the relay set up (overrides
+// are saved through it). The page builds a queue of players whose projected minutes probably need
+// a look, each card with the evidence side by side and the suggested fix one tap away:
+//   New starter: in NBA.com's five tonight, or started his last game, after 2 or fewer starts in 5.
+//   Minutes up / down: his last 5 games played (L5, m5 in rankings.json; L3 until the build has it)
+//     FXGAP+ away from the model's minutes over the next week (next man up and day-level minutes in).
+//   Scout / Lab: both outside projections FXGAP+ off ours the same way (or one by FXGAP+1).
+//   Your overrides: a teammate the override is tied to is back, it ends within 2 days, or he's
+//     playing FXOFF+ away from it.
+// Who's in the queue: anyone inside FXPOOL by our Proj, Scout's or Lab's rank, your players, and
+// anyone outside that whose role is growing (new starter, minutes up to 18+, a Rise trigger, a
+// teammate out giving him 3+): the streamers and pickups. Sorted by impact: how far his Proj rank
+// moves with the fix, more for crossing ROST or FXPOOL, doubled for your players, x1.5 for free agents.
+// Applied by itself (fxAuto(), src "auto"): when Scout, Lab and his last 5 all agree (within
+// FXAGREE of each other) and sit FXGAP+ off the model, for 2 weeks; it then waits at the top of the
+// page for you to Approve, change or Undo, like a manager signing off. Undo and Skip are kept in
+// the relay (/minutes/no) so no device suggests or applies the same number again for a while.
+// A fill-in's override can be tied to the injured teammate ("until X returns", tm): it counts only
+// on dates he's out (ovOn()), and the card for it comes back to be cleared once he's back.
+const FXPOOL=150,FXGAP=3,FXAGREE=2.5,FXOFF=4,FXSMALL=4,FXSPAN=[["tm","Until back",null],["w1","1 wk",7],["w2","2 wk",14],["w4","4 wk",28],["ros","ROS",0]];
+S.fxF=store.get("fxF","all");let FXNO=store.get("fxNo",{});
+const fxM=v=>(Math.round(v*10)/10).toFixed(1),fxH=v=>Math.round(v*2)/2;
+const fxHave=()=>{const R0=store.get("relay",null);return!!(R0&&R0.u&&R0.k)};
+async function fxNoFetch(force){const R0=store.get("relay",null);if(!R0||!R0.u||!R0.k)return;if(!force&&Date.now()-store.get("fxNoAt",0)<5*60e3)return;
+  try{const r=await fetch(R0.u.replace(/\/+$/,"")+"/minutes/no",{headers:{"X-Relay-Key":R0.k},cache:"no-store"}),o=await r.json().catch(()=>null);
+    if(r.ok&&o&&!o.error){FXNO=o;store.set("fxNo",o);store.set("fxNoAt",Date.now())}}catch(e){}}
+// a skipped suggestion stays hidden until its date, unless the suggestion moves 2+ minutes from it
+const fxNoHit=f=>{const x=FXNO[f.id];return!!(x&&x.until>=etToday()&&Math.abs(x.m-f.m)<2)};
+async function fxNo(id,m,days){FXNO={...FXNO,[id]:{m,until:dPlus(etToday(),days),at:new Date().toISOString()}};store.set("fxNo",FXNO);
+  try{const o=await relayPost("/minutes/no",{id,m,until:FXNO[id].until});FXNO=o;store.set("fxNo",o)}catch(e){}}
+// the model's minutes over his games in the next `days` (day-level, as Today and Week use them), any
+// override of his set aside; null when he has no game in that span (out, or no games)
+function fxModel(id,q,days){const t=etToday(),ds=sznDs(id,q).filter(d=>d<=dPlus(t,days));if(!ds.length)return null;
+  const sv=MOV[id];if(sv)delete MOV[id];try{return ds.reduce((a,d)=>a+minAt(id,q,d),0)/ds.length}finally{if(sv)MOV[id]=sv}}
+// his rest-of-season average minutes with m on the dates the fix covers (to end; only while tm is out)
+function fxEff(id,q,m,end,tm){const ds=sznDs(id,q);if(!ds.length)return m!=null?m:(q.xp0||q.xp)[0];const sv=MOV[id];if(sv)delete MOV[id];
+  try{return ds.reduce((a,d)=>a+(m!=null&&(!end||d<=end)&&!(tm&&avail(tm,d))?m:minAt(id,q,d,1)),0)/ds.length}finally{if(sv)MOV[id]=sv}}
+function fxRecent(id){const r=R&&R.players[id],o={ps:0};if(!r)return o;
+  if(r.m5&&r.m5.length>=3){o.m5=r.m5;o.s5=r.s5||"";o.l5=r.m5.reduce((a,b)=>a+b,0)/r.m5.length}
+  const g3=r.w&&r.w.g3;if(g3&&g3[0]>=2){o.l3=g3[1];o.g3=g3[0]}
+  const sz=r.w&&r.w.season;if(sz){o.szn=sz[1];o.gp=sz[0]}
+  o.ls=!!r.ls;o.ps=r.ps||0;o.rec=o.l5!=null?o.l5:o.l3!=null?o.l3:null;o.nrec=o.l5!=null?o.m5.length:o.g3||0;return o}
+function fxStart(q,r){const t=etToday(),L=LU&&LU.date===t&&LU.teams&&LU.teams[q.t],inF=!!(L&&L.five&&L.five.length>=5&&L.five.some(x=>normN(x[0])===normN(q.n)));
+  const c=s=>[...s].filter(x=>x==="1").length,st=r.s5?c(r.s5):r.ps+(r.ls?1:0);
+  const last=r.s5?r.s5.slice(-1)==="1"&&c(r.s5.slice(0,-1))<=1:r.ls&&r.ps<=1;
+  return{inF,st,n:r.s5?r.s5.length:5,status:L&&L.status,newS:(inF&&st<=2)||last}}
+// the regular out now whose absence gives him the most minutes (next man up, or the one he
+// replaces in the starting five)
+function fxOpen(id,q){const t=etToday();let b=null;
+  for(const[Rg,e]of(nmC().byT[q.t]||[])){if(Rg===id||avail(Rg,t))continue;const x=e.m&&e.m[id];
+    const rp=!!(R&&R.players[Rg]&&R.players[Rg].rp===id),g=x?x[1]-x[0]:0;if(g<2&&!rp)continue;
+    const sc=g+(rp?5:0);if(!b||sc>b.sc){const P=G.players[Rg];b={id:Rg,n:P?P.n:"a teammate",g,rp,sc}}}
+  return b}
+// Scout's and Lab's ranks on our scale (their lines scored with your punts), cached per snapshot
+function fxOutRanks(){const key=[pjAt("efb"),pjAt("bbm"),[...S.punt].join(),S.gw].join("|");if(S.fxOR&&S.fxOR.key===key&&S.fxOR.g===G)return S.fxOR;
+  const o={key,g:G,efb:{},bbm:{}};for(const k of["efb","bbm"]){const X=pjSnap(k);if(!X)continue;
+    X.rows.filter(r=>r.id&&r.l.min>0).map(r=>[r.id,pjVal(pjZ(r.l))]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>o[k][id]=i+1)}
+  return S.fxOR=o}
+function fxOut(id){const o={};for(const k of["efb","bbm"]){try{const X=pjSnap(k),e=X&&X.byId[id];if(e&&e.l.min>0)o[k]=e.l.min}catch(e){}}return o}
+const fxMed=a=>{const s=[...a].sort((x,y)=>x-y),n=s.length;return n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2};
+// One player's card, or null. kind: auto (applied by itself), review (auto, not yet approved),
+// ended / ending / off (your override), start, up, down, out (Scout + Lab).
+function fxFlag(id,q,OR){if(!q||!q.xp||!hasPj(q))return null;
+  const t=etToday(),r=fxRecent(id),ov=MOV[id],o=fxOut(id),st=fxStart(q,r),op=fxOpen(id,q),mod=fxModel(id,q,7);
+  const base={id,q,r,o,st,op,mod,ov,mine:!!(ML&&lgOf(id)===String(ML.me)),fa:!!(ML&&lgOf(id)==null)};
+  const rank0=S.bs.x[id]||999,pr=k=>OR[k][id]||999;
+  base.pool=rank0<=FXPOOL||pr("efb")<=FXPOOL||pr("bbm")<=FXPOOL||base.mine;
+  const done=f=>{f.lab=f.lab||"";return f};
+  if(ov&&(!ov.until||ov.until>=t)){const m=ov.m;
+    if(ov.tm&&avail(ov.tm,t))return done({...base,kind:"ended",m,why:`${ov.tmn||"His teammate"} is back, so your ${fxM(m)} no longer counts.`});
+    if(ov.src==="auto"&&!ov.ok)return done({...base,kind:"review",m,why:ov.why||"Applied automatically: Scout, Lab and his last 5 agree."});
+    if(ov.until&&ov.until<=dPlus(t,2))return done({...base,kind:"ending",m,why:`Your ${fxM(m)} ends ${fmtDate(ov.until).replace(/^\w+, /,"")}; the model has ${mod!=null?fxM(mod):"–"} after.`});
+    if(r.rec!=null&&r.nrec>=3&&Math.abs(r.rec-m)>=FXOFF&&Date.now()-Date.parse(ov.at||0)>3*864e5)
+      return done({...base,kind:"off",m:fxH(r.rec),lab:r.l5!=null?"L5":"L3",why:`He's played ${fxM(r.rec)} a game over his last ${r.nrec}; your override is ${fxM(m)}.`});
+    return null}
+  if(mod==null)return null;   // out through the next week, or no games
+  const rec=r.nrec>=3?r.rec:null,tri=[rec,o.efb,o.bbm];
+  if(tri.every(v=>v!=null)){const mx=Math.max(...tri),mn=Math.min(...tri),mean=(tri[0]+tri[1]+tri[2])/3;
+    if(mx-mn<=FXAGREE&&Math.abs(mean-mod)>=FXGAP)return done({...base,kind:"auto",m:fxH(mean),lab:"all three",
+      why:`Scout ${fxM(o.efb)}, Lab ${fxM(o.bbm)} and his last ${r.nrec} (${fxM(rec)}) agree; the model has ${fxM(mod)}.`})}
+  const tmTxt=op?`; ${op.n} is out`:"";
+  if(st.newS&&(rec==null||rec>=mod-1)){const src=[[rec,r.l5!=null?"L5":"L3"],[o.efb,"Scout"],[o.bbm,"Lab"]].filter(([v])=>v!=null&&v>mod+.5),up=src.map(([v])=>v),m=up.length?fxMed(up):mod+4;
+    if(m-mod>=2)return done({...base,kind:"start",m:fxH(m),lab:up.length===1?src[0][1]:up.length?"median":"model +4",
+      why:`${st.inF?`In NBA.com's five tonight (${st.status||"Expected"})`:"Started his last game"} after ${Math.max(0,st.st-1)} starts in his ${st.n-1} before${tmTxt}. Model ${fxM(mod)}.`})}
+  if(rec!=null&&Math.abs(rec-mod)>=FXGAP&&!(r.l5!=null&&r.l3!=null&&Math.sign(r.l5-mod)!==Math.sign(r.l3-mod)))
+    return done({...base,kind:rec>mod?"up":"down",m:fxH(rec),lab:r.l5!=null?"L5":"L3",why:`${fxM(rec)} a game over his last ${r.nrec}, the model has ${fxM(mod)}${tmTxt}.`});
+  const os=[o.efb,o.bbm].filter(v=>v!=null),both=os.length===2&&Math.sign(os[0]-mod)===Math.sign(os[1]-mod)&&os.every(v=>Math.abs(v-mod)>=FXGAP);
+  if(both||(os.length===1&&Math.abs(os[0]-mod)>=FXGAP+1)){const m=os.reduce((a,b)=>a+b,0)/os.length;
+    return done({...base,kind:"out",m:fxH(m),lab:os.length===2?"Scout + Lab":o.efb!=null?"Scout":"Lab",
+      why:`${os.length===2?`Scout ${fxM(o.efb)} and Lab ${fxM(o.bbm)} both have`:`${o.efb!=null?"Scout":"Lab"} has`} ${m>mod?"more":"fewer"} minutes than the model (${fxM(mod)})${rec!=null?`; his last ${r.nrec}: ${fxM(rec)}`:""}.`})}
+  return null}
+// the span a card starts on: a fill-in's is tied to the teammate, Scout / Lab ROS, the rest 2 weeks
+function fxSpan0(f){if(f.ov&&f.ov.sp)return f.ov.sp==="tm"&&f.ov.tm?"tm":FXSPAN.some(([k])=>k===f.ov.sp)?f.ov.sp:"w2";
+  if(f.ov&&!f.ov.until)return"ros";return f.op&&f.m>f.mod?"tm":f.kind==="out"?"ros":"w2"}
+function fxEnd(f,sp){const n=(FXSPAN.find(([k])=>k===sp)||[])[2];return sp==="tm"?dPlus(etToday(),28):n?dPlus(etToday(),n):null}
+const fxTm=(f,sp)=>sp!=="tm"?null:f.ov&&f.ov.tm?f.ov.tm:f.op?f.op.id:null;
+// #r0 → #r1 on a card: the model's rank → his rank with the fix; for a card about an override
+// that's ending (ended / ending) his rank now → the model's
+function fxRanks(f,m,sp){const end=fxEnd(f,sp),tm=fxTm(f,sp),mr=ovRank(f.id,f.q,fxEff(f.id,f.q,null));
+  if(["ended","ending"].includes(f.kind))return{r0:S.bs.x[f.id]||mr,r1:mr};
+  return{r0:mr,r1:ovRank(f.id,f.q,fxEff(f.id,f.q,m,end,tm))}}
+function fxImpact(f){const sp=fxSpan0(f),{r0,r1}=fxRanks(f,f.m,sp);f.r0=r0;f.r1=r1;f.sp=sp;
+  const c=v=>Math.min(v||999,300),x=(a,b,k)=>Math.min(a,b)<=k&&Math.max(a,b)>k;
+  f.imp=(Math.abs(c(r1)-c(r0))+(x(r0,r1,ROST)?15:0)+(x(r0,r1,FXPOOL)?10:0))*(f.mine?2:f.fa?1.5:1);return f}
+function fxAll(){if(!G||!R||!S.bs||!S.bs.x)return[];const OR=fxOutRanks(),out=[];
+  for(const[id,q]of Object.entries(G.players)){let f;try{f=fxFlag(id,q,OR)}catch(e){f=null}if(!f)continue;
+    // outside the pool: only a growing role (the pickups), never a shrinking one
+    if(!f.pool&&!(f.ov||["start","auto"].includes(f.kind)||(f.kind==="up"&&f.m>=18)||(BO&&BO.players[id]&&BO.players[id].trig&&f.m>f.mod)||(f.op&&f.op.g>=3&&f.m>f.mod)))continue;
+    out.push(fxImpact(f))}
+  return out.sort((a,b)=>b.imp-a.imp)}
+// Auto-apply, once per data build / outside snapshot on each device (the relay de-dupes: an
+// override already there, auto or yours, is never replaced).
+let fxAutoBusy=false;const FXOLD="Automatic fixes need the relay redeployed (Actions → Yahoo relay); until then, tap Use on the cards.";
+async function fxAuto(){if(fxAutoBusy||!fxHave()||!G||!R||!SC||!S.bs||!S.bs.x||!store.get("efb",null)||!store.get("bbm",null))return;
+  const key=[etToday(),G.asOf0||G.asOf,R.asOf,pjAt("efb"),pjAt("bbm")].join("|");if(store.get("fxAutoKey","")===key)return;
+  fxAutoBusy=true;try{await fxNoFetch(true);
+    const L=fxAll().filter(f=>f.kind==="auto"&&!MOV[f.id]&&!fxNoHit(f)&&!ijOut(ijOf(f.id))).slice(0,25);store.set("fxAutoKey",key);if(!L.length)return;
+    const t=etToday(),o=await relayPost("/minutes",{batch:L.map(f=>({id:f.id,m:f.m,until:dPlus(t,14),sp:"w2",n:f.q.n,t:f.q.t,src:"auto",why:f.why}))});
+    if(Object.values(o).some(r=>r&&r.src==="auto")){store.set("fxErr",null);ovSetLocal(o)}
+    else store.set("fxErr",FXOLD)}
+  catch(e){store.set("fxErr",/Missing player id/.test(e.message)?FXOLD:"Automatic fixes failed: "+String(e.message||e).slice(0,140))}finally{fxAutoBusy=false;try{paintNav()}catch(e){}}}
+function fxAutoSoon(n=0){if(G&&R&&SC&&S.bs&&S.bs.x)return setTimeout(fxAuto,800);if(n<20)setTimeout(()=>fxAutoSoon(n+1),1500)}
+const fxBadge=()=>{const n=Object.values(MOV||{}).filter(r=>r&&r.src==="auto"&&!r.ok).length;return n?`Fix · ${n}`:"Fix"};
+const FXK={auto:"Auto",review:"Check",ended:"Teammate back",ending:"Ending",off:"Off pace",start:"New starter",up:"Minutes up",down:"Minutes down",out:"Scout / Lab"};
+function fxCard(f){const q=f.q,o=f.o,r=f.r,id=f.id,ij=ijTag(id)+(ML?lgTagFA(id):""),rp=R&&R.players[id],pos=rp&&rp.p?" "+rp.p:"";
+  const ev=[["Model",f.mod,"mod"],["Scout",o.efb,"efb"],["Lab",o.bbm,"bbm"],[r.l5!=null?"L5":"L3",r.rec,"rec"],["Season",r.szn,"szn"]];
+  if(f.ov)ev.unshift(["Yours",f.ov.m,"ov"]);
+  const evH=ev.map(([l,v,k])=>`<span class="${v!=null&&Math.abs(v-f.m)<.75&&k!=="mod"?"on":""}"><b>${v!=null?fxM(v):"–"}</b>${l}</span>`).join("");
+  const m5=r.m5?`<div class="fxm5">Last ${r.m5.length}: ${r.m5.map((v,i)=>`<em>${v}</em>${r.s5&&r.s5[i]==="1"?"<sup>S</sup>":""}`).join(" ")} <i>S = started</i></div>`:"";
+  // value choices: the suggestion first, then any other source 0.5+ away from it
+  const ch=[[f.m,f.lab]];for(const[v,l]of[[r.rec,r.l5!=null?"L5":"L3"],[o.efb,"Scout"],[o.bbm,"Lab"],[[r.rec,o.efb,o.bbm].filter(x=>x!=null).length>=2?[r.rec,o.efb,o.bbm].filter(x=>x!=null).reduce((a,b,i,A)=>a+b/A.length,0):null,"Blend"]])
+    if(v!=null&&ch.every(([x])=>Math.abs(fxH(v)-x)>=.5))ch.push([fxH(v),l]);
+  const sp=f.sp,spans=FXSPAN.filter(([k])=>k!=="tm"||fxTm(f,"tm")),tmN=f.ov&&f.ov.tm?f.ov.tmn:f.op?f.op.n:"";
+  const rk=(a,b)=>`<span class="fxr">#${a||"–"} <span class="${b<a?"up":b>a?"dn":""}">→ #${b||"–"}</span></span>`;
+  let act;
+  if(f.kind==="ended")act=`<button class="ovx sv" data-fx="clear">Clear</button><button class="ovx" data-fx="keep">Keep ${fxM(f.m)} for 2 wk</button>`;
+  else if(f.kind==="ending")act=`<button class="ovx sv" data-fx="extend">Extend 2 wk</button><button class="ovx" data-fx="lapse">Let it end</button>`;
+  else{act=(f.kind==="review"?`<button class="ovx sv" data-fx="approve">Approve ${fxM(f.m)}</button>`:"")
+    +ch.map(([v,l],i)=>`<button class="ovx${i===0&&f.kind!=="review"?" sv":""}" data-fx="use" data-v="${v}">${f.kind==="review"&&i===0?"Keep":"Use"} ${fxM(v)} <i>${esc(l)}</i></button>`).filter((x,i)=>!(f.kind==="review"&&i===0)).join("")
+    +`<span class="fxst"><button class="ovsb" data-fx="dn" aria-label="Half a minute less">−</button><b class="fxv">${fxM(f.m)}</b><button class="ovsb" data-fx="upm" aria-label="Half a minute more">+</button><button class="ovx" data-fx="save">Save</button></span>`
+    +(f.kind==="review"?`<button class="ovx dn" data-fx="undo">Undo</button>`:f.ov?`<button class="ovx dn" data-fx="clear">Clear</button>`:`<button class="ovx fxsk" data-fx="skip">Skip</button>`)}
+  const spH=["ended","ending"].includes(f.kind)?"":`<div class="ovsp fxsp"><span>For</span>${spans.map(([k,l])=>`<button data-fxs="${k}" aria-pressed="${k===sp}"${k==="tm"?` title="Counts only while ${esc(tmN)} is out"`:""}>${k==="tm"?`Until ${esc(String(tmN).replace(/\s+(Jr\.?|Sr\.?|II|III|IV)$/i,"").split(" ").slice(-1)[0])} back`:l}</button>`).join("")}</div>`;
+  return`<article class="fxc fx-${f.kind}" data-fxid="${esc(id)}" data-m="${f.m}" data-sp="${sp}">
+    <div class="fxh"><button class="fxn" data-open="${esc(id)}">${esc(q.n)}</button><i>${esc(q.t)}${esc(pos)}${ij}</i><span class="fxk">${FXK[f.kind]}</span>${rk(f.r0,f.r1)}</div>
+    <p class="fxwhy">${esc(f.why)}</p><div class="fxev">${evH}</div>${m5}<div class="fxa">${act}</div>${spH}</article>`}
+function fxRow(id,r){const q=G.players[id],nm=q?q.n:r.n||id,sp=r.tm?`while ${r.tmn||"teammate"} is out`:r.until?"to "+fmtDate(r.until).replace(/^\w+, /,""):"ROS";
+  return`<div class="fxl" data-fxid="${esc(id)}"><button class="fxn" data-open="${esc(id)}">${esc(nm)}</button><i>${esc(q?q.t:r.t||"")}</i><b>${fxM(r.m)}</b><span>${q?fxM((q.xp0||q.xp)[0])+" model":""}</span><span>${esc(sp)}</span><span class="fxsrc">${r.src==="auto"?(r.ok?"auto ✓":"auto"):"yours"}</span><button class="ovx dn" data-fx="clear">Clear</button></div>`}
+function renderFix(){const el=$("rkList");paintLg();$("rkAsOf").textContent="";
+  if(!fxHave()){el.innerHTML=`<div class="empty">Fix saves through your relay: set it up on league.html first.</div>`;$("rkStatus").textContent="";return}
+  if(!G||!SC||!S.bs||!S.bs.x){el.innerHTML=`<div class="empty">Loading…</div>`;return}
+  fxNoFetch().then(()=>{});fxAutoSoon();
+  const all=fxAll(),F=ML?S.fxF:"all",hid=all.filter(fxNoHit).length;
+  let L=S.fxSk?all:all.filter(f=>!fxNoHit(f));if(F==="mine")L=L.filter(f=>f.mine);else if(F==="fa")L=L.filter(f=>f.fa);
+  const chk=L.filter(f=>["review","ended","ending"].includes(f.kind)),rest=L.filter(f=>!chk.includes(f)),big=rest.filter(f=>f.imp>=FXSMALL||f.mine||["start","auto"].includes(f.kind)),small=rest.filter(f=>!big.includes(f));
+  const autoN=all.filter(f=>f.kind==="auto").length,ovs=Object.entries(MOV||{}).filter(([,r])=>r&&(!r.until||r.until>=etToday())),err=store.get("fxErr",null);
+  $("rkStatus").textContent=`${chk.length+big.length} to check`;
+  const seg=!ML?"":`<div class="usbar"><div class="seg" id="fxF">${[["all","All"],...(ML?[["mine","Mine"],["fa","Free agents"]]:[])].map(([v,l])=>`<button data-v="${v}" aria-pressed="${v===F}">${l}</button>`).join("")}</div></div>`;
+  const sec=(h,a,open)=>a.length?`<section class="fxsec"><h3>${h} <i>${a.length}</i></h3><div class="fxg">${a.map(fxCard).join("")}</div></section>`:"";
+  el.innerHTML=`<p class="bzcap">Projected minutes that probably need a look, biggest rank change first. Each card compares the model's minutes over his next week (next man up and tonight's lineups in) with Scout, Lab, his last 5 games played (L5) and his season. A tap on <b>Use</b> saves that number as your override for the span picked under it (<b>Until … back</b> ties it to the injured teammate: it counts only while he's out). <b>Skip</b> hides the card for a week, unless the numbers move 2+ minutes. When Scout, Lab and his last 5 all agree within ${FXAGREE} minutes and the model is ${FXGAP}+ off, the fix is applied by itself for 2 weeks and waits under <b>Check</b> for you to approve, change or undo. Who's here: the top ${FXPOOL} by our Proj, Scout or Lab, your players, and anyone whose role is growing (a new starter, minutes up to 18+, a Rise trigger, a teammate out), so streamers and pickups show too. #a → #b is his Proj rank (rest of season, your punts) before and after.</p>`
+    +(err?`<p class="fxerr">${esc(err)}</p>`:"")+seg
+    +sec("Check",chk)+sec("Needs a look",big)
+    +(small.length?`<details class="fxsec fxsm"><summary>Small changes <i>${small.length}</i></summary><div class="fxg">${small.map(fxCard).join("")}</div></details>`:"")
+    +(!chk.length&&!big.length&&!small.length?`<div class="empty">Nothing to fix${F!=="all"?" here":""}: the model's minutes match the evidence.</div>`:"")
+    +(ovs.length?`<details class="fxsec fxov"><summary>Your overrides <i>${ovs.length}</i></summary>${ovs.sort((a,b)=>String((G.players[a[0]]||a[1]).n).localeCompare(String((G.players[b[0]]||b[1]).n))).map(([id,r])=>fxRow(id,r)).join("")}</details>`:"")
+    +(hid?`<p class="fxft">${hid} skipped · <button class="ovx" data-fx="unskip">${S.fxSk?"Hide":"Show"} skipped</button></p>`:"");
+  if($("fxF"))$("fxF").querySelectorAll("button").forEach(b=>b.onclick=()=>{S.fxF=b.dataset.v;store.set("fxF",S.fxF);renderFix()});
+  S.fxMap=Object.fromEntries(all.map(f=>[f.id,f]))}
+// one live handler for the cards (rkList), so a re-render needs no re-wiring
+async function fxClick(e){const b=e.target.closest("[data-fx],[data-fxs],[data-open]");if(!b||document.body.dataset.page!=="fix")return;e.stopPropagation();
+  if(b.dataset.open)return openSheet(b.dataset.open);
+  if(b.dataset.fx==="unskip"){S.fxSk=!S.fxSk;renderFix();return}
+  const c=b.closest("[data-fxid]");if(!c)return;const id=c.dataset.fxid,f=S.fxMap&&S.fxMap[id],q=G.players[id];
+  const setM=m=>{c.dataset.m=m;const v=c.querySelector(".fxv");if(v)v.textContent=fxM(m);fxPrev(c,f)};
+  if(b.dataset.fxs){c.dataset.sp=b.dataset.fxs;c.querySelectorAll("[data-fxs]").forEach(x=>x.setAttribute("aria-pressed",x===b));fxPrev(c,f);return}
+  const a=b.dataset.fx,t=etToday(),busy=()=>{c.classList.add("busy")};
+  if(a==="dn"||a==="upm")return setM(Math.max(0,Math.min(48,(+c.dataset.m||0)+(a==="dn"?-.5:.5))));
+  if(a==="clear"){busy();await ovSave(id,null);return}
+  if(a==="skip"){c.remove();await fxNo(id,f?f.m:0,7);renderFix();return}
+  if(!f&&a!=="clear")return;
+  const sp=c.dataset.sp||"w2",save=(m,x)=>{busy();const tm=fxTm(f,sp),P=tm?G.players[tm]:null;
+    return ovSave(id,m,fxEnd(f,sp),sp==="ros"?null:sp,{src:"fix",why:f.why,...(tm?{tm,tmn:P?P.n:(f.ov&&f.ov.tmn)||""}:{}),...(x||{})})};
+  if(a==="use")return save(+b.dataset.v);
+  if(a==="save")return save(+c.dataset.m);
+  const ov=f.ov||{};
+  if(a==="approve"){busy();return ovSave(id,ov.m,ov.until,ov.sp,{src:"auto",ok:1,why:ov.why,...(ov.tm?{tm:ov.tm,tmn:ov.tmn}:{})})}
+  if(a==="undo"){busy();await fxNo(id,ov.m,14);return ovSave(id,null)}
+  if(a==="keep"){busy();return ovSave(id,ov.m,dPlus(t,14),"w2",{src:ov.src||"fix",ok:1,why:ov.why})}
+  if(a==="extend"){busy();return ovSave(id,ov.m,dPlus(t,14),"w2",{src:ov.src||"fix",ok:ov.ok,why:ov.why,...(ov.tm?{tm:ov.tm,tmn:ov.tmn}:{})})}
+  if(a==="lapse"){c.remove();await fxNo(id,ov.m,3);renderFix();return}}
+function fxPrev(c,f){if(!f)return;const m=+c.dataset.m,{r0,r1}=fxRanks(f,m,c.dataset.sp),el=c.querySelector(".fxr");
+  if(el)el.innerHTML=`#${r0||"–"} <span class="${r1<r0?"up":r1>r0?"dn":""}">→ #${r1||"–"}</span>`}
 function bsMsg(m){$("bsList").innerHTML=`<div class="empty">${esc(m)}</div>`;$("bsStatus").textContent=""}
 // ---- Navigation (Nov 2026): five sections by what you're doing, each with one row of pages.
 // Box · Players (Ranks, Proj, Usage, Rise, Buy/Sell without a league, Buzz) · My League (only with
@@ -4352,7 +4570,8 @@ const NAV=[
     {k:"rise",l:"Rise",v:"bs",open:()=>{S.bsSort="bo"}},
     {k:"buysell",l:"Buy/Sell",v:"bs",nolg:1,open:()=>{if(!["buy","sell","x","now"].includes(S.bsSort))S.bsSort="buy"}},
     {k:"buzz",l:"Buzz",v:"bz"},
-    {k:"efb",l:"Scout",v:"rk",efb:1,open:()=>{}}]},
+    {k:"efb",l:"Scout",v:"rk",efb:1,open:()=>{}},
+    {k:"fix",l:"Fix",v:"rk",rl:1,open:()=>{}}]},
   {k:"league",l:"My League",lg:1,pages:[
     {k:"today",l:"Today",v:"pj",open:()=>{S.pjView="my"}},
     {k:"matchup",l:"Matchup",v:"pj",open:()=>{S.pjView="mu"}},
@@ -4361,7 +4580,7 @@ const NAV=[
     {k:"build",l:"Build",v:"bs",open:()=>{S.bsSort="bld"}}]},
   {k:"sc",l:"Schedule",pages:[{k:"schedule",l:"Schedule",v:"sc"}]},
   {k:"in",l:"Injuries",pages:[{k:"injuries",l:"Injuries",v:"in"}]}];
-const navSecs=()=>{const ef=!!store.get("efb",null);return NAV.filter(x=>!x.lg||ML).map(x=>({...x,pages:x.pages.filter(p=>!(p.nolg&&ML)&&!(p.efb&&!ef))}))};
+const navSecs=()=>{const ef=!!store.get("efb",null);return NAV.filter(x=>!x.lg||ML).map(x=>({...x,pages:x.pages.filter(p=>!(p.nolg&&ML)&&!(p.efb&&!ef)&&!(p.rl&&!fxHave()))}))};
 S.navLast=store.get("navLast",{});
 function navFromHash(h){const k=String(h||"").replace(/^#/,"");
   const old={buysell:ML?"roster":"buysell",schedule:"schedule",injuries:"injuries",mine:"roster",fa:"waivers"}[k]||k;
@@ -4382,7 +4601,7 @@ function paintNav(){
   $("tabLeague").hidden=!ML;
   $("tabs").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.t===S.navSec));
   const sec=navSecs().find(x=>x.k===S.navSec),el=$("subnav");if(!sec)return;
-  el.innerHTML=sec.pages.length>1?sec.pages.map(p=>`<button role="tab" data-p="${p.k}" aria-selected="${p.k===S.navPage}">${p.l}</button>`).join(""):"";
+  el.innerHTML=sec.pages.length>1?sec.pages.map(p=>`<button role="tab" data-p="${p.k}" aria-selected="${p.k===S.navPage}">${p.k==="fix"?fxBadge():p.l}</button>`).join(""):"";
   el.hidden=sec.pages.length<2;
   // the row sits at the top of the page's sticky strip, so it stays in view with that page's controls
   const host=document.querySelector(`.ruler.${document.body.dataset.view}v>div`);if(host&&!el.hidden&&el.parentNode!==host)host.prepend(el);
@@ -4396,7 +4615,7 @@ function setView(v){if(v==="in")setTimeout(()=>{try{renderTN()}catch(e){}},0);
 }
 fetch("data/regression.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null)
   .then(j=>{if(!j)return bsMsg("No Buy/Sell data yet: it's built each morning with the rankings.");
-    G=j;applyOv();rankBS();renderBS();renderPJ();renderSC();if(S.players.length)render();if(BZ)renderBZ();if(document.body.dataset.page==="efb")renderRK();try{efbFreeze()}catch(e){}})
+    G=j;applyOv();rankBS();renderBS();renderPJ();renderSC();if(S.players.length)render();if(BZ)renderBZ();if(["efb","fix"].includes(document.body.dataset.page))renderRK();try{efbFreeze()}catch(e){}fxAutoSoon()})
   .catch(()=>bsMsg("Couldn't load the Buy/Sell data."));
 
 // ---- Player sheet: everything about one player, opened from any card. tn = that night's
@@ -4993,7 +5212,7 @@ function ovHTML(id,q){if(!q||!q.xp||!store.get("relay",null))return"";const r=ov
   const span=!r||!r.until?"ros":r.sp&&OVSPAN.some(([k])=>k===r.sp)?r.sp:(OVSPAN.find(([k,,n])=>n&&r.at&&dPlus(String(r.at).slice(0,10),n)===r.until)||["date"])[0];
   const m0=r?r.m:Math.round(model*10)/10;
   return`<section class="blk ovb" data-span="${span}"><h3>Minutes${r?` <i class="ovt">yours</i>`:""}</h3>
-    <div class="ovr"><span>${pjSrc()==="ours"?"Model":PJS[pjSrc()]} <b>${f(model)}</b></span>${oth.map(([k,v])=>`<span>${PJS[k]} <b>${f(v)}</b>${Math.abs(v-m0)>=1?` <button class="ovx" data-ov="use" data-v="${f(v)}">Use</button>`:""}</span>`).join("")}${r?`<span>Yours <b>${f(r.m)}</b> · ${r.until?"until "+fmtDate(r.until).replace(/^\w+, /,""):"ROS"}</span>`:""}</div>
+    <div class="ovr"><span>${pjSrc()==="ours"?"Model":PJS[pjSrc()]} <b>${f(model)}</b></span>${oth.map(([k,v])=>`<span>${PJS[k]} <b>${f(v)}</b>${Math.abs(v-m0)>=1?` <button class="ovx" data-ov="use" data-v="${f(v)}">Use</button>`:""}</span>`).join("")}${r?`<span>Yours <b>${f(r.m)}</b> · ${r.tm?"while "+esc(r.tmn||"a teammate")+" is out":r.until?"until "+fmtDate(r.until).replace(/^\w+, /,""):"ROS"}${r.src==="auto"?(r.ok?" · auto, approved":" · auto, not reviewed"):""}</span>`:""}</div>
     <div class="ovst"><button class="ovsb" data-ovs="-1" aria-label="One minute less">−</button><input id="ovM" type="number" inputmode="decimal" min="0" max="48" step="0.5" value="${m0}"><button class="ovsb" data-ovs="1" aria-label="One minute more">+</button><span class="ovp"></span></div>
     <div class="ovsp"><span>How long</span>${OVSPAN.map(([k,l])=>`<button data-ovu="${k}" aria-pressed="${k===span}">${l}</button>`).join("")}<input id="ovU" type="date" min="${t}" value="${span==="date"&&r?r.until:""}"${span==="date"?"":" hidden"}></div>
     <div class="ovf"><button class="ovx sv" data-ov="save">Save</button>${r?`<button class="ovx dn" data-ov="clear">Clear</button>`:""}</div>
@@ -5183,6 +5402,7 @@ document.querySelectorAll(".lgf").forEach(g=>g.querySelectorAll("button").forEac
 // Refresh: reload the page (keeps the tab via the hash); the icon spins until it does.
 $("rfBtn").onclick=()=>{$("rfBtn").classList.add("go");setTimeout(()=>location.reload(),120)};
 for(const l of ["pjList","rkList","bsList"])$(l).addEventListener("click",e=>{const r=e.target.closest(".dws .bsr[data-id]");if(r){e.stopPropagation();openSheet(r.dataset.id)}});
+$("rkList").addEventListener("click",fxClick);
 for(const l of ["pjList","rkList"])$(l).addEventListener("click",e=>{const h=e.target.closest("[data-dsort]");if(!h)return;e.stopPropagation();
   const k=h.dataset.dsort;if(S.dsort===k)S.ddir=-S.ddir;else{S.dsort=k;S.ddir=-1}renderPJ();renderRK()},true);
 DESK.addEventListener("change",()=>{if(S.players.length)render();paintDens();renderPJ();renderRK();renderSC();if(BZ)renderBZ();if(document.body.dataset.view==="bs")renderBS()});
