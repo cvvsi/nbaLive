@@ -1,7 +1,7 @@
 {
  "date": "2026-11-24",
  "pageDate": null,
- "built": "2026-11-25T20:37:15.631Z",
+ "built": "2026-11-25T21:13:23.577Z",
  "note": "Yahoo Buzz Index: adds/drops/trades across Yahoo leagues that day. ros/start = % rostered / % started. today = partial day so far.",
  "added": [
   {
@@ -52,7 +52,7 @@
    "name": "Brayden Burries",
    "team": "MIL",
    "pos": "SG",
-   "ros": 46,
+   "ros": 47,
    "start": 29,
    "drops": 184,
    "adds": 5681,
@@ -305,7 +305,7 @@
    "name": "Kevin Huerter",
    "team": "DET",
    "pos": "SG,SF",
-   "ros": 21,
+   "ros": 20,
    "start": 22,
    "drops": 696,
    "adds": 1314,
@@ -505,7 +505,7 @@
    "name": "Yves Missi",
    "team": "NOP",
    "pos": "C",
-   "ros": 43,
+   "ros": 42,
    "start": 31,
    "drops": 3716,
    "adds": 171,
@@ -549,7 +549,7 @@
    "name": "Jaxson Hayes",
    "team": "UTA",
    "pos": "C",
-   "ros": 18,
+   "ros": 17,
    "start": 7,
    "drops": 2293,
    "adds": 42,
@@ -560,7 +560,7 @@
    "name": "Keaton Wagler",
    "team": "LAC",
    "pos": "SG",
-   "ros": 21,
+   "ros": 20,
    "start": 14,
    "drops": 2242,
    "adds": 72,
@@ -571,7 +571,7 @@
    "name": "Allen Graves",
    "team": "TOR",
    "pos": "PF",
-   "ros": 7,
+   "ros": 6,
    "start": 5,
    "drops": 2208,
    "adds": 217,
@@ -626,7 +626,7 @@
    "name": "Aday Mara",
    "team": "OKC",
    "pos": "C",
-   "ros": 55,
+   "ros": 54,
    "start": 26,
    "drops": 1531,
    "adds": 159,
@@ -896,10 +896,10 @@
     "pos": "SF,PF",
     "ros": 42,
     "start": 41,
-    "drops": 84,
-    "adds": 5884,
+    "drops": 90,
+    "adds": 6124,
     "trades": 4,
-    "total": 5972
+    "total": 6218
    },
    {
     "name": "Mikel Brown Jr.",
@@ -907,32 +907,32 @@
     "pos": "PG",
     "ros": 26,
     "start": 23,
-    "drops": 101,
-    "adds": 5317,
+    "drops": 111,
+    "adds": 5514,
     "trades": 2,
-    "total": 5420
-   },
-   {
-    "name": "Brayden Burries",
-    "team": "MIL",
-    "pos": "SG",
-    "ros": 46,
-    "start": 44,
-    "drops": 70,
-    "adds": 5028,
-    "trades": 11,
-    "total": 5109
+    "total": 5627
    },
    {
     "name": "Kevin Porter Jr.",
     "team": "ORL",
     "pos": "PG,SG",
-    "ros": 11,
+    "ros": 12,
     "start": 4,
-    "drops": 40,
-    "adds": 4874,
+    "drops": 42,
+    "adds": 5428,
     "trades": 0,
-    "total": 4914
+    "total": 5470
+   },
+   {
+    "name": "Brayden Burries",
+    "team": "MIL",
+    "pos": "SG",
+    "ros": 47,
+    "start": 45,
+    "drops": 75,
+    "adds": 5229,
+    "trades": 11,
+    "total": 5315
    },
    {
     "name": "Kenrich Williams",
@@ -940,10 +940,10 @@
     "pos": "PF,C",
     "ros": 14,
     "start": 14,
-    "drops": 81,
-    "adds": 4074,
+    "drops": 88,
+    "adds": 4257,
     "trades": 2,
-    "total": 4157
+    "total": 4347
    },
    {
     "name": "Danny Wolf",
@@ -951,10 +951,10 @@
     "pos": "PF,C",
     "ros": 17,
     "start": 16,
-    "drops": 103,
-    "adds": 3427,
+    "drops": 113,
+    "adds": 3568,
     "trades": 1,
-    "total": 3531
+    "total": 3682
    },
    {
     "name": "Charles Bassey",
@@ -962,10 +962,10 @@
     "pos": "C",
     "ros": 27,
     "start": 26,
-    "drops": 105,
-    "adds": 3101,
+    "drops": 114,
+    "adds": 3217,
     "trades": 4,
-    "total": 3210
+    "total": 3335
    },
    {
     "name": "Buddy Hield",
@@ -973,10 +973,10 @@
     "pos": "SG,SF",
     "ros": 26,
     "start": 26,
-    "drops": 217,
-    "adds": 2748,
+    "drops": 240,
+    "adds": 2854,
     "trades": 0,
-    "total": 2965
+    "total": 3094
    },
    {
     "name": "Pelle Larsson",
@@ -984,10 +984,10 @@
     "pos": "SG,SF",
     "ros": 25,
     "start": 22,
-    "drops": 84,
-    "adds": 2450,
+    "drops": 92,
+    "adds": 2567,
     "trades": 4,
-    "total": 2538
+    "total": 2663
    },
    {
     "name": "Moussa Diabaté",
@@ -995,10 +995,10 @@
     "pos": "C",
     "ros": 67,
     "start": 62,
-    "drops": 39,
-    "adds": 2156,
+    "drops": 41,
+    "adds": 2272,
     "trades": 16,
-    "total": 2211
+    "total": 2329
    },
    {
     "name": "Cam Spencer",
@@ -1006,10 +1006,10 @@
     "pos": "PG,SG",
     "ros": 48,
     "start": 45,
-    "drops": 129,
-    "adds": 2112,
+    "drops": 136,
+    "adds": 2189,
     "trades": 7,
-    "total": 2248
+    "total": 2332
    },
    {
     "name": "Landry Shamet",
@@ -1017,10 +1017,10 @@
     "pos": "SG,SF",
     "ros": 16,
     "start": 15,
-    "drops": 85,
-    "adds": 2096,
+    "drops": 94,
+    "adds": 2173,
     "trades": 1,
-    "total": 2182
+    "total": 2268
    },
    {
     "name": "Kyle Kuzma",
@@ -1028,10 +1028,10 @@
     "pos": "SF,PF",
     "ros": 26,
     "start": 25,
-    "drops": 110,
-    "adds": 1936,
+    "drops": 117,
+    "adds": 2024,
     "trades": 4,
-    "total": 2050
+    "total": 2145
    },
    {
     "name": "Myles Turner",
@@ -1040,9 +1040,9 @@
     "ros": 71,
     "start": 62,
     "drops": 38,
-    "adds": 1845,
+    "adds": 1922,
     "trades": 11,
-    "total": 1894
+    "total": 1971
    },
    {
     "name": "Alex Caruso",
@@ -1050,10 +1050,10 @@
     "pos": "SG,SF",
     "ros": 20,
     "start": 13,
-    "drops": 200,
-    "adds": 1817,
+    "drops": 216,
+    "adds": 1889,
     "trades": 3,
-    "total": 2020
+    "total": 2108
    },
    {
     "name": "Peyton Watson",
@@ -1061,10 +1061,10 @@
     "pos": "SF,PF",
     "ros": 53,
     "start": 43,
-    "drops": 78,
-    "adds": 1658,
+    "drops": 84,
+    "adds": 1729,
     "trades": 6,
-    "total": 1742
+    "total": 1819
    },
    {
     "name": "Julian Champagnie",
@@ -1072,10 +1072,10 @@
     "pos": "SF,PF",
     "ros": 35,
     "start": 34,
-    "drops": 60,
-    "adds": 1554,
+    "drops": 64,
+    "adds": 1605,
     "trades": 1,
-    "total": 1615
+    "total": 1670
    },
    {
     "name": "Donte DiVincenzo",
@@ -1083,10 +1083,10 @@
     "pos": "SG,SF",
     "ros": 5,
     "start": 0,
-    "drops": 54,
-    "adds": 1306,
+    "drops": 56,
+    "adds": 1340,
     "trades": 0,
-    "total": 1360
+    "total": 1396
    },
    {
     "name": "Caleb Martin",
@@ -1094,10 +1094,10 @@
     "pos": "SF,PF",
     "ros": 12,
     "start": 5,
-    "drops": 785,
-    "adds": 1182,
+    "drops": 816,
+    "adds": 1212,
     "trades": 0,
-    "total": 1967
+    "total": 2028
    },
    {
     "name": "Kris Murray",
@@ -1105,21 +1105,21 @@
     "pos": "SG,SF",
     "ros": 2,
     "start": 2,
-    "drops": 36,
-    "adds": 1161,
+    "drops": 38,
+    "adds": 1209,
     "trades": 0,
-    "total": 1197
+    "total": 1247
    },
    {
     "name": "Jalen Green",
     "team": "PHX",
     "pos": "SG,SF",
     "ros": 70,
-    "start": 61,
-    "drops": 89,
-    "adds": 1156,
+    "start": 62,
+    "drops": 97,
+    "adds": 1194,
     "trades": 12,
-    "total": 1257
+    "total": 1303
    },
    {
     "name": "Dillon Brooks",
@@ -1127,32 +1127,32 @@
     "pos": "SF,PF",
     "ros": 48,
     "start": 43,
-    "drops": 74,
-    "adds": 1121,
+    "drops": 76,
+    "adds": 1173,
     "trades": 7,
-    "total": 1202
+    "total": 1256
    },
    {
     "name": "Ryan Conwell",
     "team": "MIA",
     "pos": "SG",
-    "ros": 3,
+    "ros": 4,
     "start": 3,
-    "drops": 56,
-    "adds": 1013,
+    "drops": 61,
+    "adds": 1066,
     "trades": 0,
-    "total": 1069
+    "total": 1127
    },
    {
     "name": "Jrue Holiday",
     "team": "POR",
     "pos": "PG,SG",
     "ros": 72,
-    "start": 65,
-    "drops": 60,
-    "adds": 953,
+    "start": 66,
+    "drops": 64,
+    "adds": 981,
     "trades": 17,
-    "total": 1030
+    "total": 1062
    },
    {
     "name": "Terrence Shannon Jr.",
@@ -1160,10 +1160,10 @@
     "pos": "SG,SF",
     "ros": 21,
     "start": 19,
-    "drops": 120,
-    "adds": 897,
+    "drops": 133,
+    "adds": 921,
     "trades": 4,
-    "total": 1021
+    "total": 1058
    },
    {
     "name": "Devin Vassell",
@@ -1171,10 +1171,10 @@
     "pos": "SG,SF",
     "ros": 54,
     "start": 50,
-    "drops": 113,
-    "adds": 874,
+    "drops": 124,
+    "adds": 907,
     "trades": 12,
-    "total": 999
+    "total": 1043
    },
    {
     "name": "Collin Gillespie",
@@ -1182,10 +1182,10 @@
     "pos": "PG,SG",
     "ros": 44,
     "start": 35,
-    "drops": 136,
-    "adds": 864,
+    "drops": 144,
+    "adds": 894,
     "trades": 5,
-    "total": 1005
+    "total": 1043
    },
    {
     "name": "Egor Dëmin",
@@ -1193,10 +1193,10 @@
     "pos": "PG,SG",
     "ros": 21,
     "start": 17,
-    "drops": 229,
-    "adds": 804,
+    "drops": 238,
+    "adds": 844,
     "trades": 2,
-    "total": 1035
+    "total": 1084
    },
    {
     "name": "Oso Ighodaro",
@@ -1204,10 +1204,10 @@
     "pos": "C",
     "ros": 6,
     "start": 5,
-    "drops": 51,
-    "adds": 798,
+    "drops": 54,
+    "adds": 838,
     "trades": 1,
-    "total": 850
+    "total": 893
    },
    {
     "name": "Jordan Poole",
@@ -1215,21 +1215,10 @@
     "pos": "PG,SG",
     "ros": 23,
     "start": 9,
-    "drops": 289,
-    "adds": 794,
+    "drops": 312,
+    "adds": 819,
     "trades": 0,
-    "total": 1083
-   },
-   {
-    "name": "Rui Hachimura",
-    "team": "LAC",
-    "pos": "SF,PF",
-    "ros": 62,
-    "start": 53,
-    "drops": 92,
-    "adds": 783,
-    "trades": 6,
-    "total": 881
+    "total": 1131
    },
    {
     "name": "Christian Anderson",
@@ -1237,10 +1226,21 @@
     "pos": "PG",
     "ros": 2,
     "start": 2,
-    "drops": 39,
-    "adds": 780,
+    "drops": 40,
+    "adds": 818,
     "trades": 0,
-    "total": 819
+    "total": 858
+   },
+   {
+    "name": "Rui Hachimura",
+    "team": "LAC",
+    "pos": "SF,PF",
+    "ros": 62,
+    "start": 53,
+    "drops": 98,
+    "adds": 814,
+    "trades": 6,
+    "total": 918
    },
    {
     "name": "Isaiah Joe",
@@ -1248,10 +1248,10 @@
     "pos": "SG,SF",
     "ros": 15,
     "start": 7,
-    "drops": 2420,
-    "adds": 767,
+    "drops": 2519,
+    "adds": 797,
     "trades": 0,
-    "total": 3187
+    "total": 3316
    },
    {
     "name": "Joan Beringer",
@@ -1259,10 +1259,10 @@
     "pos": "PF,C",
     "ros": 8,
     "start": 7,
-    "drops": 72,
-    "adds": 733,
+    "drops": 78,
+    "adds": 772,
     "trades": 0,
-    "total": 805
+    "total": 850
    },
    {
     "name": "Coby White",
@@ -1270,21 +1270,21 @@
     "pos": "PG,SG",
     "ros": 79,
     "start": 62,
-    "drops": 76,
-    "adds": 724,
+    "drops": 84,
+    "adds": 761,
     "trades": 9,
-    "total": 809
+    "total": 854
    },
    {
     "name": "Klay Thompson",
     "team": "MIA",
     "pos": "SG,SF",
     "ros": 46,
-    "start": 41,
-    "drops": 126,
-    "adds": 711,
+    "start": 42,
+    "drops": 130,
+    "adds": 742,
     "trades": 12,
-    "total": 849
+    "total": 884
    },
    {
     "name": "Brook Lopez",
@@ -1292,10 +1292,10 @@
     "pos": "C",
     "ros": 52,
     "start": 50,
-    "drops": 356,
-    "adds": 646,
+    "drops": 376,
+    "adds": 678,
     "trades": 5,
-    "total": 1007
+    "total": 1059
    },
    {
     "name": "Matisse Thybulle",
@@ -1303,21 +1303,21 @@
     "pos": "SG,SF",
     "ros": 30,
     "start": 13,
-    "drops": 267,
-    "adds": 640,
+    "drops": 292,
+    "adds": 656,
     "trades": 9,
-    "total": 916
+    "total": 957
    },
    {
     "name": "De'Anthony Melton",
     "team": "GSW",
     "pos": "PG,SG",
     "ros": 19,
-    "start": 16,
-    "drops": 286,
-    "adds": 629,
+    "start": 17,
+    "drops": 302,
+    "adds": 648,
     "trades": 5,
-    "total": 920
+    "total": 955
    },
    {
     "name": "Kris Dunn",
@@ -1325,10 +1325,10 @@
     "pos": "PG,SG",
     "ros": 24,
     "start": 20,
-    "drops": 356,
-    "adds": 561,
+    "drops": 381,
+    "adds": 582,
     "trades": 1,
-    "total": 918
+    "total": 964
    }
   ],
   "dropped": [
@@ -1338,10 +1338,10 @@
     "pos": "PF,C",
     "ros": 68,
     "start": 37,
-    "drops": 3280,
-    "adds": 144,
+    "drops": 3417,
+    "adds": 146,
     "trades": 7,
-    "total": 3431
+    "total": 3570
    },
    {
     "name": "Naji Marshall",
@@ -1349,10 +1349,10 @@
     "pos": "SG,SF,PF",
     "ros": 20,
     "start": 9,
-    "drops": 2660,
-    "adds": 52,
+    "drops": 2761,
+    "adds": 53,
     "trades": 2,
-    "total": 2714
+    "total": 2816
    },
    {
     "name": "Zaccharie Risacher",
@@ -1360,10 +1360,10 @@
     "pos": "SF,PF",
     "ros": 21,
     "start": 10,
-    "drops": 2563,
-    "adds": 246,
+    "drops": 2657,
+    "adds": 261,
     "trades": 3,
-    "total": 2812
+    "total": 2921
    },
    {
     "name": "Isaiah Joe",
@@ -1371,10 +1371,10 @@
     "pos": "SG,SF",
     "ros": 15,
     "start": 7,
-    "drops": 2420,
-    "adds": 767,
+    "drops": 2519,
+    "adds": 797,
     "trades": 0,
-    "total": 3187
+    "total": 3316
    },
    {
     "name": "Bilal Coulibaly",
@@ -1382,32 +1382,32 @@
     "pos": "SG,SF",
     "ros": 9,
     "start": 4,
-    "drops": 2170,
-    "adds": 73,
+    "drops": 2246,
+    "adds": 74,
     "trades": 1,
-    "total": 2244
-   },
-   {
-    "name": "Cameron Johnson",
-    "team": "DEN",
-    "pos": "SF,PF",
-    "ros": 38,
-    "start": 18,
-    "drops": 2127,
-    "adds": 312,
-    "trades": 3,
-    "total": 2442
+    "total": 2321
    },
    {
     "name": "Sam Hauser",
     "team": "BOS",
     "pos": "SF,PF",
     "ros": 9,
-    "start": 5,
-    "drops": 2126,
+    "start": 4,
+    "drops": 2229,
     "adds": 37,
     "trades": 1,
-    "total": 2164
+    "total": 2267
+   },
+   {
+    "name": "Cameron Johnson",
+    "team": "DEN",
+    "pos": "SF,PF",
+    "ros": 38,
+    "start": 17,
+    "drops": 2220,
+    "adds": 322,
+    "trades": 3,
+    "total": 2545
    },
    {
     "name": "Paul Reed",
@@ -1415,21 +1415,21 @@
     "pos": "PF,C",
     "ros": 59,
     "start": 30,
-    "drops": 2073,
-    "adds": 161,
+    "drops": 2181,
+    "adds": 165,
     "trades": 10,
-    "total": 2244
+    "total": 2356
    },
    {
     "name": "Jalen Suggs",
     "team": "ORL",
     "pos": "PG,SG",
     "ros": 71,
-    "start": 25,
-    "drops": 2009,
-    "adds": 84,
+    "start": 24,
+    "drops": 2100,
+    "adds": 88,
     "trades": 7,
-    "total": 2100
+    "total": 2195
    },
    {
     "name": "Quentin Grimes",
@@ -1437,21 +1437,21 @@
     "pos": "SG,SF",
     "ros": 45,
     "start": 20,
-    "drops": 1841,
-    "adds": 216,
+    "drops": 1952,
+    "adds": 217,
     "trades": 8,
-    "total": 2065
+    "total": 2177
    },
    {
     "name": "Kevin Huerter",
     "team": "DET",
     "pos": "SG,SF",
-    "ros": 21,
+    "ros": 20,
     "start": 8,
-    "drops": 1646,
-    "adds": 84,
+    "drops": 1734,
+    "adds": 87,
     "trades": 2,
-    "total": 1732
+    "total": 1823
    },
    {
     "name": "Brice Sensabaugh",
@@ -1459,10 +1459,10 @@
     "pos": "SG,SF,PF",
     "ros": 15,
     "start": 7,
-    "drops": 1584,
+    "drops": 1684,
     "adds": 28,
     "trades": 4,
-    "total": 1616
+    "total": 1716
    },
    {
     "name": "Mo Bamba",
@@ -1470,10 +1470,10 @@
     "pos": "C",
     "ros": 26,
     "start": 13,
-    "drops": 1572,
-    "adds": 199,
+    "drops": 1682,
+    "adds": 200,
     "trades": 7,
-    "total": 1778
+    "total": 1889
    },
    {
     "name": "Tristan da Silva",
@@ -1481,10 +1481,10 @@
     "pos": "SF,PF",
     "ros": 22,
     "start": 9,
-    "drops": 1546,
-    "adds": 146,
+    "drops": 1609,
+    "adds": 147,
     "trades": 1,
-    "total": 1693
+    "total": 1757
    },
    {
     "name": "Svi Mykhailiuk",
@@ -1492,21 +1492,21 @@
     "pos": "SG,SF",
     "ros": 9,
     "start": 4,
-    "drops": 1525,
-    "adds": 63,
+    "drops": 1601,
+    "adds": 66,
     "trades": 1,
-    "total": 1589
+    "total": 1668
    },
    {
     "name": "Yves Missi",
     "team": "NOP",
     "pos": "C",
-    "ros": 43,
+    "ros": 42,
     "start": 20,
-    "drops": 1419,
-    "adds": 91,
+    "drops": 1509,
+    "adds": 95,
     "trades": 10,
-    "total": 1520
+    "total": 1614
    },
    {
     "name": "Walter Clayton Jr.",
@@ -1514,10 +1514,10 @@
     "pos": "PG,SG",
     "ros": 4,
     "start": 2,
-    "drops": 1270,
-    "adds": 14,
+    "drops": 1313,
+    "adds": 15,
     "trades": 0,
-    "total": 1284
+    "total": 1328
    },
    {
     "name": "Daniel Gafford",
@@ -1525,21 +1525,10 @@
     "pos": "C",
     "ros": 47,
     "start": 25,
-    "drops": 1207,
-    "adds": 216,
+    "drops": 1255,
+    "adds": 227,
     "trades": 5,
-    "total": 1428
-   },
-   {
-    "name": "Morez Johnson Jr.",
-    "team": "DAL",
-    "pos": "PF",
-    "ros": 7,
-    "start": 4,
-    "drops": 1070,
-    "adds": 104,
-    "trades": 1,
-    "total": 1175
+    "total": 1487
    },
    {
     "name": "Anthony Black",
@@ -1547,10 +1536,32 @@
     "pos": "PG,SG,SF",
     "ros": 83,
     "start": 36,
-    "drops": 1054,
+    "drops": 1111,
     "adds": 73,
     "trades": 32,
-    "total": 1159
+    "total": 1216
+   },
+   {
+    "name": "Morez Johnson Jr.",
+    "team": "DAL",
+    "pos": "PF",
+    "ros": 7,
+    "start": 3,
+    "drops": 1105,
+    "adds": 105,
+    "trades": 1,
+    "total": 1211
+   },
+   {
+    "name": "Aday Mara",
+    "team": "OKC",
+    "pos": "C",
+    "ros": 54,
+    "start": 27,
+    "drops": 1041,
+    "adds": 113,
+    "trades": 12,
+    "total": 1166
    },
    {
     "name": "DeMar DeRozan",
@@ -1558,32 +1569,21 @@
     "pos": "SF,PF",
     "ros": 29,
     "start": 13,
-    "drops": 1011,
-    "adds": 57,
+    "drops": 1040,
+    "adds": 58,
     "trades": 2,
-    "total": 1070
-   },
-   {
-    "name": "Aday Mara",
-    "team": "OKC",
-    "pos": "C",
-    "ros": 55,
-    "start": 27,
-    "drops": 990,
-    "adds": 110,
-    "trades": 12,
-    "total": 1112
+    "total": 1100
    },
    {
     "name": "Jaxson Hayes",
     "team": "UTA",
     "pos": "C",
-    "ros": 18,
+    "ros": 17,
     "start": 5,
-    "drops": 922,
+    "drops": 980,
     "adds": 46,
     "trades": 4,
-    "total": 972
+    "total": 1030
    },
    {
     "name": "John Collins",
@@ -1591,21 +1591,10 @@
     "pos": "PF,C",
     "ros": 71,
     "start": 40,
-    "drops": 919,
-    "adds": 74,
+    "drops": 956,
+    "adds": 75,
     "trades": 11,
-    "total": 1004
-   },
-   {
-    "name": "Kasparas Jakučionis",
-    "team": "MIL",
-    "pos": "PG,SG",
-    "ros": 9,
-    "start": 8,
-    "drops": 786,
-    "adds": 18,
-    "trades": 1,
-    "total": 805
+    "total": 1042
    },
    {
     "name": "Caleb Martin",
@@ -1613,21 +1602,32 @@
     "pos": "SF,PF",
     "ros": 12,
     "start": 5,
-    "drops": 785,
-    "adds": 1182,
+    "drops": 816,
+    "adds": 1212,
     "trades": 0,
-    "total": 1967
+    "total": 2028
    },
    {
     "name": "Allen Graves",
     "team": "TOR",
     "pos": "PF",
-    "ros": 7,
+    "ros": 6,
     "start": 3,
-    "drops": 777,
+    "drops": 815,
     "adds": 53,
     "trades": 0,
-    "total": 830
+    "total": 868
+   },
+   {
+    "name": "Kasparas Jakučionis",
+    "team": "MIL",
+    "pos": "PG,SG",
+    "ros": 9,
+    "start": 8,
+    "drops": 815,
+    "adds": 18,
+    "trades": 1,
+    "total": 834
    },
    {
     "name": "Aaron Wiggins",
@@ -1635,10 +1635,10 @@
     "pos": "SG,SF",
     "ros": 34,
     "start": 9,
-    "drops": 762,
-    "adds": 102,
+    "drops": 812,
+    "adds": 103,
     "trades": 9,
-    "total": 873
+    "total": 924
    },
    {
     "name": "Christian Braun",
@@ -1646,10 +1646,10 @@
     "pos": "SG,SF,PF",
     "ros": 73,
     "start": 35,
-    "drops": 730,
-    "adds": 491,
+    "drops": 754,
+    "adds": 509,
     "trades": 25,
-    "total": 1246
+    "total": 1288
    },
    {
     "name": "Sandro Mamukelashvili",
@@ -1657,21 +1657,10 @@
     "pos": "PF,C",
     "ros": 30,
     "start": 14,
-    "drops": 670,
-    "adds": 29,
+    "drops": 712,
+    "adds": 30,
     "trades": 0,
-    "total": 699
-   },
-   {
-    "name": "Mike Conley",
-    "team": "BOS",
-    "pos": "PG",
-    "ros": 1,
-    "start": 1,
-    "drops": 661,
-    "adds": 12,
-    "trades": 0,
-    "total": 673
+    "total": 742
    },
    {
     "name": "Tyrese Proctor",
@@ -1679,10 +1668,21 @@
     "pos": "PG,SG",
     "ros": 11,
     "start": 10,
-    "drops": 653,
-    "adds": 42,
+    "drops": 682,
+    "adds": 44,
     "trades": 0,
-    "total": 695
+    "total": 726
+   },
+   {
+    "name": "Mike Conley",
+    "team": "BOS",
+    "pos": "PG",
+    "ros": 1,
+    "start": 1,
+    "drops": 672,
+    "adds": 12,
+    "trades": 0,
+    "total": 684
    },
    {
     "name": "Nikola Vučević",
@@ -1690,10 +1690,10 @@
     "pos": "C",
     "ros": 5,
     "start": 3,
-    "drops": 636,
+    "drops": 655,
     "adds": 18,
     "trades": 0,
-    "total": 654
+    "total": 673
    },
    {
     "name": "Jaime Jaquez Jr.",
@@ -1701,10 +1701,10 @@
     "pos": "SG,SF,PF",
     "ros": 64,
     "start": 57,
-    "drops": 612,
-    "adds": 492,
+    "drops": 652,
+    "adds": 513,
     "trades": 14,
-    "total": 1118
+    "total": 1179
    },
    {
     "name": "Payton Pritchard",
@@ -1712,21 +1712,10 @@
     "pos": "PG",
     "ros": 84,
     "start": 41,
-    "drops": 587,
+    "drops": 623,
     "adds": 67,
     "trades": 21,
-    "total": 675
-   },
-   {
-    "name": "Quenton Jackson",
-    "team": "IND",
-    "pos": "PG,SG",
-    "ros": 6,
-    "start": 3,
-    "drops": 555,
-    "adds": 16,
-    "trades": 0,
-    "total": 571
+    "total": 711
    },
    {
     "name": "Kelly Oubre Jr.",
@@ -1734,10 +1723,10 @@
     "pos": "SF,PF",
     "ros": 35,
     "start": 17,
-    "drops": 552,
-    "adds": 302,
+    "drops": 586,
+    "adds": 311,
     "trades": 5,
-    "total": 859
+    "total": 902
    },
    {
     "name": "P.J. Washington",
@@ -1745,32 +1734,43 @@
     "pos": "PF,C",
     "ros": 63,
     "start": 28,
-    "drops": 551,
-    "adds": 230,
+    "drops": 575,
+    "adds": 236,
     "trades": 2,
-    "total": 783
+    "total": 813
    },
    {
-    "name": "Javonte Green",
-    "team": "DET",
-    "pos": "SG,SF",
-    "ros": 2,
-    "start": 1,
-    "drops": 525,
-    "adds": 15,
+    "name": "Quenton Jackson",
+    "team": "IND",
+    "pos": "PG,SG",
+    "ros": 6,
+    "start": 3,
+    "drops": 571,
+    "adds": 17,
     "trades": 0,
-    "total": 540
+    "total": 588
    },
    {
     "name": "Keaton Wagler",
     "team": "LAC",
     "pos": "SG",
-    "ros": 21,
+    "ros": 20,
     "start": 18,
-    "drops": 524,
-    "adds": 95,
+    "drops": 561,
+    "adds": 96,
     "trades": 1,
-    "total": 620
+    "total": 658
+   },
+   {
+    "name": "Neemias Queta",
+    "team": "BOS",
+    "pos": "C",
+    "ros": 67,
+    "start": 36,
+    "drops": 545,
+    "adds": 284,
+    "trades": 9,
+    "total": 838
    }
   ]
  }
