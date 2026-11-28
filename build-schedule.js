@@ -12,6 +12,14 @@
 const fs = require('fs');
 const API = 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba';
 const CACHE = '.cache/schedule.json', OUT = 'data/schedule.json', INJ = 'data/injuries.json';
+// The NBA Cup Championship doesn't count toward regular-season stats or fantasy (the quarterfinals and
+// semifinals do), though ESPN lists it as a regular-season game. Dropped by its note, and by date as a
+// fallback: the league schedules nothing else that night. Add next season's date here.
+const CUPFINAL = new Set(['2026-12-11']);
+const cupFinal = e => {
+  const t = [e.name, e.shortName, ...((e.competitions[0] || {}).notes || []).map(n => n.headline)].join(' ');
+  return /cup/i.test(t) && /\b(championship|final)\b/i.test(t) && !/semi|quarter/i.test(t);
+};
 const etToday = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
 const shift = (d, n) => { const t = new Date(d + 'T12:00:00Z'); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
 const J = async u => {
@@ -64,13 +72,13 @@ async function injuries() {
       const day = await J(`${API}/scoreboard?dates=${d.replace(/-/g, '')}`);
       const g = [];
       for (const e of day.events || []) {
-        if ((e.season && e.season.slug) !== 'regular-season') continue;
+        if ((e.season && e.season.slug) !== 'regular-season' || cupFinal(e)) continue;
         const t = e.competitions[0].competitors, a = t.find(x => x.homeAway === 'away'), h = t.find(x => x.homeAway === 'home');
         if (a && h) g.push([a.team.abbreviation, h.team.abbreviation]);
       }
       cache[d] = { at: now, g }; fetched++;
     }
-    if (cache[d].g.length) (d < today ? wk : out)[d] = cache[d].g;
+    if (cache[d].g.length && !CUPFINAL.has(d)) (d < today ? wk : out)[d] = cache[d].g;
   }
   fs.mkdirSync('.cache', { recursive: true }); fs.writeFileSync(CACHE, JSON.stringify(cache));
   fs.mkdirSync('data', { recursive: true });

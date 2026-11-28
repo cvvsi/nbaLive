@@ -3209,7 +3209,7 @@ function renderGrid(ds,live,all,today){
   // a game inside a 3-games-in-4-nights stretch (a 4-night window within this week holding 3 of his games)
   const in4=(t,d)=>ds.includes(d)&&ds.includes(shift(d,3))&&[0,1,2,3].filter(j=>plays(t,shift(d,j))).length>=3;
   const t34=(t,d)=>[-3,-2,-1,0].some(k=>in4(t,shift(d,k)));
-  const teams=[...new Set(Object.values(SC.dates).flat(2))].filter(t=>ds.some(d=>plays(t,d)));
+  const teams=[...new Set(Object.values(SC.dates).flat(2))].filter(t=>t!=="TBD"&&ds.some(d=>plays(t,d)));
   const left=t=>live.filter(d=>plays(t,d)).length;
   const SV=sznVals(all),szn={};all.map(([id])=>[id,SV[id].v]).sort((a,b)=>b[1]-a[1]).forEach(([id],i)=>szn[id]=i+1);
   // week minutes (next man up) per player, for the week rank and the team panel
